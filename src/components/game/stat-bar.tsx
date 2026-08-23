@@ -20,11 +20,11 @@ export function StatBar({
         : "bg-accent";
   return (
     <div className="min-w-0">
-      <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="text-xs font-medium tracking-wide text-muted">
+      <div className="mb-1 flex items-baseline justify-between gap-1.5">
+        <span className="truncate text-[0.65rem] font-medium tracking-wide text-muted sm:text-xs">
           {label}
         </span>
-        <span className="font-mono text-sm tabular-nums text-fg">
+        <span className="shrink-0 font-mono text-xs tabular-nums text-fg sm:text-sm">
           {Math.round(value)}/{max}
         </span>
       </div>
