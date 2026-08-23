@@ -621,6 +621,11 @@ export const useGame = create<GameState>()(
         });
       },
       huntBounty: (rivalId) => {
+        const before = get();
+        const target = before.rivals.find((r) => r.id === rivalId);
+        // Zaten yerde olan hedefe saldırı işlemez; ödül bedavaya gitmesin.
+        if (!target || target.hospitalTicks > 0 || target.health <= 0) return;
+        if (target.bounty <= 0) return;
         get().attackRival(rivalId);
         const after = get();
         if (!after.player) return;
@@ -1447,6 +1452,9 @@ export const useGame = create<GameState>()(
       resetGame: () => {
         set({
           ...emptyPersist,
+          rivals: [],
+          logs: [],
+          market: { ...MARKET_START },
         });
       },
     }),

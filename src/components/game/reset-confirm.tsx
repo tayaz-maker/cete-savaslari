@@ -68,7 +68,7 @@ export function ResetLink({ className }: { className?: string }) {
       <button
         type="button"
         className={cn(
-          "text-xs tracking-wide text-subtle uppercase hover:text-muted",
+          "inline-flex min-h-11 items-center text-xs tracking-wide text-subtle uppercase hover:text-muted",
           className,
         )}
         onClick={() => setOpen(true)}

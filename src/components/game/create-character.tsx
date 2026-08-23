@@ -36,8 +36,18 @@ export function CreateCharacter() {
         maxLength={24}
         placeholder="Örn. Halil"
         autoComplete="off"
+        autoCapitalize="words"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="go"
         autoFocus
         onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.currentTarget.blur();
+            useGame.getState().createPlayer(name, hood);
+          }
+        }}
       />
 
       <p className="mt-8 text-xs font-medium tracking-wide text-muted uppercase">

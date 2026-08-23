@@ -1,3 +1,4 @@
+import { formatTicksAsMinutes } from "@/game/clock";
 import {
   CREW_MAP,
   ESTATE_MAP,
@@ -64,8 +65,8 @@ export function MePanel({ player }: { player: Player }) {
           {player.durum === "serbest"
             ? "serbest"
             : player.durum === "nezaret"
-              ? `nezaret (${player.durumTick * 10} dk)`
-              : `klinik (${player.durumTick * 10} dk)`}
+              ? `nezaret (${formatTicksAsMinutes(player.durumTick)})`
+              : `klinik (${formatTicksAsMinutes(player.durumTick)})`}
         </p>
       </section>
 

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ResetConfirm } from "@/components/game/reset-confirm";
 import { StatBar } from "@/components/game/stat-bar";
-import { formatClock } from "@/game/clock";
+import { formatClock, formatTicksAsMinutes } from "@/game/clock";
 import {
   HEAT_MAX,
   HOSPITAL_THRESHOLD,
@@ -117,9 +117,9 @@ export function Hud({ player }: { player: Player }) {
         {locked ? (
           <p className="text-sm text-danger">
             {player.durum === "nezaret"
-              ? `Nezarethanedesin. ${player.durumTick * 10} dk kaldı — saati geçir veya rüşvet ver.`
+              ? `Nezarethanedesin. ${formatTicksAsMinutes(player.durumTick)} kaldı — saati geçir veya rüşvet ver.`
               : player.durum === "klinik"
-                ? `Kliniktesin. ${player.durumTick * 10} dk. Doktor bırakana kadar iş yok.`
+                ? `Kliniktesin. ${formatTicksAsMinutes(player.durumTick)}. Doktor bırakana kadar iş yok.`
                 : "Can 20'nin altında. Komadasın sayılır — klinik şart."}
           </p>
         ) : player.isi >= 55 ? (

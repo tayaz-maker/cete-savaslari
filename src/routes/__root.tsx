@@ -9,9 +9,13 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
       { title: APP_NAME },
-      { name: "theme-color", content: "#0e0c0b" },
+      { name: "theme-color", content: "#080706" },
       {
         name: "description",
         content: "Racon ve Sokak — İstanbul yeraltı simülasyonu. 18+.",

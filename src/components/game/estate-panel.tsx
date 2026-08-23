@@ -33,6 +33,8 @@ export function EstatePanel({ player }: { player: Player }) {
     owned.reduce((a, e) => a + estateIncomeHourly(player, e), 0) +
     turfHaraçHourly(player);
   const port = portfolioTRY(player, market);
+  const bankNum = Math.round(Number(bankAmt));
+  const bankBad = !Number.isFinite(bankNum) || bankNum <= 0;
 
   return (
     <div className="space-y-8">
@@ -45,21 +47,23 @@ export function EstatePanel({ player }: { player: Player }) {
         <div className="mt-4 flex flex-wrap gap-2">
           <Input
             type="number"
+            inputMode="numeric"
             min={100}
+            step={100}
             value={bankAmt}
             onChange={(e) => setBankAmt(e.target.value)}
             className="max-w-36"
           />
           <Button
-            onClick={() => bankMove(Number(bankAmt), "in")}
-            disabled={player.cash < Number(bankAmt) || Number(bankAmt) <= 0}
+            onClick={() => bankMove(bankNum, "in")}
+            disabled={bankBad || player.cash < bankNum}
           >
             Yatır
           </Button>
           <Button
             variant="ghost"
-            onClick={() => bankMove(Number(bankAmt), "out")}
-            disabled={player.bank < Number(bankAmt) || Number(bankAmt) <= 0}
+            onClick={() => bankMove(bankNum, "out")}
+            disabled={bankBad || player.bank < bankNum}
           >
             Çek
           </Button>

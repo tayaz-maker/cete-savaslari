@@ -30,6 +30,11 @@ export function StreetPanel({ player }: { player: Player }) {
   const blocked = !canAct(player) || player.stamina < PVP_STAMINA_COST;
   const turfBlocked = !canAct(player) || player.stamina < TURF_STAMINA;
   const totalHarac = turfHaraçHourly(player);
+  const bountyAmt = Math.round(Number(amount));
+  const bountyBad =
+    !Number.isFinite(bountyAmt) ||
+    bountyAmt < 500 ||
+    player.cash < bountyAmt;
 
   return (
     <div className="space-y-8">
@@ -196,15 +201,18 @@ export function StreetPanel({ player }: { player: Player }) {
                   <div className="mt-3 flex gap-2">
                     <Input
                       type="number"
+                      inputMode="numeric"
                       min={500}
+                      step={500}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       className="max-w-40"
                     />
                     <Button
                       variant="danger"
+                      disabled={bountyBad}
                       onClick={() => {
-                        putBounty(r.id, Number(amount));
+                        putBounty(r.id, bountyAmt);
                         setBountyId(null);
                       }}
                     >

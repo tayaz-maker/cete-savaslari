@@ -87,7 +87,9 @@ export type WorldSlice = {
 export function applyTick(s: WorldSlice): WorldSlice {
   let p: Player = { ...s.player };
   let logs = s.logs;
-  const prevUsdt = s.market?.usdt ?? MARKET_START.usdt;
+  const rawUsdt = s.market?.usdt ?? MARKET_START.usdt;
+  const prevUsdt =
+    Number.isFinite(rawUsdt) && rawUsdt > 0 ? rawUsdt : MARKET_START.usdt;
   const market = walkMarket(s.market ?? MARKET_START);
   if (Math.abs(market.usdt - prevUsdt) / prevUsdt > 0.04) {
     logs = pushLog(
@@ -102,8 +104,9 @@ export function applyTick(s: WorldSlice): WorldSlice {
 
   p.dakika += TICK_MINUTES;
   if (p.dakika >= 60) {
-    p.dakika = 0;
-    p.saat += 1;
+    // Bozuk kayıtta dakika 60'ın katı olmayabilir; artan dakika kaybolmasın.
+    p.saat += Math.floor(p.dakika / 60);
+    p.dakika %= 60;
   }
   const newDay = p.saat >= 24;
   if (newDay) {

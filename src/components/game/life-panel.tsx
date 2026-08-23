@@ -19,36 +19,43 @@ const ACTS: {
   title: string;
   desc: string;
   cost: string;
+  /** store.live() içindeki asgari nakit — buton boşuna aktif görünmesin. */
+  minCash: number;
 }[] = [
   {
     id: "bira",
     title: "Bira çek",
     desc: "Köşe tezgâhı, soğuk şişe. Can ve racon açılır, emniyet biraz düşer.",
     cost: "180 ₺",
+    minCash: 180,
   },
   {
     id: "raki",
     title: "Rakı masası",
     desc: "Beyaz, soğuk. Kan yerine gelir, dil açılır.",
     cost: "850 ₺",
+    minCash: 850,
   },
   {
     id: "esrar",
     title: "Duman",
     desc: "Arka oda. Can ve mermi dolar, emniyet düşer.",
     cost: "1.100 ₺",
+    minCash: 1100,
   },
   {
     id: "pavyon",
     title: "Pavyon gecesi",
     desc: "Sahne ışığı, konsomatris, hesap. Adın döner. Sevgili duyarsa soğur.",
     cost: "4.200 ₺",
+    minCash: 4200,
   },
   {
     id: "okey",
     title: "Okey / kâğıt",
     desc: "Çift 7 ya da taş gelmez. Bahis kıdemine göre.",
     cost: "bahis",
+    minCash: 400,
   },
 ];
 
@@ -68,7 +75,10 @@ export function LifePanel({ player }: { player: Player }) {
   const sMax = staminaMax(player.level);
   const [stake, setStake] = useState(1000);
   const chip = Math.min(stake, player.cash);
+  // store: bahis 100'ün altındaysa hiçbir masa oynamaz.
+  const noBet = blocked || chip < 100 || player.cash < chip;
   const gf = player.girlfriend ? PARTNER_MAP[player.girlfriend] : null;
+  const divorceFee = 6000 + player.kids * 4000;
 
   return (
     <div className="space-y-10">
@@ -137,7 +147,7 @@ export function LifePanel({ player }: { player: Player }) {
             </p>
             <Button
               className="mt-3"
-              disabled={blocked}
+              disabled={blocked || player.cash < a.minCash}
               onClick={() => live(a.id)}
             >
               Yap
@@ -166,19 +176,19 @@ export function LifePanel({ player }: { player: Player }) {
           <CasinoCard
             title="Slot"
             desc="Üç makara. Üç 7 on iki kat."
-            disabled={blocked || player.cash < chip}
+            disabled={noBet}
             onPlay={() => gamble("slot", chip)}
           />
           <CasinoCard
             title="Kazı kazan"
             desc="Çizgi ya altın ya boş."
-            disabled={blocked || player.cash < chip}
+            disabled={noBet}
             onPlay={() => gamble("kazi", chip)}
           />
           <CasinoCard
             title="Blackjack"
             desc="Bir el, krupiye. 21'e yakın olan alır."
-            disabled={blocked || player.cash < chip}
+            disabled={noBet}
             onPlay={() => gamble("blackjack", chip)}
           />
           <div className="rounded-2xl bg-surface p-4 shadow-[0_0_0_1px_rgba(239,232,222,0.08)]">
@@ -188,21 +198,21 @@ export function LifePanel({ player }: { player: Player }) {
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
-                disabled={blocked || player.cash < chip}
+                disabled={noBet}
                 onClick={() => gamble("rulet", chip, "kirmizi")}
               >
                 Kırmızı
               </Button>
               <Button
                 variant="ghost"
-                disabled={blocked || player.cash < chip}
+                disabled={noBet}
                 onClick={() => gamble("rulet", chip, "siyah")}
               >
                 Siyah
               </Button>
               <Button
                 variant="ghost"
-                disabled={blocked || player.cash < chip}
+                disabled={noBet}
                 onClick={() => gamble("rulet", chip, "sayi")}
               >
                 Tek sayı
@@ -229,7 +239,7 @@ export function LifePanel({ player }: { player: Player }) {
               </p>
               <Button
                 className="mt-3"
-                disabled={blocked || player.cash < chip}
+                disabled={noBet}
                 onClick={() => betRace(i, chip)}
               >
                 Bahis
@@ -322,7 +332,12 @@ export function LifePanel({ player }: { player: Player }) {
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
-                    disabled={blocked || player.married}
+                    disabled={
+                      blocked ||
+                      player.married ||
+                      player.cash < 400 ||
+                      player.stamina < 3
+                    }
                     onClick={() => relate(p.id, "flort")}
                   >
                     Laf at
@@ -336,20 +351,25 @@ export function LifePanel({ player }: { player: Player }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    disabled={blocked || player.cash < p.date}
+                    disabled={
+                      blocked || player.cash < p.date || player.stamina < 4
+                    }
                     onClick={() => relate(p.id, "randevu")}
                   >
                     Randevu
                   </Button>
                   {!player.married && !player.girlfriend && aff >= 25 ? (
-                    <Button onClick={() => relate(p.id, "baslat")}>
+                    <Button
+                      disabled={blocked}
+                      onClick={() => relate(p.id, "baslat")}
+                    >
                       İlişki başlat
                     </Button>
                   ) : null}
                   {isGf ? (
                     <>
                       <Button
-                        disabled={blocked}
+                        disabled={blocked || player.stamina < 4}
                         onClick={() => relate(p.id, "gece")}
                       >
                         Gece geçir
@@ -368,6 +388,7 @@ export function LifePanel({ player }: { player: Player }) {
                       ) : null}
                       <Button
                         variant="ghost"
+                        disabled={blocked}
                         onClick={() => relate(p.id, "bitir")}
                       >
                         Bitir
@@ -401,7 +422,9 @@ export function LifePanel({ player }: { player: Player }) {
             </Button>
             <Button
               variant="ghost"
-              disabled={blocked || !player.married}
+              disabled={
+                blocked || !player.married || player.cash < divorceFee
+              }
               onClick={() => live("bosan")}
             >
               Boşan

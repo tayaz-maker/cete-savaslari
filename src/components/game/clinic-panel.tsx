@@ -15,6 +15,17 @@ export function ClinicPanel({ player }: { player: Player }) {
   const payBribe = useGame((s) => s.payBribe);
   const [deposit, setDeposit] = useState("2000");
   const fee = Math.round(player.cash * 0.15);
+  const depositAmt = Math.floor(Number(deposit));
+  const depositBad =
+    !Number.isFinite(depositAmt) ||
+    depositAmt <= 0 ||
+    player.cash < depositAmt;
+  // payBribe: önce rüşvet kasasından, kalanı nakitten.
+  const bribeCost = 3000 * player.level + 2000;
+  const bribeFromCash = Math.max(
+    0,
+    bribeCost - Math.min(player.rusvet, bribeCost),
+  );
 
   return (
     <div className="space-y-6">
@@ -47,21 +58,23 @@ export function ClinicPanel({ player }: { player: Player }) {
         <h2 className="font-display text-2xl font-semibold">Rüşvet kasası</h2>
         <p className="mt-2 text-sm text-muted">
           Baskında önce burası yanar. Kasa: {formatTRY(player.rusvet)}.
-          Yakalanınca yetmezse nakitinden tamamlanır; yetmezse {JAIL_TICKS * 10}{" "}
-          dk nezarethane.
+          Yakalanınca yetmezse nakitinden tamamlanır; yetmezse{" "}
+          {formatTicksAsMinutes(JAIL_TICKS)} nezarethane.
         </p>
         <div className="mt-4 flex gap-2">
           <Input
             type="number"
+            inputMode="numeric"
             min={100}
+            step={100}
             value={deposit}
             onChange={(e) => setDeposit(e.target.value)}
             className="max-w-40"
           />
           <Button
             variant="ghost"
-            onClick={() => depositBribe(Number(deposit))}
-            disabled={player.cash < Number(deposit) || Number(deposit) <= 0}
+            onClick={() => depositBribe(depositAmt)}
+            disabled={depositBad}
           >
             Ayır
           </Button>
@@ -81,7 +94,11 @@ export function ClinicPanel({ player }: { player: Player }) {
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button onClick={skipHour}>1 saat geçir</Button>
-            <Button variant="danger" onClick={payBribe}>
+            <Button
+              variant="danger"
+              onClick={payBribe}
+              disabled={player.cash < bribeFromCash}
+            >
               Rüşvet dene
             </Button>
           </div>

@@ -80,7 +80,7 @@ export function GameShell() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 px-4 py-5 pb-28 md:px-6 md:pb-8">
+        <main className="min-w-0 flex-1 px-4 py-5 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 md:pb-8">
           <Suspense fallback={<div className="h-40 rounded-2xl bg-surface" />}>
             {tab === "ben" ? <MePanel player={player} /> : null}
             {tab === "icraat" ? <JobsPanel player={player} /> : null}
@@ -102,16 +102,25 @@ export function GameShell() {
         </aside>
       </div>
 
+      {logOpen ? (
+        <button
+          type="button"
+          aria-label="Defteri kapat"
+          onClick={() => setLogOpen(false)}
+          className="fixed inset-0 z-20 bg-bg/60 lg:hidden"
+        />
+      ) : null}
       <button
         type="button"
         onClick={() => setLogOpen((v) => !v)}
-        className="fixed right-4 bottom-20 z-20 flex size-11 items-center justify-center rounded-full bg-elevated text-fg shadow-[0_0_0_1px_rgba(239,232,222,0.12)] lg:hidden"
+        className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 flex size-11 items-center justify-center rounded-full bg-elevated text-fg shadow-[0_0_0_1px_rgba(239,232,222,0.12)] lg:hidden"
         aria-label="Defter"
+        aria-expanded={logOpen}
       >
         <ScrollText className="size-4" />
       </button>
       {logOpen ? (
-        <div className="fixed inset-x-0 bottom-16 z-20 max-h-[45vh] overflow-y-auto border-t border-border bg-surface p-4 lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-20 max-h-[45dvh] overflow-y-auto overscroll-contain border-t border-border bg-surface p-4 lg:hidden">
           <LogFeed logs={logs} />
         </div>
       ) : null}
@@ -154,16 +163,19 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "flex items-center gap-2 rounded-lg text-sm transition-colors duration-[var(--motion-quick)]",
         layout === "side" && "h-11 px-3",
         layout === "bottom" &&
-          "h-14 flex-col justify-center gap-0.5 text-[0.65rem] tracking-wide",
+          "h-14 min-w-0 flex-col justify-center gap-0.5 px-0.5 text-[0.6rem] leading-tight tracking-tight",
         active ? "bg-elevated text-fg" : "text-muted hover:text-fg",
       )}
     >
-      <Icon className="size-4" />
-      {label}
+      <Icon className="size-4 shrink-0" />
+      <span className={cn(layout === "bottom" && "w-full truncate text-center")}>
+        {label}
+      </span>
     </button>
   );
 }
