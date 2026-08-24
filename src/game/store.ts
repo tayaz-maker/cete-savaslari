@@ -108,6 +108,7 @@ interface GameState {
   resolveFamily: (choice: FamilyChoice) => void;
   tradeInvest: (id: InvestId, dir: "al" | "sat", units: number) => void;
   fundKose: () => void;
+  adoptCloudSave: (state: Record<string, unknown>) => void;
   resetGame: () => void;
 }
 
@@ -164,42 +165,50 @@ function parseHiz(v: unknown): 1 | 2 | 4 {
   return v === 2 || v === 4 ? v : 1;
 }
 
+/**
+ * Ham bir kalıcı dilimi (localStorage ya da bulut kaydı) güvenli hâle getirir:
+ * eski sürüm alanlarını tamamlar, kaldırılmış semtleri günceller, market'i
+ * doldurur. Her iki kaynak da aynı yoldan geçsin diye ortak.
+ */
+function normalizeSlice(s: Record<string, unknown>) {
+  const playerRaw = s.player as Player | null | undefined;
+  const player =
+    playerRaw && typeof playerRaw === "object"
+      ? hydratePlayer({
+          ...playerRaw,
+          name: playerRaw.name || "İsimsiz",
+          neighborhood: migrateHood(playerRaw.neighborhood),
+        })
+      : null;
+  const rivals = Array.isArray(s.rivals)
+    ? (s.rivals as Rival[]).map((r) => ({
+        ...r,
+        hospitalTicks: r.hospitalTicks ?? 0,
+        hood: migrateHood(r.hood),
+      }))
+    : [];
+  const logs = Array.isArray(s.logs) ? (s.logs as LogEntry[]) : [];
+  const market =
+    s.market && typeof s.market === "object"
+      ? { ...MARKET_START, ...(s.market as Market) }
+      : { ...MARKET_START };
+  return {
+    version: SAVE_VERSION,
+    player,
+    rivals,
+    logs,
+    hiz: parseHiz(s.hiz),
+    market,
+  };
+}
+
 function loadPersistedSlice() {
   if (typeof window === "undefined") return { ...emptyPersist, market: { ...MARKET_START } };
   try {
     const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return { ...emptyPersist, market: { ...MARKET_START } };
     const parsed = JSON.parse(raw) as { state?: Record<string, unknown> };
-    const s = (parsed.state ?? parsed) as Record<string, unknown>;
-    const playerRaw = s.player as Player | null | undefined;
-    const player =
-      playerRaw && typeof playerRaw === "object"
-        ? hydratePlayer({
-            ...playerRaw,
-            name: playerRaw.name || "İsimsiz",
-            neighborhood: migrateHood(playerRaw.neighborhood),
-          })
-        : null;
-    const rivals = Array.isArray(s.rivals)
-      ? (s.rivals as Rival[]).map((r) => ({
-          ...r,
-          hospitalTicks: r.hospitalTicks ?? 0,
-          hood: migrateHood(r.hood),
-        }))
-      : [];
-    const logs = Array.isArray(s.logs) ? (s.logs as LogEntry[]) : [];
-    const market =
-      s.market && typeof s.market === "object"
-        ? { ...MARKET_START, ...(s.market as Market) }
-        : { ...MARKET_START };
-    return {
-      version: SAVE_VERSION,
-      player,
-      rivals,
-      logs,
-      hiz: parseHiz(s.hiz),
-      market,
-    };
+    return normalizeSlice((parsed.state ?? parsed) as Record<string, unknown>);
   } catch {
     return { ...emptyPersist, market: { ...MARKET_START } };
   }
@@ -1449,7 +1458,36 @@ export const useGame = create<GameState>()(
           ),
         });
       },
+      adoptCloudSave: (state) => {
+        try {
+          const next = normalizeSlice(state);
+          if (!next.player) return;
+          set(next);
+        } catch {
+          /* bozuk bulut kaydı oyunu düşürmesin */
+        }
+      },
       resetGame: () => {
+        // Bulut kaydını da sil; yoksa aynı isimle girildiğinde yanan dosya geri
+        // gelirdi. Sunucu yoksa sessizce geçilir.
+        const name = get().player?.name;
+        if (name && typeof window !== "undefined") {
+          void import("./save-sync")
+            .then((m) => m.deleteCloudSave(name))
+            .catch(() => undefined);
+        }
+        if (typeof window !== "undefined") {
+          if (persistTimer) {
+            clearTimeout(persistTimer);
+            persistTimer = null;
+          }
+          persistPending = null;
+          try {
+            window.localStorage.removeItem(SAVE_KEY);
+          } catch {
+            /* quota / gizli sekme */
+          }
+        }
         set({
           ...emptyPersist,
           rivals: [],

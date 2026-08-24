@@ -12,6 +12,7 @@ import {
 import { Hud } from "@/components/game/hud";
 import { JobsPanel } from "@/components/game/jobs-panel";
 import { LogFeed } from "@/components/game/log-feed";
+import { useSaveSync } from "@/game/save-sync";
 import { useGame } from "@/game/store";
 import { useGameClock } from "@/game/use-game-clock";
 import type { TabId } from "@/game/types";
@@ -59,6 +60,7 @@ export function GameShell() {
   const [logOpen, setLogOpen] = useState(false);
 
   useGameClock(Boolean(player));
+  useSaveSync(Boolean(player));
   if (!player) return null;
 
   return (
