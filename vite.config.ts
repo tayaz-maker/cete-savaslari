@@ -261,10 +261,30 @@ export default defineConfig(({ command, isPreview }) => ({
     ...(command === "build" || isPreview
       ? [
           nitro({
-            preset: "vercel",
+            // This app is hosted on Cloudflare Workers (`npx wrangler deploy`),
+            // not Vercel. The template shipped `preset: "vercel"`, which emits
+            // `.vercel/output` and NO `.wrangler/deploy/config.json` — so
+            // wrangler had no worker to publish and only the static assets went
+            // live. Every server route (`/api/auth/*`, TanStack server
+            // functions) therefore 404'd in production while working in dev.
+            //
+            // `cloudflare-module` emits `.output/` plus the wrangler config
+            // that a bare `wrangler deploy` picks up. Override with
+            // NITRO_PRESET to build for another host.
+            preset: process.env.NITRO_PRESET || "cloudflare-module",
+            cloudflare: {
+              wrangler: {
+                // MUST match the existing Worker that tariklab.com routes to.
+                // Nitro otherwise derives a name from the repo
+                // ("tayaz-maker-cete-savaslari") and deploys a second, unrouted
+                // worker while the live one keeps serving the old build.
+                name: "cete-savaslari",
+              },
+            },
             // Auto-registers server/middleware/* (the PWA install page +
-            // manifest + head-tag middleware). Nitro v3 defaults serverDir to
-            // false, so removing this silently unwires /?install=1 on deploys.
+            // manifest + head-tag middleware, and the Better Auth API mount).
+            // Nitro v3 defaults serverDir to false, so removing this silently
+            // unwires them on deploys.
             serverDir: "./server",
           }),
         ]

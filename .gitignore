@@ -1,6 +1,8 @@
 node_modules/
 dist/
+.output/
 .vercel/
+.wrangler/
 .tanstack/
 *.log
 .project_id
