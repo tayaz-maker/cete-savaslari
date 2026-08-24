@@ -235,9 +235,20 @@ export const auth = betterAuth({
     gateIdentitySessions(),
 
     // Kullanıcı adı + şifre ile giriş (yerel hesaplar). email/password açık
-    // olmalı — kayıt username + senkron olarak sentetik bir email üretiyor
-    // (bkz. src/components/auth/*), kullanıcıya gösterilmiyor.
-    username({ minUsernameLength: 3, maxUsernameLength: 24 }),
+    // olmalı — kayıt username ile birlikte sentetik bir email üretiyor
+    // (bkz. account-panel.tsx), kullanıcıya gösterilmiyor.
+    //
+    // Varsayılan doğrulayıcı yalnızca [a-zA-Z0-9_.] kabul ediyor, yani "Ömer"
+    // ya da "Kara Bela" reddedilirdi. Türkçe harfleri, boşluğu ve tireyi de
+    // açıyoruz; normalize ederken tr-TR küçültmesi kullanılıyor ki "TROY",
+    // "Troy" ve "troy" aynı hesabı açsın (I -> ı, İ -> i doğru çalışsın).
+    username({
+      minUsernameLength: 3,
+      maxUsernameLength: 24,
+      usernameValidator: (value) => /^[\p{L}\p{N}][\p{L}\p{N} ._-]*$/u.test(value),
+      usernameNormalization: (value) =>
+        value.trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR"),
+    }),
 
     // One genericOAuth provider per upstream (when auth is on), all federating
     // to the broker with the SAME client and differing only by the `idp` hint.

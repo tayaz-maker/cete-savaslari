@@ -22,33 +22,105 @@ import { cn } from "@/lib/utils";
  * sentetik bir email üretip kaydediyoruz. Giriş her zaman kullanıcı adıyla.
  */
 
-/** "  Troy " -> "troy" — server'ın normalize ettiğiyle aynı biçim. */
-function normalize(username: string) {
-  return username.trim().toLowerCase();
+/** Sunucudaki `usernameNormalization` ile birebir aynı olmak zorunda. */
+function normalizeKey(username: string) {
+  return username.trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR");
 }
 
+const TR_ASCII: Record<string, string> = {
+  ç: "c",
+  ğ: "g",
+  ı: "i",
+  ö: "o",
+  ş: "s",
+  ü: "u",
+  â: "a",
+  î: "i",
+  û: "u",
+};
+
+/** FNV-1a — kısa, deterministik, cihazdan bağımsız parmak izi. */
+function fingerprint(text: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+
+/**
+ * Sentetik e-posta: Better Auth'un "user" tablosu e-posta zorunlu tutuyor ama
+ * oyunda e-posta sormuyoruz.
+ *
+ * İki tuzak var:
+ * 1. Türkçe harfler e-posta yerel kısmında geçersiz — önce ASCII'ye çeviriyoruz
+ *    ("Ömer" -> "omer"), kalan her şeyi tireye indiriyoruz.
+ * 2. Bu çeviri farklı isimleri aynı adrese düşürebilir ("Ömer" ve "Omer" ikisi
+ *    de "omer"). E-posta benzersiz olmak zorunda olduğundan ikinci kayıt
+ *    "kullanıcı adı alınmış" diye reddedilirdi — oysa kullanıcı adları farklı.
+ *    Normalize edilmiş adın parmak izini ekleyerek 1:1 eşleme garanti ediyoruz.
+ */
 function syntheticEmail(username: string) {
-  return `${normalize(username)}@cete-savaslari.local`;
+  const key = normalizeKey(username);
+  let ascii = "";
+  for (const ch of key) ascii += TR_ASCII[ch] ?? ch;
+  const local = ascii.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return `${local || "oyuncu"}-${fingerprint(key)}@cete-savaslari.local`;
 }
 
-/** Better Auth'un İngilizce hata mesajlarını bilinen Türkçe karşılıklarına çevir. */
-function trMessage(message: string | undefined): string {
-  const known: Record<string, string> = {
-    "Invalid username or password": "Kullanıcı adı ya da şifre yanlış.",
-    "Username is already taken. Please try another.":
-      "Bu kullanıcı adı alınmış. Başka bir tane dene.",
-    "Username is too short": "Kullanıcı adı çok kısa (en az 3 karakter).",
-    "Username is too long": "Kullanıcı adı çok uzun (en fazla 24 karakter).",
-    "Username is invalid":
-      "Kullanıcı adı sadece harf, rakam, alt çizgi ve nokta içerebilir (Türkçe karakter yok).",
-    "Password too short": "Şifre çok kısa (en az 8 karakter).",
-    "Password too long": "Şifre çok uzun.",
-    "User already exists.": "Bu kullanıcı adı alınmış. Başka bir tane dene.",
-    "User already exists. Use another email.":
-      "Bu kullanıcı adı alınmış. Başka bir tane dene.",
-    "Invalid email or password": "Kullanıcı adı ya da şifre yanlış.",
-  };
-  return known[message ?? ""] ?? message ?? "Bir şeyler ters gitti.";
+/** Better Auth hata kodlarının Türkçe karşılıkları. */
+const TR_BY_CODE: Record<string, string> = {
+  INVALID_USERNAME_OR_PASSWORD: "Kullanıcı adı ya da şifre yanlış.",
+  USERNAME_IS_ALREADY_TAKEN: "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+  USERNAME_TOO_SHORT: "Kullanıcı adı çok kısa (en az 3 karakter).",
+  USERNAME_TOO_LONG: "Kullanıcı adı çok uzun (en fazla 24 karakter).",
+  INVALID_USERNAME:
+    "Kullanıcı adı harfle ya da rakamla başlamalı; harf, rakam, boşluk, nokta, tire ve alt çizgi kullanabilirsin.",
+  PASSWORD_TOO_SHORT: "Şifre çok kısa (en az 8 karakter).",
+  PASSWORD_TOO_LONG: "Şifre çok uzun.",
+  USER_ALREADY_EXISTS: "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
+    "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+  INVALID_EMAIL_OR_PASSWORD: "Kullanıcı adı ya da şifre yanlış.",
+  EMAIL_NOT_VERIFIED: "E-posta doğrulanmamış.",
+  FAILED_TO_CREATE_SESSION: "Oturum açılamadı. Tekrar dene.",
+};
+
+const TR_BY_MESSAGE: Record<string, string> = {
+  "Invalid username or password": "Kullanıcı adı ya da şifre yanlış.",
+  "Username is already taken. Please try another.":
+    "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+  "Username is too short": "Kullanıcı adı çok kısa (en az 3 karakter).",
+  "Username is too long": "Kullanıcı adı çok uzun (en fazla 24 karakter).",
+  "Password too short": "Şifre çok kısa (en az 8 karakter).",
+  "User already exists.": "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+};
+
+type AuthError = {
+  message?: string;
+  code?: string;
+  status?: number;
+  statusText?: string;
+};
+
+/**
+ * Hatayı ASLA yutma: bilinen bir kod/mesaj varsa Türkçesini, yoksa sunucunun
+ * ham mesajını, o da yoksa HTTP durumunu göster. Önceki sürüm hepsini
+ * "Bir şeyler ters gitti."ye çeviriyordu ve sorunu teşhis etmek imkânsızdı.
+ */
+function describeError(err: AuthError | null | undefined): string {
+  if (!err) return "Bilinmeyen hata.";
+  // Geliştirici konsoluna tam nesneyi bırak — destek için gereken tek şey bu.
+  console.error("[auth] hata:", err);
+  if (err.code && TR_BY_CODE[err.code]) return TR_BY_CODE[err.code];
+  if (err.message && TR_BY_MESSAGE[err.message]) return TR_BY_MESSAGE[err.message];
+  const parts: string[] = [];
+  if (err.message) parts.push(err.message);
+  else if (err.code) parts.push(err.code);
+  if (err.status) parts.push(`(HTTP ${err.status}${err.statusText ? ` ${err.statusText}` : ""})`);
+  if (parts.length) return parts.join(" ");
+  return "Sunucuya ulaşıldı ama hata ayrıntısı gelmedi.";
 }
 
 export function AccountPanel({ className }: { className?: string }) {
@@ -141,16 +213,17 @@ function AccountDialog({
           username: uname,
         } as Parameters<typeof authClient.signUp.email>[0] & { username: string });
         if (err) {
-          setError(trMessage(err.message));
+          setError(describeError(err));
           return;
         }
       } else {
+        // Ham hâlini gönder — normalize etmek sunucunun işi (tr-TR küçültme).
         const { error: err } = await authClient.signIn.username({
-          username: normalize(uname),
+          username: uname,
           password,
         });
         if (err) {
-          setError(trMessage(err.message));
+          setError(describeError(err));
           return;
         }
       }
@@ -159,8 +232,10 @@ function AccountDialog({
       await reconcileOnce();
       reset();
       onOpenChange(false);
-    } catch {
-      setError("Bağlanamadım. Bağlantını kontrol edip tekrar dene.");
+    } catch (e) {
+      console.error("[auth] istek atılamadı:", e);
+      const detail = e instanceof Error ? e.message : String(e);
+      setError(`Sunucuya ulaşılamadı: ${detail}`);
     } finally {
       setBusy(false);
     }
@@ -205,9 +280,15 @@ function AccountDialog({
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="ör. troy"
+              placeholder="ör. Troy"
               onChange={(e) => setUsername(e.target.value)}
             />
+            {mode === "up" ? (
+              <p className="mt-1 text-xs text-muted">
+                3–24 karakter. Türkçe harf, boşluk, nokta ve tire serbest. Büyük
+                harf fark etmez.
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="block text-xs font-medium tracking-wide text-muted uppercase">
@@ -220,6 +301,9 @@ function AccountDialog({
               autoComplete={mode === "up" ? "new-password" : "current-password"}
               onChange={(e) => setPassword(e.target.value)}
             />
+            {mode === "up" ? (
+              <p className="mt-1 text-xs text-muted">En az 8 karakter.</p>
+            ) : null}
           </div>
           {mode === "up" ? (
             <div>
