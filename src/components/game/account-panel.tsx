@@ -8,68 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { emailAuth } from "@/lib/auth-email";
 import { authClient, signOut } from "@/lib/auth/client";
 import { reconcileOnce } from "@/game/save-sync";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/utils";
 
-/**
- * Kullanıcı adı + şifre ile isteğe bağlı hesap. Oturum açmadan oyun aynen
- * eskisi gibi çalışır (localStorage) — bu sadece cihazlar arası senkron için.
- *
- * Better Auth'un "user" tablosu email zorunlu tutuyor (bkz.
- * migrations/0002_auth.sql); kullanıcıya göstermeden `${username}@…local`
- * sentetik bir email üretip kaydediyoruz. Giriş her zaman kullanıcı adıyla.
- */
-
-/** Sunucudaki `usernameNormalization` ile birebir aynı olmak zorunda. */
-function normalizeKey(username: string) {
-  return username.trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR");
-}
-
-const TR_ASCII: Record<string, string> = {
-  ç: "c",
-  ğ: "g",
-  ı: "i",
-  ö: "o",
-  ş: "s",
-  ü: "u",
-  â: "a",
-  î: "i",
-  û: "u",
-};
-
-/** FNV-1a — kısa, deterministik, cihazdan bağımsız parmak izi. */
-function fingerprint(text: string) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < text.length; i += 1) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return h.toString(16).padStart(8, "0");
-}
-
-/**
- * Sentetik e-posta: Better Auth'un "user" tablosu e-posta zorunlu tutuyor ama
- * oyunda e-posta sormuyoruz.
- *
- * İki tuzak var:
- * 1. Türkçe harfler e-posta yerel kısmında geçersiz — önce ASCII'ye çeviriyoruz
- *    ("Ömer" -> "omer"), kalan her şeyi tireye indiriyoruz.
- * 2. Bu çeviri farklı isimleri aynı adrese düşürebilir ("Ömer" ve "Omer" ikisi
- *    de "omer"). E-posta benzersiz olmak zorunda olduğundan ikinci kayıt
- *    "kullanıcı adı alınmış" diye reddedilirdi — oysa kullanıcı adları farklı.
- *    Normalize edilmiş adın parmak izini ekleyerek 1:1 eşleme garanti ediyoruz.
- */
-function syntheticEmail(username: string) {
-  const key = normalizeKey(username);
-  let ascii = "";
-  for (const ch of key) ascii += TR_ASCII[ch] ?? ch;
-  const local = ascii.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return `${local || "oyuncu"}-${fingerprint(key)}@cete-savaslari.local`;
-}
-
-/** Better Auth hata kodlarının Türkçe karşılıkları. */
 const TR_BY_CODE: Record<string, string> = {
   INVALID_USERNAME_OR_PASSWORD: "Kullanıcı adı ya da şifre yanlış.",
   USERNAME_IS_ALREADY_TAKEN: "Bu kullanıcı adı alınmış. Başka bir tane dene.",
@@ -79,11 +23,10 @@ const TR_BY_CODE: Record<string, string> = {
     "Kullanıcı adı harfle ya da rakamla başlamalı; harf, rakam, boşluk, nokta, tire ve alt çizgi kullanabilirsin.",
   PASSWORD_TOO_SHORT: "Şifre çok kısa (en az 8 karakter).",
   PASSWORD_TOO_LONG: "Şifre çok uzun.",
-  USER_ALREADY_EXISTS: "Bu kullanıcı adı alınmış. Başka bir tane dene.",
-  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-    "Bu kullanıcı adı alınmış. Başka bir tane dene.",
-  INVALID_EMAIL_OR_PASSWORD: "Kullanıcı adı ya da şifre yanlış.",
-  EMAIL_NOT_VERIFIED: "E-posta doğrulanmamış.",
+  USER_ALREADY_EXISTS: "Bu e-posta veya kullanıcı adı alınmış.",
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "Bu e-posta alınmış.",
+  INVALID_EMAIL_OR_PASSWORD: "E-posta/kullanıcı adı ya da şifre yanlış.",
+  EMAIL_NOT_VERIFIED: "Önce e-postanı doğrula. Mail kutusuna bak.",
   FAILED_TO_CREATE_SESSION: "Oturum açılamadı. Tekrar dene.",
 };
 
@@ -94,7 +37,7 @@ const TR_BY_MESSAGE: Record<string, string> = {
   "Username is too short": "Kullanıcı adı çok kısa (en az 3 karakter).",
   "Username is too long": "Kullanıcı adı çok uzun (en fazla 24 karakter).",
   "Password too short": "Şifre çok kısa (en az 8 karakter).",
-  "User already exists.": "Bu kullanıcı adı alınmış. Başka bir tane dene.",
+  "User already exists.": "Bu e-posta veya kullanıcı adı alınmış.",
 };
 
 type AuthError = {
@@ -104,39 +47,47 @@ type AuthError = {
   statusText?: string;
 };
 
-/**
- * Hatayı ASLA yutma: bilinen bir kod/mesaj varsa Türkçesini, yoksa sunucunun
- * ham mesajını, o da yoksa HTTP durumunu göster. Önceki sürüm hepsini
- * "Bir şeyler ters gitti."ye çeviriyordu ve sorunu teşhis etmek imkânsızdı.
- */
 function describeError(err: AuthError | null | undefined): string {
   if (!err) return "Bilinmeyen hata.";
-  // Geliştirici konsoluna tam nesneyi bırak — destek için gereken tek şey bu.
   console.error("[auth] hata:", err);
   if (err.code && TR_BY_CODE[err.code]) return TR_BY_CODE[err.code];
   if (err.message && TR_BY_MESSAGE[err.message]) return TR_BY_MESSAGE[err.message];
   const parts: string[] = [];
   if (err.message) parts.push(err.message);
   else if (err.code) parts.push(err.code);
-  if (err.status) parts.push(`(HTTP ${err.status}${err.statusText ? ` ${err.statusText}` : ""})`);
+  if (err.status)
+    parts.push(`(HTTP ${err.status}${err.statusText ? ` ${err.statusText}` : ""})`);
   if (parts.length) return parts.join(" ");
   return "Sunucuya ulaşıldı ama hata ayrıntısı gelmedi.";
 }
 
+function isRealEmail(email: string | null | undefined) {
+  if (!email) return false;
+  return !email.endsWith("@cete-savaslari.local");
+}
+
 export function AccountPanel({ className }: { className?: string }) {
   const { user, isPending } = useCurrentUserState();
+  const session = authClient.useSession();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const verified = Boolean(session.data?.user?.emailVerified);
 
   if (isPending) return null;
 
   if (user) {
     const label = user.displayName ?? "Hesap";
     return (
-      <div className={cn("flex items-center gap-2", className)}>
+      <div className={cn("flex flex-wrap items-center gap-2", className)}>
         <span className="text-xs text-muted">
           Hesap: <span className="text-fg">{label}</span>
+          {isRealEmail(user.primaryEmail) && !verified ? (
+            <span className="ml-1 text-warn">· e-posta doğrulanmadı</span>
+          ) : null}
         </span>
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          Hesap
+        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -148,6 +99,7 @@ export function AccountPanel({ className }: { className?: string }) {
         >
           {signingOut ? "Çıkılıyor…" : "Çıkış yap"}
         </Button>
+        <AccountDialog open={open} onOpenChange={setOpen} signedIn />
       </div>
     );
   }
@@ -169,69 +121,181 @@ export function AccountPanel({ className }: { className?: string }) {
 function AccountDialog({
   open,
   onOpenChange,
+  signedIn = false,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  signedIn?: boolean;
 }) {
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const session = authClient.useSession();
+  const user = session.data?.user;
+  const [mode, setMode] = useState<"in" | "up" | "forgot" | "pw">("in");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [current, setCurrent] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
   const reset = () => {
     setUsername("");
+    setEmail("");
     setPassword("");
     setPassword2("");
+    setCurrent("");
     setError(null);
+    setOk(null);
     setBusy(false);
+    setMode(signedIn ? "pw" : "in");
+  };
+
+  const resend = async () => {
+    const em = user?.email || email.trim();
+    if (!em || !isRealEmail(em)) {
+      setError("Gerçek bir e-posta yok.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const { error: err } = await emailAuth.sendVerificationEmail({
+        email: em,
+        callbackURL: "/",
+      });
+      if (err) {
+        setError(describeError(err));
+        return;
+      }
+      setOk("Doğrulama maili tekrar gitti.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Mail gitmedi.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const submit = async () => {
     setError(null);
+    setOk(null);
     const uname = username.trim();
-    if (uname.length < 3) {
-      setError("Kullanıcı adı en az 3 karakter olmalı.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Şifre en az 8 karakter olmalı.");
-      return;
-    }
-    if (mode === "up" && password !== password2) {
-      setError("Şifreler eşleşmiyor.");
-      return;
-    }
+    const em = email.trim().toLowerCase();
     setBusy(true);
     try {
       if (mode === "up") {
+        if (uname.length < 3) {
+          setError("Kullanıcı adı en az 3 karakter olmalı.");
+          return;
+        }
+        if (!em.includes("@") || em.endsWith(".local")) {
+          setError("Gerçek bir e-posta yaz.");
+          return;
+        }
+        if (password.length < 8) {
+          setError("Şifre en az 8 karakter olmalı.");
+          return;
+        }
+        if (password !== password2) {
+          setError("Şifreler eşleşmiyor.");
+          return;
+        }
         const { error: err } = await authClient.signUp.email({
-          email: syntheticEmail(uname),
+          email: em,
           password,
           name: uname,
           username: uname,
-        } as Parameters<typeof authClient.signUp.email>[0] & { username: string });
-        if (err) {
-          setError(describeError(err));
-          return;
-        }
-      } else {
-        // Ham hâlini gönder — normalize etmek sunucunun işi (tr-TR küçültme).
-        const { error: err } = await authClient.signIn.username({
-          username: uname,
-          password,
+          callbackURL: "/",
+        } as Parameters<typeof authClient.signUp.email>[0] & {
+          username: string;
         });
         if (err) {
           setError(describeError(err));
           return;
         }
+        setOk("Kayıt oldu. Doğrulama maili gitti — kutuyu kontrol et.");
+        await reconcileOnce();
+        return;
       }
-      // GameShell (ve içindeki useSaveSync) taze bir cihazda henüz hiç monte
-      // olmamış olabilir — bulut kaydını burada, hemen çekiyoruz.
-      await reconcileOnce();
-      reset();
-      onOpenChange(false);
+
+      if (mode === "in") {
+        const login = uname || em;
+        if (!login || password.length < 8) {
+          setError("Kullanıcı adı veya e-posta ve şifre lazım.");
+          return;
+        }
+        if (login.includes("@")) {
+          const { error: err } = await authClient.signIn.email({
+            email: login.toLowerCase(),
+            password,
+            callbackURL: "/",
+          });
+          if (err) {
+            setError(describeError(err));
+            return;
+          }
+        } else {
+          const { error: err } = await authClient.signIn.username({
+            username: login,
+            password,
+          });
+          if (err) {
+            setError(describeError(err));
+            return;
+          }
+        }
+        await reconcileOnce();
+        reset();
+        onOpenChange(false);
+        return;
+      }
+
+      if (mode === "forgot") {
+        const login = em || uname;
+        if (!login) {
+          setError("E-posta yaz.");
+          return;
+        }
+        const target = login.includes("@") ? login.toLowerCase() : "";
+        if (!target) {
+          setError("Reset için e-posta lazım.");
+          return;
+        }
+        const { error: err } = await emailAuth.requestPasswordReset({
+          email: target,
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (err) {
+          setError(describeError(err));
+          return;
+        }
+        setOk("Reset linki mailde. 1 saat geçerli.");
+        return;
+      }
+
+      if (mode === "pw") {
+        if (password.length < 8) {
+          setError("Yeni şifre en az 8 karakter.");
+          return;
+        }
+        if (password !== password2) {
+          setError("Şifreler uyuşmuyor.");
+          return;
+        }
+        const { error: err } = await emailAuth.changePassword({
+          currentPassword: current,
+          newPassword: password,
+          revokeOtherSessions: true,
+        });
+        if (err) {
+          setError(describeError(err));
+          return;
+        }
+        setOk("Şifre değişti.");
+        setCurrent("");
+        setPassword("");
+        setPassword2("");
+      }
     } catch (e) {
       console.error("[auth] istek atılamadı:", e);
       const detail = e instanceof Error ? e.message : String(e);
@@ -241,25 +305,45 @@ function AccountDialog({
     }
   };
 
+  const title = signedIn
+    ? "Hesap"
+    : mode === "up"
+      ? "Hesap oluştur"
+      : mode === "forgot"
+        ? "Şifremi unuttum"
+        : "Giriş yap";
+
   return (
     <Dialog
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
         if (!v) reset();
+        else if (signedIn) setMode("pw");
       }}
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {mode === "up" ? "Hesap oluştur" : "Giriş yap"}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {mode === "up"
-              ? "Kullanıcı adı ve şifre yeter. Bu hesapla başka bir cihazda da aynı dosyaya devam edersin."
-              : "Kullanıcı adın ve şifrenle gir, kaldığın yerden devam et."}
+            {signedIn
+              ? "Şifre değiştir, e-postanı doğrula. Bulut kayıt doğrulanmış hesaba yazar."
+              : mode === "up"
+                ? "Kullanıcı adı, e-posta ve şifre. Başka cihazda aynı dosya."
+                : mode === "forgot"
+                  ? "E-postana reset linki gider."
+                  : "Kullanıcı adı veya e-posta + şifre."}
           </DialogDescription>
         </DialogHeader>
+
+        {user && isRealEmail(user.email) && !user.emailVerified ? (
+          <div className="mt-3 rounded-xl bg-elevated p-3 text-sm">
+            <p className="text-warn">E-postan doğrulanmadı. Bulut kayıt kapalı.</p>
+            <Button className="mt-2" variant="ghost" disabled={busy} onClick={() => void resend()}>
+              Doğrulama maili tekrar gönder
+            </Button>
+          </div>
+        ) : null}
 
         <form
           className="mt-4 space-y-3"
@@ -268,44 +352,81 @@ function AccountDialog({
             void submit();
           }}
         >
-          <div>
-            <label className="block text-xs font-medium tracking-wide text-muted uppercase">
-              Kullanıcı adı
-            </label>
-            <Input
-              className="mt-1.5"
-              value={username}
-              maxLength={24}
-              autoComplete="username"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="ör. Troy"
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            {mode === "up" ? (
-              <p className="mt-1 text-xs text-muted">
-                3–24 karakter. Türkçe harf, boşluk, nokta ve tire serbest. Büyük
-                harf fark etmez.
-              </p>
-            ) : null}
-          </div>
-          <div>
-            <label className="block text-xs font-medium tracking-wide text-muted uppercase">
-              Şifre
-            </label>
-            <Input
-              className="mt-1.5"
-              type="password"
-              value={password}
-              autoComplete={mode === "up" ? "new-password" : "current-password"}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {mode === "up" ? (
-              <p className="mt-1 text-xs text-muted">En az 8 karakter.</p>
-            ) : null}
-          </div>
-          {mode === "up" ? (
+          {!signedIn && mode !== "forgot" ? (
+            <div>
+              <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+                Kullanıcı adı
+              </label>
+              <Input
+                className="mt-1.5"
+                value={username}
+                maxLength={24}
+                autoComplete="username"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="ör. Troy"
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {(mode === "up" || mode === "forgot" || (!signedIn && mode === "in")) &&
+          (mode === "up" || mode === "forgot") ? (
+            <div>
+              <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+                E-posta
+              </label>
+              <Input
+                className="mt-1.5"
+                type="email"
+                value={email}
+                autoComplete="email"
+                placeholder="sen@mail.com"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {mode === "in" ? (
+            <p className="text-xs text-muted">
+              Girişte kullanıcı adı yerine e-posta da yazabilirsin.
+            </p>
+          ) : null}
+
+          {mode === "pw" ? (
+            <div>
+              <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+                Eski şifre
+              </label>
+              <Input
+                className="mt-1.5"
+                type="password"
+                value={current}
+                autoComplete="current-password"
+                onChange={(e) => setCurrent(e.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {mode !== "forgot" ? (
+            <div>
+              <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+                {mode === "pw" ? "Yeni şifre" : "Şifre"}
+              </label>
+              <Input
+                className="mt-1.5"
+                type="password"
+                value={password}
+                autoComplete={
+                  mode === "in" ? "current-password" : "new-password"
+                }
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {mode === "up" || mode === "pw" ? (
             <div>
               <label className="block text-xs font-medium tracking-wide text-muted uppercase">
                 Şifre (tekrar)
@@ -321,28 +442,55 @@ function AccountDialog({
           ) : null}
 
           {error ? <p className="text-sm text-danger">{error}</p> : null}
+          {ok ? <p className="text-sm text-accent">{ok}</p> : null}
 
           <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              className="text-xs text-muted underline-offset-4 hover:text-fg hover:underline"
-              onClick={() => {
-                setMode((m) => (m === "up" ? "in" : "up"));
-                setError(null);
-              }}
-            >
-              {mode === "up"
-                ? "Zaten hesabım var, giriş yapayım"
-                : "Hesabım yok, oluşturayım"}
-            </button>
+            {!signedIn ? (
+              <button
+                type="button"
+                className="text-xs text-muted underline-offset-4 hover:text-fg hover:underline"
+                onClick={() => {
+                  setMode((m) =>
+                    m === "up" ? "in" : m === "forgot" ? "in" : "up",
+                  );
+                  setError(null);
+                  setOk(null);
+                }}
+              >
+                {mode === "up"
+                  ? "Zaten hesabım var, giriş yapayım"
+                  : mode === "forgot"
+                    ? "Girişe dön"
+                    : "Hesabım yok, oluşturayım"}
+              </button>
+            ) : (
+              <span />
+            )}
             <Button type="submit" disabled={busy}>
               {busy
                 ? "Bekle…"
                 : mode === "up"
                   ? "Hesap oluştur"
-                  : "Giriş yap"}
+                  : mode === "forgot"
+                    ? "Reset linki gönder"
+                    : mode === "pw"
+                      ? "Şifre değiştir"
+                      : "Giriş yap"}
             </Button>
           </div>
+          {!signedIn && mode === "in" ? (
+            <button
+              type="button"
+              className="text-xs text-accent underline-offset-4 hover:underline"
+              onClick={() => {
+                setMode("forgot");
+                setError(null);
+                setOk(null);
+              }}
+            >
+              Şifremi unuttum
+            </button>
+          ) : null}
         </form>
       </DialogContent>
     </Dialog>

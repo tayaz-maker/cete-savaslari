@@ -62,6 +62,19 @@ export const putSave = createServerFn({ method: "POST" })
   .validator((d: unknown) => saveInput.parse(d))
   .handler(async ({ data, context }): Promise<CloudSave | null> => {
     const sql = await getSql();
+    const ident = await sql<{ verified: boolean; email: string }>`
+      select "emailVerified" as verified, email from "user"
+      where id = ${context.userId} limit 1
+    `;
+    const row0 = ident[0];
+    if (
+      row0 &&
+      row0.verified === false &&
+      row0.email &&
+      !row0.email.endsWith("@cete-savaslari.local")
+    ) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
     await sql`
       insert into saves (user_id, state, progress, updated_at)
       values (${context.userId}, ${JSON.stringify(data.state)}::jsonb, ${data.progress}, now())
