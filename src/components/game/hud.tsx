@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { AccountPanel } from "@/components/game/account-panel";
 import { Button } from "@/components/ui/button";
 import { ResetConfirm } from "@/components/game/reset-confirm";
 import { StatBar } from "@/components/game/stat-bar";
@@ -167,9 +168,12 @@ export function Hud({ player }: { player: Player }) {
             <Chip label="İtibar" value={`${Math.round(player.itibar)}`} />
             <Chip label="Rüşvet" value={formatTRY(player.rusvet)} />
           </div>
-          <span className="md:hidden">
-            <ResetConfirm />
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <AccountPanel />
+            <span className="md:hidden">
+              <ResetConfirm />
+            </span>
+          </div>
         </div>
       </div>
     </header>

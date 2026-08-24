@@ -16,6 +16,7 @@ import { useSaveSync } from "@/game/save-sync";
 import { useGame } from "@/game/store";
 import { useGameClock } from "@/game/use-game-clock";
 import type { TabId } from "@/game/types";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { cn } from "@/lib/utils";
 
 const MePanel = lazy(() =>
@@ -59,8 +60,9 @@ export function GameShell() {
   const [tab, setTab] = useState<TabId>("icraat");
   const [logOpen, setLogOpen] = useState(false);
 
+  const { user } = useCurrentUserState();
   useGameClock(Boolean(player));
-  useSaveSync(Boolean(player));
+  useSaveSync(Boolean(user));
   if (!player) return null;
 
   return (

@@ -30,7 +30,7 @@
  * a verified id via `@/lib/auth/middleware`.
  */
 import { betterAuth } from "better-auth";
-import { bearer, genericOAuth } from "better-auth/plugins";
+import { bearer, genericOAuth, username } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { randomBytes } from "node:crypto";
@@ -233,6 +233,11 @@ export const auth = betterAuth({
 
   plugins: [
     gateIdentitySessions(),
+
+    // Kullanıcı adı + şifre ile giriş (yerel hesaplar). email/password açık
+    // olmalı — kayıt username + senkron olarak sentetik bir email üretiyor
+    // (bkz. src/components/auth/*), kullanıcıya gösterilmiyor.
+    username({ minUsernameLength: 3, maxUsernameLength: 24 }),
 
     // One genericOAuth provider per upstream (when auth is on), all federating
     // to the broker with the SAME client and differing only by the `idp` hint.

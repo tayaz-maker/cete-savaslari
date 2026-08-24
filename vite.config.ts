@@ -142,6 +142,95 @@ function authPopupPlugin(): Plugin {
   };
 }
 
+/**
+ * Dev mount for Better Auth's HTTP API (`/api/auth/*`).
+ *
+ * `@/lib/auth/client` posts sign-up / sign-in / get-session / sign-out to this
+ * same-origin prefix. Nothing served it, so every auth call fell through to the
+ * SPA HTML fallback and came back as a 404 — sign-in could never work. Runs
+ * before tanstackStart for the same reason `authPopupPlugin` does.
+ *
+ * Deployed apps are covered by `server/middleware/auth-api.ts` (Nitro); this
+ * plugin is `apply: "serve"` only. Keep the two in sync.
+ */
+function authApiPlugin(): Plugin {
+  const PREFIX = "/api/auth/";
+  return {
+    name: "app-builder:auth-api",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          const rawUrl = req.url ?? "";
+          if (!(rawUrl.split("?", 1)[0] ?? "").startsWith(PREFIX)) {
+            next();
+            return;
+          }
+
+          const host = String(
+            req.headers["x-forwarded-host"] ?? req.headers.host ?? "localhost:8080",
+          );
+          const proto = String(
+            req.headers["x-forwarded-proto"] ??
+              ((req.socket as { encrypted?: boolean } | undefined)?.encrypted
+                ? "https"
+                : "http"),
+          );
+          const headers = new Headers();
+          for (const [key, value] of Object.entries(req.headers)) {
+            if (value === undefined) continue;
+            if (Array.isArray(value)) for (const v of value) headers.append(key, v);
+            else headers.set(key, value);
+          }
+
+          // Sign-up / sign-in are POSTs — the body must reach Better Auth, so
+          // buffer it off the Node stream before building the web Request.
+          const method = (req.method ?? "GET").toUpperCase();
+          let body: Buffer | undefined;
+          if (method !== "GET" && method !== "HEAD") {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+            }
+            body = Buffer.concat(chunks);
+          }
+
+          const mod = (await server.ssrLoadModule("/src/lib/auth/server.ts")) as {
+            auth: { handler: (request: Request) => Promise<Response> };
+          };
+          const response = await mod.auth.handler(
+            new Request(`${proto}://${host}${rawUrl}`, {
+              method,
+              headers,
+              body: body && body.length ? body : undefined,
+            }),
+          );
+
+          res.statusCode = response.status;
+          // Preserve multiple Set-Cookie headers (session + cache cookies).
+          const setCookies =
+            typeof response.headers.getSetCookie === "function"
+              ? response.headers.getSetCookie()
+              : [];
+          response.headers.forEach((value, key) => {
+            if (key.toLowerCase() === "set-cookie") return;
+            res.setHeader(key, value);
+          });
+          for (const cookie of setCookies) res.appendHeader("set-cookie", cookie);
+          res.end(Buffer.from(await response.arrayBuffer()));
+        } catch (err) {
+          console.error("[app-builder] /api/auth handler failed:", err);
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.end(JSON.stringify({ message: "auth handler failed" }));
+          }
+        }
+      });
+    },
+  };
+}
+
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
 // The dev server starts once `src/router.tsx` and `src/routes/` exist — see
 // AGENTS.md § "First scaffold".
@@ -161,6 +250,8 @@ export default defineConfig(({ command, isPreview }) => ({
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),
+    // Same reason: /api/auth/* must reach Better Auth, not the SPA fallback.
+    authApiPlugin(),
     // Dev-only /__app-env, read by scripts/check-auth-invariant.mjs.
     appEnvPlugin(),
     // PWA head + ?install=1 tutorial page; runs before Start/Nitro.

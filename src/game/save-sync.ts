@@ -5,15 +5,15 @@ import { useGame } from "./store";
 import type { Player } from "./types";
 
 /**
- * Bulut kaydı senkronu — isim anahtarlı, giriş yok.
+ * Bulut kaydı senkronu — yalnızca oturum açıkken çalışır. Oturum yoksa (misafir
+ * oynanış) tüm çağrılar no-op'tur ve oyun sadece localStorage üzerinden sürer;
+ * bu, useSaveSync'in `signedIn` argümanıyla tamamen kapatılmasıyla sağlanır.
  *
  * Tasarım kuralları:
- * - Oyun asla senkrona bağımlı olmaz. Sunucu yoksa/patlarsa her çağrı sessizce
- *   yutulur ve oyun localStorage üzerinden aynen sürer (DATABASE_URL ayarlı
- *   değilken de durum budur).
+ * - Oyun asla senkrona bağımlı olmaz. Sunucu hatası her çağrıda sessizce
+ *   yutulur (`quiet()`).
  * - Çakışmada "daha ileri olan kazanır": ölçüt clockStamp, yani oyun içi geçen
- *   toplam dakika. Monoton arttığı için yeni açılmış bir kayıt saatlerce
- *   oynanmışın üstüne yazamaz.
+ *   toplam dakika (monoton artar).
  */
 
 /** Oyun içi geçen toplam dakika; kayıtlar arası "kim daha ileri" ölçütü. */
@@ -34,7 +34,6 @@ function slice() {
   };
 }
 
-/** Senkron hiçbir koşulda oyunu düşürmesin. */
 async function quiet<T>(op: () => Promise<T>): Promise<T | null> {
   try {
     return await op();
@@ -43,21 +42,18 @@ async function quiet<T>(op: () => Promise<T>): Promise<T | null> {
   }
 }
 
-/** İsimdeki bulut kaydını getir. Yoksa/erişilemezse null. */
-export function fetchCloudSave(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) return Promise.resolve(null);
-  return quiet(() => loadSave({ data: { name: trimmed } }));
+/** Oturum sahibinin bulut kaydını getir. Yoksa/erişilemezse null. */
+export function fetchCloudSave() {
+  return quiet(() => loadSave());
 }
 
 /** Mevcut durumu buluta yaz. Sunucu daha ileriyse yazmaz (SQL'de korunur). */
 export function pushCloudSave(): Promise<CloudSave | null> {
   const s = slice();
-  if (!s.player?.name) return Promise.resolve(null);
+  if (!s.player) return Promise.resolve(null);
   return quiet(() =>
     putSave({
       data: {
-        name: s.player!.name,
         state: s as unknown as Record<string, unknown>,
         progress: progressOf(s.player),
       },
@@ -65,32 +61,41 @@ export function pushCloudSave(): Promise<CloudSave | null> {
   );
 }
 
-/** "Dosyayı yak" — bulut kaydını da sil. */
-export function deleteCloudSave(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) return Promise.resolve(null);
-  return quiet(() => dropSave({ data: { name: trimmed } }));
+/** Bulut kaydını sil (yalnızca oturum sahibinin kendi satırı). */
+export function deleteCloudSave() {
+  return quiet(() => dropSave());
 }
 
 /**
- * Yükleme aralığı. Oyun 2 saniyede bir tick attığı için "değişince gönder"
- * yaklaşımı saniyede bir istek demek olurdu; onun yerine sabit aralıkta
- * yoklayıp yalnızca ilerleme gerçekten değiştiyse gönderiyoruz.
+ * Bulutla yereli tek seferlik uzlaştırma: sunucudaki ilerleme yereldekinden
+ * büyükse onu benimse (başka cihazda oynanmış), değilse yereli yukarı it.
+ *
+ * Hem düzenli senkron döngüsü hem de giriş/kayıt anındaki "az önce oturum
+ * açtım, taze cihazda hiç oyuncu yok" durumu (account-panel.tsx) BUNU çağırır
+ * — GameShell henüz monte olmamışken bile (o zaman `useSaveSync`'in effect'i
+ * hiç çalışmamış olur) kaydın gelmesi gereken tek yer burası.
+ *
+ * @returns benimsenen ilerleme varsa onun değeri, yoksa (push edildiyse ya da
+ *   başarısız olduysa) gönderilen ilerleme.
  */
+export async function reconcileOnce(): Promise<number> {
+  const cloud = await fetchCloudSave();
+  const local = progressOf(useGame.getState().player);
+  if (cloud && cloud.progress > local) {
+    useGame.getState().adoptCloudSave(cloud.state);
+    return cloud.progress;
+  }
+  const res = await pushCloudSave();
+  return res ? local : -1;
+}
+
 const PUSH_EVERY_MS = 10_000;
 
-/**
- * Açılışta bir kez uzlaştır, sonra düzenli aralıkla yükle.
- *
- * Açılış: sunucudaki ilerleme yereldekinden büyükse onu benimse (başka cihazda
- * oynanmış), değilse yereli yukarı it. Bu sıra, telefonundaki uzun soluklu
- * kaydın yeni açılmış bir cihaz yüzünden kaybolmasını engeller.
- */
-export function useSaveSync(active: boolean) {
+/** Oturum açıkken: açılışta bir kez uzlaştır, sonra düzenli aralıkla yükle. */
+export function useSaveSync(signedIn: boolean) {
   useEffect(() => {
-    if (!active) return;
+    if (!signedIn) return;
     let stopped = false;
-    // Son başarıyla gönderilen ilerleme; değişmediyse tekrar göndermeyiz.
     let pushed = -1;
 
     const push = async () => {
@@ -100,28 +105,14 @@ export function useSaveSync(active: boolean) {
       if (res) pushed = now;
     };
 
-    const reconcile = async () => {
-      const player = useGame.getState().player;
-      if (!player?.name) return;
-      const cloud = await fetchCloudSave(player.name);
-      if (stopped) return;
-      const local = progressOf(useGame.getState().player);
-      if (cloud && cloud.progress > local) {
-        useGame.getState().adoptCloudSave(cloud.state);
-        pushed = cloud.progress;
-        return;
-      }
-      await push();
-    };
-
-    void reconcile();
+    void reconcileOnce().then((p) => {
+      if (!stopped && p >= 0) pushed = p;
+    });
 
     const timer = setInterval(() => {
       if (!stopped) void push();
     }, PUSH_EVERY_MS);
 
-    // Sekme kapanırken/arka plana geçerken son hâli kaçırma — telefonda
-    // uygulamadan çıkış çoğu zaman yalnızca bunu tetikler.
     const onHide = () => {
       if (document.visibilityState === "hidden") void push();
     };
@@ -135,5 +126,5 @@ export function useSaveSync(active: boolean) {
       window.removeEventListener("pagehide", onHide);
       void pushCloudSave();
     };
-  }, [active]);
+  }, [signedIn]);
 }

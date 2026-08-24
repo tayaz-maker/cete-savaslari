@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { AccountPanel } from "@/components/game/account-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NEIGHBORHOODS } from "@/game/data";
-import { fetchCloudSave } from "@/game/save-sync";
 import { useGame } from "@/game/store";
 import type { NeighborhoodId } from "@/game/types";
 import { cn, unlockUi } from "@/lib/utils";
@@ -10,35 +10,19 @@ import { cn, unlockUi } from "@/lib/utils";
 export function CreateCharacter() {
   const [name, setName] = useState("");
   const [hood, setHood] = useState<NeighborhoodId>("eyup");
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     unlockUi();
   }, []);
 
-  /**
-   * Aynı isim = aynı dosya. Önce bulutta bu isimde kayıt var mı diye bakılır;
-   * varsa kaldığı yerden açılır, yoksa yeni karakter kurulur. Sunucu yoksa
-   * fetchCloudSave null döner ve akış eskisi gibi yeni oyuna gider.
-   */
-  const start = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const cloud = await fetchCloudSave(name);
-      if (cloud?.state) {
-        useGame.getState().adoptCloudSave(cloud.state);
-        if (useGame.getState().player) return;
-      }
-      useGame.getState().createPlayer(name, hood);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const start = () => useGame.getState().createPlayer(name, hood);
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-2xl px-5 py-10">
-      <p className="text-[0.7rem] font-medium tracking-[0.28em] text-muted uppercase">
+      <div className="flex justify-end">
+        <AccountPanel />
+      </div>
+      <p className="mt-6 text-[0.7rem] font-medium tracking-[0.28em] text-muted uppercase">
         Dosya aç
       </p>
       <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">
@@ -67,13 +51,10 @@ export function CreateCharacter() {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.currentTarget.blur();
-            void start();
+            start();
           }
         }}
       />
-      <p className="mt-2 text-xs text-muted">
-        Daha önce bu isimle oynadıysan dosyan kaldığı yerden açılır.
-      </p>
 
       <p className="mt-8 text-xs font-medium tracking-wide text-muted uppercase">
         Semt
@@ -98,12 +79,8 @@ export function CreateCharacter() {
         ))}
       </div>
 
-      <Button
-        className="mt-8 h-12 w-full sm:w-auto"
-        disabled={busy}
-        onClick={() => void start()}
-      >
-        {busy ? "Dosya aranıyor…" : "Sokağa in"}
+      <Button className="mt-8 h-12 w-full sm:w-auto" onClick={start}>
+        Sokağa in
       </Button>
     </main>
   );

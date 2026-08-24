@@ -1468,12 +1468,12 @@ export const useGame = create<GameState>()(
         }
       },
       resetGame: () => {
-        // Bulut kaydını da sil; yoksa aynı isimle girildiğinde yanan dosya geri
-        // gelirdi. Sunucu yoksa sessizce geçilir.
-        const name = get().player?.name;
-        if (name && typeof window !== "undefined") {
+        // Bulut kaydını da sil (oturum açıksa); yoksa hesaba tekrar girince
+        // yanan dosya geri gelirdi. Oturum yoksa/sunucu yoksa sessizce geçilir
+        // (deleteCloudSave zaten quiet()).
+        if (typeof window !== "undefined") {
           void import("./save-sync")
-            .then((m) => m.deleteCloudSave(name))
+            .then((m) => m.deleteCloudSave())
             .catch(() => undefined);
         }
         if (typeof window !== "undefined") {
