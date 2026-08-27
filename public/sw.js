@@ -92,3 +92,23 @@ async function staleWhileRevalidate(req) {
     .catch(() => hit);
   return hit || fetching;
 }
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = "/cete-savaslari";
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((list) => {
+        for (const c of list) {
+          if ("focus" in c) {
+            c.focus();
+            if ("navigate" in c) c.navigate(url);
+            return;
+          }
+        }
+        if (self.clients.openWindow) return self.clients.openWindow(url);
+      }),
+  );
+});
+

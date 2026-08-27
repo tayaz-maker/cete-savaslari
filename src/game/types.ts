@@ -106,6 +106,7 @@ export interface Rival {
   bounty: number;
   hospitalTicks: number;
   hood: NeighborhoodId;
+  revengeTicks: number;
 }
 
 export interface Senet {
@@ -225,6 +226,20 @@ export interface Player {
   usdt: number;
   kose: number;
   koseGun: number;
+  saglikIzi: number;
+  senetPaid: number;
+  senetDefaults: number;
+  pendingSeasonCeremony: {
+    score: number;
+    title: string;
+    bonus: number;
+  } | null;
+  streak: number;
+  streakDay: string;
+  refFrom: string | null;
+  refClaimed: boolean;
+  achievements: string[];
+  tutorialStep: number;
 }
 
 export interface Neighborhood {

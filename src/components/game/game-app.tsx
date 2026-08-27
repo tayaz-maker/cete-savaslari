@@ -2,6 +2,7 @@ import { Component, type ReactNode, lazy, Suspense } from "react";
 import { CreateCharacter } from "@/components/game/create-character";
 import { OfflineReady } from "@/components/game/offline-ready";
 import { useGame } from "@/game/store";
+import { track } from "@/lib/analytics";
 
 const GameShell = lazy(() =>
   import("@/components/game/game-shell").then((m) => ({ default: m.GameShell })),
@@ -17,8 +18,11 @@ class GameCrashGate extends Component<
     return { crashed: true };
   }
 
-  componentDidCatch() {
-    /* yut, önizleme kapanmasın */
+  componentDidCatch(error: Error) {
+    console.error(error);
+    track("crash", { message: error.message });
+    const w = window as unknown as { __ceteOnError?: (e: Error) => void };
+    w.__ceteOnError?.(error);
   }
 
   render() {

@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Tariklab Oyunlar";
+const APP_NAME = "TLab";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -17,10 +17,11 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       { name: "theme-color", content: "#080706" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "mobile-web-app-capable", content: "yes" },
       {
         name: "description",
-        content: "Tariklab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
+        content: "TLab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
       },
     ],
     links: [

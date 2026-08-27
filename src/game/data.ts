@@ -622,7 +622,7 @@ export const ENERGY_PER_TICK = 3;
 export const STAMINA_PER_TICK = 2;
 export const HEALTH_PER_TICK = 2;
 export const CLINIC_HEALTH_PER_TICK = 14;
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
 export const SAVE_KEY = "cete-savaslari-save-v1";
 export const LOG_CAP = 60;
 export const HITLIST_CASH_THRESHOLD = 50_000;
@@ -633,6 +633,9 @@ export const SELL_RATE = 0.55;
 export const HEAT_MAX = 100;
 export const SEASON_DAYS = 14;
 export const TURF_STAMINA = 5;
+export const IHBAR_STAMINA = 4;
+export const ESNAF_STAMINA = 3;
+export const ESNAF_COST = 650;
 export const BANK_RATE_PER_TICK = 0.00045;
 export const LIFE_KID_MAX = 3;
 export const LIFE_KID_HOURLY = 35;
@@ -765,7 +768,7 @@ export const CREW: CrewDef[] = [
 		wage: 35,
 		hire: 1800,
 		itibar: 4,
-		perk: "Yakalanma −18%. Emniyet daha çabuk düşer."
+		perk: "Yakalanma −18%. Baskın ve ihanet daha seyrek."
 	},
 	{
 		id: "sofor",
@@ -986,7 +989,17 @@ export function hydratePlayer(raw: Partial<Player> & Pick<Player, "name" | "neig
 		usd: Math.max(0, raw.usd ?? 0),
 		usdt: Math.max(0, raw.usdt ?? 0),
 		kose: Math.max(0, Math.min(3, Math.floor(raw.kose ?? 0))),
-		koseGun: raw.koseGun ?? raw.gun ?? 1
+		koseGun: raw.koseGun ?? raw.gun ?? 1,
+		saglikIzi: Math.max(0, raw.saglikIzi ?? 0),
+		senetPaid: Math.max(0, raw.senetPaid ?? 0),
+		senetDefaults: Math.max(0, raw.senetDefaults ?? 0),
+		pendingSeasonCeremony: raw.pendingSeasonCeremony ?? null,
+		streak: Math.max(0, raw.streak ?? 0),
+		streakDay: raw.streakDay ?? "",
+		refFrom: raw.refFrom ?? null,
+		refClaimed: Boolean(raw.refClaimed),
+		achievements: Array.isArray(raw.achievements) ? raw.achievements : [],
+		tutorialStep: typeof raw.tutorialStep === "number" ? raw.tutorialStep : 0,
 	};
 }
 export function crewWageHourly(player: Player) {
@@ -1004,6 +1017,61 @@ export function estateIncomeHourly(player: Player, estate: Estate) {
 }
 export function upgradeCost(estate: Estate, lvl: number) {
 	return Math.round(estate.cost * (.48 + .42 * lvl));
+}
+export function estateOrtalik(estate: Estate) {
+	if (estate.prestige) return Math.max(1, Math.min(100, estate.prestige));
+	const n = 6 + Math.round(Math.pow(estate.cost / 5_000_000, 0.48) * 82);
+	return Math.max(4, Math.min(90, n));
+}
+export function toplamOrtalik(player: Player) {
+	if (!player.properties.length) return 0;
+	let sum = 0;
+	let peak = 0;
+	for (const id of player.properties) {
+		const e = ESTATE_MAP[id];
+		if (!e) continue;
+		const v = estateOrtalik(e);
+		sum += v;
+		if (v > peak) peak = v;
+	}
+	return Math.max(0, Math.min(100, Math.round(peak * 0.62 + sum * 0.18)));
+}
+export function tefeciKrediNotu(player: Player) {
+	let n = 38;
+	n += Math.min(28, player.itibar * 0.45);
+	n += player.properties.length * 5;
+	n += player.bank >= 25000 ? 12 : player.bank >= 5000 ? 6 : 0;
+	n += (player.senetPaid ?? 0) * 7;
+	n -= (player.senetDefaults ?? 0) * 16;
+	if (player.senet?.kind === "borc") n -= 14;
+	n -= Math.min(14, (player.isi ?? 0) / 8);
+	if ((player.kids ?? 0) > 1) n -= 4;
+	return Math.max(5, Math.min(100, Math.round(n)));
+}
+export function tefeciLoanTerms(player: Player) {
+	const note = tefeciKrediNotu(player);
+	const ok = note >= 18;
+	const principal = ok
+		? Math.max(1400, Math.round(player.level * 3000 * (0.5 + note / 120)))
+		: 0;
+	const rate = note >= 72 ? 1.16 : note >= 48 ? 1.32 : 1.52;
+	return { note, ok, principal, due: Math.round(principal * rate) };
+}
+export type IhanetSeviye = "yok" | "düşük" | "orta" | "yüksek";
+export function ihanetSeviye(player: Player): IhanetSeviye {
+	if (!player.crew.length) return "yok";
+	if (player.itibar < 6) return "yüksek";
+	if (player.itibar < 14) return "orta";
+	if (player.itibar < 22) return "düşük";
+	return "yok";
+}
+export function ihanetChancePerTick(player: Player) {
+	if (!player.crew.length) return 0;
+	const sev = ihanetSeviye(player);
+	let p =
+		sev === "yüksek" ? 0.014 : sev === "orta" ? 0.007 : sev === "düşük" ? 0.0025 : 0;
+	if (player.crew.includes("gozcu")) p *= 0.7;
+	return p;
 }
 export function jobEnergyCost(player: Player, base: number) {
 	return player.crew.includes("sofor") ? Math.max(1, base - 2) : base;
@@ -1209,6 +1277,7 @@ export function makeRivals(): Rival[] {
 		alive: true,
 		bounty: 0,
 		hospitalTicks: 0,
+		revengeTicks: 0,
 		hood: t.hood as NeighborhoodId,
 	}));
 }

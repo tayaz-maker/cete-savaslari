@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { reconcileOnce } from "@/game/save-sync";
+import { track } from "@/lib/analytics";
 import { mapSbError, supabase } from "@/lib/supabase";
 import { useSupabaseUser } from "@/lib/supabase-session";
 import { cn } from "@/lib/utils";
@@ -192,9 +193,11 @@ function AccountDialog({
           return;
         }
         if (data.user && !data.session) {
+          track("hesap_acildi");
           setOk("Kayıt oldu. Doğrulama maili gitti — kutuyu kontrol et.");
           return;
         }
+        track("hesap_acildi");
         setOk("Kayıt oldu. Mail doğrulanmadan bulut kayıt yazılmaz.");
         await reconcileOnce();
         return;
@@ -412,6 +415,12 @@ function AccountDialog({
                 onChange={(e) => setPassword2(e.target.value)}
               />
             </div>
+          ) : null}
+
+          {mode === "up" ? (
+            <p className="text-xs text-warn">
+              E-posta yoksa şifreyi unutursan hesap ve kayıt gider.
+            </p>
           ) : null}
 
           {error ? <p className="text-sm text-danger">{error}</p> : null}

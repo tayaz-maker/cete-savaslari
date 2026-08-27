@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { track } from "@/lib/analytics";
+import { hapticFail, hapticOk, hapticWin } from "@/lib/haptic";
 import { clamp, pick, randInt } from "@/lib/utils";
 import {
   applyTicks,
@@ -13,11 +15,14 @@ import {
   CONTRACT_MAP,
   CREW_MAP,
   ESTATE_MAP,
+  ESNAF_COST,
+  ESNAF_STAMINA,
   HEALTH_MAX,
   HEAT_MAX,
   HORSE_NAMES,
   HORSE_PRICE,
   HORSE_TRAIN,
+  IHBAR_STAMINA,
   ITEM_MAP,
   JAIL_TICKS,
   JOB_FLAVOR,
@@ -43,6 +48,7 @@ import {
   jobEnergyCost,
   makeRivals,
   migrateHood,
+  tefeciLoanTerms,
   upgradeCost,
   turfPressCash,
 } from "./data";
@@ -62,13 +68,14 @@ import type {
   GambleKind,
   InvestId,
   LifeId,
+  LogEntry,
   Market,
   NeighborhoodId,
   Player,
   RelAct,
   Rival,
 } from "./types";
-import type { LogEntry } from "./types";
+import { ACHIEVEMENTS, unlockAchievements, applyDailyStreak } from "./meta";
 
 interface GameState {
   version: number;
@@ -77,6 +84,7 @@ interface GameState {
   logs: LogEntry[];
   hiz: 1 | 2 | 4;
   market: Market;
+  savedAt: number;
   createPlayer: (name: string, neighborhood: NeighborhoodId) => void;
   tick: (n?: number) => void;
   skipHour: () => void;
@@ -95,6 +103,8 @@ interface GameState {
   hireCrew: (id: CrewId) => void;
   fireCrew: (id: CrewId) => void;
   pressTurf: (hood: NeighborhoodId) => void;
+  snitchHood: (hood: NeighborhoodId) => void;
+  sitEsnafBar: (hood: NeighborhoodId) => void;
   bankMove: (amount: number, dir: "in" | "out") => void;
   writeSenet: (kind: "alacak" | "borc", rivalId?: string) => void;
   upgradeEstate: (estateId: string) => void;
@@ -110,6 +120,10 @@ interface GameState {
   fundKose: () => void;
   adoptCloudSave: (state: Record<string, unknown>) => void;
   resetGame: () => void;
+  ackSeason: () => void;
+  skipTutorial: () => void;
+  bumpTutorial: (step: number) => void;
+  claimDaily: () => void;
 }
 
 function neighborhoodName(id: NeighborhoodId) {
@@ -133,6 +147,7 @@ function knockOut(
     health: 1,
     durum: "klinik",
     durumTick: CLINIC_TICKS,
+    saglikIzi: Math.max(player.saglikIzi ?? 0, 18),
   };
   return {
     player: next,
@@ -152,6 +167,16 @@ function maybeLevelNotes(player: Player, notes: string[], logs: LogEntry[]) {
   return next;
 }
 
+function withMeta(player: Player, logs: LogEntry[]): { player: Player; logs: LogEntry[] } {
+  const ach = unlockAchievements(player);
+  let nextLogs = logs;
+  for (const id of ach.unlocked) {
+    const label = ACHIEVEMENTS.find((a) => a.id === id)?.label ?? id;
+    nextLogs = pushLog(nextLogs, ach.player, "system", `Başarım: ${label}`);
+  }
+  return { player: ach.player, logs: nextLogs };
+}
+
 const emptyPersist = {
   version: SAVE_VERSION,
   player: null as Player | null,
@@ -159,17 +184,13 @@ const emptyPersist = {
   logs: [] as LogEntry[],
   hiz: 1 as 1 | 2 | 4,
   market: { ...MARKET_START },
+  savedAt: 0,
 };
 
 function parseHiz(v: unknown): 1 | 2 | 4 {
   return v === 2 || v === 4 ? v : 1;
 }
 
-/**
- * Ham bir kalıcı dilimi (localStorage ya da bulut kaydı) güvenli hâle getirir:
- * eski sürüm alanlarını tamamlar, kaldırılmış semtleri günceller, market'i
- * doldurur. Her iki kaynak da aynı yoldan geçsin diye ortak.
- */
 function normalizeSlice(s: Record<string, unknown>) {
   const playerRaw = s.player as Player | null | undefined;
   const player =
@@ -184,6 +205,7 @@ function normalizeSlice(s: Record<string, unknown>) {
     ? (s.rivals as Rival[]).map((r) => ({
         ...r,
         hospitalTicks: r.hospitalTicks ?? 0,
+        revengeTicks: r.revengeTicks ?? 0,
         hood: migrateHood(r.hood),
       }))
     : [];
@@ -199,6 +221,7 @@ function normalizeSlice(s: Record<string, unknown>) {
     logs,
     hiz: parseHiz(s.hiz),
     market,
+    savedAt: typeof s.savedAt === "number" ? s.savedAt : 0,
   };
 }
 
@@ -248,6 +271,13 @@ export const useGame = create<GameState>()(
       createPlayer: (name, neighborhood) => {
         const trimmed = name.trim().slice(0, 24) || "İsimsiz";
         const level = 1;
+        let refFrom: string | null = null;
+        if (typeof window !== "undefined") {
+          const q = new URLSearchParams(window.location.search).get("ref");
+          if (q && q.trim() && q.trim().toLowerCase() !== trimmed.toLowerCase()) {
+            refFrom = q.trim().slice(0, 24);
+          }
+        }
         const player = hydratePlayer({
           name: trimmed,
           neighborhood,
@@ -264,7 +294,9 @@ export const useGame = create<GameState>()(
           incomeMult: neighborhood === "kadikoy" ? 1.15 : 1,
           contractId: "c101",
           contractGun: 1,
+          refFrom,
         });
+        track("karakter_olusturuldu", { hood: neighborhood });
         set({
           player,
           rivals: makeRivals(),
@@ -276,6 +308,7 @@ export const useGame = create<GameState>()(
           ),
           hiz: 1,
           market: { ...MARKET_START },
+          savedAt: Date.now(),
         });
       },
       tick: (n = 1) => {
@@ -376,6 +409,23 @@ export const useGame = create<GameState>()(
             seasonScore: next.seasonScore + mission.xpGain + Math.round(cash / 800),
             jobsDone: (next.jobsDone ?? 0) + 1,
           };
+          if ((player.jobsDone ?? 0) === 0) {
+            track("ilk_is_yapildi");
+            if (next.refFrom && !next.refClaimed) {
+              next = { ...next, cash: next.cash + 5000, refClaimed: true };
+              logs = pushLog(
+                logs,
+                next,
+                "system",
+                `${next.refFrom} referansı. İkinize de 5.000 ₺ — bir kez.`,
+                5000,
+              );
+            }
+          }
+          const ach = withMeta(next, logs);
+          next = ach.player;
+          logs = ach.logs;
+          hapticOk();
           logs = pushLog(
             logs,
             next,
@@ -384,7 +434,8 @@ export const useGame = create<GameState>()(
             cash + bonus,
           );
           logs = maybeLevelNotes(next, xp.notes, logs);
-          set({ player: next, logs });
+          if ((next.tutorialStep ?? 0) === 0) next = { ...next, tutorialStep: 1 };
+          set({ player: next, logs, savedAt: Date.now() });
           return;
         }
 
@@ -394,6 +445,7 @@ export const useGame = create<GameState>()(
         next.itibar = Math.max(0, next.itibar - 2);
         next.isi = clamp(next.isi + heatAdd, 0, HEAT_MAX);
         next.jobsDone = (next.jobsDone ?? 0) + 1;
+        hapticFail();
         const busted = Math.random() < jailChance(player, mission.risk);
 
         if (next.health <= 0) {
@@ -454,6 +506,8 @@ export const useGame = create<GameState>()(
           next.equippedArmor = itemId;
         if (item.kind === "vehicle" && !player.equippedVehicle)
           next.equippedVehicle = itemId;
+        if ((next.tutorialStep ?? 0) === 1 && item.kind === "weapon")
+          next.tutorialStep = 2;
         set({
           player: next,
           logs: pushLog(
@@ -565,10 +619,12 @@ export const useGame = create<GameState>()(
           next.health = clamp(next.health - randInt(2, 10), 1, HEALTH_MAX);
           next.isi = clamp(next.isi + 6, 0, HEAT_MAX);
           next.seasonScore += 8;
+          next.saglikIzi = Math.max(next.saglikIzi ?? 0, 6);
           if (target.health <= 0) {
             target.hospitalTicks = RIVAL_CLINIC_TICKS;
             target.health = 0;
           }
+          target.revengeTicks = Math.max(target.revengeTicks ?? 0, randInt(12, 36));
           logs = pushLog(
             logs,
             next,
@@ -584,6 +640,7 @@ export const useGame = create<GameState>()(
         next.health -= dmg;
         next.itibar = Math.max(0, next.itibar - 3);
         next.isi = clamp(next.isi + 10, 0, HEAT_MAX);
+        next.saglikIzi = Math.max(next.saglikIzi ?? 0, 10);
         const lost = Math.min(next.cash, Math.round(next.cash * 0.08));
         next.cash -= lost;
         target.cash += lost;
@@ -630,11 +687,6 @@ export const useGame = create<GameState>()(
         });
       },
       huntBounty: (rivalId) => {
-        const before = get();
-        const target = before.rivals.find((r) => r.id === rivalId);
-        // Zaten yerde olan hedefe saldırı işlemez; ödül bedavaya gitmesin.
-        if (!target || target.hospitalTicks > 0 || target.health <= 0) return;
-        if (target.bounty <= 0) return;
         get().attackRival(rivalId);
         const after = get();
         if (!after.player) return;
@@ -719,6 +771,7 @@ export const useGame = create<GameState>()(
           cash: Math.max(0, player.cash - fee),
           durum: "klinik",
           durumTick: CLINIC_VOLUNTARY_TICKS,
+          saglikIzi: Math.max(player.saglikIzi ?? 0, 8),
         };
         set({
           player: next,
@@ -806,7 +859,7 @@ export const useGame = create<GameState>()(
           { ...player, stamina: player.stamina - TURF_STAMINA },
           xpGain,
         );
-        const next: Player = {
+        let next: Player = {
           ...player,
           stamina: grown.stamina,
           energy: grown.energy,
@@ -822,8 +875,11 @@ export const useGame = create<GameState>()(
           seasonScore: player.seasonScore + 6,
         };
         const name = hoodName(hood);
+        if ((next.tutorialStep ?? 0) === 2) next = { ...next, tutorialStep: 3 };
+        const meta = withMeta(next, s.logs);
+        next = meta.player;
         let logs = pushLog(
-          s.logs,
+          meta.logs,
           next,
           "turf",
           `${name} basıldı. Kontrol %${Math.round(after)}. Haraç ${loot.toLocaleString("tr-TR")} ₺ cebine.${note}`,
@@ -831,6 +887,96 @@ export const useGame = create<GameState>()(
         );
         logs = maybeLevelNotes(next, grown.notes, logs);
         set({ player: next, logs });
+      },
+      snitchHood: (hood) => {
+        const s = get();
+        const player = s.player;
+        if (!player) return;
+        if (!canAct(player)) return;
+        if (player.stamina < IHBAR_STAMINA) return;
+        const targets = s.rivals.filter(
+          (r) => r.hood === hood && r.hospitalTicks === 0 && r.alive,
+        );
+        if (!targets.length) {
+          const next = {
+            ...player,
+            stamina: player.stamina - IHBAR_STAMINA,
+            isi: clamp(player.isi + 5, 0, HEAT_MAX),
+          };
+          set({
+            player: next,
+            logs: pushLog(
+              s.logs,
+              next,
+              "turf",
+              `${hoodName(hood)} ihbarı boş döndü. Muhbir yandı, emniyet ısındı.`,
+            ),
+          });
+          return;
+        }
+        const target = pick(targets);
+        const rivals = s.rivals.map((r) =>
+          r.id === target.id
+            ? {
+                ...r,
+                health: Math.max(0, r.health - randInt(22, 40)),
+                hospitalTicks: RIVAL_CLINIC_TICKS,
+                cash: Math.max(0, r.cash - randInt(400, 1800)),
+                revengeTicks: Math.max(r.revengeTicks ?? 0, randInt(10, 28)),
+              }
+            : r,
+        );
+        const next: Player = {
+          ...player,
+          stamina: player.stamina - IHBAR_STAMINA,
+          isi: clamp(player.isi + 10, 0, HEAT_MAX),
+          itibar: Math.max(0, player.itibar - 2),
+          turf: {
+            ...player.turf,
+            [hood]: clamp((player.turf[hood] ?? 0) + 4, 0, 100),
+          },
+        };
+        set({
+          player: next,
+          rivals,
+          logs: pushLog(
+            s.logs,
+            next,
+            "turf",
+            `${hoodName(hood)} ihbarı işledi. ${target.name} kliniğe çekildi. Semt %4 açıldı, emniyet yükseldi.`,
+          ),
+        });
+      },
+      sitEsnafBar: (hood) => {
+        const s = get();
+        const player = s.player;
+        if (!player) return;
+        if (!canAct(player)) return;
+        if (player.stamina < ESNAF_STAMINA) return;
+        if (player.cash < ESNAF_COST) return;
+        const home = hood === player.neighborhood;
+        const gain = (home ? 7 : 4) + Math.random() * 4;
+        const after = Math.round(
+          clamp((player.turf[hood] ?? 0) + gain, 0, 100) * 10,
+        ) / 10;
+        const next: Player = {
+          ...player,
+          cash: player.cash - ESNAF_COST,
+          stamina: player.stamina - ESNAF_STAMINA,
+          turf: { ...player.turf, [hood]: after },
+          itibar: player.itibar + 1,
+          health: clamp(player.health + 3, 0, HEALTH_MAX),
+        };
+        set({
+          player: next,
+          logs: pushLog(
+            s.logs,
+            next,
+            "life",
+            `${hoodName(hood)} esnaf barı. Çay, lahmacun, kulağa laf. Kontrol %${Math.round(after)}. −${ESNAF_COST.toLocaleString("tr-TR")} ₺.`,
+            -ESNAF_COST,
+          ),
+        });
       },
       bankMove: (amount, dir) => {
         const s = get();
@@ -841,6 +987,7 @@ export const useGame = create<GameState>()(
         if (dir === "in") {
           if (player.cash < n) return;
           const next = { ...player, cash: player.cash - n, bank: player.bank + n };
+          if ((next.tutorialStep ?? 0) === 3) next.tutorialStep = 4;
           set({
             player: next,
             logs: pushLog(
@@ -872,14 +1019,26 @@ export const useGame = create<GameState>()(
         if (!player) return;
         if (player.senet) return;
         if (kind === "borc") {
-          const principal = Math.max(2000, Math.round(player.level * 3500));
+          const terms = tefeciLoanTerms(player);
+          if (!terms.ok || terms.principal <= 0) {
+            set({
+              player,
+              logs: pushLog(
+                s.logs,
+                player,
+                "bank",
+                "Tefeci Nuri notuna baktı. Kredi yok — önce senet kapat, itibar bas.",
+              ),
+            });
+            return;
+          }
           const next: Player = {
             ...player,
-            cash: player.cash + principal,
+            cash: player.cash + terms.principal,
             senet: {
               kind: "borc",
               name: "Tefeci Nuri",
-              amount: Math.round(principal * 1.35),
+              amount: terms.due,
               dueGun: player.gun + 2,
             },
             isi: clamp(player.isi + 4, 0, HEAT_MAX),
@@ -890,8 +1049,8 @@ export const useGame = create<GameState>()(
               s.logs,
               next,
               "bank",
-              `Tefeci Nuri ${principal.toLocaleString("tr-TR")} ₺ uzattı. İki güne ${next.senet!.amount.toLocaleString("tr-TR")} ₺.`,
-              principal,
+              `Tefeci Nuri not ${terms.note}. ${terms.principal.toLocaleString("tr-TR")} ₺ uzattı. İki güne ${terms.due.toLocaleString("tr-TR")} ₺.`,
+              terms.principal,
             ),
           });
           return;
@@ -1121,6 +1280,8 @@ export const useGame = create<GameState>()(
           ...player,
           cash: player.cash - bet + payout,
         };
+        if (payout > bet) hapticWin();
+        else if (payout < bet) hapticFail();
         set({
           player: next,
           logs: pushLog(
@@ -1446,6 +1607,7 @@ export const useGame = create<GameState>()(
           kose: nextLvl,
           koseGun: player.kose === 0 ? player.gun : player.koseGun,
           isi: clamp(player.isi + 5, 0, HEAT_MAX),
+          tutorialStep: (player.tutorialStep ?? 0) === 2 ? 3 : player.tutorialStep,
         };
         set({
           player: next,
@@ -1462,15 +1624,12 @@ export const useGame = create<GameState>()(
         try {
           const next = normalizeSlice(state);
           if (!next.player) return;
-          set(next);
+          set({ ...next, savedAt: Date.now() });
         } catch {
           /* bozuk bulut kaydı oyunu düşürmesin */
         }
       },
       resetGame: () => {
-        // Bulut kaydını da sil (oturum açıksa); yoksa hesaba tekrar girince
-        // yanan dosya geri gelirdi. Oturum yoksa/sunucu yoksa sessizce geçilir
-        // (deleteCloudSave zaten quiet()).
         if (typeof window !== "undefined") {
           void import("./save-sync")
             .then((m) => m.deleteCloudSave())
@@ -1485,15 +1644,61 @@ export const useGame = create<GameState>()(
           try {
             window.localStorage.removeItem(SAVE_KEY);
           } catch {
-            /* quota / gizli sekme */
+            /* quota */
           }
         }
         set({
           ...emptyPersist,
-          rivals: [],
-          logs: [],
-          market: { ...MARKET_START },
         });
+      },
+      ackSeason: () => {
+        const player = get().player;
+        if (!player?.pendingSeasonCeremony) return;
+        const c = player.pendingSeasonCeremony;
+        let next: Player = {
+          ...player,
+          cash: player.cash + c.bonus,
+          pendingSeasonCeremony: null,
+        };
+        let logs = pushLog(
+          get().logs,
+          next,
+          "system",
+          `Yeni sezon. Unvan: ${c.title}. +${c.bonus.toLocaleString("tr-TR")} ₺`,
+          c.bonus,
+        );
+        const ach = withMeta(next, logs);
+        next = ach.player;
+        logs = ach.logs;
+        track("sezon_tamamlandi", { score: c.score });
+        set({ player: next, logs, savedAt: Date.now() });
+      },
+      skipTutorial: () => {
+        const player = get().player;
+        if (!player) return;
+        set({ player: { ...player, tutorialStep: 4 } });
+      },
+      bumpTutorial: (step) => {
+        const player = get().player;
+        if (!player) return;
+        if ((player.tutorialStep ?? 0) !== step) return;
+        set({ player: { ...player, tutorialStep: step + 1 } });
+      },
+      claimDaily: () => {
+        const s = get();
+        if (!s.player) return;
+        const nextP = applyDailyStreak(s.player);
+        if (nextP === s.player) return;
+        const cash = nextP.cash - s.player.cash;
+        let logs = pushLog(
+          s.logs,
+          nextP,
+          "system",
+          `Günlük seri ${nextP.streak}. +${cash.toLocaleString("tr-TR")} ₺`,
+          cash,
+        );
+        const meta = withMeta(nextP, logs);
+        set({ player: meta.player, logs: meta.logs, savedAt: Date.now() });
       },
     }),
     {
@@ -1545,6 +1750,7 @@ export const useGame = create<GameState>()(
           logs: Array.isArray(p.logs) ? p.logs : current.logs,
           hiz: parseHiz(p.hiz),
           version: SAVE_VERSION,
+          savedAt: typeof p.savedAt === "number" ? p.savedAt : Date.now(),
           market:
             p.market && typeof p.market === "object"
               ? { ...MARKET_START, ...p.market }
@@ -1585,6 +1791,7 @@ export const useGame = create<GameState>()(
         logs: s.logs.slice(0, 40),
         hiz: s.hiz,
         market: s.market,
+        savedAt: Date.now(),
       }),
       skipHydration: true,
     },

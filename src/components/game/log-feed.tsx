@@ -12,8 +12,12 @@ export function LogFeed({ logs }: { logs: LogEntry[] }) {
   }
   return (
     <ol className="space-y-3">
-      {logs.map((l) => (
-        <li key={l.id} className="border-b border-border pb-3 last:border-0">
+      {logs.map((l, i) => (
+        <li
+          key={l.id}
+          className="border-b border-border pb-3 last:border-0"
+          aria-live={i === 0 ? "polite" : undefined}
+        >
           <p className="text-[0.65rem] tracking-[0.18em] text-subtle uppercase">
             {kindLabel(l.kind)} · {formatStamp(l.at)}
           </p>

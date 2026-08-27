@@ -20,6 +20,12 @@ import { pendingMigrations } from "./migration-plan.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
+  if (process.env.GROK_STRICT_MIGRATE === "1") {
+    console.error(
+      "[migrate] DATABASE_URL required (GROK_STRICT_MIGRATE=1).",
+    );
+    process.exit(1);
+  }
   console.log(
     "[migrate] DATABASE_URL not set — skipping (the PGLite fallback migrates itself).",
   );

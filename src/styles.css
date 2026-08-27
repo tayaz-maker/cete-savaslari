@@ -114,3 +114,21 @@
   );
   opacity: 0.55;
 }
+
+.game-shell {
+  overscroll-behavior-y: contain;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .hud-header {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+  .hud-chips {
+    display: none !important;
+  }
+  .game-shell main {
+    overflow-y: auto;
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}

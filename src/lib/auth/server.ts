@@ -219,6 +219,12 @@ export const auth = betterAuth({
   // flicker-prevention guidance (gate on `isPending`; SSR the session).
   session: { cookieCache: { enabled: true, maxAge: 300 } },
 
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 10,
+  },
+
   // Local email/password — toggled only via `./email-password` (not a plugin).
   ...(emailAndPasswordEnabled
     ? {

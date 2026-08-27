@@ -1,10 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AgeGate } from "@/components/game/age-gate";
 import { GameApp } from "@/components/game/game-app";
+import type { TabId } from "@/game/types";
+
+const TABS: TabId[] = [
+  "ben",
+  "icraat",
+  "tezgah",
+  "emlak",
+  "sokak",
+  "hayat",
+  "klinik",
+];
 
 export const Route = createFileRoute("/cete-savaslari")({
   ssr: false,
+  validateSearch: (raw: Record<string, unknown>) => {
+    const v = typeof raw.sekme === "string" ? raw.sekme : "";
+    if ((TABS as string[]).includes(v)) return { sekme: v as TabId };
+    return {};
+  },
   head: () => ({
-    meta: [{ title: "Çete Savaşları | Tariklab" }],
+    meta: [{ title: "Çete Savaşları | TLab" }],
   }),
   component: CetePage,
 });
@@ -23,7 +40,9 @@ function CetePage() {
           Çete Savaşları
         </p>
       </div>
-      <GameApp />
+      <AgeGate>
+        <GameApp />
+      </AgeGate>
     </div>
   );
 }

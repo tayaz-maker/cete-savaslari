@@ -3,6 +3,7 @@ import {
   BANK_RATE_PER_TICK,
   CLINIC_HEALTH_PER_TICK,
   CONTRACTS,
+  CREW_MAP,
   ENERGY_PER_TICK,
   ESTATE_MAP,
   EVENT_COOLDOWN,
@@ -21,8 +22,10 @@ import {
   TICKS_PER_HOUR,
   crewWageHourly,
   estateIncomeHourly,
+  ihanetChancePerTick,
   koseWeekly,
   migrateHood,
+  toplamOrtalik,
   turfHaraçHourly,
   walkMarket,
 } from "./data";
@@ -87,9 +90,7 @@ export type WorldSlice = {
 export function applyTick(s: WorldSlice): WorldSlice {
   let p: Player = { ...s.player };
   let logs = s.logs;
-  const rawUsdt = s.market?.usdt ?? MARKET_START.usdt;
-  const prevUsdt =
-    Number.isFinite(rawUsdt) && rawUsdt > 0 ? rawUsdt : MARKET_START.usdt;
+  const prevUsdt = s.market?.usdt ?? MARKET_START.usdt;
   const market = walkMarket(s.market ?? MARKET_START);
   if (Math.abs(market.usdt - prevUsdt) / prevUsdt > 0.04) {
     logs = pushLog(
@@ -104,9 +105,8 @@ export function applyTick(s: WorldSlice): WorldSlice {
 
   p.dakika += TICK_MINUTES;
   if (p.dakika >= 60) {
-    // Bozuk kayıtta dakika 60'ın katı olmayabilir; artan dakika kaybolmasın.
-    p.saat += Math.floor(p.dakika / 60);
-    p.dakika %= 60;
+    p.dakika = 0;
+    p.saat += 1;
   }
   const newDay = p.saat >= 24;
   if (newDay) {
@@ -115,11 +115,15 @@ export function applyTick(s: WorldSlice): WorldSlice {
     logs = pushLog(logs, p, "system", `Yeni gün. ${p.gun}. gün sokakta.`);
     const elapsed = p.gun - (p.seasonGun || 1);
     if (elapsed >= SEASON_DAYS) {
+      const oldScore = Math.round(p.seasonScore);
+      const bonus = Math.min(25000, 500 + oldScore);
+      const title = oldScore >= 80 ? "İstanbul'un babası" : "Sezon bitti";
+      p.pendingSeasonCeremony = { score: oldScore, title, bonus };
       logs = pushLog(
         logs,
         p,
         "system",
-        `Sezon kapandı. Skor ${Math.round(p.seasonScore)}. Sokak unutur, sen unutma.`,
+        `Sezon kapandı. Skor ${oldScore}. Sokak unutur, sen unutma.`,
       );
       p.seasonScore = 0;
       p.seasonGun = p.gun;
@@ -159,6 +163,7 @@ export function applyTick(s: WorldSlice): WorldSlice {
         if (left > 0) {
           p.isi = clamp(p.isi + 22, 0, HEAT_MAX);
           p.itibar = Math.max(0, p.itibar - 8);
+          p.senetDefaults = (p.senetDefaults ?? 0) + 1;
           logs = pushLog(
             logs,
             p,
@@ -166,6 +171,7 @@ export function applyTick(s: WorldSlice): WorldSlice {
             `Senet ödenmedi. ${due.name} faizle geldi. Emniyet yükseldi, itibar düştü. Kalan ${left.toLocaleString("tr-TR")} ₺ silindi.`,
           );
         } else {
+          p.senetPaid = (p.senetPaid ?? 0) + 1;
           logs = pushLog(
             logs,
             p,
@@ -207,14 +213,20 @@ export function applyTick(s: WorldSlice): WorldSlice {
         );
       }
     }
+    const vis = toplamOrtalik(p);
+    if (vis >= 55 && Math.random() < vis / 220) {
+      p.isi = clamp(p.isi + 3, 0, HEAT_MAX);
+      logs = pushLog(
+        logs,
+        p,
+        "estate",
+        "Ortalıklık yüksek. Villanın ışığı, lounge'ın kapısı — devriye sordu. Emniyet +3.",
+      );
+    }
   }
 
   const eMax = energyMax(p.level, p.neighborhood);
   const sMax = staminaMax(p.level);
-
-  const decay = p.crew.includes("gozcu") ? 5 : 3;
-  if (p.durum !== "serbest") p.isi = clamp(p.isi - decay - 2, 0, HEAT_MAX);
-  else p.isi = clamp(p.isi - decay, 0, HEAT_MAX);
 
   if (p.durum === "klinik") {
     p.health = clamp(p.health + CLINIC_HEALTH_PER_TICK, 0, HEALTH_MAX);
@@ -223,11 +235,12 @@ export function applyTick(s: WorldSlice): WorldSlice {
       p.durum = "serbest";
       p.durumTick = 0;
       p.health = HEALTH_MAX;
+      p.saglikIzi = Math.max(p.saglikIzi ?? 0, 10);
       logs = pushLog(
         logs,
         p,
         "clinic",
-        "Doktor sırtını sıvazladı: dikişler tuttu, kalk git. Klinikten çıktın.",
+        "Doktor sırtını sıvazladı: dikişler tuttu, kalk git. Klinikten çıktın. Sağlık izi kaldı — can yavaş dolar.",
       );
     }
   } else if (p.durum === "nezaret") {
@@ -243,12 +256,19 @@ export function applyTick(s: WorldSlice): WorldSlice {
       );
     }
   } else {
-    p.energy = clamp(p.energy + ENERGY_PER_TICK, 0, eMax);
+    const wounded = (p.saglikIzi ?? 0) > 0;
+    p.energy = clamp(
+      p.energy + (wounded ? Math.max(1, Math.floor(ENERGY_PER_TICK / 2)) : ENERGY_PER_TICK),
+      0,
+      wounded ? Math.max(8, eMax - 3) : eMax,
+    );
     p.stamina = clamp(p.stamina + STAMINA_PER_TICK, 0, sMax);
-    if (p.health > 0) {
+    if (p.health > 0 && !wounded) {
       p.health = clamp(p.health + HEALTH_PER_TICK, 0, HEALTH_MAX);
     }
   }
+
+  if ((p.saglikIzi ?? 0) > 0) p.saglikIzi = Math.max(0, p.saglikIzi - 1);
 
   p.buzz = Math.max(0, (p.buzz ?? 0) - 1);
   p.high = Math.max(0, (p.high ?? 0) - 1);
@@ -334,6 +354,29 @@ export function applyTick(s: WorldSlice): WorldSlice {
     }
     r.health = clamp(r.health + 5, 0, 100);
     r.cash += r.level * randInt(80, 220);
+    if ((r.revengeTicks ?? 0) > 0) {
+      r.revengeTicks -= 1;
+      if (r.revengeTicks <= 0) {
+        r.revengeTicks = 0;
+        if (p.durum === "serbest" && p.cash > 200) {
+          const take = Math.min(
+            p.cash,
+            Math.round(p.cash * 0.1) + randInt(250, 1100),
+          );
+          p.cash -= take;
+          r.cash += take;
+          p.health = clamp(p.health - randInt(6, 16), 1, HEALTH_MAX);
+          p.saglikIzi = Math.max(p.saglikIzi ?? 0, 8);
+          logs = pushLog(
+            logs,
+            p,
+            "pvp",
+            `${r.name} intikamını aldı. Cebinden ${take.toLocaleString("tr-TR")} ₺ kaptı, sağlık izi açıldı.`,
+            -take,
+          );
+        }
+      }
+    }
     if ((p.turf[r.hood] ?? 0) > 28 && Math.random() < 0.05) {
       p.turf = {
         ...p.turf,
@@ -357,6 +400,37 @@ export function applyTick(s: WorldSlice): WorldSlice {
           payout,
         );
       }
+    }
+  }
+
+  if (
+    p.durum === "serbest" &&
+    p.crew.length &&
+    Math.random() < ihanetChancePerTick(p)
+  ) {
+    const traitor = pick(p.crew);
+    const tName = CREW_MAP[traitor]?.name ?? "Adam";
+    const steal = Math.min(p.cash, randInt(400, 1800));
+    p.cash -= steal;
+    p.isi = clamp(p.isi + 8, 0, HEAT_MAX);
+    p.itibar = Math.max(0, p.itibar - 4);
+    if (Math.random() < 0.55) {
+      p.crew = p.crew.filter((c) => c !== traitor);
+      logs = pushLog(
+        logs,
+        p,
+        "crew",
+        `İhanet. İtibar düşükken ${tName} defteri emniyete sızdırdı, ${steal.toLocaleString("tr-TR")} ₺ ile kayboldu.`,
+        -steal,
+      );
+    } else {
+      logs = pushLog(
+        logs,
+        p,
+        "crew",
+        `İhanet riski tuttu. ${tName} ${steal.toLocaleString("tr-TR")} ₺ kesti, semti ısıttı.`,
+        -steal,
+      );
     }
   }
 

@@ -22,6 +22,13 @@ import { cn, formatTRY } from "@/lib/utils";
 /** Üç kontrol dar telefonda tek satırda kalsın; dokunma alanı h-11 kalır. */
 const CTRL_BTN = "px-3 text-xs md:px-4 md:text-sm";
 
+function lastSaveLabel(at: number) {
+  if (!at) return "kayıt yok";
+  const m = Math.max(0, Math.round((Date.now() - at) / 60000));
+  if (m < 1) return "az önce";
+  return `${m} dk önce`;
+}
+
 const HOOD: Record<Player["neighborhood"], string> = {
   eyup: "Eyüp",
   tarlabasi: "Tarlabaşı",
@@ -29,11 +36,17 @@ const HOOD: Record<Player["neighborhood"], string> = {
   sultangazi: "Sultangazi",
 };
 
-export function Hud({ player }: { player: Player }) {
+export function Hud({
+  player,
+}: {
+  player: Player;
+  onAccount?: (tab?: "giris" | "kayit" | "unuttum" | "sifre") => void;
+}) {
   const [detailOpen, setDetailOpen] = useState(false);
   const hiz = useGame((s) => s.hiz);
   const toggleHiz = useGame((s) => s.toggleHiz);
   const skipHour = useGame((s) => s.skipHour);
+  const savedAt = useGame((s) => s.savedAt);
   const market = useGame((s) => s.market) ?? MARKET_START;
   const eMax = energyMax(player.level, player.neighborhood);
   const sMax = staminaMax(player.level);
@@ -61,7 +74,7 @@ export function Hud({ player }: { player: Player }) {
       .join(" · ") || "Üstün boş, elinde şişe bile yok.";
 
   return (
-    <header className="border-b border-border bg-bg/90 px-4 py-3 md:px-6">
+    <header className="hud-header border-b border-border bg-bg/90 px-4 py-3 md:px-6">
       {/*
         Telefonda HUD tüm ilk ekranı yiyordu. Mobilde hayati olanlar (isim,
         nakit, saat, dört çubuk, uyarı) hep açık; künye/kutular/sıfırlama
@@ -81,6 +94,9 @@ export function Hud({ player }: { player: Player }) {
               {formatClock(player)}
             </p>
             <p className="mt-1 hidden text-sm text-fg md:block">{loadout}</p>
+            <p className="mt-1 line-clamp-1 text-xs text-muted md:hidden">
+              {loadout}
+            </p>
           </div>
           <p className="shrink-0 font-mono text-xl font-semibold tabular-nums text-accent md:text-2xl">
             {formatTRY(player.cash)}
@@ -147,7 +163,7 @@ export function Hud({ player }: { player: Player }) {
 
         <div
           className={cn(
-            "order-5 flex-col gap-3 md:order-2 md:flex",
+            "hud-chips order-5 flex-col gap-3 md:order-2 md:flex",
             detailOpen ? "flex" : "hidden",
           )}
         >
@@ -167,6 +183,7 @@ export function Hud({ player }: { player: Player }) {
             <Chip label="Yatırım" value={formatTRY(yatirim)} />
             <Chip label="İtibar" value={`${Math.round(player.itibar)}`} />
             <Chip label="Rüşvet" value={formatTRY(player.rusvet)} />
+            <Chip label="Son kayıt" value={lastSaveLabel(savedAt)} />
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <AccountPanel />

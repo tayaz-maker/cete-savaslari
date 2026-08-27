@@ -1,7 +1,7 @@
 {
-  "name": "Tariklab",
-  "short_name": "Tariklab",
-  "description": "Tariklab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
+  "name": "TLab",
+  "short_name": "TLab",
+  "description": "TLab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
