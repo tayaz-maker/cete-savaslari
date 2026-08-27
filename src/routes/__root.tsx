@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Çete Savaşları";
+const APP_NAME = "Tariklab Oyunlar";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       { name: "mobile-web-app-capable", content: "yes" },
       {
         name: "description",
-        content: "Racon ve Sokak — İstanbul yeraltı simülasyonu. 18+.",
+        content: "Tariklab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
       },
     ],
     links: [

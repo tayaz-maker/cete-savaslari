@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as CeteSavaslariRouteImport } from './routes/cete-savaslari'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CeteSavaslariRoute = CeteSavaslariRouteImport.update({
+  id: '/cete-savaslari',
+  path: '/cete-savaslari',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/reset-password' | '/auth/callback'
+  fullPaths: '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/reset-password' | '/auth/callback'
-  id: '__root__' | '/' | '/reset-password' | '/auth/callback'
+  to: '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari'
+  id: '__root__' | '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  CeteSavaslariRoute: typeof CeteSavaslariRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cete-savaslari': {
+      id: '/cete-savaslari'
+      path: '/cete-savaslari'
+      fullPath: '/cete-savaslari'
+      preLoaderRoute: typeof CeteSavaslariRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  CeteSavaslariRoute: CeteSavaslariRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

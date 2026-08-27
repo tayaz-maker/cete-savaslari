@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GameApp } from "@/components/game/game-app";
+import { PortalHome } from "@/components/portal/portal-home";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -7,5 +7,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  return <GameApp />;
+  return <PortalHome />;
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Çete Savaşları",
-  "short_name": "Çete",
-  "description": "Racon ve Sokak — İstanbul yeraltı simülasyonu. 18+.",
+  "name": "Tariklab",
+  "short_name": "Tariklab",
+  "description": "Tariklab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

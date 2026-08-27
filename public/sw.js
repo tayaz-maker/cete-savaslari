@@ -2,7 +2,7 @@
  * İlk online ziyarette kabuk + asset cache'lenir. Sonra uçak modu çalışır.
  */
 const CACHE = "cete-offline-v1";
-const SHELL = ["/", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];
+const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
