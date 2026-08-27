@@ -43,7 +43,7 @@ class MazeGame {
 
     // Persisted preferences
     this.settings = this.loadSettings();
-    this.difficulty = this.settings.difficulty || 'medium';
+    this.difficulty = this.settings.difficulty || 'hard';
     this.soundEnabled = this.settings.soundEnabled !== false;
     this.theme = this.settings.theme || 'default';
 
@@ -52,10 +52,10 @@ class MazeGame {
     // hintSteps = how many cells ahead a hint reveals (a nudge, not the answer).
     // maxHints  = how many hints are allowed for the whole run.
     this.difficultyConfig = {
-      easy: { rows: 11, cols: 15, hintCost: 5, mult: 1, hintSteps: 3, maxHints: 3 },
-      medium: { rows: 15, cols: 21, hintCost: 10, mult: 1.5, hintSteps: 4, maxHints: 5 },
-      hard: { rows: 21, cols: 31, hintCost: 15, mult: 2, hintSteps: 5, maxHints: 7 },
-      expert: { rows: 25, cols: 35, hintCost: 20, mult: 3, hintSteps: 6, maxHints: 9 },
+      easy: { rows: 21, cols: 31, hintCost: 14, mult: 1, hintSteps: 2, maxHints: 2 },
+      medium: { rows: 29, cols: 41, hintCost: 22, mult: 1.5, hintSteps: 2, maxHints: 2 },
+      hard: { rows: 35, cols: 51, hintCost: 30, mult: 2, hintSteps: 1, maxHints: 2 },
+      expert: { rows: 43, cols: 61, hintCost: 42, mult: 3, hintSteps: 1, maxHints: 1 },
     };
 
     // Canvas color palettes per theme
@@ -736,25 +736,18 @@ class MazeGame {
   drawMaze() {
     const c = this.cellSize,
       p = this.palette();
+    const px = Math.round(this.player.x);
+    const py = Math.round(this.player.y);
     for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.cols; x++) {
-        this.ctx.fillStyle = this.maze[y][x] === 1 ? p.wall : p.floor;
+        const wall = this.maze[y][x] === 1;
+        const seen = this.trail.has(x + ',' + y);
+        const near = Math.abs(x - px) + Math.abs(y - py) <= 1;
+        if (wall) this.ctx.fillStyle = p.wall;
+        else if (seen || near) this.ctx.fillStyle = p.floor;
+        else this.ctx.fillStyle = p.wall;
         this.ctx.fillRect(x * c, y * c, c, c);
       }
-    }
-    this.ctx.strokeStyle = p.grid;
-    this.ctx.lineWidth = 1;
-    for (let x = 0; x <= this.cols; x++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x * c, 0);
-      this.ctx.lineTo(x * c, this.rows * c);
-      this.ctx.stroke();
-    }
-    for (let y = 0; y <= this.rows; y++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y * c);
-      this.ctx.lineTo(this.cols * c, y * c);
-      this.ctx.stroke();
     }
   }
 
@@ -786,6 +779,9 @@ class MazeGame {
   }
 
   drawExit() {
+    const dist =
+      Math.abs(this.player.x - this.exit.x) + Math.abs(this.player.y - this.exit.y);
+    if (dist > 3 && !this.showingHint) return;
     const c = this.cellSize,
       p = this.palette();
     const cx = this.exit.x * c + c / 2,
@@ -988,13 +984,13 @@ class MazeGame {
     try {
       return (
         JSON.parse(localStorage.getItem('mazeGameSettings')) || {
-          difficulty: 'medium',
+          difficulty: 'hard',
           soundEnabled: true,
           theme: 'default',
         }
       );
     } catch (_) {
-      return { difficulty: 'medium', soundEnabled: true, theme: 'default' };
+      return { difficulty: 'hard', soundEnabled: true, theme: 'default' };
     }
   }
 

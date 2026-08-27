@@ -7,10 +7,8 @@ export type CatalogGame = {
 };
 
 export const HTML5_SLUGS = [
+  "hanedan",
   "labirent",
-  "sapan",
-  "ipi-kes",
-  "bilardo",
   "peg-solitaire",
   "satranc",
 ] as const;
@@ -30,32 +28,18 @@ export const GAMES: CatalogGame[] = [
     href: "/cete-savaslari",
   },
   {
+    slug: "hanedan",
+    title: "Çete Savaşları: Hanedan",
+    subtitle: "Adamlar ölür. Hanedan kalır.",
+    status: "live",
+    href: "/oyna/hanedan",
+  },
+  {
     slug: "labirent",
     title: "Labirent",
     subtitle: "Çıkışı bul.",
     status: "live",
     href: "/oyna/labirent",
-  },
-  {
-    slug: "sapan",
-    title: "Sapan",
-    subtitle: "Çek, bırak, yık.",
-    status: "live",
-    href: "/oyna/sapan",
-  },
-  {
-    slug: "ipi-kes",
-    title: "İpi Kes",
-    subtitle: "İpi kes, hedefe ulaştır.",
-    status: "live",
-    href: "/oyna/ipi-kes",
-  },
-  {
-    slug: "bilardo",
-    title: "Bilardo",
-    subtitle: "Sekiz top.",
-    status: "live",
-    href: "/oyna/bilardo",
   },
   {
     slug: "peg-solitaire",
