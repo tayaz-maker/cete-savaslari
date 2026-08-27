@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { clockStamp } from "./clock";
-import { dropSave, loadSave, putSave, type CloudSave } from "./save-server";
+import { dropSave, loadSave, putSave, type CloudSave } from "./sb-save";
 import { useGame } from "./store";
 import type { Player } from "./types";
 
@@ -53,10 +53,8 @@ export function pushCloudSave(): Promise<CloudSave | null> {
   if (!s.player) return Promise.resolve(null);
   return quiet(() =>
     putSave({
-      data: {
-        state: s as unknown as Record<string, unknown>,
-        progress: progressOf(s.player),
-      },
+      state: s as unknown as import("./sb-save").SaveState,
+      progress: progressOf(s.player),
     }),
   );
 }

@@ -1,9 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { emailAuth } from "@/lib/auth-email";
-import { authEnabled } from "@/lib/auth/client";
+import { mapSbError, supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
@@ -11,32 +10,54 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPassword() {
-  const token = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("token") ?? "";
-  }, []);
+  const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
 
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+      try {
+        if (code) {
+          const { error: err } = await supabase.auth.exchangeCodeForSession(code);
+          if (err) throw err;
+        } else {
+          await supabase.auth.getSession();
+        }
+        if (live) setReady(true);
+      } catch (e) {
+        if (live)
+          setError(
+            e instanceof Error
+              ? mapSbError(e.message)
+              : "Link eksik veya eski. Mailden yeni link iste.",
+          );
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (password.length < 8) return setError("Şifre en az 8 karakter.");
     if (password !== password2) return setError("Şifreler uyuşmuyor.");
-    if (!token) return setError("Link eksik veya eski. Mailden yeni link iste.");
     setBusy(true);
     setError(null);
     try {
-      const { error: err } = await emailAuth.resetPassword({
-        newPassword: password,
-        token,
-      });
-      if (err) throw new Error(err.message);
+      const { error: err } = await supabase.auth.updateUser({ password });
+      if (err) throw err;
       setOk(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sıfırlama alınamadı.");
+      setError(
+        err instanceof Error ? mapSbError(err.message) : "Sıfırlama alınamadı.",
+      );
     } finally {
       setBusy(false);
     }
@@ -50,9 +71,7 @@ function ResetPassword() {
       <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">
         Yeni şifre
       </h1>
-      {!authEnabled ? (
-        <p className="mt-6 text-sm text-warn">Hesap bu kurulumda kapalı.</p>
-      ) : ok ? (
+      {ok ? (
         <p className="mt-6 text-sm text-fg">
           Şifre değişti.{" "}
           <Link to="/" className="text-accent underline-offset-4 hover:underline">
@@ -60,36 +79,29 @@ function ResetPassword() {
           </Link>
         </p>
       ) : (
-        <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+        <form className="mt-6 space-y-3" onSubmit={(e) => void onSubmit(e)}>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
-          <label className="block">
-            <span className="text-xs font-medium tracking-wide text-muted uppercase">
-              Yeni şifre
-            </span>
-            <Input
-              className="mt-1"
-              type="password"
-              minLength={8}
-              value={password}
-              autoComplete="new-password"
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+            Yeni şifre
           </label>
-          <label className="block">
-            <span className="text-xs font-medium tracking-wide text-muted uppercase">
-              Tekrar
-            </span>
-            <Input
-              className="mt-1"
-              type="password"
-              minLength={8}
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-              required
-            />
+          <Input
+            type="password"
+            value={password}
+            autoComplete="new-password"
+            disabled={!ready}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <label className="block text-xs font-medium tracking-wide text-muted uppercase">
+            Şifre (tekrar)
           </label>
-          <Button className="h-12 w-full" disabled={busy} type="submit">
+          <Input
+            type="password"
+            value={password2}
+            autoComplete="new-password"
+            disabled={!ready}
+            onChange={(e) => setPassword2(e.target.value)}
+          />
+          <Button type="submit" disabled={busy || !ready}>
             {busy ? "Bekle…" : "Kaydet"}
           </Button>
         </form>
