@@ -12,10 +12,14 @@ export function useSupabaseUser() {
       if (!live) return;
       setUser(data.session?.user ?? null);
       setPending(false);
+      if (data.session?.user) void supabase.rpc("ensure_profile");
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setPending(false);
+      if (session?.user && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
+        void supabase.rpc("ensure_profile");
+      }
     });
     return () => {
       live = false;
