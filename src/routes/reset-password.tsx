@@ -20,14 +20,25 @@ function ResetPassword() {
   useEffect(() => {
     let live = true;
     void (async () => {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
       try {
-        if (code) {
+        const existing = await supabase.auth.getSession();
+        if (existing.data.session) {
+          if (live) setReady(true);
+          return;
+        }
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
+        const tokenHash = url.searchParams.get("token_hash");
+        const type = url.searchParams.get("type");
+        if (tokenHash && type) {
+          const { error: err } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as "recovery",
+          });
+          if (err) throw err;
+        } else if (code) {
           const { error: err } = await supabase.auth.exchangeCodeForSession(code);
           if (err) throw err;
-        } else {
-          await supabase.auth.getSession();
         }
         if (live) setReady(true);
       } catch (e) {
