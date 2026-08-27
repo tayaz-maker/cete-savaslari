@@ -1,0 +1,22 @@
+{
+  "version": "0.4",
+  "name": "PegSolitaire",
+  "description": "Peg Solitaire with various popular board shapes",
+  "launch_path": "/Peg-Solitaire/html5/src/index.html",
+  "icons": {
+    "16": "/Peg-Solitaire/html5/src/img/icons/pegsol16.png",
+    "32": "/Peg-Solitaire/html5/src/img/icons/pegsol32.png",
+    "48": "/Peg-Solitaire/html5/src/img/icons/pegsol48.png",
+    "60": "/Peg-Solitaire/html5/src/img/icons/pegsol60.png",
+    "64": "/Peg-Solitaire/html5/src/img/icons/pegsol64.png",
+    "90": "/Peg-Solitaire/html5/src/img/icons/pegsol90.png",
+    "120": "/Peg-Solitaire/html5/src/img/icons/pegsol120.png",
+    "128": "/Peg-Solitaire/html5/src/img/icons/pegsol128.png",
+    "256": "/Peg-Solitaire/html5/src/img/icons/pegsol256.png"
+  },
+  "developer": {
+    "name": "Oliver Merkel",
+    "url": "https://github.com/OMerkel/Peg-Solitaire"
+  },
+  "installs_allowed_from": ["*"]
+}

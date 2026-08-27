@@ -1,0 +1,49 @@
+html, body {
+    margin: 0;
+}
+
+/*#screen{
+	padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}*/
+html, body {
+    background: #0e0c0b;
+    overflow: hidden;
+    touch-action: none;
+}
+#screen { touch-action: none; display: block; }
+#touchHud {
+    display: none;
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 5;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #171412;
+    color: #efe8de;
+    font-family: Barlow, "Segoe UI", system-ui, sans-serif;
+    box-shadow: 0 0 0 1px rgba(239,232,222,0.12);
+}
+#touchHud label { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 0.85rem; }
+#touchHud input[type=range] { flex: 1; min-height: 32px; }
+#touchHud button {
+    min-height: 44px;
+    min-width: 64px;
+    border: 0;
+    border-radius: 10px;
+    background: #d8d0c4;
+    color: #12100e;
+    font: inherit;
+    cursor: pointer;
+}
+#touchHud p { margin: 0; font-size: 0.7rem; color: #9a9086; max-width: 12rem; }
+@media (pointer: coarse), (max-width: 900px) {
+    #touchHud { display: flex; flex-wrap: wrap; }
+}

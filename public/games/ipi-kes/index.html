@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0c0b" />
+  <title>İpi Kes | TLab</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0e0c0b; color: #efe8de; overflow: hidden;
+      font-family: Barlow, "Segoe UI", system-ui, sans-serif; }
+    #main-section { width: 100% !important; height: 100% !important; margin: 0 !important; }
+    .documentation, .documentation_treenode { width: 100% !important; background: transparent !important;
+      box-shadow: none !important; padding: 0 !important; overflow: hidden !important; }
+    canvas { display: block !important; width: 100% !important; height: 100% !important; touch-action: none; }
+    .code-widget, .editor-widget { display: none !important; }
+    .controls-widget { position: fixed; left: 8px; bottom: 8px; z-index: 4; max-width: min(280px, 90vw);
+      max-height: 36vh; overflow: auto; background: #171412cc; border-radius: 10px; padding: 6px; }
+    .controls-widget table.control-box { width: auto !important; max-width: 260px; }
+    .controls-widget button { min-height: 40px; }
+    #hint {
+      position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+      background: #171412cc; color: #c4b8ac; font-size: 0.8rem; padding: 6px 12px;
+      border-radius: 999px; pointer-events: none; z-index: 4; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <p id="hint">İpe dokunarak kes. Turuncuyu yeşil hedefe ulaştır.</p>
+  <div id="main-section"></div>
+  <script type="module">
+    const element_to_replace = document.querySelector("#main-section");
+    import {main_scene, additional_scenes} from './main-scene.js';
+    const root = new main_scene();
+    root.widget_options = { make_code_nav: false, make_editor: false, make_controls: true };
+    root.animated_children.push(...additional_scenes.map(scene => new scene()));
+    root.render_layout(element_to_replace);
+    function fit() {
+      const w = Math.max(320, window.innerWidth);
+      const h = Math.max(240, window.innerHeight);
+      root.set_canvas_size([w, h]);
+    }
+    window.addEventListener("resize", fit);
+    window.addEventListener("orientationchange", () => setTimeout(fit, 200));
+    fit();
+  </script>
+</body>
+</html>

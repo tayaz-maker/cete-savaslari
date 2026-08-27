@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#0e0c0b" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF8">
+    <title>Bilardo | TLab</title>
+    <link rel="stylesheet" type="text/css" href="css/game-layout.css"/>
+    <link rel="shortcut icon" type="image/png" href="assets/sprites/favicon.png"/>
+    <script src="script/lib/LAB.min.js"></script>
+    <script>
+        $LAB
+                .script('script/system/Keys.js').wait()
+                .script('script/system/Color.js').wait()
+                .script('script/geom/Vector2.js').wait()
+                .script('script/input/ButtonState.js').wait()
+                .script('script/input/Keyboard.js').wait()
+                .script('script/input/Mouse.js').wait()
+                .script('script/Global.js').wait()
+                .script('script/Canvas2D.js').wait()
+                .script('script/game_objects/Score.js').wait()
+                .script('script/game_objects/Ball.js').wait()
+                .script('script/game_objects/Stick.js').wait()
+                .script('script/menu/Label.js').wait()
+                .script('script/menu/Button.js').wait()
+                .script('script/menu/Menu.js').wait()
+                .script('script/menu/MainMenu.js').wait()
+                .script('script/AI/Opponent.js').wait()
+                .script('script/AI/AIPolicy.js').wait()
+                .script('script/AI/AITrainer.js').wait()
+                .script('script/game_objects/Player.js').wait()
+                .script('script/GamePolicy.js').wait()
+                .script('script/GameWorld.js').wait()
+                .script('script/Game.js').wait()
+                .script('script/Assets.js').wait(function () {
+                    Game.start('gameArea','screen', 1500, 825);
+                });
+
+    </script>
+</head>
+
+<body style = "background-color:black">
+<div id="gameArea">
+    <canvas id="screen" width="2000" height="1000"></canvas>
+</div>
+
+<div id="touchHud">
+  <label>Güç
+    <input id="powerRange" type="range" min="0" max="75" value="0" />
+  </label>
+  <button type="button" id="shootBtn">Vur</button>
+  <p>Nişan için masayı sürükle. Gücü ayarla, Vur’a bas. Masaüstü: W/S güç, tık vuruş.</p>
+</div>
+<script>
+(function () {
+  var r = document.getElementById("powerRange");
+  var b = document.getElementById("shootBtn");
+  if (r) r.addEventListener("input", function () { window.__poolPower = Number(r.value); });
+  if (b) b.addEventListener("click", function () { window.__poolShoot = true; });
+})();
+</script>
+</body>
+</html>

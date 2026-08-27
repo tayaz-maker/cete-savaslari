@@ -30,10 +30,22 @@ export function PortalHome() {
           const card =
             "rounded-xl bg-surface p-4 text-left shadow-[0_0_0_1px_rgba(239,232,222,0.08)]";
           if (g.status === "live" && g.href) {
+            if (g.slug === "cete-savaslari") {
+              return (
+                <Link
+                  key={g.slug}
+                  to="/cete-savaslari"
+                  className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
+                >
+                  {inner}
+                </Link>
+              );
+            }
             return (
               <Link
                 key={g.slug}
-                to="/cete-savaslari"
+                to="/oyna/$slug"
+                params={{ slug: g.slug }}
                 className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
               >
                 {inner}
@@ -51,6 +63,12 @@ export function PortalHome() {
           );
         })}
       </div>
+
+      <p className="mt-10 text-center text-[0.65rem] tracking-wide text-subtle">
+        <a href="/credits.html" className="hover:text-fg">
+          Kaynaklar
+        </a>
+      </p>
     </main>
   );
 }
