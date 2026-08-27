@@ -66,6 +66,20 @@ export const TABS: {
 
 const TAB_IDS = TABS.map((t) => t.id);
 
+function catchupTutorial(p: { tutorialStep?: number; jobsDone?: number; inventory: string[]; kose?: number; turf?: Record<string, number>; bank?: number }) {
+  let step = p.tutorialStep ?? 0;
+  if (step < 0 || step >= 4) return step;
+  if (step <= 0 && (p.jobsDone ?? 0) > 0) step = 1;
+  if (step <= 1 && p.inventory.some((id) => id !== "w101")) step = 2;
+  if (
+    step <= 2 &&
+    ((p.kose ?? 0) > 0 || Object.values(p.turf ?? {}).some((v) => v > 0))
+  )
+    step = 3;
+  if (step <= 3 && (p.bank ?? 0) > 0) step = 4;
+  return step;
+}
+
 export function GameShell({
   onAccount,
 }: {
@@ -87,6 +101,13 @@ export function GameShell({
   useSaveSync(Boolean(user));
 
   useEffect(() => {
+    const p = useGame.getState().player;
+    if (p) {
+      const step = catchupTutorial(p);
+      if (step !== (p.tutorialStep ?? 0)) {
+        useGame.setState({ player: { ...p, tutorialStep: step } });
+      }
+    }
     claimDaily();
   }, [claimDaily]);
 
@@ -108,7 +129,7 @@ export function GameShell({
     if (last?.kind === "invest" && /köşe/i.test(last.text) && /dağıttı|baskın|devriye/i.test(last.text)) {
       void askPushOnce();
     }
-  }, [logs]);
+  }, [logs[0]?.id]);
 
   useEffect(() => {
     let hourTimer: ReturnType<typeof setTimeout> | null = null;
@@ -126,12 +147,24 @@ export function GameShell({
     };
   }, []);
 
+  useEffect(() => {
+    void Promise.allSettled([
+      import("@/components/game/me-panel"),
+      import("@/components/game/shop-panel"),
+      import("@/components/game/estate-panel"),
+      import("@/components/game/street-panel"),
+      import("@/components/game/life-panel"),
+      import("@/components/game/clinic-panel"),
+    ]);
+  }, []);
+
   function goTab(id: TabId) {
+    if (id === tab) return;
     setTab(id);
     setLogOpen(false);
     void navigate({
       search: (prev) => ({ ...prev, sekme: id }),
-      replace: false,
+      replace: true,
     });
   }
 

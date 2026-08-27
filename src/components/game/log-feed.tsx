@@ -1,9 +1,11 @@
+import { memo } from "react";
 import { formatStamp } from "@/game/clock";
 import type { LogEntry } from "@/game/types";
 import { formatTRY } from "@/lib/utils";
 
-export function LogFeed({ logs }: { logs: LogEntry[] }) {
-  if (!logs.length) {
+export const LogFeed = memo(function LogFeed({ logs }: { logs: LogEntry[] }) {
+  const rows = logs.slice(0, 24);
+  if (!rows.length) {
     return (
       <p className="text-sm text-muted">
         Sokak henüz sessiz. İlk icraat defteri açar.
@@ -12,7 +14,7 @@ export function LogFeed({ logs }: { logs: LogEntry[] }) {
   }
   return (
     <ol className="space-y-3">
-      {logs.map((l, i) => (
+      {rows.map((l, i) => (
         <li
           key={l.id}
           className="border-b border-border pb-3 last:border-0"
@@ -36,7 +38,7 @@ export function LogFeed({ logs }: { logs: LogEntry[] }) {
       ))}
     </ol>
   );
-}
+});
 
 function kindLabel(k: LogEntry["kind"]) {
   switch (k) {

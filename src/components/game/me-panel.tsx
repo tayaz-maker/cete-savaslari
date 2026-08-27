@@ -43,6 +43,27 @@ const LOCAL_BOARD: BoardRow[] = [
   { name: "Kambur Rıza", score: 90, hood: "eyup" },
 ];
 
+let boardCache: BoardRow[] | null = null;
+let boardInflight: Promise<BoardRow[]> | null = null;
+
+function loadBoard() {
+  if (boardCache) return Promise.resolve(boardCache);
+  if (boardInflight) return boardInflight;
+  boardInflight = fetchLeaderboard()
+    .then((rows) => {
+      boardCache = rows.length ? rows : LOCAL_BOARD;
+      return boardCache;
+    })
+    .catch(() => {
+      boardCache = LOCAL_BOARD;
+      return boardCache;
+    })
+    .finally(() => {
+      boardInflight = null;
+    });
+  return boardInflight;
+}
+
 export function MePanel({ player }: { player: Player }) {
   const market = useGame((s) => s.market) ?? MARKET_START;
   const logs = useGame((s) => s.logs);
@@ -80,15 +101,10 @@ export function MePanel({ player }: { player: Player }) {
 
   useEffect(() => {
     let live = true;
-    void fetchLeaderboard()
-      .then((rows) => {
-        if (!live) return;
-        setBoard(rows.length ? rows : LOCAL_BOARD);
-      })
-      .catch(() => {
-        if (!live) return;
-        setBoard(LOCAL_BOARD);
-      });
+    void loadBoard().then((rows) => {
+      if (!live) return;
+      setBoard(rows);
+    });
     track("liderlik_goruldu");
     return () => {
       live = false;

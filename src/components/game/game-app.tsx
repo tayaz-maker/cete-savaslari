@@ -1,4 +1,4 @@
-import { Component, type ReactNode, lazy, Suspense } from "react";
+import { Component, type ReactNode, lazy, Suspense, useEffect } from "react";
 import { CreateCharacter } from "@/components/game/create-character";
 import { OfflineReady } from "@/components/game/offline-ready";
 import { useGame } from "@/game/store";
@@ -49,6 +49,9 @@ class GameCrashGate extends Component<
 
 export function GameApp() {
   const player = useGame((s) => s.player);
+  useEffect(() => {
+    void import("@/components/game/game-shell");
+  }, []);
   return (
     <>
       <OfflineReady />

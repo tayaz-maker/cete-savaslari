@@ -8,23 +8,34 @@ export function useGameClock(active: boolean) {
 
   useEffect(() => {
     if (!active) return;
-    let raf = 0;
     let last = performance.now();
     let acc = 0;
-    const loop = (now: number) => {
-      const dt = Math.min(now - last, 200);
+    const step = () => {
+      if (typeof document !== "undefined" && document.hidden) {
+        last = performance.now();
+        acc = 0;
+        return;
+      }
+      const now = performance.now();
+      acc += Math.min(now - last, 400) * hiz;
       last = now;
-      acc += dt * hiz;
-      const step = REAL_MS_PER_TICK;
+      const unit = REAL_MS_PER_TICK;
       let n = 0;
-      while (acc >= step && n < 3) {
-        acc -= step;
+      while (acc >= unit && n < 3) {
+        acc -= unit;
         n += 1;
       }
       if (n) tick(n);
-      raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const id = window.setInterval(step, 250);
+    const onVis = () => {
+      last = performance.now();
+      if (document.hidden) acc = 0;
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [active, tick, hiz]);
 }

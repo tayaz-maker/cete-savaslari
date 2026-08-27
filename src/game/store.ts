@@ -240,7 +240,7 @@ function loadPersistedSlice() {
 const bootSlice = loadPersistedSlice();
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
-let persistPending: { name: string; value: string } | null = null;
+let persistPending: { name: string; value: unknown } | null = null;
 
 function flushPersist() {
   if (persistTimer) {
@@ -249,7 +249,11 @@ function flushPersist() {
   }
   if (!persistPending || typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(persistPending.name, persistPending.value);
+    const raw =
+      typeof persistPending.value === "string"
+        ? persistPending.value
+        : JSON.stringify(persistPending.value);
+    window.localStorage.setItem(persistPending.name, raw);
   } catch {
     /* quota */
   }
@@ -326,8 +330,8 @@ export const useGame = create<GameState>()(
             steps,
           );
           set(next);
-        } catch {
-          /* tick kilitlenmesin */
+        } catch (err) {
+          console.error(err);
         }
       },
       skipHour: () => {
@@ -352,8 +356,8 @@ export const useGame = create<GameState>()(
               "Bir saat geçti. Sokak kendi işini gördü.",
             ),
           });
-        } catch {
-          /* skipHour kilitlenmesin */
+        } catch (err) {
+          console.error(err);
         }
       },
       toggleHiz: () => {
@@ -1687,8 +1691,17 @@ export const useGame = create<GameState>()(
       claimDaily: () => {
         const s = get();
         if (!s.player) return;
-        const nextP = applyDailyStreak(s.player);
-        if (nextP === s.player) return;
+        const raw = applyDailyStreak(s.player);
+        if (raw === s.player) return;
+        const gain = Math.max(0, raw.xp - s.player.xp);
+        const grown = applyXp({ ...raw, xp: s.player.xp }, gain);
+        const nextP = {
+          ...raw,
+          xp: grown.xp,
+          level: grown.level,
+          energy: grown.notes.length ? grown.energy : raw.energy,
+          stamina: grown.notes.length ? grown.stamina : raw.stamina,
+        };
         const cash = nextP.cash - s.player.cash;
         let logs = pushLog(
           s.logs,
@@ -1697,6 +1710,7 @@ export const useGame = create<GameState>()(
           `Günlük seri ${nextP.streak}. +${cash.toLocaleString("tr-TR")} ₺`,
           cash,
         );
+        logs = maybeLevelNotes(nextP, grown.notes, logs);
         const meta = withMeta(nextP, logs);
         set({ player: meta.player, logs: meta.logs, savedAt: Date.now() });
       },
@@ -1716,11 +1730,7 @@ export const useGame = create<GameState>()(
         },
         setItem: (name, value) => {
           if (typeof window === "undefined") return;
-          try {
-            persistPending = { name, value: JSON.stringify(value) };
-          } catch {
-            return;
-          }
+          persistPending = { name, value };
           const player = (value as { state?: { player?: unknown } })?.state
             ?.player;
           if (!player) {
@@ -1728,7 +1738,7 @@ export const useGame = create<GameState>()(
             return;
           }
           if (persistTimer) return;
-          persistTimer = setTimeout(flushPersist, 400);
+          persistTimer = setTimeout(flushPersist, 1500);
         },
         removeItem: (name) => {
           if (typeof window === "undefined") return;
