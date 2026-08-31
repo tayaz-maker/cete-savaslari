@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="6">
+<meta name="smb-rev" content="7">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -36,15 +36,20 @@ html { font-size: 16px; }
 #ring canvas { display: block; width: 100%; height: 100%; }
 #mid { flex: 32 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 16px; }
 #deed { flex: 1 1 auto; min-height: 0; background: var(--card); border: 1px solid var(--hair);
-  border-radius: 4px; padding: 14px 16px 12px; display: flex; flex-direction: column; overflow: hidden; }
-#deed .bar { height: 8px; margin: -14px -16px 10px; background: var(--gold); }
+  border-radius: 4px; padding: 10px 14px 10px; display: flex; flex-direction: column; overflow: hidden; }
+#deed .bar { height: 7px; margin: -10px -14px 8px; background: var(--gold); }
 #deed h1 { font-family: ui-serif, Georgia, "Times New Roman", Times, serif; font-weight: 600;
-  font-size: clamp(1.6rem, 7vw, 2.15rem); line-height: 1.05; margin: 0 0 4px; letter-spacing: .01em; color: var(--ink); }
-#deed .grp { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 0 0 10px; }
-#deed .rows { flex: 1; font-size: .82rem; color: var(--num); line-height: 1.45; white-space: pre-line; overflow: auto; }
+  font-size: clamp(1.28rem, 5.8vw, 1.72rem); line-height: 1.08; margin: 0 0 2px; letter-spacing: .01em; color: var(--ink); }
+#deed .grp { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+#deed .rows { flex: 1; font-size: .8rem; color: var(--num); line-height: 1.4; white-space: pre-line; overflow: auto; }
+#deed .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 16px; flex: 1; min-height: 0; font-size: .78rem; color: var(--num); }
+#deed .kv { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; line-height: 1.5; min-width: 0; }
+#deed .kv em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#deed .kv b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+#deed .foot { margin-top: 6px; font-size: .78rem; color: var(--num); }
 #deed .rows b { color: var(--ink); font-weight: 500; }
-#deed .stamp { margin-top: auto; padding-top: 8px; font-family: ui-serif, Georgia, Times, serif;
-  font-size: 1.05rem; letter-spacing: .18em; color: var(--gold); }
+#deed .stamp { margin-top: auto; padding-top: 6px; font-family: ui-serif, Georgia, Times, serif;
+  font-size: 1rem; letter-spacing: .18em; color: var(--gold); }
 #log { flex: 0 0 auto; font-size: 12px; color: var(--num); min-height: 18px; margin: 8px 2px 6px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock { flex: 0 0 auto; padding: 0 16px 8px; }
@@ -104,8 +109,8 @@ button:disabled { opacity: .35; }
   "use strict";
   var KEY = "smb.v1";
   var COL = {
-    kahverengi: "#6E4A2E", acik_mavi: "#8EB4D4", pembe: "#C989A8", turuncu: "#D4843A",
-    kirmizi: "#A33B2C", sari: "#C8B15A", yesil: "#3F7A52", koyu_mavi: "#1F3D6B"
+    kahverengi: "#B8743C", acik_mavi: "#6FB3DC", pembe: "#E09BB8", turuncu: "#F08C2E",
+    kirmizi: "#D94A38", sari: "#E0C04C", yesil: "#3FA86A", koyu_mavi: "#3B74C4"
   };
   var BUILD_COST = { kahverengi: 50, acik_mavi: 50, pembe: 100, turuncu: 100, kirmizi: 150, sari: 150, yesil: 200, koyu_mavi: 200 };
   var RENT = {
@@ -1141,7 +1146,7 @@ button:disabled { opacity: .35; }
 
   function barOf(r) {
     if (r.k === 0) return null;
-    var f = 0.16;
+    var f = 0.24;
     if (r.side === 0) return { x: r.x, y: r.y, w: r.w, h: r.h * f };
     if (r.side === 1) return { x: r.x + r.w * (1 - f), y: r.y, w: r.w * f, h: r.h };
     if (r.side === 2) return { x: r.x, y: r.y + r.h * (1 - f), w: r.w, h: r.h * f };
@@ -1161,15 +1166,43 @@ button:disabled { opacity: .35; }
     if (kind === "R") return "RACON";
     return String(name || "").toUpperCase();
   }
+  var NAME_SPLIT = {
+    "SAADETDERE": ["SAADET", "DERE"],
+    "MEHTERÇEŞME": ["MEHTER", "ÇEŞME"],
+    "KARAGÜMRÜK": ["KARA", "GÜMRÜK"],
+    "AYVANSARAY": ["AYVAN", "SARAY"],
+    "HACIHÜSREV": ["HACI", "HÜSREV"],
+    "DOLAPDERE": ["DOLAP", "DERE"],
+    "TARLABAŞI": ["TARLA", "BAŞI"],
+    "ÇİNÇİN DERESİ": ["ÇİNÇİN", "DERESİ"],
+    "PLAKASIZ FORZA": ["PLAKASIZ", "FORZA"],
+    "BASIK EGEA": ["BASIK", "EGEA"],
+    "SÜRGÜ VITO": ["SÜRGÜ", "VİTO"],
+    "FİKİRTEPE": ["FİKİR", "TEPE"],
+    "ORUÇREİS": ["ORUÇ", "REİS"],
+    "ESENYURT": ["ESEN", "YURT"]
+  };
   function wrapName(s, max) {
+    if (NAME_SPLIT[s]) return NAME_SPLIT[s];
     if (s.length <= max) return [s];
     var sp = s.lastIndexOf(" ");
     if (sp > 1 && s.length - sp - 1 >= 2) return [s.slice(0, sp), s.slice(sp + 1)];
-    if (s.length <= max + 2) return [s];
+    if (s.length <= max + 1) return [s];
     var mid = Math.ceil(s.length / 2);
     return [s.slice(0, mid), s.slice(mid)];
   }
-  function drawName(ctx, r, t) {
+  function longestLine(lines) {
+    var m = 0, i;
+    for (i = 0; i < lines.length; i++) if (lines[i].length > m) m = lines[i].length;
+    return m;
+  }
+  function nameInk(hex) {
+    var h = String(hex || "").replace("#", "");
+    if (h.length < 6) return "#F4EDE2";
+    var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 148 ? "#16120C" : "#F4EDE2";
+  }
+  function drawName(ctx, r, t, bodyCol) {
     if (r.k === 0) return;
     var label = shortName(t.name, t.kind);
     var br = barOf(r);
@@ -1185,27 +1218,45 @@ button:disabled { opacity: .35; }
     else if (r.side === 1) { rot = 0; span = bw; thick = bh; }
     else if (r.side === 2) { rot = Math.PI / 2; span = bh; thick = bw; }
     else { rot = 0; span = bw; thick = bh; }
-    var fs = Math.max(10, Math.min(14, span * 0.16, thick * 0.78));
-    var maxChars = Math.max(6, (span / (fs * 0.56)) | 0);
-    var lines = wrapName(label, maxChars);
-    if (lines.length > 1) fs = Math.min(fs, thick * 0.4, 12);
+    var pad = 3.2;
+    var maxW = Math.max(10, span - pad * 2);
+    var maxH = Math.max(8, thick - 3);
+    var lines = wrapName(label, 8);
+    var fs = Math.min(12.2, maxH / (lines.length * 1.12), maxW / Math.max(1, longestLine(lines) * 0.56));
+    fs = Math.max(6.6, fs);
     ctx.save();
     ctx.beginPath();
-    ctx.rect(bx + 1, by + 1, Math.max(1, bw - 2), Math.max(1, bh - 2));
+    ctx.rect(bx + 1.4, by + 1.4, Math.max(1, bw - 2.8), Math.max(1, bh - 2.8));
     ctx.clip();
     ctx.translate(bx + bw / 2, by + bh / 2);
     ctx.rotate(rot);
-    ctx.font = "800 " + fs.toFixed(1) + "px ui-serif, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
     ctx.miterLimit = 2;
-    ctx.strokeStyle = "rgba(11,11,11,0.84)";
-    ctx.lineWidth = Math.max(3.2, fs * 0.34);
-    ctx.fillStyle = "#F4EDE2";
+    function applyFont() { ctx.font = "800 " + fs.toFixed(1) + "px ui-serif, Georgia, serif"; }
+    applyFont();
+    var stroke = Math.max(1.8, fs * 0.18);
+    function overflow() {
+      var i, w;
+      for (i = 0; i < lines.length; i++) {
+        w = ctx.measureText(lines[i]).width;
+        if (w + stroke > maxW) return true;
+      }
+      return fs * lines.length * 1.12 > maxH;
+    }
+    while (fs > 6.6 && overflow()) {
+      fs -= 0.28;
+      applyFont();
+      stroke = Math.max(1.8, fs * 0.18);
+    }
+    var ink = nameInk(bodyCol || (t.g && COL[t.g]) || "#1A1612");
+    ctx.strokeStyle = ink === "#16120C" ? "rgba(244,237,226,0.55)" : "rgba(11,11,11,0.78)";
+    ctx.lineWidth = stroke;
+    ctx.fillStyle = ink;
     var li, y;
     for (li = 0; li < lines.length; li++) {
-      y = (li - (lines.length - 1) / 2) * fs * 1.08;
+      y = (li - (lines.length - 1) / 2) * fs * 1.12;
       ctx.strokeText(lines[li], 0, y);
       ctx.fillText(lines[li], 0, y);
     }
@@ -1322,7 +1373,7 @@ button:disabled { opacity: .35; }
     ctx.restore();
   }
   function pipAt(r) {
-    var f = 0.16;
+    var f = 0.22;
     var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
     if (r.k === 0) return { x: cx, y: r.y + r.h * 0.88 };
     if (r.side === 0) return { x: cx, y: r.y + r.h * f };
@@ -1394,30 +1445,30 @@ button:disabled { opacity: .35; }
       ctx.globalAlpha = 1;
     }
     var i, r, t, glow, col, br, pip, fill, gap;
-    gap = 2.2;
+    gap = 1.6;
     for (i = 0; i < 40; i++) {
       r = tileRect(i, g);
       t = sq(i);
       glow = S && (peek === i || (peek < 0 && S.focus === i));
-      if (t.kind === "T" && t.g) fill = mixHex(COL[t.g], glow ? "#2A1C12" : "#120E0A", glow ? 0.95 : 0.86);
-      else if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") fill = glow ? "#3A3226" : "#2A241C";
-      else if (t.kind === "K") fill = glow ? "#3A3224" : "#2A2418";
-      else if (t.kind === "U") fill = glow ? "#323028" : "#24221C";
-      else if (t.kind === "R" || t.kind === "I") fill = glow ? "#3A2E20" : "#2A2218";
-      else if (t.kind === "X") fill = glow ? "#3A2A1C" : "#2A1E16";
-      else fill = glow ? "#322C22" : "#221C16";
+      if (t.kind === "T" && t.g) fill = mixHex(COL[t.g], glow ? "#2A2218" : "#16120E", glow ? 0.72 : 0.58);
+      else if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") fill = glow ? "#3E3428" : "#2C261E";
+      else if (t.kind === "K") fill = glow ? "#4A3A24" : "#322818";
+      else if (t.kind === "U") fill = glow ? "#3A3830" : "#2A2822";
+      else if (t.kind === "R" || t.kind === "I") fill = glow ? "#4A3824" : "#322818";
+      else if (t.kind === "X") fill = glow ? "#4A3020" : "#322018";
+      else fill = glow ? "#3A3228" : "#261E18";
       ctx.fillStyle = fill;
       ctx.fillRect(r.x + gap / 2, r.y + gap / 2, r.w - gap, r.h - gap);
-      ctx.strokeStyle = glow ? "#E8DFD0" : "#C4A574";
-      ctx.globalAlpha = glow ? 1 : 0.55;
-      ctx.lineWidth = glow ? 2.2 : 1.4;
+      ctx.strokeStyle = glow ? "#F4EDE2" : mixHex("#C4A574", "#000", 0.7);
+      ctx.globalAlpha = glow ? 1 : 0.7;
+      ctx.lineWidth = glow ? 2.4 : 1.5;
       ctx.strokeRect(r.x + gap / 2 + 0.6, r.y + gap / 2 + 0.6, r.w - gap - 1.2, r.h - gap - 1.2);
       ctx.globalAlpha = 1;
       br = barOf(r);
       if (t.kind === "T" && t.g && br) {
         col = COL[t.g] || "#C4A574";
         ctx.fillStyle = col;
-        ctx.fillRect(br.x + 0.8, br.y + 0.8, br.w - 1.6, br.h - 1.6);
+        ctx.fillRect(br.x + 0.6, br.y + 0.6, br.w - 1.2, br.h - 1.2);
         if (S && S.bld[i] > 0) drawBld(ctx, br, S.bld[i], r.side);
       }
       if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") {
@@ -1428,7 +1479,7 @@ button:disabled { opacity: .35; }
         ctx.strokeRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8);
         ctx.globalAlpha = 1;
       } else {
-        drawName(ctx, r, t);
+        drawName(ctx, r, t, fill);
       }
       if (S && S.sen[i]) hatch(ctx, r);
       if (S && S.own[i] >= 0) {
@@ -1446,7 +1497,7 @@ button:disabled { opacity: .35; }
     ctx.globalAlpha = 1;
     if (S) {
       var buckets = {}, pi, k, list, base, off, sqi, rad;
-      rad = Math.max(7.2, Math.min(10.5, Math.min(g.tw, D) * 0.32));
+      rad = Math.max(10, Math.min(14, D * 0.145));
       for (pi = 0; pi < nP(); pi++) {
         if (!alive(pi)) continue;
         sqi = visPawn[pi] || 0;
@@ -1478,29 +1529,45 @@ button:disabled { opacity: .35; }
     return cells[k] || { x: 0, y: 0 };
   }
   function drawToken(ctx, p, x, y, glow, rad) {
-    rad = rad || 6;
+    rad = rad || 8;
     var gold = p === 1 || p === 3;
-    var color = gold ? "#C4A574" : "#E8DFD0";
+    var color = gold ? "#E0C07A" : "#F4EDE2";
     var square = p >= 2;
     ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, rad + 3.2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fill();
     if (glow) {
-      ctx.strokeStyle = "#E8DFD0";
-      ctx.globalAlpha = 0.55;
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#F4EDE2";
+      ctx.globalAlpha = 0.9;
+      ctx.lineWidth = 2.6;
       ctx.beginPath();
-      ctx.arc(x, y, rad + 4.5, 0, Math.PI * 2);
+      ctx.arc(x, y, rad + 5.2, 0, Math.PI * 2);
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
     if (square) {
-      if (p === 2) { ctx.fillStyle = color; ctx.fillRect(x - rad + 0.5, y - rad + 0.5, rad * 2 - 1, rad * 2 - 1); }
-      else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x - rad, y - rad, rad * 2, rad * 2); }
-    } else if (p === 0) {
       ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(x - rad + 0.4, y - rad + 0.4, rad * 2 - 0.8, rad * 2 - 0.8);
+      ctx.strokeStyle = "#0B0B0B";
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(x - rad + 0.4, y - rad + 0.4, rad * 2 - 0.8, rad * 2 - 0.8);
     } else {
-      ctx.strokeStyle = color; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y, rad + 0.6, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, rad, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#0B0B0B";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+      if (gold) {
+        ctx.strokeStyle = "#F4EDE2";
+        ctx.lineWidth = 1.15;
+        ctx.beginPath();
+        ctx.arc(x, y, rad - 2.1, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1532,20 +1599,38 @@ button:disabled { opacity: .35; }
     if (!t.g) bar.style.background = "#2A2620";
     add(box, el("h1", { text: t.name }));
     add(box, el("p", { cls: "grp", text: t.g ? GRP_TR[t.g] : t.kind === "K" ? "Kaçış" : t.kind === "U" ? "Kurum" : t.kind === "X" ? "Tahsil" : "Köşe" }));
-    var rows = add(box, el("div", { cls: "rows" }));
+    function kv(parent, a, b) {
+      var n = add(parent, el("div", { cls: "kv" }));
+      add(n, el("em", { text: a }));
+      add(n, el("b", { text: b }));
+      return n;
+    }
     if (t.kind === "T" && RENT[t.name]) {
-      var tb = RENT[t.name], line = "", li;
-      for (li = 0; li < LVL.length; li++) line += LVL[li] + "  " + tl(tb[li]) + (li === LVL.length - 1 ? "" : "\n");
-      rows.textContent = line + "\nListe " + tl(t.price) + " · Dik " + tl(BUILD_COST[t.g]);
-    } else if (t.kind === "K") rows.textContent = "1 şapka " + tl(25) + " · 2’de " + tl(50) + " · 3’te " + tl(100) + " · 4’te " + tl(200) + "\nListe " + tl(t.price);
-    else if (t.kind === "U") rows.textContent = "Birinde zar ×4 · ikisinde ×10\nListe " + tl(t.price);
-    else if (t.kind === "X") rows.textContent = "Öde " + tl(t.price);
-    else if (t.kind === "C") rows.textContent = "Geç veya in, +" + tl(200) + ".";
-    else if (t.kind === "J") rows.textContent = "3 kaçış, " + tl(50) + ", çift veya çıkış.";
-    else if (t.kind === "B") rows.textContent = "Nezaret. " + tl(200) + " yok.";
-    else if (t.kind === "O") rows.textContent = "Otur. Bekle.";
-    else if (t.kind === "R") rows.textContent = "Racon çek.";
-    else if (t.kind === "I") rows.textContent = "İhbar çek.";
+      var tb = RENT[t.name], grid = add(box, el("div", { cls: "grid" })), li;
+      for (li = 0; li < LVL.length; li++) kv(grid, LVL[li], tl(tb[li]));
+      add(box, el("div", { cls: "foot", text: "Liste " + tl(t.price) + " · Dik " + tl(BUILD_COST[t.g]) }));
+    } else if (t.kind === "K") {
+      var kg = add(box, el("div", { cls: "grid" }));
+      kv(kg, "1 şapka", tl(25));
+      kv(kg, "2’de", tl(50));
+      kv(kg, "3’te", tl(100));
+      kv(kg, "4’te", tl(200));
+      add(box, el("div", { cls: "foot", text: "Liste " + tl(t.price) }));
+    } else if (t.kind === "U") {
+      var ug = add(box, el("div", { cls: "grid" }));
+      kv(ug, "Birinde", "zar ×4");
+      kv(ug, "İkisinde", "zar ×10");
+      add(box, el("div", { cls: "foot", text: "Liste " + tl(t.price) }));
+    } else {
+      var rows = add(box, el("div", { cls: "rows" }));
+      if (t.kind === "X") rows.textContent = "Öde " + tl(t.price);
+      else if (t.kind === "C") rows.textContent = "Geç veya in, +" + tl(200) + ".";
+      else if (t.kind === "J") rows.textContent = "3 kaçış, " + tl(50) + ", çift veya çıkış.";
+      else if (t.kind === "B") rows.textContent = "Nezaret. " + tl(200) + " yok.";
+      else if (t.kind === "O") rows.textContent = "Otur. Bekle.";
+      else if (t.kind === "R") rows.textContent = "Racon çek.";
+      else if (t.kind === "I") rows.textContent = "İhbar çek.";
+    }
     var st = stampOf(i);
     if (st) {
       var canLift = S && st === "SENETLİ" && S.own[i] === S.turn && !humanLocked() && S.cash[S.turn] >= unsenetCost(i);
