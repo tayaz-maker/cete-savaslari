@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="7">
+<meta name="smb-rev" content="8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -79,13 +79,42 @@ button:disabled { opacity: .35; }
   line-height: .95; margin: 0 0 12px; }
 #menu .sub { color: var(--gold); font-family: ui-serif, Georgia, Times, serif; margin: 0 0 28px; }
 #menu .stack { display: flex; flex-direction: column; gap: 10px; }
-#menu .stack button { width: 100%; flex: none; }
+#menu .stack > button { width: 100%; flex: none; }
 #menu .plus { margin-top: 28px; font-size: .72rem; letter-spacing: .2em; color: var(--num); }
-#sheet header { display: flex; justify-content: flex-end; }
+#sheet header { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+#sheet header h2 { font-family: ui-serif, Georgia, Times, serif; font-size: 1.15rem; margin: 0; flex: 1; letter-spacing: .12em; }
 #sheet canvas { flex: 1; width: 100%; min-height: 0; touch-action: none; }
+#sheet.panel { display: none; flex-direction: column; overflow: auto; -webkit-overflow-scrolling: touch; }
+#sheet.panel.on { display: flex; }
+#sheet .body { flex: 1; min-height: 0; overflow: auto; }
+#sheet .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#sheet .col h3 { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+#sheet .trow { min-height: 48px; border: 1px solid var(--hair); background: var(--card); border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; display: flex; flex-direction: column; justify-content: center; gap: 2px; text-align: left; letter-spacing: .04em; text-transform: none; font-size: .78rem; }
+#sheet .trow.on { border-color: var(--gold); }
+#sheet .trow[disabled], #sheet .trow[aria-disabled="true"] { opacity: .4; }
+#sheet .trow .nm { color: var(--ink); }
+#sheet .trow .meta { color: var(--num); font-size: .68rem; letter-spacing: .08em; }
+#sheet .why { font-size: .68rem; color: var(--num); margin-top: 2px; }
+#sheet .cashrow { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+#sheet .cashrow b { flex: 1; font-variant-numeric: tabular-nums; }
+#sheet .sum { color: var(--gold); font-family: ui-serif, Georgia, Times, serif; margin: 12px 0; font-size: .95rem; }
+#sheet .ops { display: flex; gap: 12px; margin-top: 8px; }
+#sheet .grp-h { display: flex; justify-content: space-between; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin: 14px 0 6px; }
+#sheet .stat { display: flex; justify-content: space-between; gap: 8px; font-size: .72rem; color: var(--num); margin-bottom: 10px; flex-wrap: wrap; }
+#sheet .endrow { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--hair); padding: 8px 0; font-size: .78rem; }
+#sheet .endrow b { color: var(--ink); }
+#menu .row { display: flex; gap: 8px; }
+#menu .row button { flex: 1; min-width: 0; letter-spacing: .06em; font-size: .72rem; padding: 0 6px; }
+#menu .pick { border-color: var(--gold); }
+#menu .hint { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--num); margin: 12px 0 6px; }
+#chips { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: .82rem; color: var(--num); margin-bottom: 6px; }
+.fly { position: absolute; left: 0; top: -2px; color: var(--gold); font-size: 12px; pointer-events: none;
+  transition: transform .65s ease, opacity .65s ease; opacity: 1; }
+.fly.go { transform: translateY(-22px); opacity: 0; }
 .xbtn { min-width: 48px; min-height: 48px; letter-spacing: 0; }
 @media (prefers-reduced-motion: reduce) {
   button { transition: none; }
+  .fly { transition: none; }
 }
 </style>
 </head>
@@ -185,6 +214,13 @@ button:disabled { opacity: .35; }
   var press = null;
   var longT = 0;
   var swallow = false;
+  var tmpLen = "short";
+  var tmpLvl = "esnaf";
+  var rolling = false;
+  var rollShow = [0, 0];
+  var ac = null;
+  var SHORT_TURNS = 30;
+  var DICE_P = [0, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1];
 
   function setVvh() {
     var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 640;
@@ -233,7 +269,11 @@ button:disabled { opacity: .35; }
     if (S.n === 2) return p === 0 ? "SEN" : "KARŞI";
     return String(p + 1);
   }
-  function humanLocked() { return busy || !S || S.win != null || isAi(S.turn); }
+  function humanLocked() {
+    if (busy || !S || S.win != null) return true;
+    if (S.wait === "offer") return false;
+    return isAi(S.turn);
+  }
   function zeros(n) { var a = []; for (var i = 0; i < n; i++) a.push(0); return a; }
   function tl(n) {
     n = Math.round(Number(n) || 0);
@@ -369,6 +409,13 @@ button:disabled { opacity: .35; }
     if (!data.iD) data.iD = shuffle(ids(IHbar.length));
     if (!data.rX) data.rX = [];
     if (!data.iX) data.iX = [];
+    if (data.trade === undefined) data.trade = null;
+    if (!data.lvl) data.lvl = "esnaf";
+    if (!data.len) data.len = "short";
+    if (!data.stat) data.stat = { turns: 0, rolls: 0, rentPaid: zeros(data.n) };
+    if (!data.stat.rentPaid || data.stat.rentPaid.length !== data.n) data.stat.rentPaid = zeros(data.n);
+    if (data.stat.turns == null) data.stat.turns = 0;
+    if (data.stat.rolls == null) data.stat.rolls = 0;
     return data;
   }
   function bootState(data) {
@@ -379,6 +426,7 @@ button:disabled { opacity: .35; }
     view = S.win != null ? "end" : "play";
     peek = -1;
     busy = false;
+    persist();
     if (S.pend && S.pend.t === "land") {
       var p = S.pend.p;
       S.pend = null;
@@ -405,7 +453,9 @@ button:disabled { opacity: .35; }
       rD: shuffle(ids(RACON.length)), rX: [], iD: shuffle(ids(IHbar.length)), iX: [],
       turn: 0, rolled: false, log: "Zar at.",
       wait: "roll", dice: [0, 0], doubles: 0, extra: 0,
-      focus: 0, card: null, win: null, pend: null
+      focus: 0, card: null, win: null, pend: null,
+      trade: null, lvl: tmpLvl || "esnaf", len: tmpLen || "short",
+      stat: { turns: 0, rolls: 0, rentPaid: zeros(n) }
     };
     visPawn = zeros(n);
     view = "play";
@@ -496,6 +546,7 @@ button:disabled { opacity: .35; }
       else { S.own[i] = -1; S.bld[i] = 0; S.sen[i] = 0; }
     }
     log(senSoz(p) ? "Sen battın." : (isAi(p) ? "Naci Bey battı." : who(p) + " battı."));
+    buzz([40, 60, 40]); sndFail();
     var liv = living();
     if (liv.length <= 1) {
       S.win = liv.length ? liv[0] : nextAlive(p);
@@ -509,9 +560,57 @@ button:disabled { opacity: .35; }
     if (S.win != null) { paint(); return; }
     finishTurn(p);
   }
+  function houseValue(i) {
+    return ((BUILD_COST[SQ[i][3]] || 0) / 2) | 0;
+  }
+  function razeTarget(p) {
+    var best = -1, bestLv = 0, bestCost = -1, i, j, a, mx;
+    for (i = 0; i < 40; i++) {
+      if (S.own[i] !== p || S.bld[i] <= 0) continue;
+      a = groupIdx(SQ[i][3]);
+      mx = 0;
+      for (j = 0; j < a.length; j++) if (S.bld[a[j]] > mx) mx = S.bld[a[j]];
+      if (S.bld[i] < mx) continue;
+      if (S.bld[i] > bestLv || (S.bld[i] === bestLv && houseValue(i) > bestCost)) {
+        best = i; bestLv = S.bld[i]; bestCost = houseValue(i);
+      }
+    }
+    return best;
+  }
+  function canRazeTile(p, i) {
+    if (S.own[i] !== p || S.bld[i] <= 0) return false;
+    var a = groupIdx(SQ[i][3]), mx = 0, j;
+    for (j = 0; j < a.length; j++) if (S.bld[a[j]] > mx) mx = S.bld[a[j]];
+    return S.bld[i] === mx;
+  }
+  function doRaze(p, i) {
+    if (!canRazeTile(p, i) && S.own[i] === p && S.bld[i] > 0) {
+      /* auto-chain may call razeTarget which already checks even rule */
+    }
+    if (S.own[i] !== p || S.bld[i] <= 0) return 0;
+    var v = houseValue(i);
+    S.bld[i] -= 1;
+    S.cash[p] += v;
+    log(who(p) + " " + SQ[i][0] + " söktü, +" + tl(v) + ".");
+    return v;
+  }
+  function endByNet() {
+    var liv = living(), best = liv[0], i, n;
+    for (i = 1; i < liv.length; i++) {
+      n = netOf(liv[i]);
+      if (n > netOf(best) || (n === netOf(best) && S.cash[liv[i]] > S.cash[best])) best = liv[i];
+    }
+    S.win = best;
+    S.wait = "end";
+    view = "end";
+    log((senSoz(best) ? "Sen kazandın." : who(best) + " kazandı.") + " Kısa oyun bitti.");
+  }
+
   function payTo(p, amt, to) {
     if (amt <= 0) return true;
     while (S.cash[p] < amt) {
+      var rz = razeTarget(p);
+      if (rz >= 0) { doRaze(p, rz); continue; }
       var i = cheapestOwned(p);
       if (i < 0) { bankrupt(p, to); return false; }
       senetTile(p, i);
@@ -520,6 +619,14 @@ button:disabled { opacity: .35; }
     if (!alive(p) || S.cash[p] < amt) { bankrupt(p, to); return false; }
     S.cash[p] -= amt;
     if (to >= 0 && alive(to)) S.cash[to] += amt;
+    return true;
+  }
+  function payRent(p, amt, to) {
+    if (!payTo(p, amt, to)) return false;
+    if (S.stat && S.stat.rentPaid) S.stat.rentPaid[p] += amt;
+    flyCash(amt);
+    buzz(30);
+    sndCash();
     return true;
   }
 
@@ -773,6 +880,12 @@ button:disabled { opacity: .35; }
       return;
     }
     S.extra = 0; S.doubles = 0; S.rolled = false;
+    if (S.stat) S.stat.turns = (S.stat.turns || 0) + 1;
+    if (S.len === "short" && S.stat && S.stat.turns >= SHORT_TURNS) {
+      endByNet();
+      persist(); paint();
+      return;
+    }
     var q = nextAlive(p);
     S.turn = q;
     if (!alive(q) || q === p && !alive(p)) { persist(); paint(); return; }
@@ -791,59 +904,105 @@ button:disabled { opacity: .35; }
     if (busy || S.win != null) return;
     var d1 = 1 + (Math.random() * 6) | 0;
     var d2 = 1 + (Math.random() * 6) | 0;
-    S.dice = [d1, d2];
-    var sum = d1 + d2;
-    var dbl = d1 === d2;
-    S.rolled = true;
-    if (sen(p) || nP() >= 3) { try { navigator.vibrate(10); } catch (e) {} }
-    log(who(p) + " " + d1 + "-" + d2 + (senSoz(p) ? " attın." : " attı."));
-    persist(); paint();
-    if (S.jail[p]) {
-      if (dbl) {
-        S.jail[p] = 0; S.miss[p] = 0; S.doubles = 1; S.extra = 1;
-        persist();
-        moveBy(p, sum, true, function () { afterLand(p); });
-        return;
-      }
-      S.miss[p] += 1;
-      if (S.miss[p] >= 3) {
-        S.jail[p] = 0; S.miss[p] = 0; S.doubles = 0; S.extra = 0;
-        persist();
-        moveBy(p, sum, true, function () { afterLand(p); });
-        return;
-      }
-      log(who(p) + " Nezaret’te kaldı.");
-      S.extra = 0; S.doubles = 0;
+    function commit() {
+      S.dice = [d1, d2];
+      var sum = d1 + d2;
+      var dbl = d1 === d2;
+      S.rolled = true;
+      if (S.stat) S.stat.rolls = (S.stat.rolls || 0) + 1;
+      log(who(p) + " " + d1 + "-" + d2 + (senSoz(p) ? " attın." : " attı."));
       persist(); paint();
-      finishTurn(p);
-      return;
-    }
-    if (dbl) {
-      S.doubles += 1;
-      if (S.doubles >= 3) {
-        sendJail(p);
-        S.wait = "ok";
+      if (S.jail[p]) {
+        if (dbl) {
+          S.jail[p] = 0; S.miss[p] = 0; S.doubles = 1; S.extra = 1;
+          persist();
+          moveBy(p, sum, true, function () { afterLand(p); });
+          return;
+        }
+        S.miss[p] += 1;
+        if (S.miss[p] >= 3) {
+          S.jail[p] = 0; S.miss[p] = 0; S.doubles = 0; S.extra = 0;
+          persist();
+          moveBy(p, sum, true, function () { afterLand(p); });
+          return;
+        }
+        log(who(p) + " Nezaret’te kaldı.");
+        S.extra = 0; S.doubles = 0;
         persist(); paint();
-        if (isAi(p)) later(function () { finishTurn(p); });
+        finishTurn(p);
         return;
       }
-      S.extra = 1;
-    } else { S.doubles = 0; S.extra = 0; }
-    persist();
-    moveBy(p, sum, true, function () { afterLand(p); });
+      if (dbl) {
+        S.doubles += 1;
+        if (S.doubles >= 3) {
+          sendJail(p);
+          S.wait = "ok";
+          persist(); paint();
+          if (isAi(p)) later(function () { finishTurn(p); });
+          return;
+        }
+        S.extra = 1;
+      } else { S.doubles = 0; S.extra = 0; }
+      persist();
+      moveBy(p, sum, true, function () { afterLand(p); });
+    }
+    buzz(10);
+    sndDice();
+    if (reduceMot()) { commit(); return; }
+    busy = true;
+    rolling = true;
+    var t0 = Date.now();
+    function tick() {
+      rollShow = [1 + (Math.random() * 6) | 0, 1 + (Math.random() * 6) | 0];
+      drawRing();
+      if (Date.now() - t0 < 350) { requestAnimationFrame(tick); return; }
+      rolling = false;
+      busy = false;
+      rollShow = [d1, d2];
+      commit();
+    }
+    tick();
   }
 
   function buy(p) {
     var i = S.pos[p], t = sq(i);
     if (S.own[i] >= 0 || S.cash[p] < t.price) return false;
     S.cash[p] -= t.price; S.own[i] = p;
+    buzz(20); sndCash();
     log(who(p) + " " + accOf(t.name) + (senSoz(p) ? " aldın." : " aldı."));
     persist();
     return true;
   }
 
+  function naciP() {
+    var lvl = (S && S.lvl) || "esnaf";
+    if (lvl === "acemi") return { floor: 300, completeFloor: 80, smartBuild: false, jailStay: false, threatBuf: false, offer: false };
+    if (lvl === "bukucu") return { floor: 200, completeFloor: 0, smartBuild: true, jailStay: true, threatBuf: true, offer: true };
+    return { floor: 200, completeFloor: 0, smartBuild: true, jailStay: false, threatBuf: false, offer: false };
+  }
+  function soldCount() {
+    var n = 0, i;
+    for (i = 0; i < 40; i++) if (S.own[i] >= 0) n++;
+    return n;
+  }
+  function hitChance(step) {
+    return step >= 2 && step <= 12 ? DICE_P[step] / 36 : 0;
+  }
+  function expectedRent(from, owner) {
+    var e = 0, step, i;
+    for (step = 2; step <= 12; step++) {
+      i = (from + step) % 40;
+      if (S.own[i] === owner) e += hitChance(step) * landRent(i);
+    }
+    return e;
+  }
+  function naciBuf() {
+    var P = naciP(), buf = P.floor;
+    if (P.threatBuf) buf += expectedRent(S.pos[0], 1) | 0;
+    return buf;
+  }
   function naciWants(i) {
-    var t = sq(i), price = t.price, cash = S.cash[1];
+    var t = sq(i), price = t.price, cash = S.cash[1], P = naciP();
     if (cash < price) return false;
     var after = cash - price;
     var has = false, others = 0, j, a;
@@ -856,30 +1015,51 @@ button:disabled { opacity: .35; }
       }
     }
     var last = has && others === 0;
-    var floor = last ? 80 : 200;
+    var floor = last ? P.completeFloor : naciBuf();
     if (after < floor) return false;
-    if (price <= cash - 200) return true;
+    if (last) return true;
+    if (price <= cash - P.floor) return true;
     if (has) return true;
     if ((t.kind === "K" || t.kind === "U") && ownedKind(1, t.kind) >= 1) return true;
     return false;
   }
   function naciTryBuild() {
-    var i = cheapestBuild(1);
-    if (i < 0) return false;
-    var cost = BUILD_COST[SQ[i][3]];
-    if (S.cash[1] > cost + 250) { doBuild(1, i); return true; }
+    var ts = buildTargets(1), i, best = -1, bestR = -1, cost, gain, r0, r1;
+    if (!ts.length) return false;
+    var P = naciP();
+    if (!P.smartBuild) {
+      i = cheapestBuild(1);
+      cost = BUILD_COST[SQ[i][3]];
+      if (S.cash[1] > cost + 250) { doBuild(1, i); return true; }
+      return false;
+    }
+    for (i = 0; i < ts.length; i++) {
+      cost = BUILD_COST[SQ[ts[i]][3]] || 1;
+      r0 = rentOf(ts[i]);
+      S.bld[ts[i]] += 1;
+      r1 = rentOf(ts[i]);
+      S.bld[ts[i]] -= 1;
+      gain = (r1 - r0) / cost;
+      if (gain > bestR) { bestR = gain; best = ts[i]; }
+    }
+    if (best < 0) return false;
+    cost = BUILD_COST[SQ[best][3]];
+    if (S.cash[1] > cost + naciBuf()) { doBuild(1, best); return true; }
     return false;
   }
   function naciBuy() {
     var i = S.pos[1];
-    if (naciWants(i) && buy(1)) { persist(); paint(); later(naciAfterOwn); return; }
+    if (naciWants(i) && buy(1)) {
+      buzz(20); sndCash();
+      persist(); paint(); later(naciAfterOwn); return;
+    }
     log("Naci Bey geçti.");
     persist(); paint();
     later(function () { afterOk(1); });
   }
   function naciPay() {
     var i = S.pos[1], r = landRent(i), to = S.own[i];
-    if (!payTo(1, r, to)) { paint(); return; }
+    if (!payRent(1, r, to)) { paint(); return; }
     log("Naci Bey sana " + tl(r) + " ödedi.");
     persist(); paint();
     later(function () { afterOk(1); });
@@ -890,6 +1070,7 @@ button:disabled { opacity: .35; }
     finishTurn(1);
   }
   function naciJail() {
+    var P = naciP();
     if (S.cik[1] > 0) {
       S.cik[1] -= 1; S.jail[1] = 0; S.miss[1] = 0;
       log("Naci Bey çıkış kullandı.");
@@ -897,7 +1078,13 @@ button:disabled { opacity: .35; }
       later(function () { doRoll(1); });
       return;
     }
-    if (S.cash[1] > 300) {
+    if (P.jailStay && soldCount() > 20) {
+      log("Naci Bey Nezaret’te kalmayı yeğledi.");
+      persist(); paint();
+      later(function () { doRoll(1); });
+      return;
+    }
+    if (S.cash[1] > naciBuf()) {
       if (!payTo(1, 50, -1)) { paint(); return; }
       S.jail[1] = 0; S.miss[1] = 0;
       log("Naci Bey Nezaret’te. " + tl(50) + " ödedi.");
@@ -907,10 +1094,377 @@ button:disabled { opacity: .35; }
     }
     doRoll(1);
   }
+
+  function reduceMot() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  function sndPref() {
+    try { return localStorage.getItem("smb.snd") === "1"; } catch (e) { return false; }
+  }
+  function setSndPref(on) {
+    try { localStorage.setItem("smb.snd", on ? "1" : "0"); } catch (e) {}
+  }
+  function unlockAudio() {
+    if (!sndPref()) return;
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+    } catch (e) {}
+  }
+  function tone(freq, dur, type, vol) {
+    if (!sndPref() || !ac) return;
+    try {
+      var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.04, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  function sndDice() {
+    if (!sndPref() || !ac) return;
+    try {
+      var t = ac.currentTime, n = ac.createBuffer(1, ac.sampleRate * 0.09, ac.sampleRate);
+      var d = n.getChannelData(0), i;
+      for (i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      var src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      f.type = "bandpass"; f.frequency.value = 1200;
+      g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      src.buffer = n; src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+    } catch (e) {}
+  }
+  function sndCash() { tone(440, 0.07, "square", 0.03); tone(660, 0.09, "square", 0.025); }
+  function sndFail() { tone(180, 0.22, "sawtooth", 0.04); }
+  function buzz(ms) {
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
+  function flyCash(amt) {
+    if (reduceMot()) return;
+    var host = document.getElementById("chips");
+    if (!host) return;
+    var n = document.createElement("div");
+    n.className = "fly";
+    n.textContent = "−" + tl(amt);
+    host.appendChild(n);
+    requestAnimationFrame(function () { n.classList.add("go"); });
+    setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 750);
+  }
+
+  function closeSheet() {
+    var sh = document.getElementById("sheet");
+    sh.className = "";
+    clear(sh);
+  }
+  function sheetHead(title) {
+    var sh = document.getElementById("sheet");
+    clear(sh);
+    sh.className = "on panel";
+    var hd = add(sh, el("header"));
+    add(hd, el("h2", { text: title }));
+    add(hd, el("button", { cls: "xbtn", text: "X", "data-act": "close", "aria-label": "Kapat" }));
+    return add(sh, el("div", { cls: "body" }));
+  }
+  function ownedList(p) {
+    var a = [], i;
+    for (i = 0; i < 40; i++) if (S.own[i] === p) a.push(i);
+    return a;
+  }
+  function bldCount(p) {
+    var n = 0, i;
+    for (i = 0; i < 40; i++) if (S.own[i] === p) n += S.bld[i];
+    return n;
+  }
+  function tileWorth(me, i, dir) {
+    var base = S.sen[i] ? (SQ[i][2] / 2) | 0 : SQ[i][2];
+    var g = SQ[i][3];
+    if (!g) {
+      var k = ownedKind(me, SQ[i][1]);
+      return base * (1 + 0.35 * (dir > 0 ? k : Math.max(0, k - 1)));
+    }
+    var a = groupIdx(g), mine = 0, theirs = 0, j;
+    for (j = 0; j < a.length; j++) {
+      if (a[j] === i) continue;
+      if (S.own[a[j]] === me) mine++;
+      else if (S.own[a[j]] >= 0) theirs++;
+    }
+    if (dir > 0 && mine === a.length - 1) return base * 2;
+    if (dir < 0 && theirs === a.length - 1) return base * 1.6;
+    if (mine > 0) return base * 1.25;
+    return base;
+  }
+  function tradeScore(me, t) {
+    var s = t.giveCash - t.takeCash, i;
+    for (i = 0; i < t.give.length; i++) s += tileWorth(me, t.give[i], 1);
+    for (i = 0; i < t.take.length; i++) s -= tileWorth(me, t.take[i], -1);
+    return s;
+  }
+  function blankTrade(from, to) {
+    return { from: from, to: to, give: [], take: [], giveCash: 0, takeCash: 0 };
+  }
+  function inArr(a, i) {
+    var k;
+    for (k = 0; k < a.length; k++) if (a[k] === i) return k;
+    return -1;
+  }
+  function toggleArr(a, i) {
+    var x = inArr(a, i);
+    if (x >= 0) a.splice(x, 1);
+    else a.push(i);
+  }
+  function tradeOk(t) {
+    if (!t) return false;
+    if (!t.give.length && !t.take.length && !t.giveCash && !t.takeCash) return false;
+    if (t.giveCash > S.cash[t.from] || t.takeCash > S.cash[t.to]) return false;
+    var i, k;
+    for (i = 0; i < t.give.length; i++) {
+      k = t.give[i];
+      if (S.own[k] !== t.from || S.bld[k] > 0) return false;
+    }
+    for (i = 0; i < t.take.length; i++) {
+      k = t.take[i];
+      if (S.own[k] !== t.to || S.bld[k] > 0) return false;
+    }
+    return true;
+  }
+  function applyTrade(t) {
+    var i, k;
+    for (i = 0; i < t.give.length; i++) S.own[t.give[i]] = t.to;
+    for (i = 0; i < t.take.length; i++) S.own[t.take[i]] = t.from;
+    S.cash[t.from] -= t.giveCash; S.cash[t.to] += t.giveCash;
+    S.cash[t.to] -= t.takeCash; S.cash[t.from] += t.takeCash;
+  }
+  function namesOf(arr) {
+    var s = "", i;
+    for (i = 0; i < arr.length; i++) s += (i ? ", " : "") + SQ[arr[i]][0];
+    return s || "—";
+  }
+  function tradeLine(t) {
+    var a = "Sen: " + namesOf(t.give);
+    if (t.giveCash) a += " + " + tl(t.giveCash);
+    var b = who(t.to) + ": " + namesOf(t.take);
+    if (t.takeCash) b += " + " + tl(t.takeCash);
+    return a + " → " + b;
+  }
+  function paintTradeRow(parent, i, on, act, blocked) {
+    var t = sq(i);
+    var b = add(parent, el("button", { cls: on ? "trow on" : "trow", "data-act": act }));
+    if (blocked) { b.disabled = true; b.setAttribute("aria-disabled", "true"); }
+    add(b, el("div", { cls: "nm", text: t.name }));
+    var meta = LVL[S.bld[i] + 1] || "Arsa";
+    if (S.sen[i]) meta += " · SENETLİ";
+    if (t.g) meta += " · " + (GRP_TR[t.g] || "");
+    add(b, el("div", { cls: "meta", text: meta }));
+    if (blocked) add(b, el("div", { cls: "why", text: "Önce binaları sök" }));
+    if (t.g) {
+      b.style.borderLeft = "4px solid " + (COL[t.g] || "#C4A574");
+    }
+    return b;
+  }
+  function openTrade() {
+    if (!S || busy || S.wait !== "roll" || isAi(S.turn)) return;
+    var from = S.turn, to;
+    if (!S.trade || S.trade.from !== from) {
+      to = nextAlive(from);
+      S.trade = blankTrade(from, to);
+    }
+    persist();
+    renderTrade();
+  }
+  function renderTrade() {
+    var t = S.trade;
+    if (!t) { closeSheet(); return; }
+    if (S.wait === "offer") { renderOffer(); return; }
+    var body = sheetHead("TAKAS");
+    var rivals = living().filter(function (p) { return p !== t.from; });
+    if (rivals.length > 1) {
+      var row = add(body, el("div", { cls: "ops" }));
+      rivals.forEach(function (p) {
+        var b = add(row, btn(who(p), "tsel:" + p, p === t.to));
+        if (p === t.to) b.className = "primary";
+      });
+    }
+    var cols = add(body, el("div", { cls: "cols" }));
+    var L = add(cols, el("div", { cls: "col" }));
+    var R = add(cols, el("div", { cls: "col" }));
+    add(L, el("h3", { text: "Sen" }));
+    add(R, el("h3", { text: who(t.to) }));
+    ownedList(t.from).forEach(function (i) {
+      paintTradeRow(L, i, inArr(t.give, i) >= 0, "tgg:" + i, S.bld[i] > 0);
+    });
+    ownedList(t.to).forEach(function (i) {
+      paintTradeRow(R, i, inArr(t.take, i) >= 0, "ttk:" + i, S.bld[i] > 0);
+    });
+    var c1 = add(body, el("div", { cls: "cashrow" }));
+    add(c1, el("span", { text: "Ben veriyorum" }));
+    add(c1, btn("−50", "tgc:-"));
+    add(c1, el("b", { text: tl(t.giveCash) }));
+    add(c1, btn("+50", "tgc:+"));
+    var c2 = add(body, el("div", { cls: "cashrow" }));
+    add(c2, el("span", { text: "O veriyor" }));
+    add(c2, btn("−50", "ttc:-"));
+    add(c2, el("b", { text: tl(t.takeCash) }));
+    add(c2, btn("+50", "ttc:+"));
+    add(body, el("p", { cls: "sum", text: tradeLine(t) }));
+    var ops = add(body, el("div", { cls: "ops" }));
+    var off = add(ops, btn("Teklif et", "toffer", true));
+    if (!tradeOk(t)) { off.disabled = true; off.setAttribute("aria-disabled", "true"); }
+    add(ops, btn("Vazgeç", "tno"));
+  }
+  function renderOffer() {
+    var t = S.trade;
+    var body = sheetHead("TEKLİF");
+    add(body, el("p", { cls: "sum", text: tradeLine(t) }));
+    add(body, el("p", { cls: "why", text: who(t.from) + " teklif etti. " + who(t.to) + " karar verir." }));
+    var ops = add(body, el("div", { cls: "ops" }));
+    add(ops, btn("Kabul", "tyes", true));
+    add(ops, btn("Ret", "tno"));
+  }
+  function submitTrade() {
+    var t = S.trade;
+    if (!tradeOk(t)) return;
+    if (isAi(t.to)) {
+      later(function () {
+        if (!S || !S.trade) return;
+        if (tradeScore(t.to, S.trade) > 0) {
+          applyTrade(S.trade);
+          log("Naci Bey kabul etti.");
+          sndCash(); buzz(20);
+        } else {
+          log("Naci Bey burnunu kıvırdı.");
+        }
+        S.trade = null;
+        S.wait = "roll";
+        persist(); paint();
+        closeSheet();
+      });
+      log("Naci Bey tartıyor.");
+      persist(); paint();
+      return;
+    }
+    S.wait = "offer";
+    persist(); paint();
+    renderOffer();
+  }
+  function acceptTrade() {
+    var t = S.trade;
+    if (!t || !tradeOk(t)) { S.trade = null; S.wait = "roll"; persist(); paint(); closeSheet(); return; }
+    applyTrade(t);
+    log("Takas kabul.");
+    sndCash(); buzz(20);
+    S.trade = null;
+    S.wait = "roll";
+    persist(); paint();
+    closeSheet();
+  }
+  function rejectTrade() {
+    if (S.trade) log(who(S.trade.to) + " reddetti.");
+    S.trade = null;
+    S.wait = "roll";
+    persist(); paint();
+    closeSheet();
+  }
+  function naciMaybeOffer() {
+    var P = naciP();
+    if (!P.offer || S.wait !== "roll") return false;
+    var i, g, a, mine, his, j, pick = -1, junk = -1;
+    for (i = 0; i < 40; i++) {
+      if (S.own[i] !== 0 || S.bld[i] > 0 || !SQ[i][3]) continue;
+      g = SQ[i][3]; a = groupIdx(g); mine = 0;
+      for (j = 0; j < a.length; j++) if (a[j] !== i && S.own[a[j]] === 1) mine++;
+      if (mine === a.length - 1) { pick = i; break; }
+    }
+    if (pick < 0) return false;
+    for (i = 0; i < 40; i++) {
+      if (S.own[i] !== 1 || S.bld[i] > 0) continue;
+      if (!SQ[i][3] || SQ[i][3] !== SQ[pick][3]) { junk = i; break; }
+    }
+    var cash = Math.min(S.cash[1], 150);
+    S.trade = { from: 1, to: 0, give: junk >= 0 ? [junk] : [], take: [pick], giveCash: cash, takeCash: 0 };
+    if (!tradeOk(S.trade)) { S.trade = null; return false; }
+    S.wait = "offer";
+    log("Naci Bey takas teklif etti.");
+    persist(); paint();
+    renderOffer();
+    return true;
+  }
+
+  function openTapu() {
+    if (!S || busy || S.wait !== "roll" || isAi(S.turn)) return;
+    var p = S.turn, body = sheetHead("TAPULARIM");
+    var st = add(body, el("div", { cls: "stat" }));
+    add(st, el("span", { text: "Kasa " + tl(S.cash[p]) }));
+    add(st, el("span", { text: "Tapu " + ownedList(p).length }));
+    add(st, el("span", { text: "Bina " + bldCount(p) }));
+    add(st, el("span", { text: "Net " + tl(netOf(p)) }));
+    var groups = ["kahverengi", "acik_mavi", "pembe", "turuncu", "kirmizi", "sari", "yesil", "koyu_mavi"];
+    var gi, a, ownN, i, t;
+    function reasonBuild(idx) {
+      if (!ownsSet(p, SQ[idx][3])) return "Semti tutmuyorsun";
+      if (setHasSenet(SQ[idx][3])) return "Önce senedi kapat";
+      if (!canBuildTile(p, idx) && S.cash[p] < BUILD_COST[SQ[idx][3]]) return "Kasa yetmez";
+      if (!canBuildTile(p, idx)) return "Önce diğerlerini eşitle";
+      return "";
+    }
+    for (gi = 0; gi < groups.length; gi++) {
+      a = groupIdx(groups[gi]);
+      ownN = 0;
+      for (i = 0; i < a.length; i++) if (S.own[a[i]] === p) ownN++;
+      if (!ownN) continue;
+      var gh = add(body, el("div", { cls: "grp-h" }));
+      add(gh, el("span", { text: GRP_TR[groups[gi]] }));
+      add(gh, el("span", { text: ownN + "/" + a.length + (ownN === a.length ? " tuttun" : "") }));
+      for (i = 0; i < a.length; i++) {
+        if (S.own[a[i]] !== p) continue;
+        t = sq(a[i]);
+        var box = add(body, el("div", { cls: "trow" }));
+        box.style.borderLeft = "4px solid " + COL[groups[gi]];
+        add(box, el("div", { cls: "nm", text: t.name + (S.sen[a[i]] ? " · SENETLİ" : "") }));
+        add(box, el("div", { cls: "meta", text: (LVL[S.bld[a[i]] + 1] || "Arsa") + " · kira " + tl(landRent(a[i]) || (RENT[t.name] ? RENT[t.name][S.bld[a[i]] ? S.bld[a[i]] + 1 : 0] : 0)) }));
+        var ops = add(box, el("div", { cls: "ops" }));
+        var cb = canBuildTile(p, a[i]);
+        var db = add(ops, btn("Dik · " + tl(BUILD_COST[t.g]), "dik:" + a[i]));
+        if (!cb) { db.disabled = true; db.setAttribute("aria-disabled", "true"); add(box, el("div", { cls: "why", text: reasonBuild(a[i]) })); }
+        var cr = canRazeTile(p, a[i]);
+        var rb = add(ops, btn("Sök · +" + tl(houseValue(a[i])), "sök:" + a[i]));
+        if (!cr) { rb.disabled = true; rb.setAttribute("aria-disabled", "true"); }
+        if (S.bld[a[i]] > 0) {
+          var sb = add(ops, btn("Senetle", "sen:" + a[i]));
+          sb.disabled = true; sb.setAttribute("aria-disabled", "true");
+          add(box, el("div", { cls: "why", text: "Üzerinde bina var" }));
+        } else if (!S.sen[a[i]]) {
+          add(ops, btn("Senetle · +" + tl((t.price / 2) | 0), "sen:" + a[i]));
+        } else {
+          var uc = unsenetCost(a[i]);
+          var ub = add(ops, btn("Kapat · " + tl(uc), "kap:" + a[i]));
+          if (S.cash[p] < uc) { ub.disabled = true; ub.setAttribute("aria-disabled", "true"); add(box, el("div", { cls: "why", text: "Kasa yetmez" })); }
+        }
+      }
+    }
+    var extras = ownedList(p).filter(function (i) { return !SQ[i][3]; });
+    if (extras.length) {
+      add(body, el("div", { cls: "grp-h" })).appendChild(el("span", { text: "Kaçış / Kurum" }));
+      extras.forEach(function (i) {
+        var box = add(body, el("div", { cls: "trow" }));
+        add(box, el("div", { cls: "nm", text: SQ[i][0] + (S.sen[i] ? " · SENETLİ" : "") }));
+        var ops = add(box, el("div", { cls: "ops" }));
+        if (!S.sen[i] && S.bld[i] <= 0) add(ops, btn("Senetle · +" + tl((SQ[i][2] / 2) | 0), "sen:" + i));
+        else if (S.sen[i]) add(ops, btn("Kapat · " + tl(unsenetCost(i)), "kap:" + i));
+      });
+    }
+  }
+
   function kickAi() {
-    if (!S || !isAi(S.turn) || S.win != null || busy) return;
+    if (!S || S.win != null || busy) return;
+    if (S.wait === "offer" && isAi(S.trade && S.trade.to)) return;
+    if (!isAi(S.turn)) return;
     if (S.wait === "jail") naciJail();
-    else if (S.wait === "roll") doRoll(1);
+    else if (S.wait === "roll") {
+      if (naciMaybeOffer()) return;
+      doRoll(1);
+    }
     else if (S.wait === "buy") naciBuy();
     else if (S.wait === "pay") naciPay();
     else if (S.wait === "own") naciAfterOwn();
@@ -920,20 +1474,80 @@ button:disabled { opacity: .35; }
   }
 
   function act(code) {
-    if (code === "cpu") { newGame("cpu", 2); return; }
+    unlockAudio();
+    var i;
+    if (code === "cpu") { tmpLvl = tmpLvl || "esnaf"; newGame("cpu", 2); return; }
+    if (code.indexOf("cpu:") === 0) { tmpLvl = code.slice(4); newGame("cpu", 2); return; }
+    if (code.indexOf("lvl:") === 0) { tmpLvl = code.slice(4); paintMenu(); return; }
     if (code === "hot" || code === "hot2") { newGame("hotseat", 2); return; }
     if (code === "hot3") { newGame("hotseat", 3); return; }
     if (code === "hot4") { newGame("hotseat", 4); return; }
+    if (code === "len:short") { tmpLen = "short"; paintMenu(); return; }
+    if (code === "len:long") { tmpLen = "long"; paintMenu(); return; }
+    if (code === "snd") { setSndPref(!sndPref()); paintMenu(); return; }
     if (code === "cont") {
+      closeSheet();
       var raw = loadRaw(); if (!raw) return;
       try { bootState(JSON.parse(raw)); } catch (e) { wipe(); view = "menu"; paintMenu(); }
       return;
     }
-    if (code === "new") { wipe(); view = "menu"; paintMenu(); return; }
-    if (code === "close") { document.getElementById("sheet").className = ""; return; }
+    if (code === "new") { wipe(); view = "menu"; closeSheet(); paintMenu(); return; }
+    if (code === "close") { closeSheet(); if (S && S.wait === "offer" && S.trade && !isAi(S.trade.to)) return; return; }
     if (!S) return;
     if (code === "peekoff") { peek = -1; paint(); return; }
     if (S.win != null) return;
+    if (code === "trade") { openTrade(); return; }
+    if (code === "tapu") { openTapu(); return; }
+    if (code === "tno") { rejectTrade(); return; }
+    if (code === "tyes") { acceptTrade(); return; }
+    if (code === "toffer") { submitTrade(); return; }
+    if (code.indexOf("tsel:") === 0) {
+      if (S.trade) { S.trade.to = +code.slice(5); S.trade.take = []; persist(); renderTrade(); }
+      return;
+    }
+    if (code.indexOf("tgg:") === 0) {
+      i = +code.slice(4);
+      if (S.trade && S.bld[i] <= 0) { toggleArr(S.trade.give, i); persist(); renderTrade(); }
+      return;
+    }
+    if (code.indexOf("ttk:") === 0) {
+      i = +code.slice(4);
+      if (S.trade && S.bld[i] <= 0) { toggleArr(S.trade.take, i); persist(); renderTrade(); }
+      return;
+    }
+    if (code === "tgc:+" || code === "tgc:-") {
+      if (!S.trade) return;
+      S.trade.giveCash = Math.max(0, Math.min(S.cash[S.trade.from], S.trade.giveCash + (code === "tgc:+" ? 50 : -50)));
+      persist(); renderTrade(); return;
+    }
+    if (code === "ttc:+" || code === "ttc:-") {
+      if (!S.trade) return;
+      S.trade.takeCash = Math.max(0, Math.min(S.cash[S.trade.to], S.trade.takeCash + (code === "ttc:+" ? 50 : -50)));
+      persist(); renderTrade(); return;
+    }
+    if (code.indexOf("dik:") === 0) {
+      i = +code.slice(4);
+      if (S.wait !== "roll" || !canBuildTile(S.turn, i)) return;
+      doBuild(S.turn, i); persist(); paint(); openTapu(); return;
+    }
+    if (code.indexOf("sök:") === 0) {
+      i = +code.slice(4);
+      if (S.wait !== "roll" || !canRazeTile(S.turn, i)) return;
+      doRaze(S.turn, i); persist(); paint(); openTapu(); return;
+    }
+    if (code.indexOf("sen:") === 0) {
+      i = +code.slice(4);
+      if (S.wait !== "roll" || S.own[i] !== S.turn || S.bld[i] > 0 || S.sen[i]) return;
+      senetTile(S.turn, i);
+      log(who(S.turn) + " " + SQ[i][0] + " senetledi.");
+      persist(); paint(); openTapu(); return;
+    }
+    if (code.indexOf("kap:") === 0) {
+      i = +code.slice(4);
+      if (S.wait !== "roll") return;
+      if (!doUnsenet(S.turn, i)) return;
+      persist(); paint(); openTapu(); return;
+    }
     if (humanLocked() && code !== "peekoff") return;
     peek = -1;
     if (code === "roll") {
@@ -968,7 +1582,7 @@ button:disabled { opacity: .35; }
     if (code === "ode") {
       if (S.wait !== "pay") return;
       var oi = S.pos[S.turn], r = landRent(oi), to = S.own[oi];
-      if (!payTo(S.turn, r, to)) { afterMoneyFail(S.turn); return; }
+      if (!payRent(S.turn, r, to)) { afterMoneyFail(S.turn); return; }
       log(who(S.turn) + " " + datWho(to) + " " + tl(r) + (senSoz(S.turn) ? " ödedin." : " ödedi."));
       persist(); finishTurn(S.turn); return;
     }
@@ -1164,7 +1778,7 @@ button:disabled { opacity: .35; }
   function shortName(name, kind) {
     if (kind === "I") return "İHBAR";
     if (kind === "R") return "RACON";
-    return String(name || "").toUpperCase();
+    return String(name || "").toLocaleUpperCase("tr-TR");
   }
   var NAME_SPLIT = {
     "SAADETDERE": ["SAADET", "DERE"],
@@ -1396,6 +2010,49 @@ button:disabled { opacity: .35; }
     ctx.fillText(ch, cx, cy);
   }
 
+  function roundRectPath(ctx, x, y, w, h, r) {
+    if (r > w / 2) r = w / 2;
+    if (r > h / 2) r = h / 2;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function drawDie(ctx, cx, cy, size, n) {
+    n = n | 0;
+    if (n < 1) n = 1;
+    if (n > 6) n = 6;
+    var s = size, x = cx - s / 2, y = cy - s / 2, r = Math.max(3, s * 0.14);
+    ctx.save();
+    ctx.fillStyle = "#F4EDE2";
+    ctx.strokeStyle = "#1A1612";
+    ctx.lineWidth = Math.max(1.2, s * 0.05);
+    roundRectPath(ctx, x, y, s, s, r);
+    ctx.fill();
+    ctx.stroke();
+    var pip = Math.max(1.6, s * 0.09);
+    var m = s * 0.26;
+    var dots = [
+      [],
+      [[0, 0]],
+      [[-1, -1], [1, 1]],
+      [[-1, -1], [0, 0], [1, 1]],
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+      [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]],
+      [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]]
+    ];
+    ctx.fillStyle = "#0B0B0B";
+    var arr = dots[n], i;
+    for (i = 0; i < arr.length; i++) {
+      ctx.beginPath();
+      ctx.arc(cx + arr[i][0] * m, cy + arr[i][1] * m, pip, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   function drawRing() { drawRingOn(document.getElementById("cv"), false); }
   function drawRingOn(cv, big) {
     if (!cv || !cv.parentElement) return;
@@ -1437,12 +2094,22 @@ button:disabled { opacity: .35; }
     ctx.textBaseline = "middle";
     var fs = Math.max(11, (inner * 0.11) | 0);
     ctx.font = fs + "px ui-serif, Georgia, serif";
-    ctx.fillText("BÜKÜCÜ", cx, cy + 1);
+    var dice = rolling ? rollShow : (S && S.dice);
+    var showDice = dice && dice[0] > 0 && dice[1] > 0 && inner > 80;
+    var dySeal = showDice ? -inner * 0.14 : 0;
+    ctx.fillText("BÜKÜCÜ", cx, cy + 1 + dySeal);
     if (inner > 90) {
       ctx.font = Math.max(7, (fs * 0.38) | 0) + "px ui-serif, Georgia, serif";
       ctx.globalAlpha = 0.7;
-      ctx.fillText("SON MAHALLE", cx, cy - fs * 0.82);
+      ctx.fillText("SON MAHALLE", cx, cy - fs * 0.82 + dySeal);
       ctx.globalAlpha = 1;
+    }
+    if (showDice) {
+      var ds = Math.max(24, Math.min(40, inner * 0.17));
+      var gapD = Math.max(6, ds * 0.18);
+      var dy = inner > 130 ? fs * 0.55 : fs * 0.35;
+      drawDie(ctx, cx - ds / 2 - gapD / 2, cy + dy, ds, dice[0]);
+      drawDie(ctx, cx + ds / 2 + gapD / 2, cy + dy, ds, dice[1]);
     }
     var i, r, t, glow, col, br, pip, fill, gap;
     gap = 1.6;
@@ -1666,8 +2333,12 @@ button:disabled { opacity: .35; }
       else if (isAi(S.win)) banner.textContent = "NACİ BEY KAZANDI";
       else if (S.n === 2) banner.textContent = S.win === 0 ? "SEN KAZANDIN" : "KARŞI KAZANDI";
       else banner.textContent = (S.win + 1) + ". KAZANDI";
+    } else if (S.len === "short" && S.stat && S.stat.turns >= SHORT_TURNS - 5) {
+      banner.textContent = "SON " + Math.max(1, SHORT_TURNS - S.stat.turns) + " TUR";
     } else if (isAi(S.turn)) {
       banner.textContent = "NACİ BEY";
+    } else if (S.wait === "offer") {
+      banner.textContent = "TAKAS";
     } else if (S.n === 2 || S.mode === "cpu") {
       banner.textContent = S.turn === 0 ? "SENİN TURUN" : "KARŞI TARAF";
     } else {
@@ -1676,6 +2347,12 @@ button:disabled { opacity: .35; }
     acts.className = "";
     if (S.win != null) {
       add(acts, btn("Yeni oyun", "new", true));
+      add(acts, btn("Ana menü", "new"));
+      return;
+    }
+    if (S.wait === "offer") {
+      add(acts, btn("Kabul", "tyes", true));
+      add(acts, btn("Ret", "tno"));
       return;
     }
     if (isAi(S.turn)) return;
@@ -1691,7 +2368,15 @@ button:disabled { opacity: .35; }
       add(row, btn("50 TL öde", "jail50"));
       return;
     }
-    if (w === "roll") { add(acts, btn("Zar at", "roll", true)); return; }
+    if (w === "roll") {
+      acts.className = "stack";
+      add(acts, btn("Zar at", "roll", true));
+      var r2 = add(acts, el("div"));
+      r2.style.display = "flex"; r2.style.gap = "16px";
+      add(r2, btn("Takas", "trade"));
+      add(r2, btn("Tapularım", "tapu"));
+      return;
+    }
     if (w === "buy") { add(acts, btn("Al", "al", true)); add(acts, btn("Geç", "gec")); return; }
     if (w === "pay") { add(acts, btn("Öde", "ode", true)); return; }
     if (w === "own") {
@@ -1703,8 +2388,12 @@ button:disabled { opacity: .35; }
   }
 
   function paintMenu() {
+    closeSheet();
     var m = document.getElementById("menu");
     clear(m); m.className = "on";
+    m.setAttribute("data-len", tmpLen);
+    m.setAttribute("data-lvl", tmpLvl);
+    m.setAttribute("data-snd", sndPref() ? "1" : "0");
     add(m, el("h1", { text: "SON MAHALLE BÜKÜCÜ" }));
     add(m, el("p", { cls: "sub", text: "İstanbul tapusu. Semti tutan büker." }));
     var st = add(m, el("div", { cls: "stack" }));
@@ -1715,24 +2404,46 @@ button:disabled { opacity: .35; }
       add(st, btn("Devam et", "cont", true));
       add(st, btn("Yeni oyun", "new"));
     } else {
+      add(st, el("p", { cls: "hint", text: "Süre" }));
+      var lenRow = add(st, el("div", { cls: "row" }));
+      add(lenRow, el("button", { text: "Kısa", "data-act": "len:short", cls: tmpLen === "short" ? "pick" : "" }));
+      add(lenRow, el("button", { text: "Uzun", "data-act": "len:long", cls: tmpLen === "long" ? "pick" : "" }));
+      add(st, el("p", { cls: "hint", text: "Naci" }));
+      var lvlRow = add(st, el("div", { cls: "row" }));
+      add(lvlRow, el("button", { text: "Acemi", "data-act": "lvl:acemi", cls: tmpLvl === "acemi" ? "pick" : "" }));
+      add(lvlRow, el("button", { text: "Esnaf", "data-act": "lvl:esnaf", cls: tmpLvl === "esnaf" ? "pick" : "" }));
+      add(lvlRow, el("button", { text: "Bükücü", "data-act": "lvl:bukucu", cls: tmpLvl === "bukucu" ? "pick" : "" }));
       add(st, btn("Naci Bey’e karşı", "cpu", true));
       add(st, btn("İki insan, aynı telefon", "hot"));
       add(st, btn("Üç insan, aynı telefon", "hot3"));
       add(st, btn("Dört insan, aynı telefon", "hot4"));
     }
+    add(st, el("button", { text: sndPref() ? "Ses açık" : "Ses kapalı", "data-act": "snd", cls: sndPref() ? "pick" : "" }));
     add(m, el("p", { cls: "plus", text: "18+ kurgu · başla 1.500 TL" }));
     document.getElementById("app").style.visibility = "hidden";
   }
 
   function paintEnd() {
     peek = -1;
-    paintDeed(S.focus);
+    var body = sheetHead("BİTTİ");
     var winLine = senSoz(S.win) ? "Sen kazandın." : (isAi(S.win) ? "Naci Bey kazandı." : who(S.win) + " kazandı.");
-    var net = "", i, n = nP();
-    for (i = 0; i < n; i++) net += (i ? " · " : "") + tag(i) + " " + tl(netOf(i));
-    document.getElementById("log").textContent = winLine + "  Net " + net;
-    paintDock();
-    drawRing();
+    if (S.len === "short") winLine += " Kısa oyun.";
+    add(body, el("p", { cls: "sum", text: winLine }));
+    var n = nP(), i, rp;
+    for (i = 0; i < n; i++) {
+      var row = add(body, el("div", { cls: "endrow" }));
+      add(row, el("b", { text: tag(i) + (S.win === i ? " · kazandı" : "") }));
+      add(row, el("span", { text: "Kasa " + tl(S.cash[i]) }));
+      var row2 = add(body, el("div", { cls: "endrow" }));
+      add(row2, el("span", { text: "Tapu " + ownedList(i).length + " · Bina " + bldCount(i) }));
+      add(row2, el("span", { text: "Net " + tl(netOf(i)) }));
+      rp = (S.stat && S.stat.rentPaid && S.stat.rentPaid[i]) || 0;
+      var row3 = add(body, el("div", { cls: "endrow" }));
+      add(row3, el("span", { text: "Ödenen kira " + tl(rp) }));
+    }
+    var ops = add(body, el("div", { cls: "ops" }));
+    add(ops, btn("Yeni oyun", "new", true));
+    add(ops, btn("Ana menü", "new"));
   }
 
   function paint() {
