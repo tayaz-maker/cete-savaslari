@@ -31,9 +31,9 @@ html { font-size: 16px; }
 @media (orientation: landscape) {
   #app { width: min(100vw, calc(var(--vvh, 100dvh) * 0.46)); }
 }
-#ring { flex: 38 1 0; min-height: 0; position: relative; touch-action: none; }
+#ring { flex: 46 1 0; min-height: 0; position: relative; touch-action: none; padding: 4px 8px 0; box-sizing: border-box; }
 #ring canvas { display: block; width: 100%; height: 100%; }
-#mid { flex: 42 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 16px; }
+#mid { flex: 36 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 16px; }
 #deed { flex: 1 1 auto; min-height: 0; background: var(--card); border: 1px solid var(--hair);
   border-radius: 4px; padding: 14px 16px 12px; display: flex; flex-direction: column; overflow: hidden; }
 #deed .bar { height: 8px; margin: -14px -16px 10px; background: var(--gold); }
@@ -202,6 +202,7 @@ button:disabled { opacity: .35; }
   function sq(i) { return { i: i, name: SQ[i][0], kind: SQ[i][1], price: SQ[i][2], g: SQ[i][3] }; }
   function nP() { return S && S.n ? S.n : (S && S.cash ? S.cash.length : 2); }
   function sen(p) { return !!(S && S.mode === "cpu" && p === 0); }
+  function senSoz(p) { return who(p) === "Sen"; }
   function isAi(p) { return !!(S && S.mode === "cpu" && p === 1); }
   function alive(p) { return !!(S && (!S.dead || !S.dead[p])); }
   function living() {
@@ -459,7 +460,7 @@ button:disabled { opacity: .35; }
       if (creditor >= 0 && alive(creditor)) S.own[i] = creditor;
       else { S.own[i] = -1; S.bld[i] = 0; S.sen[i] = 0; }
     }
-    log(sen(p) ? "Sen battın." : (isAi(p) ? "Naci Bey battı." : who(p) + " battı."));
+    log(senSoz(p) ? "Sen battın." : (isAi(p) ? "Naci Bey battı." : who(p) + " battı."));
     var liv = living();
     if (liv.length <= 1) {
       S.win = liv.length ? liv[0] : nextAlive(p);
@@ -630,7 +631,7 @@ button:disabled { opacity: .35; }
     }
     if (t.kind === "T" || t.kind === "K" || t.kind === "U") {
       if (S.own[i] < 0) {
-        log(who(p) + " " + t.name + (sen(p) ? "’a indin." : "’a indi."));
+        log(who(p) + " " + t.name + (senSoz(p) ? "’a indin." : "’a indi."));
         S.wait = "buy"; persist(); paint();
         if (isAi(p)) later(function () { naciBuy(); });
         return;
@@ -648,7 +649,7 @@ button:disabled { opacity: .35; }
         if (isAi(p)) later(function () { finishTurn(p); });
         return;
       }
-      log(who(p) + " " + who(S.own[i]) + "’e " + r + (sen(p) ? " ödeyeceksin." : " ödeyecek."));
+      log(who(p) + " " + who(S.own[i]) + "’e " + r + (senSoz(p) ? " ödeyeceksin." : " ödeyecek."));
       S.wait = "pay"; persist(); paint();
       if (isAi(p)) later(function () { naciPay(); });
       return;
@@ -658,17 +659,17 @@ button:disabled { opacity: .35; }
 
   function applyFx(p, pack, kind, id) {
     var a = pack[1], n = pack[2], others, gi;
-    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + n + (sen(p) ? " aldın." : " aldı.")); }
-    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + n + (sen(p) ? " ödedin." : " ödedi.")); }
+    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + n + (senSoz(p) ? " aldın." : " aldı.")); }
+    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + n + (senSoz(p) ? " ödedin." : " ödedi.")); }
     else if (a === "give") {
       others = living().filter(function (q) { return q !== p; });
       for (gi = 0; gi < others.length; gi++) if (!payTo(p, n, others[gi])) return;
-      log(who(p) + " herkese " + n + (sen(p) ? " verdin." : " verdi."));
+      log(who(p) + " herkese " + n + (senSoz(p) ? " verdin." : " verdi."));
     }
     else if (a === "take") {
       others = living().filter(function (q) { return q !== p; });
       for (gi = 0; gi < others.length; gi++) if (!payTo(others[gi], n, p)) return;
-      log(who(p) + " herkesten " + n + (sen(p) ? " aldın." : " aldı."));
+      log(who(p) + " herkesten " + n + (senSoz(p) ? " aldın." : " aldı."));
     }
     else if (a === "cik") { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
     else if (a === "cik50") {
@@ -760,7 +761,7 @@ button:disabled { opacity: .35; }
     var dbl = d1 === d2;
     S.rolled = true;
     if (sen(p) || nP() >= 3) { try { navigator.vibrate(10); } catch (e) {} }
-    log(who(p) + " " + d1 + "-" + d2 + (sen(p) ? " attın." : " attı."));
+    log(who(p) + " " + d1 + "-" + d2 + (senSoz(p) ? " attın." : " attı."));
     persist(); paint();
     if (S.jail[p]) {
       if (dbl) {
@@ -801,7 +802,7 @@ button:disabled { opacity: .35; }
     var i = S.pos[p], t = sq(i);
     if (S.own[i] >= 0 || S.cash[p] < t.price) return false;
     S.cash[p] -= t.price; S.own[i] = p;
-    log(who(p) + " " + t.name + (sen(p) ? "’u aldın." : "’u aldı."));
+    log(who(p) + " " + t.name + (senSoz(p) ? "’u aldın." : "’u aldı."));
     persist();
     return true;
   }
@@ -927,13 +928,13 @@ button:disabled { opacity: .35; }
     }
     if (code === "gec") {
       if (S.wait !== "buy") return;
-      log(who(S.turn) + (sen(S.turn) ? " geçtin." : " geçti.")); persist(); finishTurn(S.turn); return;
+      log(who(S.turn) + (senSoz(S.turn) ? " geçtin." : " geçti.")); persist(); finishTurn(S.turn); return;
     }
     if (code === "ode") {
       if (S.wait !== "pay") return;
       var oi = S.pos[S.turn], r = landRent(oi), to = S.own[oi];
       if (!payTo(S.turn, r, to)) { afterMoneyFail(S.turn); return; }
-      log(who(S.turn) + " " + who(to) + "’e " + r + (sen(S.turn) ? " ödedin." : " ödedi."));
+      log(who(S.turn) + " " + who(to) + "’e " + r + (senSoz(S.turn) ? " ödedin." : " ödedi."));
       persist(); finishTurn(S.turn); return;
     }
     if (code === "dik") {
@@ -1018,20 +1019,69 @@ button:disabled { opacity: .35; }
     n.addEventListener("click", onClick);
   });
 
+  function geomFor(size, big) {
+    var m = Math.max(3, (size * 0.014) | 0);
+    var board = size - 2 * m;
+    var D = board * (big ? 0.17 : 0.21);
+    if (D < 32) D = 32;
+    if (D > board * 0.24) D = board * 0.24;
+    var inner = board - 2 * D;
+    return { m: m, D: D, board: board, inner: inner, tw: inner / 9 };
+  }
+  function tileRect(i, g) {
+    var m = g.m, D = g.D, tw = g.tw, B = g.board;
+    var k = i % 10, side = (i / 10) | 0;
+    var r;
+    if (k === 0) {
+      if (side === 0) r = { x: m + B - D, y: m + B - D };
+      else if (side === 1) r = { x: m, y: m + B - D };
+      else if (side === 2) r = { x: m, y: m };
+      else r = { x: m + B - D, y: m };
+      r.w = D; r.h = D;
+    } else if (side === 0) r = { x: m + B - D - k * tw, y: m + B - D, w: tw, h: D };
+    else if (side === 1) r = { x: m, y: m + B - D - k * tw, w: D, h: tw };
+    else if (side === 2) r = { x: m + D + (k - 1) * tw, y: m, w: tw, h: D };
+    else r = { x: m + B - D, y: m + D + (k - 1) * tw, w: D, h: tw };
+    r.side = side; r.k = k; r.i = i;
+    return r;
+  }
+  function ringPt(i, size, big) {
+    var g = geomFor(size, !!big);
+    var r = tileRect(i, g);
+    var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    if (r.k === 0) {
+      var ox = r.w * 0.16, oy = r.h * 0.2;
+      if (r.side === 0) return { x: cx + ox, y: cy + oy };
+      if (r.side === 1) return { x: cx - ox, y: cy + oy };
+      if (r.side === 2) return { x: cx - ox, y: cy - oy };
+      return { x: cx + ox, y: cy - oy };
+    }
+    var o = 0.18;
+    if (r.side === 0) cy += r.h * o;
+    else if (r.side === 1) cx -= r.w * o;
+    else if (r.side === 2) cy -= r.h * o;
+    else cx += r.w * o;
+    return { x: cx, y: cy };
+  }
   function tileAt(x, y, canvas) {
-    var r = canvas.getBoundingClientRect();
-    var px = x - r.left, py = y - r.top;
-    var size = Math.min(r.width, r.height);
-    var ox = (r.width - size) / 2, oy = (r.height - size) / 2;
+    var box = canvas.getBoundingClientRect();
+    var px = x - box.left, py = y - box.top;
+    var size = Math.min(box.width, box.height);
+    var ox = (box.width - size) / 2, oy = (box.height - size) / 2;
     var big = !!(canvas.parentElement && canvas.parentElement.id === "sheet");
-    var m = size * (big ? 0.1 : 0.14);
-    var best = -1, bd = 1e9;
-    for (var i = 0; i < 40; i++) {
-      var p = ringPt(i, size, m);
-      var d = Math.hypot(px - (ox + p.x), py - (oy + p.y));
+    var g = geomFor(size, big);
+    var lx = px - ox, ly = py - oy;
+    var i, tr, best = -1, bd = 1e9, p, d;
+    for (i = 0; i < 40; i++) {
+      tr = tileRect(i, g);
+      if (lx >= tr.x && lx <= tr.x + tr.w && ly >= tr.y && ly <= tr.y + tr.h) return i;
+    }
+    for (i = 0; i < 40; i++) {
+      p = ringPt(i, size, big);
+      d = Math.hypot(lx - p.x, ly - p.y);
       if (d < bd) { bd = d; best = i; }
     }
-    return bd < size * 0.09 ? best : -1;
+    return bd < g.D * 0.55 ? best : -1;
   }
   function peekAt(x, y, target) {
     var sh = document.getElementById("sheet");
@@ -1055,19 +1105,152 @@ button:disabled { opacity: .35; }
     requestAnimationFrame(function () { drawRingOn(c, true); });
   }
 
-  function ringPt(i, size, pad) {
-    var m = pad == null ? size * 0.12 : pad;
-    var L = size - 2 * m;
-    var k = i % 10, side = (i / 10) | 0, t = k / 10;
-    if (side === 0) return { x: m + L - t * L, y: m + L };
-    if (side === 1) return { x: m, y: m + L - t * L };
-    if (side === 2) return { x: m + t * L, y: m };
-    return { x: m + L, y: m + t * L };
+  function barOf(r) {
+    if (r.k === 0) return null;
+    var f = 0.28;
+    if (r.side === 0) return { x: r.x, y: r.y, w: r.w, h: r.h * f };
+    if (r.side === 1) return { x: r.x + r.w * (1 - f), y: r.y, w: r.w * f, h: r.h };
+    if (r.side === 2) return { x: r.x, y: r.y + r.h * (1 - f), w: r.w, h: r.h * f };
+    return { x: r.x, y: r.y, w: r.w * f, h: r.h };
+  }
+  function hatch(ctx, r) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+    ctx.clip();
+    ctx.strokeStyle = "#C4A574";
+    ctx.globalAlpha = 0.28;
+    ctx.lineWidth = 1;
+    var x, y0 = r.y, y1 = r.y + r.h;
+    for (x = r.x - r.h; x < r.x + r.w; x += 5) {
+      ctx.beginPath();
+      ctx.moveTo(x, y0);
+      ctx.lineTo(x + r.h, y1);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawBld(ctx, br, n, side) {
+    if (!br || n <= 0) return;
+    var cx = br.x + br.w / 2, cy = br.y + br.h / 2;
+    ctx.save();
+    if (n >= 5) {
+      var s = Math.min(br.w, br.h) * 0.38;
+      ctx.fillStyle = "#C4A574";
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s);
+      ctx.lineTo(cx + s, cy);
+      ctx.lineTo(cx, cy + s);
+      ctx.lineTo(cx - s, cy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+    ctx.fillStyle = "#E8DFD0";
+    var along = (side === 0 || side === 2);
+    var slot = along ? br.w : br.h;
+    var gap = slot / (n + 1);
+    var tw = Math.max(2, Math.min(3.6, gap * 0.38));
+    var th = Math.max(2.2, Math.min(along ? br.h : br.w, 6) * 0.5);
+    var k, px, py;
+    for (k = 1; k <= n; k++) {
+      if (along) {
+        px = br.x + gap * k; py = cy;
+        ctx.fillRect(px - tw / 2, py - th / 2, tw, th);
+      } else {
+        px = cx; py = br.y + gap * k;
+        ctx.fillRect(px - th / 2, py - tw / 2, th, tw);
+      }
+    }
+    ctx.restore();
+  }
+  function drawCornerArt(ctx, r, kind) {
+    var cx = r.x + r.w / 2, cy = r.y + r.h * 0.38;
+    var s = r.w * 0.15;
+    ctx.save();
+    ctx.strokeStyle = "#C4A574";
+    ctx.fillStyle = "#C4A574";
+    ctx.lineWidth = 1.15;
+    ctx.globalAlpha = 0.9;
+    if (kind === "C") {
+      ctx.beginPath(); ctx.arc(cx, cy, s, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 0.28;
+      ctx.beginPath(); ctx.arc(cx, cy, s * 0.52, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "J") {
+      var i;
+      for (i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * s * 0.58, cy - s);
+        ctx.lineTo(cx + i * s * 0.58, cy + s * 0.85);
+        ctx.stroke();
+      }
+    } else if (kind === "O") {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s);
+      ctx.lineTo(cx + s, cy);
+      ctx.lineTo(cx, cy + s);
+      ctx.lineTo(cx - s, cy);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (kind === "B") {
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s);
+      ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s);
+      ctx.stroke();
+    }
+    ctx.restore();
+    var label = kind === "C" ? "CUMA" : kind === "J" ? "NEZARET" : kind === "O" ? "OCAK" : "BASKIN";
+    var fs = Math.max(7, Math.min(12, (r.w / (label.length * 0.62)) | 0));
+    ctx.fillStyle = "#E8DFD0";
+    ctx.font = fs + "px ui-serif, Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, r.x + r.w / 2, r.y + r.h * 0.72);
+  }
+  function drawPip(ctx, x, y, owner) {
+    var gold = owner === 1 || owner === 3;
+    var color = gold ? "#C4A574" : "#E8DFD0";
+    ctx.save();
+    if (owner >= 2) {
+      if (owner === 2) { ctx.fillStyle = color; ctx.fillRect(x - 2.1, y - 2.1, 4.2, 4.2); }
+      else { ctx.strokeStyle = color; ctx.lineWidth = 1.15; ctx.strokeRect(x - 2.3, y - 2.3, 4.6, 4.6); }
+    } else if (owner === 0) {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.15;
+      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function pipAt(r) {
+    var f = 0.38;
+    var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    if (r.k === 0) return { x: cx, y: r.y + r.h * 0.88 };
+    if (r.side === 0) return { x: cx, y: r.y + r.h * f };
+    if (r.side === 1) return { x: r.x + r.w * (1 - f), y: cy };
+    if (r.side === 2) return { x: cx, y: r.y + r.h * (1 - f) };
+    return { x: r.x + r.w * f, y: cy };
+  }
+  function drawMark(ctx, r, ch) {
+    var fs = Math.max(8, Math.min(12, (Math.min(r.w, r.h) * 0.4) | 0));
+    var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    var f = 0.12;
+    if (r.side === 0) cy += r.h * f;
+    else if (r.side === 1) cx -= r.w * f;
+    else if (r.side === 2) cy -= r.h * f;
+    else cx += r.w * f;
+    ctx.fillStyle = "#9A9086";
+    ctx.font = "600 " + fs + "px ui-serif, Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(ch, cx, cy);
   }
 
   function drawRing() { drawRingOn(document.getElementById("cv"), false); }
   function drawRingOn(cv, big) {
-    if (!cv) return;
+    if (!cv || !cv.parentElement) return;
     var wr = cv.parentElement.getBoundingClientRect();
     var w = wr.width, h = wr.height;
     if (w < 8 || h < 8) return;
@@ -1078,32 +1261,90 @@ button:disabled { opacity: .35; }
     ctx.clearRect(0, 0, w, h);
     var size = Math.min(w, h);
     var ox = (w - size) / 2, oy = (h - size) / 2;
-    ctx.save(); ctx.translate(ox, oy);
-    var m = size * (big ? 0.1 : 0.14);
-    var L = size - 2 * m;
-    ctx.strokeStyle = "#C4A574"; ctx.globalAlpha = 0.35; ctx.lineWidth = 1;
-    ctx.strokeRect(m, m, L, L);
+    ctx.save();
+    ctx.translate(ox, oy);
+    var g = geomFor(size, !!big);
+    var m = g.m, D = g.D, board = g.board, inner = g.inner;
+    ctx.fillStyle = "#141210";
+    ctx.fillRect(m, m, board, board);
+    var cx = m + board / 2, cy = m + board / 2;
+    var R = inner * 0.38;
+    var grd = ctx.createRadialGradient(cx, cy, Math.max(4, R * 0.15), cx, cy, Math.max(R, inner * 0.55));
+    grd.addColorStop(0, "#16120E");
+    grd.addColorStop(1, "#0B0B0B");
+    ctx.fillStyle = grd;
+    ctx.fillRect(m + D, m + D, inner, inner);
+    ctx.strokeStyle = "#C4A574";
+    ctx.globalAlpha = 0.22;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(m + D, m + D, inner, inner);
+    ctx.globalAlpha = 0.42;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.72, 0, Math.PI * 2); ctx.stroke();
     ctx.globalAlpha = 1;
-    var i, p, t, col, glow;
+    ctx.fillStyle = "#C4A574";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    var fs = Math.max(11, (inner * 0.11) | 0);
+    ctx.font = fs + "px ui-serif, Georgia, serif";
+    ctx.fillText("BÜKÜCÜ", cx, cy + 1);
+    if (inner > 90) {
+      ctx.font = Math.max(7, (fs * 0.38) | 0) + "px ui-serif, Georgia, serif";
+      ctx.globalAlpha = 0.7;
+      ctx.fillText("SON MAHALLE", cx, cy - fs * 0.82);
+      ctx.globalAlpha = 1;
+    }
+    var i, r, t, glow, col, br, pip;
     for (i = 0; i < 40; i++) {
-      p = ringPt(i, size, m);
-      t = sq(i); glow = S && (peek === i || (peek < 0 && S.focus === i));
-      if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") {
-        ctx.strokeStyle = "#C4A574"; ctx.lineWidth = glow ? 2 : 1;
-        ctx.strokeRect(p.x - 5, p.y - 5, 10, 10);
-      } else {
+      r = tileRect(i, g);
+      t = sq(i);
+      glow = S && (peek === i || (peek < 0 && S.focus === i));
+      if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") ctx.fillStyle = glow ? "#2A241C" : "#1E1A14";
+      else if (t.kind === "K") ctx.fillStyle = glow ? "#2A241C" : "#1B1812";
+      else if (t.kind === "U") ctx.fillStyle = glow ? "#26241E" : "#181816";
+      else if (t.kind === "R" || t.kind === "I") ctx.fillStyle = glow ? "#262018" : "#161412";
+      else if (t.kind === "X") ctx.fillStyle = glow ? "#2A2218" : "#1A1612";
+      else ctx.fillStyle = glow ? "#2C261C" : "#1C1914";
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = glow ? "#E8DFD0" : "#3A342C";
+      ctx.lineWidth = glow ? 1.4 : 1;
+      ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+      br = barOf(r);
+      if (t.kind === "T" && t.g && br) {
         col = COL[t.g] || "#C4A574";
-        if (t.kind === "K") col = "#8A7A5A";
-        if (t.kind === "U") col = "#6A6A6A";
-        if (t.kind === "X" || t.kind === "R" || t.kind === "I") col = "#3A342E";
         ctx.fillStyle = col;
-        var s = glow ? 8 : 5;
-        ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
-        if (glow) { ctx.strokeStyle = "#E8DFD0"; ctx.lineWidth = 1; ctx.strokeRect(p.x - s / 2 - 1, p.y - s / 2 - 1, s + 2, s + 2); }
+        ctx.fillRect(br.x, br.y, br.w, br.h);
+        ctx.strokeStyle = "rgba(11,11,11,0.35)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(br.x + 0.5, br.y + 0.5, br.w - 1, br.h - 1);
+        if (S && S.bld[i] > 0) drawBld(ctx, br, S.bld[i], r.side);
+      }
+      if (t.kind === "C" || t.kind === "J" || t.kind === "O" || t.kind === "B") {
+        drawCornerArt(ctx, r, t.kind);
+      } else if (t.kind === "K") drawMark(ctx, r, "K");
+      else if (t.kind === "U") drawMark(ctx, r, "U");
+      else if (t.kind === "R") drawMark(ctx, r, "R");
+      else if (t.kind === "I") drawMark(ctx, r, "İ");
+      else if (t.kind === "X") drawMark(ctx, r, "×");
+      if (S && S.sen[i]) hatch(ctx, r);
+      if (S && S.own[i] >= 0) {
+        pip = pipAt(r);
+        drawPip(ctx, pip.x, pip.y, S.own[i]);
       }
     }
+    ctx.strokeStyle = "#C4A574";
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(m + 0.75, m + 0.75, board - 1.5, board - 1.5);
+    ctx.globalAlpha = 0.28;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(m + 3.5, m + 3.5, board - 7, board - 7);
+    ctx.globalAlpha = 1;
     if (S) {
-      var buckets = {}, pi, k, list, base, off, sqi;
+      var buckets = {}, pi, k, list, base, off, sqi, rad;
+      rad = Math.max(4.2, Math.min(6.4, D * 0.08));
       for (pi = 0; pi < nP(); pi++) {
         if (!alive(pi)) continue;
         sqi = visPawn[pi] || 0;
@@ -1112,22 +1353,30 @@ button:disabled { opacity: .35; }
       for (sqi in buckets) {
         if (!Object.prototype.hasOwnProperty.call(buckets, sqi)) continue;
         list = buckets[sqi];
-        base = ringPt(+sqi, size, m);
+        base = ringPt(+sqi, size, big);
         for (k = 0; k < list.length; k++) {
-          off = pawnOff(k, list.length);
-          drawToken(ctx, list[k], base.x + off.x, base.y + off.y, list[k] === S.turn);
+          off = pawnOff(k, list.length, rad + 1);
+          drawToken(ctx, list[k], base.x + off.x, base.y + off.y, list[k] === S.turn, rad);
         }
       }
     }
     ctx.restore();
   }
 
-  function pawnOff(k, tot) {
+  function pawnOff(k, tot, span) {
+    span = span || 6;
     if (tot <= 1) return { x: 0, y: 0 };
-    var ang = (Math.PI * 2 * k) / tot - Math.PI / 2;
-    return { x: Math.cos(ang) * 8, y: Math.sin(ang) * 8 };
+    if (tot === 2) return k === 0 ? { x: -span * 0.75, y: 0 } : { x: span * 0.75, y: 0 };
+    var cells = [
+      { x: -span * 0.55, y: -span * 0.55 },
+      { x: span * 0.55, y: -span * 0.55 },
+      { x: -span * 0.55, y: span * 0.55 },
+      { x: span * 0.55, y: span * 0.55 }
+    ];
+    return cells[k] || { x: 0, y: 0 };
   }
-  function drawToken(ctx, p, x, y, glow) {
+  function drawToken(ctx, p, x, y, glow, rad) {
+    rad = rad || 6;
     var gold = p === 1 || p === 3;
     var color = gold ? "#C4A574" : "#E8DFD0";
     var square = p >= 2;
@@ -1137,19 +1386,19 @@ button:disabled { opacity: .35; }
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(x, y, 11, 0, Math.PI * 2);
+      ctx.arc(x, y, rad + 4.5, 0, Math.PI * 2);
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
     if (square) {
-      if (p === 2) { ctx.fillStyle = color; ctx.fillRect(x - 5, y - 5, 10, 10); }
-      else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x - 6, y - 6, 12, 12); }
+      if (p === 2) { ctx.fillStyle = color; ctx.fillRect(x - rad + 0.5, y - rad + 0.5, rad * 2 - 1, rad * 2 - 1); }
+      else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x - rad, y - rad, rad * 2, rad * 2); }
     } else if (p === 0) {
       ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
     } else {
       ctx.strokeStyle = color; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, rad + 0.6, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.restore();
   }
@@ -1291,7 +1540,7 @@ button:disabled { opacity: .35; }
   function paintEnd() {
     peek = -1;
     paintDeed(S.focus);
-    var winLine = sen(S.win) ? "Sen kazandın." : (isAi(S.win) ? "Naci Bey kazandı." : who(S.win) + " kazandı.");
+    var winLine = senSoz(S.win) ? "Sen kazandın." : (isAi(S.win) ? "Naci Bey kazandı." : who(S.win) + " kazandı.");
     var net = "", i, n = nP();
     for (i = 0; i < n; i++) net += (i ? " · " : "") + tag(i) + " " + netOf(i);
     document.getElementById("log").textContent = winLine + "  Net " + net;
