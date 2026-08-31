@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Bükücü">
 <meta name="theme-color" content="#0B0B0B">
-<meta name="description" content="Semti tutan büker. 2–4 kişi, aynı telefon. Naci Bey’e karşı da.">
+<meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="5">
+<meta name="smb-rev" content="6">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -49,7 +49,7 @@ html { font-size: 16px; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock { flex: 0 0 auto; padding: 0 16px 8px; }
 #chips { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: .82rem; color: var(--num); margin-bottom: 6px; }
-#chips span { min-width: 4.5rem; }
+#chips span { min-width: 4.5rem; white-space: nowrap; }
 #chips.many { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
 #chips .me { color: var(--ink); }
 #chips .me b { color: var(--gold); }
@@ -133,39 +133,39 @@ button:disabled { opacity: .35; }
   ];
   var RACON = [
     ["Kör Cevat köşeyi istiyor. 3 kare geri.","back",3],
-    ["Naci Bey masayı çevirdi. 150 al.","cash",150],
-    ["Jilet Semih yolunu kesti. En ucuz tapunu senetle; yoksa 50 öde.","senet50",0],
-    ["Piranha Orhan zarf uzattı. Rakibe 25 ver.","give",25],
-    ["Ambarlı yeşil. CUMA’ya git, 200 al.","go",0],
+    ["Naci Bey masayı çevirdi. 150 TL al.","cash",150],
+    ["Jilet Semih yolunu kesti. En ucuz tapunu senetle; yoksa 50 TL öde.","senet50",0],
+    ["Piranha Orhan zarf uzattı. Rakibe 25 TL ver.","give",25],
+    ["Ambarlı yeşil. CUMA’ya git, 200 TL al.","go",0],
     ["Merter kutu. 3 kare ileri.","fwd",3],
     ["Avukat Cemil. Nezaret çıkış kartı.","cik",0],
     ["Fatoş Abla kızdı. En pahalı binanın kirası kadar öde.","maxrent",0],
-    ["Vanlı Cuma selam etti. 50 al.","cash",50],
+    ["Vanlı Cuma selam etti. 50 TL al.","cash",50],
     ["Haydar Usta yol tarif etti. En yakın kaçışa git.","nearK",0],
-    ["Sarı Recep senet hatırlattı. 100 öde.","pay",100],
-    ["Tahsildar Leyla. CUMA’ya git, 200 al.","go",0],
-    ["Çakır Metin. NEZARET’e git, 200 alma.","jail",0],
-    ["Kripto Cemo toparladı. 100 al.","cash",100],
+    ["Sarı Recep senet hatırlattı. 100 TL öde.","pay",100],
+    ["Tahsildar Leyla. CUMA’ya git, 200 TL al.","go",0],
+    ["Çakır Metin. NEZARET’e git, 200 TL alma.","jail",0],
+    ["Kripto Cemo toparladı. 100 TL al.","cash",100],
     ["Deli Tarık yanlış semt. 2 kare geri.","back",2],
     ["DJ Barış perdeyi çekti. Bu kartı at, yeni RACON çek.","redraw",0]
   ];
   var IHbar = [
-    ["Devriye. 50 öde.","pay",50],
-    ["Mahalle yardımı. 50 al.","cash",50],
-    ["Tapu harcı. Tek Durak başı 25, Hanedan başı 100.","houses",0],
-    ["Avukat Cemil. Nezaret çıkış kartı. Yoksa 50 al.","cik50",0],
-    ["Senet vadesi. 100 öde.","pay",100],
-    ["Naci Bey hayır dedi. 25 al.","cash",25],
-    ["Belediye. 40 öde.","pay",40],
-    ["Piyasa. 100 al.","cash",100],
-    ["Çarşı payı. Rakibinden 10 al.","take",10],
-    ["Ruhsat. 50 öde.","pay",50],
-    ["Miras gibi. 100 al.","cash",100],
-    ["Ceza. 20 öde.","pay",20],
+    ["Devriye. 50 TL öde.","pay",50],
+    ["Mahalle yardımı. 50 TL al.","cash",50],
+    ["Tapu harcı. Tek Durak başı 25 TL, Hanedan başı 100 TL.","houses",0],
+    ["Avukat Cemil. Nezaret çıkış kartı. Yoksa 50 TL al.","cik50",0],
+    ["Senet vadesi. 100 TL öde.","pay",100],
+    ["Naci Bey hayır dedi. 25 TL al.","cash",25],
+    ["Belediye. 40 TL öde.","pay",40],
+    ["Piyasa. 100 TL al.","cash",100],
+    ["Çarşı payı. Rakibinden 10 TL al.","take",10],
+    ["Ruhsat. 50 TL öde.","pay",50],
+    ["Miras gibi. 100 TL al.","cash",100],
+    ["Ceza. 20 TL öde.","pay",20],
     ["Teslimat. En yakın kuruma git.","nearU",0],
-    ["Komşu dayandı. 25 al.","cash",25],
-    ["Fatoş Abla ihbar etti. 50 öde.","pay",50],
-    ["İskele kapalı. 40 öde.","pay",40]
+    ["Komşu dayandı. 25 TL al.","cash",25],
+    ["Fatoş Abla ihbar etti. 50 TL öde.","pay",50],
+    ["İskele kapalı. 40 TL öde.","pay",40]
   ];
   var LVL = ["Arsa","Tekel","Tek Durak","Mahalle Ağı","Semt Hattı","Hanedan"];
 
@@ -230,6 +230,35 @@ button:disabled { opacity: .35; }
   }
   function humanLocked() { return busy || !S || S.win != null || isAi(S.turn); }
   function zeros(n) { var a = []; for (var i = 0; i < n; i++) a.push(0); return a; }
+  function tl(n) {
+    n = Math.round(Number(n) || 0);
+    return n.toLocaleString("tr-TR") + " TL";
+  }
+  function lastVowel(s) {
+    var m = String(s).toLowerCase().match(/[aeıioöuüâîû]/g);
+    return m ? m[m.length - 1] : "a";
+  }
+  function isFront(v) { return v === "e" || v === "i" || v === "ö" || v === "ü"; }
+  function vowelEnd(s) { return /[aeıioöuüAEIİOÖUÜâîûÂÎÛ]$/.test(s); }
+  function accOf(s) {
+    var v = lastVowel(s);
+    var suf = isFront(v) ? (v === "ö" || v === "ü" ? "ü" : "i") : (v === "o" || v === "u" ? "u" : "ı");
+    return s + "’" + (vowelEnd(s) ? "y" : "") + suf;
+  }
+  function datOf(s) {
+    var v = lastVowel(s);
+    return s + "’" + (vowelEnd(s) ? "y" : "") + (isFront(v) ? "e" : "a");
+  }
+  function locOf(s) {
+    var v = lastVowel(s);
+    return s + "’" + (isFront(v) ? "de" : "da");
+  }
+  function datWho(p) {
+    if (!S) return "";
+    if (S.mode === "cpu") return p === 0 ? "sana" : "Naci Bey’e";
+    if (S.n === 2) return p === 0 ? "sana" : "karşı tarafa";
+    return (p + 1) + ". oyuncuya";
+  }
 
   function shuffle(a) {
     var i, j, t;
@@ -612,11 +641,11 @@ button:disabled { opacity: .35; }
       if (isAi(p)) later(function () { finishTurn(p); });
       return;
     }
-    if (t.kind === "C") { log(who(p) + " CUMA’da."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
-    if (t.kind === "O") { log(who(p) + " Ocak’ta."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
+    if (t.kind === "C") { log(who(p) + " " + locOf("CUMA") + "."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
+    if (t.kind === "O") { log(who(p) + " " + locOf("Ocak") + "."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
     if (t.kind === "J") { log(who(p) + " Nezaret kapısında."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
     if (t.kind === "X") {
-      log(who(p) + " " + t.name + " " + t.price + " ödüyor.");
+      log(who(p) + " " + t.name + " " + tl(t.price) + (senSoz(p) ? " ödüyorsun." : " ödüyor."));
       if (!payTo(p, t.price, -1)) { afterMoneyFail(p); return; }
       S.wait = "ok"; persist(); paint();
       if (isAi(p)) later(function () { finishTurn(p); });
@@ -632,13 +661,13 @@ button:disabled { opacity: .35; }
     }
     if (t.kind === "T" || t.kind === "K" || t.kind === "U") {
       if (S.own[i] < 0) {
-        log(who(p) + " " + t.name + (senSoz(p) ? "’a indin." : "’a indi."));
+        log(who(p) + " " + datOf(t.name) + (senSoz(p) ? " indin." : " indi."));
         S.wait = "buy"; persist(); paint();
         if (isAi(p)) later(function () { naciBuy(); });
         return;
       }
       if (S.own[i] === p) {
-        log(who(p) + " " + t.name + "’da.");
+        log(who(p) + " " + locOf(t.name) + ".");
         S.wait = "own"; persist(); paint();
         if (isAi(p)) later(function () { naciAfterOwn(); });
         return;
@@ -650,7 +679,7 @@ button:disabled { opacity: .35; }
         if (isAi(p)) later(function () { finishTurn(p); });
         return;
       }
-      log(who(p) + " " + who(S.own[i]) + "’e " + r + (senSoz(p) ? " ödeyeceksin." : " ödeyecek."));
+      log(who(p) + " " + datWho(S.own[i]) + " " + tl(r) + (senSoz(p) ? " ödeyeceksin." : " ödeyecek."));
       S.wait = "pay"; persist(); paint();
       if (isAi(p)) later(function () { naciPay(); });
       return;
@@ -660,33 +689,33 @@ button:disabled { opacity: .35; }
 
   function applyFx(p, pack, kind, id) {
     var a = pack[1], n = pack[2], others, gi;
-    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + n + (senSoz(p) ? " aldın." : " aldı.")); }
-    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + n + (senSoz(p) ? " ödedin." : " ödedi.")); }
+    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + tl(n) + (senSoz(p) ? " aldın." : " aldı.")); }
+    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + tl(n) + (senSoz(p) ? " ödedin." : " ödedi.")); }
     else if (a === "give") {
       others = living().filter(function (q) { return q !== p; });
       for (gi = 0; gi < others.length; gi++) if (!payTo(p, n, others[gi])) return;
-      log(who(p) + " herkese " + n + (senSoz(p) ? " verdin." : " verdi."));
+      log(who(p) + " herkese " + tl(n) + (senSoz(p) ? " verdin." : " verdi."));
     }
     else if (a === "take") {
       others = living().filter(function (q) { return q !== p; });
       for (gi = 0; gi < others.length; gi++) if (!payTo(others[gi], n, p)) return;
-      log(who(p) + " herkesten " + n + (senSoz(p) ? " aldın." : " aldı."));
+      log(who(p) + " herkesten " + tl(n) + (senSoz(p) ? " aldın." : " aldı."));
     }
     else if (a === "cik") { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
     else if (a === "cik50") {
-      if (S.cik[p] > 0) { S.cash[p] += 50; log(who(p) + " 50 aldı."); }
+      if (S.cik[p] > 0) { S.cash[p] += 50; log(who(p) + " " + tl(50) + (senSoz(p) ? " aldın." : " aldı.")); }
       else { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
     }
     else if (a === "houses") {
-      var h = houseTax(p); if (!payTo(p, h, -1)) return; log(who(p) + " tapu harcı " + h + ".");
+      var h = houseTax(p); if (!payTo(p, h, -1)) return; log(who(p) + " tapu harcı " + tl(h) + ".");
     }
     else if (a === "maxrent") {
-      var m = maxBuildRent(p); if (!payTo(p, m, -1)) return; log(who(p) + " " + m + " ödedi.");
+      var m = maxBuildRent(p); if (!payTo(p, m, -1)) return; log(who(p) + " " + tl(m) + (senSoz(p) ? " ödedin." : " ödedi."));
     }
     else if (a === "senet50") {
       var cheap = cheapestOwned(p);
       if (cheap >= 0) { senetTile(p, cheap); log(who(p) + " " + SQ[cheap][0] + " senetledi."); }
-      else { if (!payTo(p, 50, -1)) return; log(who(p) + " 50 ödedi."); }
+      else { if (!payTo(p, 50, -1)) return; log(who(p) + " " + tl(50) + (senSoz(p) ? " ödedin." : " ödedi.")); }
     }
     else if (a === "back") { discard(kind, id); S.card = null; persist(); moveBy(p, -n, false, function () { afterLand(p); }); return "moved"; }
     else if (a === "fwd") { discard(kind, id); S.card = null; persist(); moveBy(p, n, true, function () { afterLand(p); }); return "moved"; }
@@ -803,7 +832,7 @@ button:disabled { opacity: .35; }
     var i = S.pos[p], t = sq(i);
     if (S.own[i] >= 0 || S.cash[p] < t.price) return false;
     S.cash[p] -= t.price; S.own[i] = p;
-    log(who(p) + " " + t.name + (senSoz(p) ? "’u aldın." : "’u aldı."));
+    log(who(p) + " " + accOf(t.name) + (senSoz(p) ? " aldın." : " aldı."));
     persist();
     return true;
   }
@@ -846,7 +875,7 @@ button:disabled { opacity: .35; }
   function naciPay() {
     var i = S.pos[1], r = landRent(i), to = S.own[i];
     if (!payTo(1, r, to)) { paint(); return; }
-    log("Naci Bey sana " + r + " ödedi.");
+    log("Naci Bey sana " + tl(r) + " ödedi.");
     persist(); paint();
     later(function () { afterOk(1); });
   }
@@ -866,7 +895,7 @@ button:disabled { opacity: .35; }
     if (S.cash[1] > 300) {
       if (!payTo(1, 50, -1)) { paint(); return; }
       S.jail[1] = 0; S.miss[1] = 0;
-      log("Naci Bey Nezaret’te. 50 ödedi.");
+      log("Naci Bey Nezaret’te. " + tl(50) + " ödedi.");
       persist(); paint();
       later(function () { doRoll(1); });
       return;
@@ -910,7 +939,7 @@ button:disabled { opacity: .35; }
       if (S.wait !== "jail") return;
       if (!payTo(S.turn, 50, -1)) { afterMoneyFail(S.turn); return; }
       S.jail[S.turn] = 0; S.miss[S.turn] = 0;
-      log(who(S.turn) + " Nezaret’te. 50 ödedi.");
+      log(who(S.turn) + " Nezaret’te. " + tl(50) + " ödedi.");
       S.wait = "roll"; persist(); paint();
       return;
     }
@@ -935,7 +964,7 @@ button:disabled { opacity: .35; }
       if (S.wait !== "pay") return;
       var oi = S.pos[S.turn], r = landRent(oi), to = S.own[oi];
       if (!payTo(S.turn, r, to)) { afterMoneyFail(S.turn); return; }
-      log(who(S.turn) + " " + who(to) + "’e " + r + (senSoz(S.turn) ? " ödedin." : " ödedi."));
+      log(who(S.turn) + " " + datWho(to) + " " + tl(r) + (senSoz(S.turn) ? " ödedin." : " ödedi."));
       persist(); finishTurn(S.turn); return;
     }
     if (code === "dik") {
@@ -1061,7 +1090,7 @@ button:disabled { opacity: .35; }
       if (r.side === 2) return { x: cx - ox, y: cy - oy };
       return { x: cx + ox, y: cy - oy };
     }
-    var o = 0.18;
+    var o = 0.34;
     if (r.side === 0) cy += r.h * o;
     else if (r.side === 1) cx -= r.w * o;
     else if (r.side === 2) cy -= r.h * o;
@@ -1112,7 +1141,7 @@ button:disabled { opacity: .35; }
 
   function barOf(r) {
     if (r.k === 0) return null;
-    var f = 0.38;
+    var f = 0.16;
     if (r.side === 0) return { x: r.x, y: r.y, w: r.w, h: r.h * f };
     if (r.side === 1) return { x: r.x + r.w * (1 - f), y: r.y, w: r.w * f, h: r.h };
     if (r.side === 2) return { x: r.x, y: r.y + r.h * (1 - f), w: r.w, h: r.h * f };
@@ -1130,24 +1159,13 @@ button:disabled { opacity: .35; }
   function shortName(name, kind) {
     if (kind === "I") return "İHBAR";
     if (kind === "R") return "RACON";
-    var map = {
-      "Dolapdere": "DOLAPDERE", "Tarlabaşı": "TARLABAŞI", "Hacıhüsrev": "HACIHÜSREV",
-      "Poligon": "POLİGON", "Kuştepe": "KUŞTEPE", "Karagümrük": "KARAGÜMRÜK",
-      "Balat": "BALAT", "Ayvansaray": "AYVANSARAY", "Sarıgöl": "SARIGÖL",
-      "Gazi": "GAZİ", "50. Yıl": "50. YIL", "Çinçin Deresi": "ÇİNÇİN",
-      "Oruçreis": "ORUÇREİS", "Bağcılar": "BAĞCILAR", "Fikirtepe": "FİKİRTEPE",
-      "Gülsuyu": "GÜLSUYU", "Gülensu": "GÜLENSU", "Kanarya": "KANARYA",
-      "Saadetdere": "SAADETDERE", "Kıraç": "KIRAÇ", "Mehterçeşme": "MEHTERÇ.",
-      "Esenyurt": "ESENYURT", "Plakasız Forza": "FORZA", "Basık Egea": "EGEA",
-      "Sürgü Vito": "VİTO", "Ön Araç": "ARAÇ", "Çevirme": "ÇEVİRME",
-      "Mühür": "MÜHÜR", "Tahsilat": "TAHSİL", "Damga": "DAMGA"
-    };
-    return map[name] || String(name || "").toUpperCase();
+    return String(name || "").toUpperCase();
   }
   function wrapName(s, max) {
     if (s.length <= max) return [s];
     var sp = s.lastIndexOf(" ");
-    if (sp > 2 && sp < s.length - 1) return [s.slice(0, sp), s.slice(sp + 1)];
+    if (sp > 1 && s.length - sp - 1 >= 2) return [s.slice(0, sp), s.slice(sp + 1)];
+    if (s.length <= max + 2) return [s];
     var mid = Math.ceil(s.length / 2);
     return [s.slice(0, mid), s.slice(mid)];
   }
@@ -1162,36 +1180,34 @@ button:disabled { opacity: .35; }
       else if (r.side === 2) { bh = r.h - br.h; }
       else { bx = r.x + br.w; bw = r.w - br.w; }
     }
-    var along = (r.side === 0 || r.side === 2);
-    var span = along ? bw : bh;
-    var thick = along ? bh : bw;
-    var fs = Math.max(7, Math.min(11, span * 0.34, thick * 0.42));
-    var maxChars = Math.max(5, (span / (fs * 0.62)) | 0);
+    var rot, span, thick;
+    if (r.side === 0) { rot = -Math.PI / 2; span = bh; thick = bw; }
+    else if (r.side === 1) { rot = 0; span = bw; thick = bh; }
+    else if (r.side === 2) { rot = Math.PI / 2; span = bh; thick = bw; }
+    else { rot = 0; span = bw; thick = bh; }
+    var fs = Math.max(10, Math.min(14, span * 0.16, thick * 0.78));
+    var maxChars = Math.max(6, (span / (fs * 0.56)) | 0);
     var lines = wrapName(label, maxChars);
-    if (lines.length > 1) fs = Math.min(fs, thick * 0.28, 9.5);
+    if (lines.length > 1) fs = Math.min(fs, thick * 0.4, 12);
     ctx.save();
     ctx.beginPath();
     ctx.rect(bx + 1, by + 1, Math.max(1, bw - 2), Math.max(1, bh - 2));
     ctx.clip();
     ctx.translate(bx + bw / 2, by + bh / 2);
-    if (r.side === 1) ctx.rotate(-Math.PI / 2);
-    else if (r.side === 3) ctx.rotate(Math.PI / 2);
-    ctx.fillStyle = "#E8DFD0";
-    ctx.strokeStyle = "rgba(11,11,11,0.75)";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = Math.max(2.4, fs * 0.28);
-    ctx.globalAlpha = 1;
-    ctx.font = "700 " + fs.toFixed(1) + "px ui-serif, Georgia, serif";
+    ctx.rotate(rot);
+    ctx.font = "800 " + fs.toFixed(1) + "px ui-serif, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    if (lines.length === 1) {
-      ctx.strokeText(lines[0], 0, 0);
-      ctx.fillText(lines[0], 0, 0);
-    } else {
-      ctx.strokeText(lines[0], 0, -fs * 0.58);
-      ctx.fillText(lines[0], 0, -fs * 0.58);
-      ctx.strokeText(lines[1], 0, fs * 0.58);
-      ctx.fillText(lines[1], 0, fs * 0.58);
+    ctx.lineJoin = "round";
+    ctx.miterLimit = 2;
+    ctx.strokeStyle = "rgba(11,11,11,0.84)";
+    ctx.lineWidth = Math.max(3.2, fs * 0.34);
+    ctx.fillStyle = "#F4EDE2";
+    var li, y;
+    for (li = 0; li < lines.length; li++) {
+      y = (li - (lines.length - 1) / 2) * fs * 1.08;
+      ctx.strokeText(lines[li], 0, y);
+      ctx.fillText(lines[li], 0, y);
     }
     ctx.restore();
   }
@@ -1282,9 +1298,9 @@ button:disabled { opacity: .35; }
     }
     ctx.restore();
     var label = kind === "C" ? "CUMA" : kind === "J" ? "NEZARET" : kind === "O" ? "OCAK" : "BASKIN";
-    var fs = Math.max(8, Math.min(14, (r.w / (label.length * 0.56)) | 0));
-    ctx.fillStyle = "#E8DFD0";
-    ctx.font = fs + "px ui-serif, Georgia, serif";
+    var fs = Math.max(9, Math.min(15, (r.w / (label.length * 0.52)) | 0));
+    ctx.fillStyle = "#F4EDE2";
+    ctx.font = "800 " + fs + "px ui-serif, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(label, r.x + r.w / 2, r.y + r.h * 0.72);
@@ -1306,7 +1322,7 @@ button:disabled { opacity: .35; }
     ctx.restore();
   }
   function pipAt(r) {
-    var f = 0.38;
+    var f = 0.16;
     var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
     if (r.k === 0) return { x: cx, y: r.y + r.h * 0.88 };
     if (r.side === 0) return { x: cx, y: r.y + r.h * f };
@@ -1519,14 +1535,14 @@ button:disabled { opacity: .35; }
     var rows = add(box, el("div", { cls: "rows" }));
     if (t.kind === "T" && RENT[t.name]) {
       var tb = RENT[t.name], line = "", li;
-      for (li = 0; li < LVL.length; li++) line += LVL[li] + "  " + tb[li] + (li === LVL.length - 1 ? "" : "\n");
-      rows.textContent = line + "\nListe " + t.price + " · Dik " + BUILD_COST[t.g];
-    } else if (t.kind === "K") rows.textContent = "1 şapka 25 · 2’de 50 · 3’te 100 · 4’te 200\nListe " + t.price;
-    else if (t.kind === "U") rows.textContent = "Birinde zar ×4 · ikisinde ×10\nListe " + t.price;
-    else if (t.kind === "X") rows.textContent = "Öde " + t.price;
-    else if (t.kind === "C") rows.textContent = "Geç veya in, +200.";
-    else if (t.kind === "J") rows.textContent = "3 kaçış, 50, çift veya çıkış.";
-    else if (t.kind === "B") rows.textContent = "Nezaret. 200 yok.";
+      for (li = 0; li < LVL.length; li++) line += LVL[li] + "  " + tl(tb[li]) + (li === LVL.length - 1 ? "" : "\n");
+      rows.textContent = line + "\nListe " + tl(t.price) + " · Dik " + tl(BUILD_COST[t.g]);
+    } else if (t.kind === "K") rows.textContent = "1 şapka " + tl(25) + " · 2’de " + tl(50) + " · 3’te " + tl(100) + " · 4’te " + tl(200) + "\nListe " + tl(t.price);
+    else if (t.kind === "U") rows.textContent = "Birinde zar ×4 · ikisinde ×10\nListe " + tl(t.price);
+    else if (t.kind === "X") rows.textContent = "Öde " + tl(t.price);
+    else if (t.kind === "C") rows.textContent = "Geç veya in, +" + tl(200) + ".";
+    else if (t.kind === "J") rows.textContent = "3 kaçış, " + tl(50) + ", çift veya çıkış.";
+    else if (t.kind === "B") rows.textContent = "Nezaret. " + tl(200) + " yok.";
     else if (t.kind === "O") rows.textContent = "Otur. Bekle.";
     else if (t.kind === "R") rows.textContent = "Racon çek.";
     else if (t.kind === "I") rows.textContent = "İhbar çek.";
@@ -1557,7 +1573,7 @@ button:disabled { opacity: .35; }
       if (i === S.turn && S.win == null) sp.className = "me";
       if (S.dead && S.dead[i]) sp.className = (sp.className ? sp.className + " " : "") + "dead";
       sp.appendChild(document.createTextNode(tag(i) + " "));
-      add(sp, el("b", { text: String(S.cash[i]) }));
+      add(sp, el("b", { text: tl(S.cash[i]) }));
       chips.appendChild(sp);
     }
     if (S.win != null) {
@@ -1587,7 +1603,7 @@ button:disabled { opacity: .35; }
       var row = add(acts, el("div"));
       row.style.display = "flex"; row.style.gap = "16px";
       add(row, btn("Zar at", "roll", true));
-      add(row, btn("50 öde", "jail50"));
+      add(row, btn("50 TL öde", "jail50"));
       return;
     }
     if (w === "roll") { add(acts, btn("Zar at", "roll", true)); return; }
@@ -1605,7 +1621,7 @@ button:disabled { opacity: .35; }
     var m = document.getElementById("menu");
     clear(m); m.className = "on";
     add(m, el("h1", { text: "SON MAHALLE BÜKÜCÜ" }));
-    add(m, el("p", { cls: "sub", text: "Semti tutan büker." }));
+    add(m, el("p", { cls: "sub", text: "İstanbul tapusu. Semti tutan büker." }));
     var st = add(m, el("div", { cls: "stack" }));
     var raw = loadRaw();
     var ok = false;
@@ -1619,7 +1635,7 @@ button:disabled { opacity: .35; }
       add(st, btn("Üç insan, aynı telefon", "hot3"));
       add(st, btn("Dört insan, aynı telefon", "hot4"));
     }
-    add(m, el("p", { cls: "plus", text: "18+ kurgu" }));
+    add(m, el("p", { cls: "plus", text: "18+ kurgu · başla 1.500 TL" }));
     document.getElementById("app").style.visibility = "hidden";
   }
 
@@ -1628,7 +1644,7 @@ button:disabled { opacity: .35; }
     paintDeed(S.focus);
     var winLine = senSoz(S.win) ? "Sen kazandın." : (isAi(S.win) ? "Naci Bey kazandı." : who(S.win) + " kazandı.");
     var net = "", i, n = nP();
-    for (i = 0; i < n; i++) net += (i ? " · " : "") + tag(i) + " " + netOf(i);
+    for (i = 0; i < n; i++) net += (i ? " · " : "") + tag(i) + " " + tl(netOf(i));
     document.getElementById("log").textContent = winLine + "  Net " + net;
     paintDock();
     drawRing();

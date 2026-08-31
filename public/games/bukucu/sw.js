@@ -1,5 +1,5 @@
 /* Son Mahalle Bükücü — HTML/navigate network-first so phones never stick on an old board. */
-var CACHE = "smb-shell-v5";
+var CACHE = "smb-shell-v6";
 var PRECACHE = ["./index.html", "./sw.js", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./"];
 
 self.addEventListener("install", function (e) {
