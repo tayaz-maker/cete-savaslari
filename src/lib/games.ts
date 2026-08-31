@@ -35,6 +35,13 @@ export const GAMES: CatalogGame[] = [
     href: "/oyna/hanedan",
   },
   {
+    slug: "bukucu",
+    title: "Son Mahalle Bükücü",
+    subtitle: "Semti tutan büker.",
+    status: "live",
+    href: "/games/bukucu/",
+  },
+  {
     slug: "labirent",
     title: "Labirent",
     subtitle: "Çıkışı bul.",

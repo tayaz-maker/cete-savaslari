@@ -41,6 +41,17 @@ export function PortalHome() {
                 </Link>
               );
             }
+            if (g.href.startsWith("/games/")) {
+              return (
+                <a
+                  key={g.slug}
+                  href={g.href}
+                  className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
+                >
+                  {inner}
+                </a>
+              );
+            }
             return (
               <Link
                 key={g.slug}
