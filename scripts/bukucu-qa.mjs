@@ -101,6 +101,15 @@ const initScript = (seed, fast = true) => `
   var raw = window.setTimeout.bind(window);
   window.__raw = raw;
   if (${fast}) window.setTimeout = function (fn) { return raw(fn, 0); };
+  var mm = window.matchMedia ? window.matchMedia.bind(window) : null;
+  window.matchMedia = function (q) {
+    if (/prefers-reduced-motion/.test(String(q))) {
+      return { matches: true, media: q, addListener: function () {}, removeListener: function () {},
+        addEventListener: function () {}, removeEventListener: function () {}, dispatchEvent: function () { return false; } };
+    }
+    return mm ? mm(q) : { matches: false, media: q, addListener: function () {}, removeListener: function () {},
+      addEventListener: function () {}, removeEventListener: function () {}, dispatchEvent: function () { return false; } };
+  };
   window.__errors = [];
   addEventListener("error", function (e) { window.__errors.push(e.message + " @" + e.lineno); });
   addEventListener("unhandledrejection", function (e) { window.__errors.push("reject: " + e.reason); });
@@ -558,6 +567,7 @@ const browser = await chromium.launch({ args: ["--no-sandbox"] });
 console.log(`Bükücü QA → ${TARGET}\n`);
 
 await scenarios(browser);
+console.log("senaryolar bitti\n");
 
 let played = 0,
   unfinished = 0;
@@ -569,7 +579,11 @@ for (const mode of ["cpu", "hot", "hot3", "hot4"]) {
     const line = `${mode.padEnd(5)} adım=${String(r.steps).padStart(5)} tur=${String(r.turns).padStart(4)} bitti=${r.finished ? "E" : "h"}`;
     if (r.issues.length || r.errors.length) {
       fail("fuzz/" + mode, `${line} → ${[...r.issues, ...r.errors].join(" | ")}`);
-    } else notes.push("ok  fuzz/" + line);
+      console.log("fail fuzz/" + line);
+    } else {
+      notes.push("ok  fuzz/" + line);
+      console.log("ok  fuzz/" + line);
+    }
   }
 }
 
