@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Bükücü">
 <meta name="theme-color" content="#0B0B0B">
-<meta name="description" content="Semti tutan büker. Naci Bey’e karşı mahalle tapu oyunu.">
+<meta name="description" content="Semti tutan büker. 2–4 kişi, aynı telefon. Naci Bey’e karşı da.">
 <title>Son Mahalle Bükücü</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -47,7 +47,12 @@ html { font-size: 16px; }
 #log { flex: 0 0 auto; font-size: 12px; color: var(--num); min-height: 18px; margin: 8px 2px 6px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock { flex: 0 0 auto; padding: 0 16px 8px; }
-#chips { display: flex; justify-content: space-between; font-size: .92rem; color: var(--num); margin-bottom: 6px; }
+#chips { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: .82rem; color: var(--num); margin-bottom: 6px; }
+#chips span { min-width: 4.5rem; }
+#chips.many { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+#chips .me { color: var(--ink); }
+#chips .me b { color: var(--gold); }
+#chips .dead { opacity: .35; text-decoration: line-through; }
 #chips b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 #banner { text-align: center; font-family: ui-serif, Georgia, Times, serif; letter-spacing: .22em;
   font-size: .78rem; color: var(--gold); margin-bottom: 8px; }
@@ -195,13 +200,34 @@ button:disabled { opacity: .35; }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
   function add(p, c) { p.appendChild(c); return c; }
   function sq(i) { return { i: i, name: SQ[i][0], kind: SQ[i][1], price: SQ[i][2], g: SQ[i][3] }; }
-  function opp(p) { return p ? 0 : 1; }
-  function who(p) {
-    if (p === 0) return "Sen";
-    return S && S.mode === "cpu" ? "Naci Bey" : "Karşı";
-  }
+  function nP() { return S && S.n ? S.n : (S && S.cash ? S.cash.length : 2); }
+  function sen(p) { return !!(S && S.mode === "cpu" && p === 0); }
   function isAi(p) { return !!(S && S.mode === "cpu" && p === 1); }
+  function alive(p) { return !!(S && (!S.dead || !S.dead[p])); }
+  function living() {
+    var a = [], i, n = nP();
+    for (i = 0; i < n; i++) if (alive(i)) a.push(i);
+    return a;
+  }
+  function nextAlive(p) {
+    var n = nP(), i, q;
+    for (i = 1; i <= n; i++) { q = (p + i) % n; if (alive(q)) return q; }
+    return p;
+  }
+  function who(p) {
+    if (!S) return "";
+    if (S.mode === "cpu") return p === 0 ? "Sen" : "Naci Bey";
+    if (S.n === 2) return p === 0 ? "Sen" : "Karşı";
+    return (p + 1) + ".";
+  }
+  function tag(p) {
+    if (!S) return "";
+    if (S.mode === "cpu") return p === 0 ? "SEN" : "NACİ";
+    if (S.n === 2) return p === 0 ? "SEN" : "KARŞI";
+    return String(p + 1);
+  }
   function humanLocked() { return busy || !S || S.win != null || isAi(S.turn); }
+  function zeros(n) { var a = []; for (var i = 0; i < n; i++) a.push(0); return a; }
 
   function shuffle(a) {
     var i, j, t;
@@ -280,13 +306,23 @@ button:disabled { opacity: .35; }
   }
   function migrate(data) {
     if (!data || data.v !== 1) return null;
-    if (!data.cash || data.cash.length !== 2) return null;
-    if (!data.pos || !data.own || data.own.length !== 40) return null;
+    if (!data.cash || data.cash.length < 2 || data.cash.length > 4) return null;
+    data.n = data.n || data.cash.length;
+    if (data.n < 2 || data.n > 4) return null;
+    function pad(a, fill) {
+      if (!a) a = [];
+      while (a.length < data.n) a.push(fill);
+      return a.slice(0, data.n);
+    }
+    data.cash = pad(data.cash, 1500);
+    data.pos = pad(data.pos, 0);
+    data.jail = pad(data.jail, 0);
+    data.miss = pad(data.miss, 0);
+    data.cik = pad(data.cik, 0);
+    data.dead = pad(data.dead, 0);
+    if (!data.own || data.own.length !== 40) return null;
     if (!data.bld) data.bld = Array(40).fill(0);
     if (!data.sen) data.sen = Array(40).fill(0);
-    if (!data.jail) data.jail = [0, 0];
-    if (!data.miss) data.miss = [0, 0];
-    if (!data.cik) data.cik = [0, 0];
     if (!data.dice) data.dice = [0, 0];
     if (data.pend == null) data.pend = null;
     if (data.card === undefined) data.card = null;
@@ -303,7 +339,7 @@ button:disabled { opacity: .35; }
     stopAi();
     S = migrate(data);
     if (!S) { wipe(); view = "menu"; paintMenu(); return; }
-    visPawn[0] = S.pos[0]; visPawn[1] = S.pos[1];
+    visPawn = S.pos.slice();
     view = S.win != null ? "end" : "play";
     peek = -1;
     busy = false;
@@ -319,18 +355,23 @@ button:disabled { opacity: .35; }
     if (view === "play" && isAi(S.turn) && S.win == null) kickAi();
   }
 
-  function newGame(mode) {
+  function newGame(mode, n) {
+    n = n | 0;
+    if (mode === "cpu") n = 2;
+    if (n < 2) n = 2;
+    if (n > 4) n = 4;
     wipe();
     S = {
-      v: 1, mode: mode, cash: [1500, 1500], pos: [0, 0],
-      jail: [0, 0], miss: [0, 0], cik: [0, 0],
+      v: 1, mode: mode, n: n,
+      cash: Array(n).fill(1500), pos: zeros(n),
+      jail: zeros(n), miss: zeros(n), cik: zeros(n), dead: zeros(n),
       own: Array(40).fill(-1), bld: Array(40).fill(0), sen: Array(40).fill(0),
       rD: shuffle(ids(RACON.length)), rX: [], iD: shuffle(ids(IHbar.length)), iX: [],
       turn: 0, rolled: false, log: "Zar at.",
       wait: "roll", dice: [0, 0], doubles: 0, extra: 0,
       focus: 0, card: null, win: null, pend: null
     };
-    visPawn = [0, 0];
+    visPawn = zeros(n);
     view = "play";
     persist();
     paint();
@@ -403,25 +444,46 @@ button:disabled { opacity: .35; }
     for (var i = 0; i < 40; i++) if (S.own[i] === p && !S.sen[i]) n += SQ[i][2];
     return n;
   }
-  function bankrupt(p) {
-    S.win = opp(p);
-    S.wait = "end";
+  function bankrupt(p, creditor) {
+    if (!alive(p)) return;
+    if (!S.dead) S.dead = zeros(nP());
+    S.dead[p] = 1;
     S.pend = null;
-    log(p === 0 ? "Sen battın." : (isAi(p) ? "Naci Bey battı." : who(p) + " battı."));
+    S.card = null;
+    S.extra = 0;
+    if (creditor >= 0 && alive(creditor)) S.cash[creditor] += Math.max(0, S.cash[p]);
+    S.cash[p] = 0;
+    var i;
+    for (i = 0; i < 40; i++) {
+      if (S.own[i] !== p) continue;
+      if (creditor >= 0 && alive(creditor)) S.own[i] = creditor;
+      else { S.own[i] = -1; S.bld[i] = 0; S.sen[i] = 0; }
+    }
+    log(sen(p) ? "Sen battın." : (isAi(p) ? "Naci Bey battı." : who(p) + " battı."));
+    var liv = living();
+    if (liv.length <= 1) {
+      S.win = liv.length ? liv[0] : nextAlive(p);
+      S.wait = "end";
+      view = "end";
+    }
     persist();
-    view = "end";
+  }
+  function afterMoneyFail(p) {
+    persist();
+    if (S.win != null) { paint(); return; }
+    finishTurn(p);
   }
   function payTo(p, amt, to) {
     if (amt <= 0) return true;
     while (S.cash[p] < amt) {
       var i = cheapestOwned(p);
-      if (i < 0) { bankrupt(p); return false; }
+      if (i < 0) { bankrupt(p, to); return false; }
       senetTile(p, i);
     }
     if (S.win != null) return false;
-    if (S.cash[p] < amt) { bankrupt(p); return false; }
+    if (!alive(p) || S.cash[p] < amt) { bankrupt(p, to); return false; }
     S.cash[p] -= amt;
-    if (to >= 0) S.cash[to] += amt;
+    if (to >= 0 && alive(to)) S.cash[to] += amt;
     return true;
   }
 
@@ -553,7 +615,7 @@ button:disabled { opacity: .35; }
     if (t.kind === "J") { log(who(p) + " Nezaret kapısında."); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return; }
     if (t.kind === "X") {
       log(who(p) + " " + t.name + " " + t.price + " ödüyor.");
-      if (!payTo(p, t.price, -1)) { paint(); return; }
+      if (!payTo(p, t.price, -1)) { afterMoneyFail(p); return; }
       S.wait = "ok"; persist(); paint();
       if (isAi(p)) later(function () { finishTurn(p); });
       return;
@@ -568,7 +630,7 @@ button:disabled { opacity: .35; }
     }
     if (t.kind === "T" || t.kind === "K" || t.kind === "U") {
       if (S.own[i] < 0) {
-        log(who(p) + " " + t.name + (p === 0 ? "’a indin." : "’a indi."));
+        log(who(p) + " " + t.name + (sen(p) ? "’a indin." : "’a indi."));
         S.wait = "buy"; persist(); paint();
         if (isAi(p)) later(function () { naciBuy(); });
         return;
@@ -586,8 +648,7 @@ button:disabled { opacity: .35; }
         if (isAi(p)) later(function () { finishTurn(p); });
         return;
       }
-      if (p === 0) log("Sen " + who(S.own[i]) + "’e " + r + " ödeyecek.");
-      else log(who(p) + " sana " + r + " ödeyecek.");
+      log(who(p) + " " + who(S.own[i]) + "’e " + r + (sen(p) ? " ödeyeceksin." : " ödeyecek."));
       S.wait = "pay"; persist(); paint();
       if (isAi(p)) later(function () { naciPay(); });
       return;
@@ -596,14 +657,19 @@ button:disabled { opacity: .35; }
   }
 
   function applyFx(p, pack, kind, id) {
-    var a = pack[1], n = pack[2], o = opp(p);
-    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + n + " aldı."); }
-    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + n + " ödedi."); }
+    var a = pack[1], n = pack[2], others, gi;
+    if (a === "cash") { S.cash[p] += n; log(who(p) + " " + n + (sen(p) ? " aldın." : " aldı.")); }
+    else if (a === "pay") { if (!payTo(p, n, -1)) return; log(who(p) + " " + n + (sen(p) ? " ödedin." : " ödedi.")); }
     else if (a === "give") {
-      if (!payTo(p, n, o)) return;
-      log(p === 0 ? ("Sen " + who(o) + "’e " + n + " ödedin.") : (who(p) + " sana " + n + " ödedi."));
+      others = living().filter(function (q) { return q !== p; });
+      for (gi = 0; gi < others.length; gi++) if (!payTo(p, n, others[gi])) return;
+      log(who(p) + " herkese " + n + (sen(p) ? " verdin." : " verdi."));
     }
-    else if (a === "take") { if (!payTo(o, n, p)) return; log(who(p) + " " + n + " aldı."); }
+    else if (a === "take") {
+      others = living().filter(function (q) { return q !== p; });
+      for (gi = 0; gi < others.length; gi++) if (!payTo(others[gi], n, p)) return;
+      log(who(p) + " herkesten " + n + (sen(p) ? " aldın." : " aldı."));
+    }
     else if (a === "cik") { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
     else if (a === "cik50") {
       if (S.cik[p] > 0) { S.cash[p] += 50; log(who(p) + " 50 aldı."); }
@@ -646,6 +712,8 @@ button:disabled { opacity: .35; }
     if (isAi(p)) log("Naci Bey " + (kind === "R" ? "Racon" : "İhbar") + " çekti: " + pack[0].split(".")[0] + ".");
     var r = applyFx(p, pack, kind, id);
     if (r === "moved" || r === "redraw") return;
+    if (S.win != null) { persist(); paint(); return; }
+    if (!alive(p)) { S.card = null; afterMoneyFail(p); return; }
     if (r === "hold") { /* kept out of discard */ }
     S.card = null;
     S.wait = "ok";
@@ -662,14 +730,22 @@ button:disabled { opacity: .35; }
   function finishTurn(p) {
     if (S.win != null) { persist(); paint(); return; }
     peek = -1;
-    if (S.extra) {
+    if (S.extra && alive(p)) {
       S.extra = 0; S.rolled = false; S.wait = S.jail[p] ? "jail" : "roll";
       persist(); paint();
       if (isAi(p)) later(kickAi);
       return;
     }
-    S.turn = opp(p); S.rolled = false; S.doubles = 0; S.extra = 0;
-    var q = S.turn;
+    S.extra = 0; S.doubles = 0; S.rolled = false;
+    var q = nextAlive(p);
+    S.turn = q;
+    if (!alive(q) || q === p && !alive(p)) { persist(); paint(); return; }
+    if (nP() >= 3 && !isAi(q)) {
+      S.wait = "pass";
+      log("Sıra " + who(q) + " oyuncuda.");
+      persist(); paint();
+      return;
+    }
     S.wait = S.jail[q] ? "jail" : "roll";
     persist(); paint();
     if (isAi(q)) later(kickAi);
@@ -683,8 +759,8 @@ button:disabled { opacity: .35; }
     var sum = d1 + d2;
     var dbl = d1 === d2;
     S.rolled = true;
-    if (p === 0) { try { navigator.vibrate(10); } catch (e) {} }
-    log(who(p) + " " + d1 + "-" + d2 + (p === 0 ? " attın." : " attı."));
+    if (sen(p) || nP() >= 3) { try { navigator.vibrate(10); } catch (e) {} }
+    log(who(p) + " " + d1 + "-" + d2 + (sen(p) ? " attın." : " attı."));
     persist(); paint();
     if (S.jail[p]) {
       if (dbl) {
@@ -725,7 +801,7 @@ button:disabled { opacity: .35; }
     var i = S.pos[p], t = sq(i);
     if (S.own[i] >= 0 || S.cash[p] < t.price) return false;
     S.cash[p] -= t.price; S.own[i] = p;
-    log(who(p) + " " + t.name + (p === 0 ? "’u aldın." : "’u aldı."));
+    log(who(p) + " " + t.name + (sen(p) ? "’u aldın." : "’u aldı."));
     persist();
     return true;
   }
@@ -808,8 +884,10 @@ button:disabled { opacity: .35; }
   }
 
   function act(code) {
-    if (code === "cpu") { newGame("cpu"); return; }
-    if (code === "hot") { newGame("hotseat"); return; }
+    if (code === "cpu") { newGame("cpu", 2); return; }
+    if (code === "hot" || code === "hot2") { newGame("hotseat", 2); return; }
+    if (code === "hot3") { newGame("hotseat", 3); return; }
+    if (code === "hot4") { newGame("hotseat", 4); return; }
     if (code === "cont") {
       var raw = loadRaw(); if (!raw) return;
       try { bootState(JSON.parse(raw)); } catch (e) { wipe(); view = "menu"; paintMenu(); }
@@ -828,7 +906,7 @@ button:disabled { opacity: .35; }
     }
     if (code === "jail50") {
       if (S.wait !== "jail") return;
-      if (!payTo(S.turn, 50, -1)) { paint(); return; }
+      if (!payTo(S.turn, 50, -1)) { afterMoneyFail(S.turn); return; }
       S.jail[S.turn] = 0; S.miss[S.turn] = 0;
       log(who(S.turn) + " Nezaret’te. 50 ödedi.");
       S.wait = "roll"; persist(); paint();
@@ -849,13 +927,13 @@ button:disabled { opacity: .35; }
     }
     if (code === "gec") {
       if (S.wait !== "buy") return;
-      log(who(S.turn) + (S.turn === 0 ? " geçtin." : " geçti.")); persist(); finishTurn(S.turn); return;
+      log(who(S.turn) + (sen(S.turn) ? " geçtin." : " geçti.")); persist(); finishTurn(S.turn); return;
     }
     if (code === "ode") {
       if (S.wait !== "pay") return;
       var oi = S.pos[S.turn], r = landRent(oi), to = S.own[oi];
-      if (!payTo(S.turn, r, to)) { paint(); return; }
-      log(S.turn === 0 ? ("Sen " + who(to) + "’e " + r + " ödedin.") : (who(S.turn) + " sana " + r + " ödedi."));
+      if (!payTo(S.turn, r, to)) { afterMoneyFail(S.turn); return; }
+      log(who(S.turn) + " " + who(to) + "’e " + r + (sen(S.turn) ? " ödedin." : " ödedi."));
       persist(); finishTurn(S.turn); return;
     }
     if (code === "dik") {
@@ -874,6 +952,11 @@ button:disabled { opacity: .35; }
     }
     if (code === "bitir") { finishTurn(S.turn); return; }
     if (code === "ok" || code === "tamam") {
+      if (S.wait === "pass") {
+        S.wait = S.jail[S.turn] ? "jail" : "roll";
+        persist(); paint();
+        return;
+      }
       if (S.wait === "card") { resolveCard(S.turn); return; }
       finishTurn(S.turn); return;
     }
@@ -1020,22 +1103,66 @@ button:disabled { opacity: .35; }
       }
     }
     if (S) {
-      var a = ringPt(visPawn[0], size, m), b = ringPt(visPawn[1], size, m);
-      if (visPawn[0] === visPawn[1]) { a.x -= 6; b.x += 6; }
-      ctx.fillStyle = "#E8DFD0";
-      ctx.beginPath(); ctx.arc(a.x, a.y, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#C4A574"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(b.x, b.y, 7, 0, Math.PI * 2); ctx.stroke();
+      var buckets = {}, pi, k, list, base, off, sqi;
+      for (pi = 0; pi < nP(); pi++) {
+        if (!alive(pi)) continue;
+        sqi = visPawn[pi] || 0;
+        (buckets[sqi] = buckets[sqi] || []).push(pi);
+      }
+      for (sqi in buckets) {
+        if (!Object.prototype.hasOwnProperty.call(buckets, sqi)) continue;
+        list = buckets[sqi];
+        base = ringPt(+sqi, size, m);
+        for (k = 0; k < list.length; k++) {
+          off = pawnOff(k, list.length);
+          drawToken(ctx, list[k], base.x + off.x, base.y + off.y, list[k] === S.turn);
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function pawnOff(k, tot) {
+    if (tot <= 1) return { x: 0, y: 0 };
+    var ang = (Math.PI * 2 * k) / tot - Math.PI / 2;
+    return { x: Math.cos(ang) * 8, y: Math.sin(ang) * 8 };
+  }
+  function drawToken(ctx, p, x, y, glow) {
+    var gold = p === 1 || p === 3;
+    var color = gold ? "#C4A574" : "#E8DFD0";
+    var square = p >= 2;
+    ctx.save();
+    if (glow) {
+      ctx.strokeStyle = "#E8DFD0";
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 11, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    if (square) {
+      if (p === 2) { ctx.fillStyle = color; ctx.fillRect(x - 5, y - 5, 10, 10); }
+      else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x - 6, y - 6, 12, 12); }
+    } else if (p === 0) {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.restore();
   }
 
   function stampOf(i) {
     if (S.sen[i]) return "SENETLİ";
-    if (S.own[i] === 0) return "SENİN";
-    if (S.own[i] === 1) return S.mode === "cpu" ? "NACİ" : "KARŞI";
-    if (sq(i).price && (sq(i).kind === "T" || sq(i).kind === "K" || sq(i).kind === "U")) return "SATILIK";
-    return "";
+    if (S.own[i] < 0) {
+      if (sq(i).price && (sq(i).kind === "T" || sq(i).kind === "K" || sq(i).kind === "U")) return "SATILIK";
+      return "";
+    }
+    if (S.mode === "cpu") return S.own[i] === 0 ? "SENİN" : "NACİ";
+    if (S.n === 2) return S.own[i] === 0 ? "SENİN" : "KARŞI";
+    return (S.own[i] + 1) + ".";
   }
   function paintDeed(i) {
     var box = document.getElementById("deed");
@@ -1088,22 +1215,37 @@ button:disabled { opacity: .35; }
     var acts = document.getElementById("acts");
     clear(chips); clear(banner); clear(acts);
     if (!S) return;
-    var n1 = el("span"); n1.appendChild(document.createTextNode("SEN "));
-    add(n1, el("b", { text: String(S.cash[0]) }));
-    var n2 = el("span"); n2.appendChild(document.createTextNode((S.mode === "cpu" ? "NACİ " : "KARŞI ")));
-    add(n2, el("b", { text: String(S.cash[1]) }));
-    chips.appendChild(n1); chips.appendChild(n2);
-    var cpuTurn = isAi(S.turn);
-    banner.textContent = S.win != null ? (S.win === 0 ? "SEN KAZANDIN" : (S.mode === "cpu" ? "NACİ BEY KAZANDI" : "KARŞI KAZANDI"))
-      : (S.turn === 0 ? "SENİN TURUN" : (S.mode === "cpu" ? "NACİ BEY" : "KARŞI TARAF"));
+    var n = nP(), i;
+    chips.className = n > 2 ? "many" : "";
+    for (i = 0; i < n; i++) {
+      var sp = el("span");
+      if (i === S.turn && S.win == null) sp.className = "me";
+      if (S.dead && S.dead[i]) sp.className = (sp.className ? sp.className + " " : "") + "dead";
+      sp.appendChild(document.createTextNode(tag(i) + " "));
+      add(sp, el("b", { text: String(S.cash[i]) }));
+      chips.appendChild(sp);
+    }
+    if (S.win != null) {
+      if (sen(S.win)) banner.textContent = "SEN KAZANDIN";
+      else if (isAi(S.win)) banner.textContent = "NACİ BEY KAZANDI";
+      else if (S.n === 2) banner.textContent = S.win === 0 ? "SEN KAZANDIN" : "KARŞI KAZANDI";
+      else banner.textContent = (S.win + 1) + ". KAZANDI";
+    } else if (isAi(S.turn)) {
+      banner.textContent = "NACİ BEY";
+    } else if (S.n === 2 || S.mode === "cpu") {
+      banner.textContent = S.turn === 0 ? "SENİN TURUN" : "KARŞI TARAF";
+    } else {
+      banner.textContent = (S.turn + 1) + ". OYUNCU";
+    }
     acts.className = "";
     if (S.win != null) {
       add(acts, btn("Yeni oyun", "new", true));
       return;
     }
-    if (cpuTurn) return;
+    if (isAi(S.turn)) return;
     var w = S.wait;
     var p = S.turn;
+    if (w === "pass") { add(acts, btn("Tamam", "tamam", true)); return; }
     if (w === "jail") {
       acts.className = "stack";
       if (S.cik[p] > 0) add(acts, btn("Çıkış", "cik", true));
@@ -1139,6 +1281,8 @@ button:disabled { opacity: .35; }
     } else {
       add(st, btn("Naci Bey’e karşı", "cpu", true));
       add(st, btn("İki insan, aynı telefon", "hot"));
+      add(st, btn("Üç insan, aynı telefon", "hot3"));
+      add(st, btn("Dört insan, aynı telefon", "hot4"));
     }
     add(m, el("p", { cls: "plus", text: "18+ kurgu" }));
     document.getElementById("app").style.visibility = "hidden";
@@ -1147,8 +1291,10 @@ button:disabled { opacity: .35; }
   function paintEnd() {
     peek = -1;
     paintDeed(S.focus);
-    var winLine = S.win === 0 ? "Sen kazandın." : (S.mode === "cpu" ? "Naci Bey kazandı." : "Karşı kazandı.");
-    document.getElementById("log").textContent = winLine + "  Net Sen " + netOf(0) + " · " + (S.mode === "cpu" ? "Naci " : "Karşı ") + netOf(1);
+    var winLine = sen(S.win) ? "Sen kazandın." : (isAi(S.win) ? "Naci Bey kazandı." : who(S.win) + " kazandı.");
+    var net = "", i, n = nP();
+    for (i = 0; i < n; i++) net += (i ? " · " : "") + tag(i) + " " + netOf(i);
+    document.getElementById("log").textContent = winLine + "  Net " + net;
     paintDock();
     drawRing();
   }

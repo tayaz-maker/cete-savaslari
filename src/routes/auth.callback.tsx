@@ -45,7 +45,7 @@ function AuthCallback() {
           }
         }
         if (!live) return;
-        window.location.replace("/");
+        window.location.replace("/cete-savaslari");
       } catch (e) {
         if (!live) return;
         setMsg(
@@ -64,7 +64,7 @@ function AuthCallback() {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
       <p className="text-sm text-muted">{msg}</p>
       {done ? (
-        <Link to="/" className="mt-4 text-accent underline-offset-4 hover:underline">
+        <Link to="/cete-savaslari" className="mt-4 text-accent underline-offset-4 hover:underline">
           Sokağa dön
         </Link>
       ) : null}

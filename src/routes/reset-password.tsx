@@ -40,6 +40,12 @@ function ResetPassword() {
           const { error: err } = await supabase.auth.exchangeCodeForSession(code);
           if (err) throw err;
         }
+        const sess = await supabase.auth.getSession();
+        if (!sess.data.session) {
+          if (live)
+            setError("Link eksik veya eski. Mailden yeni link iste.");
+          return;
+        }
         if (live) setReady(true);
       } catch (e) {
         if (live)
@@ -85,7 +91,7 @@ function ResetPassword() {
       {ok ? (
         <p className="mt-6 text-sm text-fg">
           Şifre değişti.{" "}
-          <Link to="/" className="text-accent underline-offset-4 hover:underline">
+          <Link to="/cete-savaslari" className="text-accent underline-offset-4 hover:underline">
             Sokağa dön
           </Link>
         </p>

@@ -30,8 +30,8 @@ export function offlineSwPlugin() {
       }
       const extra = JSON.stringify(assets);
       source = source.replace(
-        'const SHELL = ["/", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];',
-        `const SHELL = ["/", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"].concat(${extra});`,
+        'const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];',
+        `const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"].concat(${extra});`,
       );
       this.emitFile({ type: "asset", fileName: "sw.js", source });
     },

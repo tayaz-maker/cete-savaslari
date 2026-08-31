@@ -19,6 +19,10 @@ function apiBase() {
   }
   return 'https://maze-game-api.vercel.app';
 }
+function mazeOnline() {
+  var b = apiBase();
+  return typeof b === 'string' && /^https?:\/\//.test(b) && b.indexOf('127.0.0.1') === -1;
+}
 
 // Modal Management
 function showModal(modalId) {
@@ -65,6 +69,10 @@ async function showLeaderboardTab(timeframe) {
 
 async function loadLeaderboard(timeframe = 'all') {
   const contentDiv = document.getElementById('leaderboardContent');
+  if (!mazeOnline()) {
+    contentDiv.innerHTML = '<p class="no-data">Sıralama kapalı. Yerelde oyna.</p>';
+    return;
+  }
   contentDiv.innerHTML = '<p class="loading">Sıralama yükleniyor...</p>';
 
   try {
@@ -133,6 +141,10 @@ async function showAchievements() {
 
 async function loadAchievements() {
   const contentDiv = document.getElementById('achievementsContent');
+  if (!mazeOnline()) {
+    contentDiv.innerHTML = '<p class="no-data">Başarımlar kapalı. Yerelde oyna.</p>';
+    return;
+  }
   contentDiv.innerHTML = '<p class="loading">Başarımlar yükleniyor...</p>';
 
   try {

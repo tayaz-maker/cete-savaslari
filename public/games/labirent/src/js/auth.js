@@ -24,6 +24,10 @@
   function base() {
     return typeof apiBase === 'function' ? apiBase() : '';
   }
+  function mazeOnline() {
+    var b = base();
+    return typeof b === 'string' && /^https?:\/\//.test(b) && b.indexOf('127.0.0.1') === -1;
+  }
 
   function token() {
     return localStorage.getItem(TOKEN_KEY) || null;
@@ -66,6 +70,7 @@
   // ---- API ----------------------------------------------------------------
 
   async function post(path, body) {
+    if (!mazeOnline()) throw new Error('Çevrimdışı');
     const res = await fetch(base() + path, {
       method: 'POST',
       headers: authHeaders(),
@@ -98,7 +103,7 @@
   }
 
   async function refreshProfile() {
-    if (!isLoggedIn()) return null;
+    if (!isLoggedIn() || !mazeOnline()) return null;
     try {
       const res = await fetch(base() + '/api/v1/auth/me', { headers: authHeaders() });
       if (res.status === 401) {
@@ -121,7 +126,7 @@
 
   // Record a finished game against the user's stats (called by game.js).
   async function recordGame(result) {
-    if (!isLoggedIn()) return null;
+    if (!isLoggedIn() || !mazeOnline()) return null;
     try {
       const res = await fetch(base() + '/api/v1/users/me/games', {
         method: 'POST',
@@ -497,6 +502,7 @@
   }
 
   async function saveProfile() {
+    if (!mazeOnline()) return profileMsg('Çevrimdışı', true);
     const username = (document.getElementById('editUsername').value || '').trim();
     const email = (document.getElementById('editEmail').value || '').trim();
     try {
@@ -520,6 +526,7 @@
   }
 
   async function changePassword() {
+    if (!mazeOnline()) return profileMsg('Çevrimdışı', true);
     const pw = document.getElementById('editPassword').value;
     const pwc = document.getElementById('editPasswordConfirm').value;
     if (pw.length < 6) return profileMsg('Password must be at least 6 characters', true);
@@ -582,9 +589,6 @@
     // Validate any stored token in the background.
     if (isLoggedIn()) {
       refreshProfile();
-    } else {
-      // First-time anonymous players choose a leaderboard name.
-      maybeAskName();
     }
   });
 })();

@@ -1,5 +1,5 @@
 /* Son Mahalle Bükücü — cache-first, same-origin only. */
-var CACHE = "smb-shell-v2";
+var CACHE = "smb-shell-v3";
 var PRECACHE = ["./index.html", "./sw.js", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./"];
 
 self.addEventListener("install", function (e) {

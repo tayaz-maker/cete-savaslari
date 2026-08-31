@@ -96,9 +96,9 @@ export function GameShell({
   const [logOpen, setLogOpen] = useState(false);
   const swipe = useRef<{ x: number; y: number; fromUi: boolean } | null>(null);
 
-  const { user } = useSupabaseUser();
+  const { user, verified } = useSupabaseUser();
   useGameClock(Boolean(player));
-  useSaveSync(Boolean(user));
+  useSaveSync(Boolean(user) && verified);
 
   useEffect(() => {
     const p = useGame.getState().player;

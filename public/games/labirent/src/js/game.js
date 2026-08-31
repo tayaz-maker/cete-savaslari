@@ -25,6 +25,10 @@ function apiBase() {
   }
   return DEFAULT_API_BASE;
 }
+function mazeOnline() {
+  var b = apiBase();
+  return typeof b === 'string' && /^https?:\/\//.test(b) && b.indexOf('127.0.0.1') === -1;
+}
 
 // JSON headers + a bearer token when the player is signed in.
 function apiHeaders() {
@@ -716,7 +720,7 @@ class MazeGame {
     this.drawHintPath();
     this.drawExit();
     this.drawPlayer();
-    if (this.paused) this.drawOverlay('PAUSED');
+    if (this.paused) this.drawOverlay('DURAKLATILDI');
 
     if (this.started && !this.paused && !this.won) {
       const elapsed = Date.now() - this.gameStartTime;
@@ -886,7 +890,7 @@ class MazeGame {
     this.setText('winTime', time);
     this.setText('winMoves', this.moves);
     this.setText('winHints', this.hintsUsed);
-    this.setText('winDifficulty', this.difficulty.toUpperCase());
+    this.setText('winDifficulty', this.diffLabel(this.difficulty));
     const modal = document.getElementById('winModal');
     if (modal) {
       modal.classList.add('show');
@@ -915,13 +919,17 @@ class MazeGame {
   }
 
   updateHUD() {
-    this.setText('difficulty', this.difficulty.toUpperCase());
+    this.setText('difficulty', this.diffLabel(this.difficulty));
     this.setText('moves', this.moves);
     this.setText('currentScore', this.currentScore());
     this.setText('lifetimeScore', this.stats.totalScore);
     this.setText('gamesWon', this.stats.gamesWon);
     this.setText('bestTime', this.formatTime(this.stats.bestTime));
     this.updateHintUI();
+  }
+
+  diffLabel(d) {
+    return { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[d] || d;
   }
 
   formatTime(ms) {
@@ -1010,6 +1018,7 @@ class MazeGame {
   // ---- optional backend (degrades silently when offline / static) ----------
 
   async startGameSession() {
+    if (!mazeOnline()) return;
     try {
       const res = await fetch(apiBase() + '/api/v1/games/start', {
         method: 'POST',
@@ -1027,6 +1036,7 @@ class MazeGame {
   }
 
   async trackMove() {
+    if (!mazeOnline() || !this.gameSessionId) return;
     try {
       await fetch(`${apiBase()}/api/v1/games/${this.gameSessionId}/move`, {
         method: 'PUT',
@@ -1038,6 +1048,7 @@ class MazeGame {
   }
 
   async completeGameSession() {
+    if (!mazeOnline() || !this.gameSessionId) return;
     try {
       await fetch(`${apiBase()}/api/v1/games/${this.gameSessionId}/complete`, {
         method: 'PUT',
@@ -1049,6 +1060,7 @@ class MazeGame {
   }
 
   async submitToLeaderboard(score, completionTime) {
+    if (!mazeOnline()) return;
     try {
       await fetch(apiBase() + '/api/v1/leaderboard', {
         method: 'POST',
@@ -1085,6 +1097,11 @@ class MazeGame {
       done = [];
     }
     if (done.includes(achievementId)) return;
+    if (!mazeOnline()) {
+      done.push(achievementId);
+      try { localStorage.setItem(key, JSON.stringify(done)); } catch (_) {}
+      return;
+    }
     try {
       const res = await fetch(apiBase() + '/api/v1/achievements/unlock', {
         method: 'POST',

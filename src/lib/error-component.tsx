@@ -21,3 +21,15 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
     </main>
   );
 }
+
+export function AppNotFound() {
+  return (
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 py-16 text-center">
+      <h1 className="font-display text-3xl font-semibold">Yok</h1>
+      <p className="mt-3 text-sm text-muted">Bu sayfa durmuyor.</p>
+      <a href="/" className="mt-8 text-sm text-accent underline-offset-4 hover:underline">
+        Oyunlar
+      </a>
+    </main>
+  );
+}
