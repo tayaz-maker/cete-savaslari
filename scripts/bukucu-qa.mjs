@@ -192,7 +192,7 @@ const snap = (page) =>
 const tap = (page, act) =>
   page.evaluate((a) => {
     const b = document.querySelector(
-      `#acts button[data-act="${a}"], #deed button[data-act="${a}"]`,
+      `#acts button[data-act="${a}"], #deed button[data-act="${a}"], #sheet button[data-act="${a}"]`,
     );
     if (b && !b.disabled) b.click();
     return !!b;
@@ -436,6 +436,230 @@ async function scenarios(browser) {
     else pass("a11y/oyun içi menü düğmesi");
     if (a11y.tapTargets.length)
       fail("a11y", "32 pikselden kısa dokunma hedefi: " + a11y.tapTargets.join(","));
+    await ctx.close();
+  }
+
+  /* Takas satırı: liste, kira, semt durumu; eylem çubuğu sabit. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        wait: "roll",
+        own: tiles({ 1: 0, 3: 0, 6: 1, 8: 1 }),
+        focus: 1,
+      }),
+    );
+    await tap(page, "trade");
+    await page.waitForTimeout(150);
+    const ui = await page.evaluate(() => {
+      const sheet = document.getElementById("sheet");
+      const t = sheet.textContent;
+      const cols = sheet.querySelector(".cols");
+      const foot = sheet.querySelector(".footbar");
+      const rows = [...sheet.querySelectorAll(".trow")];
+      const widths = rows.map((r) => Math.round(r.getBoundingClientRect().width));
+      return {
+        t,
+        foot: !!foot,
+        sticky: foot ? getComputedStyle(foot).position : "",
+        w: widths,
+        colW: cols ? [...cols.children].map((c) => Math.round(c.getBoundingClientRect().width)) : [],
+      };
+    });
+    if (!/liste/.test(ui.t) || !/kira/.test(ui.t))
+      fail("takas/satir", "liste/kira yok: " + ui.t.slice(0, 180));
+    else pass("takas/satır liste+kira");
+    if (!/2\/3|1\/3|tuttun/.test(ui.t) && !/2\/2/.test(ui.t))
+      fail("takas/satir", "semt durumu yok");
+    else pass("takas/satır semt durumu");
+    if (!ui.foot) fail("takas/cubuk", "footbar yok");
+    else pass("takas/eylem çubuğu sabit");
+    if (ui.colW.length === 2 && Math.abs(ui.colW[0] - ui.colW[1]) > 8)
+      fail("takas/kolon", "eşit olmayan kolon " + ui.colW.join("/"));
+    else pass("takas/eşit kolon");
+    if (!/veriyorsun/.test(ui.t)) fail("takas/denge", "denge satırı yok");
+    else pass("takas/denge satırı");
+    await ctx.close();
+  }
+
+  /* Naci Bey puanı negatifse karşı teklif verir, bir tur pazarlık. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        mode: "cpu",
+        n: 2,
+        wait: "roll",
+        turn: 0,
+        own: tiles({ 1: 0, 39: 1 }),
+        cash: [1500, 1500],
+        focus: 1,
+      }),
+    );
+    await tap(page, "trade");
+    await page.waitForTimeout(80);
+    await tap(page, "ttk:39");
+    await tap(page, "toffer");
+    await page.waitForTimeout(250);
+    const got = await page.evaluate(() => ({
+      log: document.getElementById("log").textContent,
+      sheet: document.getElementById("sheet").textContent,
+      wait: JSON.parse(localStorage.getItem("smb.v1") || "{}").wait,
+      ctr: (JSON.parse(localStorage.getItem("smb.v1") || "{}").trade || {}).ctr,
+    }));
+    if (!/karşı teklif/i.test(got.log + got.sheet))
+      fail("naci/karsi", "karşı teklif yok: " + got.log + " / " + got.sheet.slice(0, 120));
+    else pass("naci/karşı teklif");
+    if (got.wait !== "offer") fail("naci/karsi", "wait offer değil: " + got.wait);
+    await tap(page, "tno");
+    await page.waitForTimeout(80);
+    const after = await page.evaluate(() => JSON.parse(localStorage.getItem("smb.v1")));
+    if (after.trade) fail("naci/karsi", "ret sonrası trade duruyor");
+    else pass("naci/karşı teklif tek tur");
+    await ctx.close();
+  }
+
+  /* Geç → açık artırma: bir kişi artırınca tapu satılır. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        wait: "buy",
+        pos: [1, 0],
+        focus: 1,
+        cash: [1500, 1500],
+      }),
+    );
+    await tap(page, "gec");
+    await page.waitForTimeout(80);
+    let S = await page.evaluate(() => JSON.parse(localStorage.getItem("smb.v1")));
+    if (S.wait !== "auc") fail("artirma", "geç sonrası wait auc değil: " + S.wait);
+    else pass("artirma/geç açtı");
+    await tap(page, "aup");
+    await page.waitForTimeout(80);
+    await tap(page, "aun");
+    await page.waitForTimeout(80);
+    S = await page.evaluate(() => JSON.parse(localStorage.getItem("smb.v1")));
+    if (S.own[1] < 0) fail("artirma", "artıran tapuyu almadı own=" + S.own[1]);
+    else if (S.cash[S.own[1]] !== 1490)
+      fail("artirma", "10 TL kesilmedi kasa=" + S.cash[S.own[1]]);
+    else pass("artirma/kazanan 10 TL ödedi");
+    await ctx.close();
+  }
+
+  /* Kimse artırmazsa tapu bankada kalır. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        wait: "buy",
+        pos: [1, 0],
+        focus: 1,
+        cash: [1500, 1500],
+      }),
+    );
+    await tap(page, "gec");
+    await page.waitForTimeout(50);
+    await tap(page, "aun");
+    await page.waitForTimeout(50);
+    await tap(page, "aun");
+    await page.waitForTimeout(50);
+    const S = await page.evaluate(() => JSON.parse(localStorage.getItem("smb.v1")));
+    if (S.own[1] !== -1) fail("artirma/banka", "tapu satıldı own=" + S.own[1]);
+    else pass("artirma/kimse yok bankada");
+    await ctx.close();
+  }
+
+  /* 3-4 kişi devir: tahta/tapu bulanık, Hazırım. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        mode: "hotseat",
+        n: 3,
+        cash: [1500, 1500, 1500],
+        pos: [0, 0, 0],
+        jail: [0, 0, 0],
+        miss: [0, 0, 0],
+        cik: [0, 0, 0],
+        dead: [0, 0, 0],
+        wait: "pass",
+        turn: 1,
+        log: "Sıra 2. oyuncuda. Telefonu ver.",
+      }),
+    );
+    const ui = await page.evaluate(() => {
+      const app = document.getElementById("app");
+      const ring = document.getElementById("ring");
+      const deed = document.getElementById("deed");
+      return {
+        handoff: app.classList.contains("handoff"),
+        ringBlur: getComputedStyle(ring).filter,
+        deedBlur: getComputedStyle(deed).filter,
+        btn: [...document.querySelectorAll("#acts button")].map((b) => b.textContent),
+        banner: document.getElementById("banner").textContent,
+      };
+    });
+    if (!ui.handoff) fail("devir", "app.handoff yok");
+    else pass("devir/handoff sınıfı");
+    if (!/blur/.test(ui.ringBlur) || !/blur/.test(ui.deedBlur))
+      fail("devir", "bulanık değil ring=" + ui.ringBlur + " deed=" + ui.deedBlur);
+    else pass("devir/tahta-tapu bulanık");
+    if (!ui.btn.some((t) => /Hazırım/i.test(t))) fail("devir", "Hazırım yok: " + ui.btn.join(","));
+    else pass("devir/Hazırım");
+    await tap(page, "tamam");
+    await page.waitForTimeout(80);
+    const after = await page.evaluate(() => ({
+      handoff: document.getElementById("app").classList.contains("handoff"),
+      wait: JSON.parse(localStorage.getItem("smb.v1")).wait,
+    }));
+    if (after.handoff) fail("devir", "Hazırım sonrası hâlâ bulanık");
+    else if (after.wait !== "roll" && after.wait !== "jail")
+      fail("devir", "Hazırım wait=" + after.wait);
+    else pass("devir/Hazırım açtı");
+    await ctx.close();
+  }
+
+  /* Bitiş: kasa, tapu, bina, kira, net; kazanan altın çerçeve. */
+  {
+    const { ctx, page } = await fresh(browser);
+    await resume(
+      page,
+      blank({
+        wait: "end",
+        win: 0,
+        cash: [1800, 400],
+        own: tiles({ 1: 0, 3: 0, 39: 1 }),
+        len: "short",
+        stat: { turns: 30, rolls: 12, rentPaid: [80, 450] },
+      }),
+    );
+    const ui = await page.evaluate(() => {
+      const sheet = document.getElementById("sheet");
+      const cards = [...sheet.querySelectorAll(".endcard")];
+      const win = sheet.querySelector(".endcard.win");
+      const gold = win ? getComputedStyle(win).borderColor : "";
+      return {
+        n: cards.length,
+        text: sheet.textContent,
+        hasWin: !!win,
+        gold,
+      };
+    });
+    if (ui.n < 2) fail("bitis", "oyuncu kartı yok n=" + ui.n);
+    if (!/Kasa/.test(ui.text) || !/Tapu/.test(ui.text) || !/Bina/.test(ui.text))
+      fail("bitis", "satırlar eksik");
+    if (!/Ödenen kira/.test(ui.text) || !/Net servet/.test(ui.text))
+      fail("bitis", "kira/net yok: " + ui.text.slice(0, 200));
+    else pass("bitis/satırlar");
+    if (!ui.hasWin) fail("bitis", "kazanan çerçevesi yok");
+    else pass("bitis/altın çerçeve");
+    if (!/80/.test(ui.text) && !/450/.test(ui.text)) fail("bitis", "kira sayıları yok");
     await ctx.close();
   }
 }
