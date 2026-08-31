@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="8">
+<meta name="smb-rev" content="9">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -32,7 +32,8 @@ html { font-size: 16px; }
 @media (orientation: landscape) {
   #app { width: min(100vw, calc(var(--vvh, 100dvh) * 0.46)); }
 }
-#ring { flex: 52 1 0; min-height: 0; position: relative; touch-action: none; padding: 2px 2px 0; box-sizing: border-box; }
+#ring { flex: 52 1 0; min-height: 0; position: relative; touch-action: none; box-sizing: border-box; }
+#ring.locked { pointer-events: none; }
 #ring canvas { display: block; width: 100%; height: 100%; }
 #mid { flex: 32 1 0; min-height: 0; display: flex; flex-direction: column; padding: 0 16px; }
 #deed { flex: 1 1 auto; min-height: 0; background: var(--card); border: 1px solid var(--hair);
@@ -50,6 +51,7 @@ html { font-size: 16px; }
 #deed .rows b { color: var(--ink); font-weight: 500; }
 #deed .stamp { margin-top: auto; padding-top: 6px; font-family: ui-serif, Georgia, Times, serif;
   font-size: 1rem; letter-spacing: .18em; color: var(--gold); }
+#sheet .trow .ops button { font-size: .68rem; letter-spacing: .04em; padding: 0 6px; }
 #log { flex: 0 0 auto; font-size: 12px; color: var(--num); min-height: 18px; margin: 8px 2px 6px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock { flex: 0 0 auto; padding: 0 16px 8px; }
@@ -62,7 +64,20 @@ html { font-size: 16px; }
 #chips b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 #banner { text-align: center; font-family: ui-serif, Georgia, Times, serif; letter-spacing: .22em;
   font-size: .78rem; color: var(--gold); margin-bottom: 8px; }
-#acts { display: flex; gap: 16px; }
+#acts { display: flex; gap: 16px; min-height: 48px; }
+#acts.wait4 { opacity: .4; }
+#bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 10px 2px 14px; gap: 8px; }
+#bar .ttl { font-family: ui-serif, Georgia, Times, serif; font-size: .66rem; letter-spacing: .2em;
+  color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+#bar button { min-height: 32px; min-width: 56px; flex: 0 0 auto; padding: 0 10px;
+  font-size: .62rem; letter-spacing: .14em; border-radius: 3px; }
+#sheet .doc h2 { font-family: ui-serif, Georgia, Times, serif; font-size: 1.02rem; color: var(--gold);
+  letter-spacing: .06em; margin: 18px 0 4px; }
+#sheet .doc h2:first-child { margin-top: 4px; }
+#sheet .doc p { font-size: .86rem; line-height: 1.55; color: var(--num); margin: 4px 0; }
+#sheet .menu { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+#sheet .menu button { width: 100%; flex: none; }
 #acts.stack { flex-direction: column; gap: 8px; }
 button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--hair);
   min-height: 48px; border-radius: 4px; padding: 0 14px; letter-spacing: .12em; text-transform: uppercase;
@@ -111,7 +126,7 @@ button:disabled { opacity: .35; }
 .fly { position: absolute; left: 0; top: -2px; color: var(--gold); font-size: 12px; pointer-events: none;
   transition: transform .65s ease, opacity .65s ease; opacity: 1; }
 .fly.go { transform: translateY(-22px); opacity: 0; }
-.xbtn { min-width: 48px; min-height: 48px; letter-spacing: 0; }
+.xbtn { flex: 0 0 auto; min-width: 48px; min-height: 48px; letter-spacing: 0; }
 @media (prefers-reduced-motion: reduce) {
   button { transition: none; }
   .fly { transition: none; }
@@ -120,10 +135,14 @@ button:disabled { opacity: .35; }
 </head>
 <body>
 <div id="app">
-  <div id="ring"><canvas id="cv"></canvas></div>
+  <div id="bar">
+    <span class="ttl">SON MAHALLE BÜKÜCÜ</span>
+    <button class="xbtn" data-act="pause" aria-label="Menü">MENÜ</button>
+  </div>
+  <div id="ring"><canvas id="cv" role="img" aria-label="Bükücü tapu tahtası"></canvas></div>
   <div id="mid">
     <div id="deed"></div>
-    <div id="log"></div>
+    <div id="log" role="status" aria-live="polite"></div>
   </div>
   <div id="dock">
     <div id="chips"></div>
@@ -169,7 +188,7 @@ button:disabled { opacity: .35; }
     ["Kör Cevat köşeyi istiyor. 3 kare geri.","back",3],
     ["Naci Bey masayı çevirdi. 150 TL al.","cash",150],
     ["Jilet Semih yolunu kesti. En ucuz tapunu senetle; yoksa 50 TL öde.","senet50",0],
-    ["Piranha Orhan zarf uzattı. Rakibe 25 TL ver.","give",25],
+    ["Piranha Orhan zarf uzattı. Her rakibe 25 TL ver.","give",25],
     ["Ambarlı yeşil. CUMA’ya git, 200 TL al.","go",0],
     ["Merter kutu. 3 kare ileri.","fwd",3],
     ["Avukat Cemil. Nezaret çıkış kartı.","cik",0],
@@ -192,7 +211,7 @@ button:disabled { opacity: .35; }
     ["Naci Bey hayır dedi. 25 TL al.","cash",25],
     ["Belediye. 40 TL öde.","pay",40],
     ["Piyasa. 100 TL al.","cash",100],
-    ["Çarşı payı. Rakibinden 10 TL al.","take",10],
+    ["Çarşı payı. Her rakipten 10 TL al.","take",10],
     ["Ruhsat. 50 TL öde.","pay",50],
     ["Miras gibi. 100 TL al.","cash",100],
     ["Ceza. 20 TL öde.","pay",20],
@@ -213,13 +232,15 @@ button:disabled { opacity: .35; }
   var visPawn = [0, 0];
   var press = null;
   var longT = 0;
-  var swallow = false;
+  var swallowUntil = 0;
+  var swallowNode = null;
   var tmpLen = "short";
   var tmpLvl = "esnaf";
   var rolling = false;
   var rollShow = [0, 0];
   var ac = null;
   var SHORT_TURNS = 30;
+  function shortLimit() { return SHORT_TURNS * (nP() > 2 ? nP() / 2 : 1); }
   var DICE_P = [0, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1];
 
   function setVvh() {
@@ -347,6 +368,8 @@ button:disabled { opacity: .35; }
   function kurumRent(p) {
     var n = kindCount(p, "U");
     var d = (S.dice[0] || 0) + (S.dice[1] || 0);
+    if (!d) d = 7;
+    if (S.uBoost) return 10 * d;
     if (n >= 2) return 10 * d;
     if (n === 1) return 4 * d;
     return 0;
@@ -359,6 +382,16 @@ button:disabled { opacity: .35; }
     return 0;
   }
 
+  function setBusy(v) {
+    busy = !!v;
+    var a = document.getElementById("acts"), r = document.getElementById("ring");
+    if (a) {
+      a.classList.toggle("wait4", busy);
+      var bs = a.querySelectorAll("button"), i;
+      for (i = 0; i < bs.length; i++) bs[i].disabled = busy;
+    }
+    if (r) r.classList.toggle("locked", busy);
+  }
   function log(s) { S.log = s; }
   function persist() {
     if (!S) return;
@@ -375,7 +408,7 @@ button:disabled { opacity: .35; }
   function wipe() {
     stopAi();
     S = null;
-    busy = false;
+    setBusy(false);
     peek = -1;
     if (mem) delete mem[KEY];
     try { localStorage.removeItem(KEY); } catch (e) {}
@@ -409,6 +442,8 @@ button:disabled { opacity: .35; }
     if (!data.iD) data.iD = shuffle(ids(IHbar.length));
     if (!data.rX) data.rX = [];
     if (!data.iX) data.iX = [];
+    if (!data.held) data.held = [];
+    if (!data.uBoost) data.uBoost = 0;
     if (data.trade === undefined) data.trade = null;
     if (!data.lvl) data.lvl = "esnaf";
     if (!data.len) data.len = "short";
@@ -425,7 +460,7 @@ button:disabled { opacity: .35; }
     visPawn = S.pos.slice();
     view = S.win != null ? "end" : "play";
     peek = -1;
-    busy = false;
+    setBusy(false);
     persist();
     if (S.pend && S.pend.t === "land") {
       var p = S.pend.p;
@@ -494,6 +529,19 @@ button:disabled { opacity: .35; }
     if (id == null) return;
     (kind === "R" ? S.rX : S.iX).push(id);
   }
+  function holdCik(p, kind, id) {
+    S.cik[p] += 1;
+    if (!S.held) S.held = [];
+    S.held.push({ k: kind, id: id });
+  }
+  function spendCik(p) {
+    if (S.cik[p] <= 0) return false;
+    S.cik[p] -= 1;
+    var h = S.held && S.held.length ? S.held.pop() : null;
+    if (h) discard(h.k, h.id);
+    S.jail[p] = 0; S.miss[p] = 0;
+    return true;
+  }
 
   function unsenetCost(i) {
     var h = (SQ[i][2] / 2) | 0;
@@ -526,8 +574,12 @@ button:disabled { opacity: .35; }
     return best;
   }
   function netOf(p) {
-    var n = S.cash[p];
-    for (var i = 0; i < 40; i++) if (S.own[i] === p && !S.sen[i]) n += SQ[i][2];
+    var n = S.cash[p], i;
+    for (i = 0; i < 40; i++) {
+      if (S.own[i] !== p) continue;
+      n += S.sen[i] ? ((SQ[i][2] / 2) | 0) : SQ[i][2];
+      n += S.bld[i] * houseValue(i);
+    }
     return n;
   }
   function bankrupt(p, creditor) {
@@ -540,6 +592,7 @@ button:disabled { opacity: .35; }
     if (creditor >= 0 && alive(creditor)) S.cash[creditor] += Math.max(0, S.cash[p]);
     S.cash[p] = 0;
     var i;
+    for (i = 0; i < 40; i++) if (S.own[i] === p) S.bld[i] = 0;
     for (i = 0; i < 40; i++) {
       if (S.own[i] !== p) continue;
       if (creditor >= 0 && alive(creditor)) S.own[i] = creditor;
@@ -711,7 +764,7 @@ button:disabled { opacity: .35; }
     S.pos[p] = dest; S.focus = dest;
     S.pend = { t: "land", p: p };
     persist();
-    busy = true;
+    setBusy(true);
     var step = Math.max(12, Math.min(28, (180 / path.length) | 0));
     var n = 0;
     function tick() {
@@ -720,7 +773,7 @@ button:disabled { opacity: .35; }
       n++;
       if (n >= path.length) {
         visPawn[p] = dest;
-        busy = false;
+        setBusy(false);
         S.pend = null;
         then();
         return;
@@ -743,6 +796,9 @@ button:disabled { opacity: .35; }
 
   function afterLand(p) {
     S.pend = null;
+    var uB = S.uBoost;
+    S.uBoost = 0;
+    if (uB && SQ[S.pos[p]][1] === "U") S.uBoost = 1;
     if (S.win != null) { persist(); paint(); return; }
     var i = S.pos[p], t = sq(i);
     S.focus = i; S.card = null;
@@ -813,10 +869,10 @@ button:disabled { opacity: .35; }
       for (gi = 0; gi < others.length; gi++) if (!payTo(others[gi], n, p)) return;
       log(who(p) + " herkesten " + tl(n) + (senSoz(p) ? " aldın." : " aldı."));
     }
-    else if (a === "cik") { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
+    else if (a === "cik") { holdCik(p, kind, id); log(who(p) + " çıkış kartı aldı."); return "hold"; }
     else if (a === "cik50") {
       if (S.cik[p] > 0) { S.cash[p] += 50; log(who(p) + " " + tl(50) + (senSoz(p) ? " aldın." : " aldı.")); }
-      else { S.cik[p] += 1; log(who(p) + " çıkış kartı aldı."); return "hold"; }
+      else { holdCik(p, kind, id); log(who(p) + " çıkış kartı aldı."); return "hold"; }
     }
     else if (a === "houses") {
       var h = houseTax(p); if (!payTo(p, h, -1)) return; log(who(p) + " tapu harcı " + tl(h) + ".");
@@ -834,10 +890,21 @@ button:disabled { opacity: .35; }
     else if (a === "go") { discard(kind, id); S.card = null; persist(); walkTo(p, 0, true, function () { afterLand(p); }); return "moved"; }
     else if (a === "jail") { discard(kind, id); S.card = null; sendJail(p); S.wait = "ok"; persist(); paint(); if (isAi(p)) later(function () { finishTurn(p); }); return "moved"; }
     else if (a === "nearK") { discard(kind, id); S.card = null; persist(); walkTo(p, nearest(p, "K", 1), true, function () { afterLand(p); }); return "moved"; }
-    else if (a === "nearU") { discard(kind, id); S.card = null; persist(); walkTo(p, nearest(p, "U", 1), true, function () { afterLand(p); }); return "moved"; }
+    else if (a === "nearU") {
+      discard(kind, id); S.card = null;
+      S.dice = [1 + (Math.random() * 6 | 0), 1 + (Math.random() * 6 | 0)];
+      S.uBoost = 1;
+      persist();
+      walkTo(p, nearest(p, "U", 1), true, function () { afterLand(p); });
+      return "moved";
+    }
     else if (a === "redraw") {
       discard(kind, id); S.card = null;
-      var nid = drawCard("R");
+      var nid = drawCard("R"), guard = 0;
+      while (nid != null && RACON[nid] && RACON[nid][1] === "redraw" && guard++ < 8) {
+        discard("R", nid);
+        nid = drawCard("R");
+      }
       S.card = { k: "R", id: nid };
       persist(); paint();
       if (isAi(p)) later(function () { resolveCard(p); });
@@ -855,6 +922,7 @@ button:disabled { opacity: .35; }
     if (isAi(p)) log("Naci Bey " + (kind === "R" ? "Racon" : "İhbar") + " çekti: " + pack[0].split(".")[0] + ".");
     var r = applyFx(p, pack, kind, id);
     if (r === "moved" || r === "redraw") return;
+    if (r === undefined) discard(kind, id);
     if (S.win != null) { persist(); paint(); return; }
     if (!alive(p)) { S.card = null; afterMoneyFail(p); return; }
     if (r === "hold") { /* kept out of discard */ }
@@ -872,6 +940,7 @@ button:disabled { opacity: .35; }
 
   function finishTurn(p) {
     if (S.win != null) { persist(); paint(); return; }
+    S.uBoost = 0;
     peek = -1;
     if (S.extra && alive(p)) {
       S.extra = 0; S.rolled = false; S.wait = S.jail[p] ? "jail" : "roll";
@@ -881,7 +950,7 @@ button:disabled { opacity: .35; }
     }
     S.extra = 0; S.doubles = 0; S.rolled = false;
     if (S.stat) S.stat.turns = (S.stat.turns || 0) + 1;
-    if (S.len === "short" && S.stat && S.stat.turns >= SHORT_TURNS) {
+    if (S.len === "short" && S.stat && S.stat.turns >= shortLimit()) {
       endByNet();
       persist(); paint();
       return;
@@ -914,7 +983,8 @@ button:disabled { opacity: .35; }
       persist(); paint();
       if (S.jail[p]) {
         if (dbl) {
-          S.jail[p] = 0; S.miss[p] = 0; S.doubles = 1; S.extra = 1;
+          S.jail[p] = 0; S.miss[p] = 0; S.doubles = 0; S.extra = 0;
+          log(who(p) + (senSoz(p) ? " çift attın, Nezaret’ten çıktın." : " çift attı, Nezaret’ten çıktı."));
           persist();
           moveBy(p, sum, true, function () { afterLand(p); });
           return;
@@ -922,6 +992,9 @@ button:disabled { opacity: .35; }
         S.miss[p] += 1;
         if (S.miss[p] >= 3) {
           S.jail[p] = 0; S.miss[p] = 0; S.doubles = 0; S.extra = 0;
+          log(who(p) + " üçüncü hakkını yaktı, " + tl(50) + (senSoz(p) ? " kefalet ödedin." : " kefalet ödedi."));
+          persist();
+          if (!payTo(p, 50, -1)) { afterMoneyFail(p); return; }
           persist();
           moveBy(p, sum, true, function () { afterLand(p); });
           return;
@@ -949,7 +1022,7 @@ button:disabled { opacity: .35; }
     buzz(10);
     sndDice();
     if (reduceMot()) { commit(); return; }
-    busy = true;
+    setBusy(true);
     rolling = true;
     var t0 = Date.now();
     function tick() {
@@ -957,7 +1030,7 @@ button:disabled { opacity: .35; }
       drawRing();
       if (Date.now() - t0 < 350) { requestAnimationFrame(tick); return; }
       rolling = false;
-      busy = false;
+      setBusy(false);
       rollShow = [d1, d2];
       commit();
     }
@@ -1072,7 +1145,7 @@ button:disabled { opacity: .35; }
   function naciJail() {
     var P = naciP();
     if (S.cik[1] > 0) {
-      S.cik[1] -= 1; S.jail[1] = 0; S.miss[1] = 0;
+      spendCik(1);
       log("Naci Bey çıkış kullandı.");
       persist(); paint();
       later(function () { doRoll(1); });
@@ -1167,6 +1240,11 @@ button:disabled { opacity: .35; }
     add(hd, el("button", { cls: "xbtn", text: "X", "data-act": "close", "aria-label": "Kapat" }));
     return add(sh, el("div", { cls: "body" }));
   }
+  function lvlName(i) {
+    if (S.bld[i] > 0) return LVL[S.bld[i] + 1];
+    if (SQ[i][1] !== "T") return "Tapu";
+    return (S.own[i] >= 0 && ownsSet(S.own[i], SQ[i][3]) && !setHasSenet(SQ[i][3])) ? LVL[1] : LVL[0];
+  }
   function ownedList(p) {
     var a = [], i;
     for (i = 0; i < 40; i++) if (S.own[i] === p) a.push(i);
@@ -1221,13 +1299,22 @@ button:disabled { opacity: .35; }
     var i, k;
     for (i = 0; i < t.give.length; i++) {
       k = t.give[i];
-      if (S.own[k] !== t.from || S.bld[k] > 0) return false;
+      if (S.own[k] !== t.from || S.bld[k] > 0 || groupHasBld(k)) return false;
     }
     for (i = 0; i < t.take.length; i++) {
       k = t.take[i];
-      if (S.own[k] !== t.to || S.bld[k] > 0) return false;
+      if (S.own[k] !== t.to || S.bld[k] > 0 || groupHasBld(k)) return false;
     }
     return true;
+  }
+  /* Bir semtin herhangi bir karesinde bina varsa o semtten tapu çıkamaz:
+     yoksa tekel bozulur ama binalar tahtada kalır. */
+  function groupHasBld(i) {
+    var g = SQ[i][3];
+    if (!g) return false;
+    var a = groupIdx(g), j;
+    for (j = 0; j < a.length; j++) if (S.bld[a[j]] > 0) return true;
+    return false;
   }
   function applyTrade(t) {
     var i, k;
@@ -1253,7 +1340,7 @@ button:disabled { opacity: .35; }
     var b = add(parent, el("button", { cls: on ? "trow on" : "trow", "data-act": act }));
     if (blocked) { b.disabled = true; b.setAttribute("aria-disabled", "true"); }
     add(b, el("div", { cls: "nm", text: t.name }));
-    var meta = LVL[S.bld[i] + 1] || "Arsa";
+    var meta = lvlName(i) + " · " + tl(SQ[i][2]);
     if (S.sen[i]) meta += " · SENETLİ";
     if (t.g) meta += " · " + (GRP_TR[t.g] || "");
     add(b, el("div", { cls: "meta", text: meta }));
@@ -1292,10 +1379,10 @@ button:disabled { opacity: .35; }
     add(L, el("h3", { text: "Sen" }));
     add(R, el("h3", { text: who(t.to) }));
     ownedList(t.from).forEach(function (i) {
-      paintTradeRow(L, i, inArr(t.give, i) >= 0, "tgg:" + i, S.bld[i] > 0);
+      paintTradeRow(L, i, inArr(t.give, i) >= 0, "tgg:" + i, S.bld[i] > 0 || groupHasBld(i));
     });
     ownedList(t.to).forEach(function (i) {
-      paintTradeRow(R, i, inArr(t.take, i) >= 0, "ttk:" + i, S.bld[i] > 0);
+      paintTradeRow(R, i, inArr(t.take, i) >= 0, "ttk:" + i, S.bld[i] > 0 || groupHasBld(i));
     });
     var c1 = add(body, el("div", { cls: "cashrow" }));
     add(c1, el("span", { text: "Ben veriyorum" }));
@@ -1371,14 +1458,14 @@ button:disabled { opacity: .35; }
     if (!P.offer || S.wait !== "roll") return false;
     var i, g, a, mine, his, j, pick = -1, junk = -1;
     for (i = 0; i < 40; i++) {
-      if (S.own[i] !== 0 || S.bld[i] > 0 || !SQ[i][3]) continue;
+      if (S.own[i] !== 0 || S.bld[i] > 0 || groupHasBld(i) || !SQ[i][3]) continue;
       g = SQ[i][3]; a = groupIdx(g); mine = 0;
       for (j = 0; j < a.length; j++) if (a[j] !== i && S.own[a[j]] === 1) mine++;
       if (mine === a.length - 1) { pick = i; break; }
     }
     if (pick < 0) return false;
     for (i = 0; i < 40; i++) {
-      if (S.own[i] !== 1 || S.bld[i] > 0) continue;
+      if (S.own[i] !== 1 || S.bld[i] > 0 || groupHasBld(i)) continue;
       if (!SQ[i][3] || SQ[i][3] !== SQ[pick][3]) { junk = i; break; }
     }
     var cash = Math.min(S.cash[1], 150);
@@ -1391,6 +1478,38 @@ button:disabled { opacity: .35; }
     return true;
   }
 
+  var RULES = [
+    ["Amaç", "Rakiplerini batır. Son ayakta kalan semti alır. Kısa oyunda süre dolunca net serveti en yüksek olan kazanır. Herkes 1.500 TL ile başlar."],
+    ["Tur", "Zar at, ilerle. Boş tapuya inersen alabilir ya da geçebilirsin. Başkasının tapusuna inersen kira ödersin."],
+    ["CUMA", "CUMA karesinden her geçişte 200 TL alırsın."],
+    ["Semt tutmak", "Bir rengin tüm tapuları sendeyse kira iki katına çıkar. Ancak o zaman bina dikebilirsin."],
+    ["Dikmek", "Aynı renkte binalar dengeli yükselir: hepsi 1 olmadan biri 2 olmaz. Dört basamak sonra Hanedan gelir."],
+    ["Takas", "Zar atmadan önce Takas’a gir. Üzerinde bina olan semtten tapu çıkmaz; önce binaları sök."],
+    ["Kaçış ve Kurum", "Kaçış kirası kaç tane tuttuğuna bağlı: 25 / 50 / 100 / 200 TL. Kurum kirası zar toplamının 4 katı, ikisi de sendeyse 10 katı."],
+    ["Senet", "Paran yetmezse önce binalar yarı fiyatına sökülür, sonra tapular senede girer. Senetli tapu kira getirmez. Geri almak yarı bedel + %10."],
+    ["Nezaret", "Çift atarak, çıkış kartıyla ya da 50 TL ödeyerek çıkarsın. Üçüncü hakkını da yakarsan 50 TL kefalet ödeyip çıkarsın. Çift atıp çıkmak fazladan zar hakkı vermez."],
+    ["Çift", "Üst üste üç çift atarsan doğruca Nezaret’e gidersin."],
+    ["Kontrol", "Bir kareye dokun, tapusunu gör. Basılı tut, tahtayı büyüt. Boşluk tuşu ana eylemi çalıştırır, Esc katmanı kapatır."]
+  ];
+  function openRules() {
+    var body = sheetHead("NASIL OYNANIR");
+    var d = add(body, el("div", { cls: "doc" })), i;
+    for (i = 0; i < RULES.length; i++) {
+      add(d, el("h2", { text: RULES[i][0] }));
+      add(d, el("p", { text: RULES[i][1] }));
+    }
+    add(d, el("p", { text: "18+ kurgu. Karakterler ve semt adları hayal ürünüdür." }));
+  }
+  function openPause() {
+    if (!S) return;
+    var body = sheetHead("MENÜ");
+    var m = add(body, el("div", { cls: "menu" }));
+    add(m, btn("Oyuna dön", "close", true));
+    add(m, btn("Nasıl oynanır", "rules"));
+    add(m, btn("Tahtayı büyüt", "big"));
+    add(m, btn("Ana menü", "quit"));
+    add(body, el("p", { cls: "plus", text: "Oyun otomatik kaydedilir. Çıkarsan menüden devam edebilirsin." }));
+  }
   function openTapu() {
     if (!S || busy || S.wait !== "roll" || isAi(S.turn)) return;
     var p = S.turn, body = sheetHead("TAPULARIM");
@@ -1422,7 +1541,7 @@ button:disabled { opacity: .35; }
         var box = add(body, el("div", { cls: "trow" }));
         box.style.borderLeft = "4px solid " + COL[groups[gi]];
         add(box, el("div", { cls: "nm", text: t.name + (S.sen[a[i]] ? " · SENETLİ" : "") }));
-        add(box, el("div", { cls: "meta", text: (LVL[S.bld[a[i]] + 1] || "Arsa") + " · kira " + tl(landRent(a[i]) || (RENT[t.name] ? RENT[t.name][S.bld[a[i]] ? S.bld[a[i]] + 1 : 0] : 0)) }));
+        add(box, el("div", { cls: "meta", text: lvlName(a[i]) + " · kira " + tl(S.sen[a[i]] ? 0 : (RENT[t.name] ? RENT[t.name][S.bld[a[i]] ? S.bld[a[i]] + 1 : (ownsSet(p, t.g) && !setHasSenet(t.g) ? 1 : 0)] : 0)) }));
         var ops = add(box, el("div", { cls: "ops" }));
         var cb = canBuildTile(p, a[i]);
         var db = add(ops, btn("Dik · " + tl(BUILD_COST[t.g]), "dik:" + a[i]));
@@ -1476,6 +1595,7 @@ button:disabled { opacity: .35; }
   function act(code) {
     unlockAudio();
     var i;
+    var shown = S ? (peek >= 0 ? peek : S.focus) : -1;
     if (code === "cpu") { tmpLvl = tmpLvl || "esnaf"; newGame("cpu", 2); return; }
     if (code.indexOf("cpu:") === 0) { tmpLvl = code.slice(4); newGame("cpu", 2); return; }
     if (code.indexOf("lvl:") === 0) { tmpLvl = code.slice(4); paintMenu(); return; }
@@ -1492,6 +1612,10 @@ button:disabled { opacity: .35; }
       return;
     }
     if (code === "new") { wipe(); view = "menu"; closeSheet(); paintMenu(); return; }
+    if (code === "rules") { openRules(); return; }
+    if (code === "pause") { openPause(); return; }
+    if (code === "big") { openBig(); return; }
+    if (code === "quit") { closeSheet(); wipe(); view = "menu"; paintMenu(); return; }
     if (code === "close") { closeSheet(); if (S && S.wait === "offer" && S.trade && !isAi(S.trade.to)) return; return; }
     if (!S) return;
     if (code === "peekoff") { peek = -1; paint(); return; }
@@ -1507,12 +1631,12 @@ button:disabled { opacity: .35; }
     }
     if (code.indexOf("tgg:") === 0) {
       i = +code.slice(4);
-      if (S.trade && S.bld[i] <= 0) { toggleArr(S.trade.give, i); persist(); renderTrade(); }
+      if (S.trade && S.bld[i] <= 0 && !groupHasBld(i)) { toggleArr(S.trade.give, i); persist(); renderTrade(); }
       return;
     }
     if (code.indexOf("ttk:") === 0) {
       i = +code.slice(4);
-      if (S.trade && S.bld[i] <= 0) { toggleArr(S.trade.take, i); persist(); renderTrade(); }
+      if (S.trade && S.bld[i] <= 0 && !groupHasBld(i)) { toggleArr(S.trade.take, i); persist(); renderTrade(); }
       return;
     }
     if (code === "tgc:+" || code === "tgc:-") {
@@ -1527,24 +1651,24 @@ button:disabled { opacity: .35; }
     }
     if (code.indexOf("dik:") === 0) {
       i = +code.slice(4);
-      if (S.wait !== "roll" || !canBuildTile(S.turn, i)) return;
+      if (busy || isAi(S.turn) || S.wait !== "roll" || !canBuildTile(S.turn, i)) return;
       doBuild(S.turn, i); persist(); paint(); openTapu(); return;
     }
     if (code.indexOf("sök:") === 0) {
       i = +code.slice(4);
-      if (S.wait !== "roll" || !canRazeTile(S.turn, i)) return;
+      if (busy || isAi(S.turn) || S.wait !== "roll" || !canRazeTile(S.turn, i)) return;
       doRaze(S.turn, i); persist(); paint(); openTapu(); return;
     }
     if (code.indexOf("sen:") === 0) {
       i = +code.slice(4);
-      if (S.wait !== "roll" || S.own[i] !== S.turn || S.bld[i] > 0 || S.sen[i]) return;
+      if (busy || isAi(S.turn) || S.wait !== "roll" || S.own[i] !== S.turn || S.bld[i] > 0 || S.sen[i]) return;
       senetTile(S.turn, i);
       log(who(S.turn) + " " + SQ[i][0] + " senetledi.");
       persist(); paint(); openTapu(); return;
     }
     if (code.indexOf("kap:") === 0) {
       i = +code.slice(4);
-      if (S.wait !== "roll") return;
+      if (busy || isAi(S.turn) || S.wait !== "roll") return;
       if (!doUnsenet(S.turn, i)) return;
       persist(); paint(); openTapu(); return;
     }
@@ -1563,8 +1687,7 @@ button:disabled { opacity: .35; }
       return;
     }
     if (code === "cik") {
-      if (S.wait !== "jail" || S.cik[S.turn] <= 0) return;
-      S.cik[S.turn] -= 1; S.jail[S.turn] = 0; S.miss[S.turn] = 0;
+      if (S.wait !== "jail" || !spendCik(S.turn)) return;
       log(who(S.turn) + " çıkış kullandı.");
       S.wait = "roll"; persist(); paint();
       return;
@@ -1594,7 +1717,7 @@ button:disabled { opacity: .35; }
       return;
     }
     if (code === "unsen") {
-      var ui = S.focus;
+      var ui = shown;
       if (S.own[ui] !== S.turn || !S.sen[ui]) return;
       if (!doUnsenet(S.turn, ui)) return;
       persist(); paint();
@@ -1648,7 +1771,8 @@ button:disabled { opacity: .35; }
     var node = press.el; var ring = press.ring; press = null;
     if (Math.hypot(dx, dy) > 12) return;
     e.preventDefault();
-    swallow = true;
+    swallowNode = node;
+    swallowUntil = Date.now() + 700;
     if (node) { flash(node); act(node.getAttribute("data-act")); return; }
     if (ring && view === "play") peekAt(q.x, q.y, e.target);
   }
@@ -1656,10 +1780,26 @@ button:disabled { opacity: .35; }
   function onClick(e) {
     var n = e.target.closest("[data-act]");
     if (!n) return;
-    if (swallow) { e.preventDefault(); swallow = false; return; }
+    if (n === swallowNode && Date.now() < swallowUntil) {
+      e.preventDefault(); swallowNode = null; swallowUntil = 0; return;
+    }
     if (n.disabled) return;
     act(n.getAttribute("data-act"));
   }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      if (document.getElementById("sheet").className.indexOf("on") >= 0) { closeSheet(); e.preventDefault(); return; }
+      if (view === "play" && peek >= 0) { act("peekoff"); e.preventDefault(); }
+      return;
+    }
+    if (e.key !== " " && e.key !== "Enter") return;
+    var t = e.target;
+    if (t && (t.tagName === "BUTTON" || t.tagName === "A" || t.isContentEditable)) return;
+    var root = document.getElementById("sheet").className.indexOf("on") >= 0 ? "#sheet" :
+      (document.getElementById("menu").className === "on" ? "#menu .stack" : "#acts");
+    var b = document.querySelector(root + " button");
+    if (b && !b.disabled) { e.preventDefault(); flash(b); act(b.getAttribute("data-act")); }
+  });
   ["app", "menu", "sheet"].forEach(function (id) {
     var n = document.getElementById(id);
     n.addEventListener("pointerdown", onDown);
@@ -1698,7 +1838,7 @@ button:disabled { opacity: .35; }
     r.side = side; r.k = k; r.i = i;
     return r;
   }
-  function ringPt(i, size, big) {
+  function ringPt(i, size, big, rad) {
     var g = geomFor(size, !!big);
     var r = tileRect(i, g);
     var cx = r.x + r.w / 2, cy = r.y + r.h / 2;
@@ -1709,11 +1849,14 @@ button:disabled { opacity: .35; }
       if (r.side === 2) return { x: cx - ox, y: cy - oy };
       return { x: cx + ox, y: cy - oy };
     }
-    var o = 0.34;
+    var o = 0.30;
     if (r.side === 0) cy += r.h * o;
     else if (r.side === 1) cx -= r.w * o;
     else if (r.side === 2) cy -= r.h * o;
     else cx += r.w * o;
+    var pad = (rad || 0) + 2.5;
+    cx = Math.min(Math.max(cx, r.x + pad), r.x + r.w - pad);
+    cy = Math.min(Math.max(cy, r.y + pad), r.y + r.h - pad);
     return { x: cx, y: cy };
   }
   function tileAt(x, y, canvas) {
@@ -2056,7 +2199,7 @@ button:disabled { opacity: .35; }
   function drawRing() { drawRingOn(document.getElementById("cv"), false); }
   function drawRingOn(cv, big) {
     if (!cv || !cv.parentElement) return;
-    var wr = cv.parentElement.getBoundingClientRect();
+    var wr = cv.getBoundingClientRect();
     var w = wr.width, h = wr.height;
     if (w < 8 || h < 8) return;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -2164,7 +2307,7 @@ button:disabled { opacity: .35; }
     ctx.globalAlpha = 1;
     if (S) {
       var buckets = {}, pi, k, list, base, off, sqi, rad;
-      rad = Math.max(10, Math.min(14, D * 0.145));
+      rad = Math.max(6, Math.min(13, Math.min(D * 0.135, g.tw * 0.36)));
       for (pi = 0; pi < nP(); pi++) {
         if (!alive(pi)) continue;
         sqi = visPawn[pi] || 0;
@@ -2173,7 +2316,7 @@ button:disabled { opacity: .35; }
       for (sqi in buckets) {
         if (!Object.prototype.hasOwnProperty.call(buckets, sqi)) continue;
         list = buckets[sqi];
-        base = ringPt(+sqi, size, big);
+        base = ringPt(+sqi, size, big, rad + (list.length > 1 ? rad * 0.8 : 0));
         for (k = 0; k < list.length; k++) {
           off = pawnOff(k, list.length, rad + 1);
           drawToken(ctx, list[k], base.x + off.x, base.y + off.y, list[k] === S.turn, rad);
@@ -2333,8 +2476,8 @@ button:disabled { opacity: .35; }
       else if (isAi(S.win)) banner.textContent = "NACİ BEY KAZANDI";
       else if (S.n === 2) banner.textContent = S.win === 0 ? "SEN KAZANDIN" : "KARŞI KAZANDI";
       else banner.textContent = (S.win + 1) + ". KAZANDI";
-    } else if (S.len === "short" && S.stat && S.stat.turns >= SHORT_TURNS - 5) {
-      banner.textContent = "SON " + Math.max(1, SHORT_TURNS - S.stat.turns) + " TUR";
+    } else if (S.len === "short" && S.stat && S.stat.turns >= shortLimit() - 5) {
+      banner.textContent = "SON " + Math.max(1, shortLimit() - S.stat.turns) + " EL";
     } else if (isAi(S.turn)) {
       banner.textContent = "NACİ BEY";
     } else if (S.wait === "offer") {
@@ -2377,8 +2520,14 @@ button:disabled { opacity: .35; }
       add(r2, btn("Tapularım", "tapu"));
       return;
     }
-    if (w === "buy") { add(acts, btn("Al", "al", true)); add(acts, btn("Geç", "gec")); return; }
-    if (w === "pay") { add(acts, btn("Öde", "ode", true)); return; }
+    if (w === "buy") {
+      var price = sq(S.pos[p]).price, can = S.cash[p] >= price;
+      var ab = add(acts, btn(can ? "Al · " + tl(price) : "Kasa yetmez", "al", can));
+      ab.disabled = !can;
+      add(acts, btn("Geç", "gec", !can));
+      return;
+    }
+    if (w === "pay") { add(acts, btn("Öde · " + tl(landRent(S.pos[p])), "ode", true)); return; }
     if (w === "own") {
       if (buildTargets(p).length) add(acts, btn("Dik", "dik", true));
       add(acts, btn("Bitir", "bitir"));
@@ -2418,6 +2567,7 @@ button:disabled { opacity: .35; }
       add(st, btn("Üç insan, aynı telefon", "hot3"));
       add(st, btn("Dört insan, aynı telefon", "hot4"));
     }
+    add(st, btn("Nasıl oynanır", "rules"));
     add(st, el("button", { text: sndPref() ? "Ses açık" : "Ses kapalı", "data-act": "snd", cls: sndPref() ? "pick" : "" }));
     add(m, el("p", { cls: "plus", text: "18+ kurgu · başla 1.500 TL" }));
     document.getElementById("app").style.visibility = "hidden";
@@ -2458,7 +2608,27 @@ button:disabled { opacity: .35; }
     if (view === "end" || S.win != null) paintEnd();
   }
 
-  window.addEventListener("orientationchange", function () { setTimeout(function () { setVvh(); drawRing(); }, 280); });
+  window.addEventListener("orientationchange", function () { setTimeout(function () { setVvh(); redrawAll(); }, 280); });
+  var reT = 0;
+  function redrawAll() {
+    if (!S || view === "menu") return;
+    drawRing();
+    var sc = document.querySelector("#sheet canvas");
+    if (sc) drawRingOn(sc, true);
+  }
+  function scheduleRedraw() {
+    if (reT) return;
+    reT = requestAnimationFrame(function () { reT = 0; redrawAll(); });
+  }
+  window.addEventListener("resize", scheduleRedraw, { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleRedraw, { passive: true });
+  if (window.ResizeObserver) {
+    try {
+      var ro = new ResizeObserver(scheduleRedraw);
+      ro.observe(document.getElementById("ring"));
+      ro.observe(document.getElementById("sheet"));
+    } catch (e) {}
+  }
 
   try {
     if ("serviceWorker" in navigator && location.protocol !== "file:") {

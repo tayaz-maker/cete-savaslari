@@ -272,3 +272,90 @@ kırpılmıyor, piyon kare dışına taşmıyor, yatay artık iki kolon.
 Bitmeyen oyunlar (20 turun 10'u, çoğu 3-4 kişilik) bir hata değil, bölüm
 3'teki **takas eksikliği** ve **kısa mod yokluğu**nun sonucu. İlk iki
 istem bunu hedefliyor.
+
+
+---
+
+# EK — İkinci tur (Grok'un takas/tapu/kısa mod sürümü, `9b82157`)
+
+Grok yeni özellikleri **eski tabanın üstüne** kurdu: birinci turdaki 19
+düzeltmenin yalnızca ikisi (Türkçe büyük harf, senetlemeden önce bina sökme)
+yeni sürüme girmiş, geri kalan 17'si kaybolmuştu. Bu tur onları yeniden
+uyguladım ve yeni özelliklerin getirdiği hataları düzelttim. Sürüm
+`smb-rev 9`, önbellek `smb-shell-v9`.
+
+## Grok'un doğru yaptıkları
+
+Zar tahtanın ortasında görünüyor; takas, "Tapularım", kısa oyun, üç
+seviyeli Naci Bey, ses ve titreşim çalışıyor. Fuzz turlarında **tek bir
+kural ihlali bile çıkmadı** ve kısa mod sayesinde bütün oyunlar bitiyor —
+birinci turun en büyük şikâyeti çözülmüş.
+
+## Yeni sürümde bulunan hatalar
+
+**A1 — Kısa oyunun kazananı yanlış hesaplanıyordu.** `endByNet()` süre
+dolunca net serveti en yüksek oyuncuyu kazandırıyor, ama `netOf()` yalnızca
+senetsiz arsa bedellerini topluyordu: binalar ve senetli arsanın yarı değeri
+hesaba girmiyordu. Yani **bütün parasını binaya yatıran oyuncu kaybediyordu**.
+Birinci turda bu sadece bitiş ekranındaki bir sayıydı; kısa mod geldikten
+sonra doğrudan kazananı belirliyor. Düzeltildi: arsa (senetliyse yarısı) +
+bina sayısı × dikme bedelinin yarısı.
+
+**A2 — Takas tekeli bozarken binalar tahtada kalıyordu.** `tradeOk()` yalnızca
+takas edilen karenin üstünde bina var mı diye bakıyordu. Dengeli inşaat
+kuralı `[1, 0]` dağılımına izin verdiği için, bina*sız* kardeş kareyi takas
+etmek serbestti: semt bölünüyor, ama diğer karedeki bina duruyordu.
+Düzeltildi: bir semtin herhangi bir karesinde bina varsa o semtten tapu
+çıkmıyor (`groupHasBld`), Naci Bey'in kendi teklifleri de dahil.
+
+**A3 — Seviye etiketi yanlıştı.** Hem takas hem "Tapularım" listesinde
+`LVL[S.bld[i] + 1]` kullanılıyordu; binası olmayan her tapu "Tekel" (yani
+tekel kirası) görünüyordu — semti tutmuyorken bile. "Arsa · kira 6 TL"
+olması gereken satır "Tekel · kira 6 TL" diyordu. Düzeltildi (`lvlName`),
+ayrıca takas satırlarına liste bedeli eklendi.
+
+**A4 — Kısa oyun oyuncu sayısına göre ölçeklenmiyordu.** `SHORT_TURNS = 30`
+toplam *el* sayısıydı: 2 kişide kişi başı 15 el, 4 kişide 7.5. Düzeltildi:
+sınır 2 kişide 30, 3 kişide 45, 4 kişide 60 el.
+
+**B1 — Tapu ekranındaki dik/sök/senetle eylemleri kilit tanımıyordu.**
+`busy` (zar/piyon animasyonu) ve `isAi(S.turn)` kontrolü yoktu.
+Düzeltildi.
+
+**B2 — Katman başlığı kapatma düğmesiyle üst üste biniyordu.** `.xbtn`
+genel `button { flex: 1 }` kuralını miras alıyor, "TAKAS" / "TAPULARIM"
+başlığının üstüne taşıyordu. Düzeltildi.
+
+**B3 — Üç düğmeli tapu satırı mobilde iki satıra kırılıyordu**
+("DİK · 50 / TL"). Düzeltildi.
+
+## Birinci turdan geri gelen ve yeniden uygulanan düzeltmeler
+
+Nezaret çifti fazladan tur veriyordu · üçüncü nezaret hakkı bedavaydı ·
+iflasta binalar alacaklıya geçiyordu · "Al" kasa yetmezken aktifti ·
+tuval yanlış kutudan ölçülüyordu (%1 gerilme) · pencere boyutu değişince
+tahta yeniden çizilmiyordu · ekrandaki tapu yerine başka tapunun seneti
+kapanıyordu · tahtaya dokunduktan sonraki klavye tıklaması yutuluyordu ·
+kurum kirası bayat zarla hesaplanıyordu · "yeni RACON çek" kendini
+çekebiliyordu · çıkış kartı desteye dönmüyordu · iflasa yol açan kart
+ıskartaya atılmıyordu · piyonlar kare dışına taşıyordu · animasyon
+sırasında düğmeler ölü ama canlı görünüyordu · `#log` canlı bölge değildi ·
+oyun içi menü yoktu · kart metni "Rakibe" diyordu ama etki herkese
+uygulanıyordu.
+
+## Doğrulama
+
+```
+8 oyun (cpu, 2, 3, 4 kişi) + 11 senaryo
+
+              Grok'un sürümü   düzeltilmiş
+senaryo hatası        8              0
+kural ihlali          0              0
+JS hatası             0              0
+```
+
+## Sonraki tur için not
+
+`docs/bukucu/GROK-PROMPT.md` içindeki 4 ve 5 numaralı işler (Naci Bey
+seviyeleri, ses/his) Grok tarafından yapıldı. Geriye kalanlar ve yenileri
+için aynı dosyanın sonundaki **"Üçüncü tur"** bölümüne bakın.
