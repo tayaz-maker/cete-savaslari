@@ -175,6 +175,75 @@ if (process.env.RACON_LONG) {
   if (son) console.log(`uzun koşu sonu: H${son.week} G${son.day} · kasa ${son.kasa} · dosya ${son.dosya} · kademe ${son.stage} · takvim ${son.calendar.length} · delil ${son.evidence.length} · adam ${son.men.filter((m) => m.durum !== "olu").length}`);
 }
 
+// 8) modül testi — kaydı üst kademeye çek, ekonomi/hayat/sezon kâğıtlarını sına
+if (process.env.RACON_LONG) {
+  await page.evaluate(() => {
+    const j = JSON.parse(localStorage.getItem("racon_v1"));
+    j.stage = "baba"; j.kasa = 300000; j.rep.nam = 40; j.week = 11;
+    localStorage.setItem("racon_v1", JSON.stringify(j));
+  });
+  await page.reload();
+  await page.waitForTimeout(250);
+  await page.locator('button:has-text("Devam")').first().click().catch(() => {});
+  await page.waitForTimeout(250);
+
+  const oku2 = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem("racon_v1")); } catch (e) { return null; } });
+  for (let t = 0; t < 32; t++) {
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(460);
+    for (let k = 0; k < 6; k++) {
+      const modal = await page.evaluate(() => !!document.querySelector("#modal button"));
+      if (!modal) break;
+      await page.locator("#modal button").first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(70);
+    }
+  }
+  const j2 = await oku2();
+  if (!j2) not("modül testi: kayıt okunamadı");
+  else {
+    if (!j2.ekonomi) not("modül: ekonomi namespace yok");
+    if (!j2.hayat) not("modül: hayat namespace yok");
+    if (!j2.sezon) not("modül: sezon namespace yok");
+    if (!j2.defter.some((l) => /kasa faizi/.test(l))) not("modül: kasa faizi defterde yok");
+    const kinds = [...new Set(j2.inbox.map((x) => x.kind).filter(Boolean))];
+    if (!kinds.includes("yatirim")) not("modül: yatırım kâğıdı hiç gelmedi (gelen türler: " + kinds.join(",") + ")");
+    if (!j2.sezon.skorboard.length) not("modül: sezon bitmedi/skorboard boş (hafta " + j2.week + ")");
+    if (!Object.keys(j2.sezon.basarimlar).length) not("modül: hiç rozet kazanılmadı");
+    console.log("modül: türler [" + kinds.join(",") + "] · rozet " + Object.keys(j2.sezon.basarimlar).length +
+      " · skorboard " + j2.sezon.skorboard.length + " · kasa " + j2.kasa + " · hafta " + j2.week);
+  }
+
+  // yatırım kâğıdında "Al" gerçekten portföyü büyütüyor mu
+  await page.locator(".navbtn").first().click().catch(() => {});
+  await page.waitForTimeout(150);
+  const yatSatir = page.locator('.list button.row').filter({ hasText: /Altın|Dolar|USDT/ }).first();
+  if (await yatSatir.count()) {
+    await yatSatir.click().catch(() => {});
+    await page.waitForTimeout(120);
+    const al = page.locator('[data-act="yat-al"]').first();
+    if (await al.count()) {
+      const once = await page.evaluate(() => { const j = JSON.parse(localStorage.getItem("racon_v1")); const p = j.ekonomi.portfoy; return p.altin + p.dolar + p.usdt; });
+      await al.click().catch(() => {});
+      await page.waitForTimeout(200);
+      const sonra = await page.evaluate(() => { const j = JSON.parse(localStorage.getItem("racon_v1")); const p = j.ekonomi.portfoy; return p.altin + p.dolar + p.usdt; });
+      if (sonra <= once) not(`modül: yatırım "Al" portföyü büyütmedi (${once} -> ${sonra})`);
+      const kapandi = await page.evaluate(() => !!document.querySelector(".sheet .acts .dim, .sheet .dim"));
+      if (!kapandi) not("modül: işlenen kâğıt kapanmadı (çözülmüş kart hatası sürüyor)");
+    } else not("modül: yatırım kâğıdında Al düğmesi yok");
+  } else not("modül: olaylar listesinde yatırım kâğıdı bulunamadı");
+
+  // yeni ekranlar açılıyor mu
+  for (const [ad, ipucu] of [["yatirim", /Portföy/], ["hayat", /Aile/], ["sezon", /Sıralama/]]) {
+    await page.evaluate((a) => { const j = JSON.parse(localStorage.getItem("racon_v1")); j.screen = a; localStorage.setItem("racon_v1", JSON.stringify(j)); }, ad);
+    const btn = page.locator(`.navbtn[data-id="${ad}"]`).first();
+    if (!(await btn.count())) { not("modül: " + ad + " nav düğmesi yok"); continue; }
+    await btn.click().catch(() => {});
+    await page.waitForTimeout(150);
+    const txt = await page.evaluate(() => document.querySelector(".stage")?.textContent || "");
+    if (!ipucu.test(txt)) not("modül: " + ad + " ekranı açılmadı (" + txt.trim().slice(0, 40) + ")");
+  }
+}
+
 // 6) kayıt
 const kayit = await page.evaluate(() => {
   try { const s = localStorage.getItem("racon_v1"); return s ? JSON.parse(s).kind : null; } catch (e) { return "bozuk"; }
