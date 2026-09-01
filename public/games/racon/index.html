@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#080706">
-<meta name="racon-rev" content="1">
+<meta name="racon-rev" content="2">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -893,13 +893,39 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       heatD = 4;
     }
 
+    if (fired && yara === "—") {
+      var kaza = rng();
+      yara = kaza < 0.1 ? "olu" : kaza < 0.3 ? "yara" : kaza < 0.4 ? "hapis" : "—";
+    }
+
     S.kasa += para;
     if (para) defter((JOB_TR[j.kind] || j.kind) + " · " + fmtPara(para));
     if (st) st.heat = clamp(st.heat + heatD, 0, 100);
 
-    if (yara === "yara" || yara === "hapis") {
-      var vic = crewOf(j)[0];
-      if (vic) {
+    if (yara === "yara" || yara === "hapis" || yara === "olu") {
+      var aday = crewOf(j).filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+      var vic = aday.length ? aday[ri(0, aday.length - 1)] : crewOf(j)[0];
+      if (vic && yara === "olu") {
+        vic.durum = "olu";
+        S.evidence.push({ id: nid("ev"), kind: "iz", streetId: j.streetId, week: S.week, weight: 4 });
+        var rv = S.rivals[0];
+        if (rv) { rv.husumet = clamp(rv.husumet + 10, 0, 100); syncBand(); }
+        var cd = S.day + 2, cw = S.week;
+        if (cd > 7) { cd -= 7; cw += 1; }
+        S.calendar.push({
+          id: nid("cal"), week: cw, day: cd, strip: "yukumluluk",
+          title: "Cenaze",
+          body: manName(vic) + " için. Gitmezsen mahalle konuşur.",
+          ref: { manId: vic.id }, status: "bekler"
+        });
+        S.men.forEach(function (m) {
+          if (m.durum !== "olu") m.gonul = clamp(m.gonul - 8, 0, 100);
+        });
+        addRep("korku", 4);
+        pushInbox(manName(vic) + " öldü.", "İş kanla bitti. Cenaze var.");
+        defter("ölüm · " + manName(vic));
+        yara = manName(vic) + " · öldü";
+      } else if (vic) {
         vic.durum = yara === "hapis" ? "hapis" : "yarali";
         vic.yorgunluk = yara === "yara" ? 80 : vic.yorgunluk;
         yara = manName(vic) + " · " + (yara === "hapis" ? "hapis" : "yaralı");
@@ -983,10 +1009,26 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     }
     syncBand();
   }
+  function ensureDuties() {
+    var yev = S.calendar.filter(function (c) {
+      return c.week === S.week && c.ref && c.ref.kind === "yevmiye";
+    })[0];
+    if (yev) return;
+    var live = S.men.filter(function (m) { return m.durum !== "olu"; });
+    if (!live.length) return;
+    var tut = live.reduce(function (a, m) { return a + m.yevmiye; }, 0);
+    S.calendar.push({
+      id: nid("cal"), week: S.week, day: 7, strip: "yukumluluk",
+      title: "Yevmiye",
+      body: "Haftanın hesabı. " + live.length + " adam, ₺" + tut.toLocaleString("tr-TR") + ".",
+      ref: { kind: "yevmiye" }, status: "bekler"
+    });
+  }
   function missDuties() {
     S.calendar.forEach(function (c) {
       if (c.week !== S.week || c.day !== S.day) return;
       if (c.strip !== "yukumluluk" || c.status !== "bekler") return;
+      if (c.ref && c.ref.kind === "yevmiye") return;
       c.status = "kacirildi";
       var hard = /cenaze|bakım|bakim/i.test(c.title + " " + (c.body || ""));
       S.rep.saygi = clamp(S.rep.saygi - 3, 0, 100);
@@ -996,6 +1038,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   }
   function payWages() {
     if (S.day !== 7) return;
+    var eksik = false;
     S.men.forEach(function (m) {
       if (m.durum === "olu") return;
       if (S.kasa >= m.yevmiye) {
@@ -1004,8 +1047,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       } else {
         m.gonul = clamp(m.gonul - 15, 0, 100);
         m.kus = true;
+        eksik = true;
         pushInbox("Yevmiye yok: " + manName(m) + ".", "Kasa yetmedi. Gönül inceldi.");
       }
+    });
+    S.calendar.forEach(function (c) {
+      if (c.week !== S.week || !c.ref || c.ref.kind !== "yevmiye") return;
+      c.status = eksik ? "kacirildi" : "bitti";
     });
   }
   function tickFatigue() {
@@ -1137,6 +1185,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   }
   function doAdvance() {
     UI.spawnLeft = 2;
+    ensureDuties();
     missDuties();
     S.jobs.forEach(tickJob);
     payWages();
@@ -1324,7 +1373,12 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       var c = S.calendar.filter(function (x) { return x.id === UI.calId; })[0];
       if (c) {
         var lab = c.strip === "tehdit" ? "Tehdit" : c.strip === "yukumluluk" ? "Yükümlülük" : "Plan";
-        paper = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(c.title) + '</p><p>' + esc(c.body || "") + '</p><p class="dim">' + lab + " · " + DAYS[c.day - 1] + "</p></div>";
+        var durum = { bekler: "bekler", kabul: "kabul", ertelendi: "ertelendi", bitti: "bitti", kacirildi: "kaçırıldı" }[c.status] || c.status;
+        var git = "";
+        if (c.strip === "yukumluluk" && c.status === "bekler" && !(c.ref && c.ref.kind === "yevmiye")) {
+          git = '<div class="acts"><button type="button" class="btn" data-act="duty-go" data-id="' + c.id + '">Git (₺' + Math.min(2000, S.kasa).toLocaleString("tr-TR") + ")</button></div>";
+        }
+        paper = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(c.title) + '</p><p>' + esc(c.body || "") + '</p><p class="dim">' + lab + " · " + DAYS[c.day - 1] + " · " + durum + "</p>" + git + "</div>";
       }
     }
     return '<div class="cal">' + heads + cells + "</div>" + paper;
@@ -1703,6 +1757,19 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     }
     if (code === "cal") {
       UI.calId = payload.id;
+      render();
+      return;
+    }
+    if (code === "duty-go") {
+      var duty = S.calendar.filter(function (x) { return x.id === payload.id; })[0];
+      if (duty && duty.status === "bekler") {
+        var masraf = Math.min(2000, S.kasa);
+        S.kasa -= masraf;
+        duty.status = "bitti";
+        if (masraf) defter(duty.title.toLocaleLowerCase("tr-TR") + " · " + fmtPara(-masraf));
+        pushInbox(duty.title + " görüldü.", "Gittin. Mahalle gördü.");
+      }
+      persist();
       render();
       return;
     }
