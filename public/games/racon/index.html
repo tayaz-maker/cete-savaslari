@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#080706">
+<meta name="racon-rev" content="1">
+<title>Racon Manager</title>
+<style>
+:root{
+  --bg:#080706; --surface:#141210; --surface-2:#1c1916; --line:#2a2622;
+  --ink:#f0e6d4; --ink-dim:#8a8074; --accent:#c4a574; --danger:#8b2e1f;
+  --respect:#6b8f71; --heat:#b8860b;
+  --font: ui-sans-serif,-apple-system,"Segoe UI", Roboto,sans-serif;
+  --top:44px; --nav:200px; --side:240px; --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:13px/1.45 var(--font);overflow:hidden;
+  -webkit-text-size-adjust:100%;}
+#app{height:100dvh;display:flex;flex-direction:column;position:relative}
+
+/* ÜST ŞERİT */
+.top{height:var(--top);flex:0 0 var(--top);display:flex;align-items:center;
+  gap:14px;padding:0 12px;background:var(--surface);
+  border-bottom:1px solid var(--line)}
+.top .brand{letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  color:var(--accent);font-size:12px;white-space:nowrap}
+.top .meta{display:flex;gap:14px;align-items:center;color:var(--ink-dim);
+  font-size:12px;font-variant-numeric:tabular-nums;overflow:hidden}
+.top .meta b{color:var(--ink);font-weight:600}
+.top .spacer{flex:1}
+
+/* GÖVDE: üç sütun */
+.body{flex:1;display:flex;min-height:0}
+.nav{flex:0 0 var(--nav);background:var(--surface);
+  border-right:1px solid var(--line);overflow:auto;padding:6px 0}
+.stage{flex:1;min-width:0;overflow:auto;padding:14px 16px}
+.side{flex:0 0 var(--side);background:var(--surface);
+  border-left:1px solid var(--line);overflow:auto;padding:12px}
+
+/* NAV */
+.navbtn{width:100%;height:44px;display:flex;align-items:center;gap:10px;
+  padding:0 12px;background:none;border:0;border-left:2px solid transparent;
+  color:var(--ink-dim);font:inherit;text-align:left;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.08em;font-size:12px}
+.navbtn[aria-current="page"]{color:var(--ink);background:var(--surface-2);
+  border-left-color:var(--accent)}
+.navbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.navbtn .dot{margin-left:auto;width:6px;height:6px;border-radius:50%;
+  background:var(--danger)}   /* bekleyen iş rozeti */
+
+/* KART / KAĞIT */
+.card{background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px;margin-bottom:10px}
+.card h3{margin:0 0 8px;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.hr{height:1px;background:var(--line);margin:10px -12px}
+.dim{color:var(--ink-dim)}
+.num{font-variant-numeric:tabular-nums}
+
+/* SATIR LİSTESİ */
+.row{display:flex;align-items:center;gap:10px;min-height:44px;
+  padding:6px 10px;border-bottom:1px solid var(--line);
+  background:none;border-left:0;border-right:0;border-top:0;width:100%;
+  color:inherit;font:inherit;text-align:left;cursor:pointer}
+.row[aria-selected="true"]{background:var(--surface-2);
+  box-shadow:inset 2px 0 0 var(--accent)}
+.row .unread{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  flex:0 0 6px}
+
+/* DÜĞMELER */
+.btn{min-height:40px;padding:0 14px;background:var(--surface-2);
+  color:var(--ink);border:1px solid var(--line);border-radius:8px;
+  font:inherit;cursor:pointer;letter-spacing:.04em}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row:focus-visible,.st:focus-visible,.strip:focus-visible,
+.plan select:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.navbtn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:#171310;border-color:var(--accent);
+  font-weight:600;text-transform:uppercase;letter-spacing:.10em}
+.btn.ghost{background:none}
+.btn.danger{border-color:var(--danger);color:#d9a599}
+
+/* DURUM HAPI */
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;
+  letter-spacing:.06em;border:1px solid var(--line);color:var(--ink-dim)}
+.pill.ok{color:var(--respect);border-color:#33473a}
+.pill.warn{color:var(--heat);border-color:#4a3a12}
+.pill.bad{color:#d9a599;border-color:#4a201a}
+
+/* BAR (itibar, heat, dosya, gönül) */
+.bar{height:6px;background:#0f0d0b;border:1px solid var(--line);
+  border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.bar.red>i{background:var(--danger)} .bar.green>i{background:var(--respect)}
+.bar.heat>i{background:var(--heat)}
+.barrow{margin-bottom:10px}
+.barrow .lbl{display:flex;justify-content:space-between;font-size:11px;
+  letter-spacing:.10em;text-transform:uppercase;color:var(--ink-dim);
+  margin-bottom:4px}
+.barrow .lbl b{color:var(--ink);font-weight:600}
+
+/* DOKU */
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:9;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:8;
+  box-shadow:inset 0 0 160px 40px #000}
+
+/* DAR EKRAN */
+@media (max-width:1100px){ :root{--nav:64px} .navbtn span{display:none}
+  .navbtn{justify-content:center;padding:0} }
+@media (max-width:900px){ .side{position:absolute;right:0;top:var(--top);
+  bottom:0;width:260px;transform:translateX(100%);transition:transform .15s;
+  z-index:6;border-left:1px solid var(--line)}
+  .side.open{transform:none} }
+/* DİKEY KİLİT */
+#rotate{display:none}
+@media (orientation:portrait){ #app{display:none}
+  #rotate{display:flex;height:100dvh;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;text-align:center;
+  padding:24px} }
+
+/* --- iskelet ekleri (sınıf adları yukarıdakilere dokunmaz) --- */
+.ico{width:18px;height:18px;flex:0 0 18px}
+.top .btn.primary{min-width:120px}
+.side-toggle{display:none;min-width:40px;padding:0 10px;align-items:center;justify-content:center}
+.navbtn span,.top .btn.primary,.unvan,.ttl,.st h4{text-transform:none}
+@media (max-width:900px){ .side-toggle{display:inline-flex} }
+.meta .is-heat{color:var(--heat)}
+.meta .is-danger{color:var(--danger)}
+.split{display:flex;gap:12px;min-height:calc(100% - 8px);align-items:stretch}
+.split .list{flex:0 0 44%;min-width:180px;border:1px solid var(--line);border-radius:var(--r);overflow:auto;background:var(--surface)}
+.split .sheet{flex:1;min-width:0}
+.paper-empty{min-height:220px;display:flex;align-items:center;justify-content:center}
+.row .who{flex:1;min-width:0}
+.row .when{margin-left:auto;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.read{color:var(--ink-dim)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ttl{margin:0 0 6px;font-size:16px;letter-spacing:.12em;text-transform:uppercase}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .hd{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);padding:4px 6px}
+.cal .cell{min-height:120px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.cal .cell.today{box-shadow:inset 0 2px 0 var(--accent)}
+.cal .cell.past{opacity:.55}
+.strip{border:1px solid var(--line);border-left:3px solid var(--accent);padding:6px 8px;font-size:12px;background:var(--surface-2);cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit;min-height:40px}
+.strip.yuk{border-left-color:var(--ink-dim)}
+.strip.teh{border-left-color:var(--danger)}
+.map{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.st{min-height:150px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;text-align:left;color:inherit;font:inherit;cursor:pointer;border-left:3px solid var(--line)}
+.st.sen{border-left-color:var(--accent)}
+.st.rakip{border-left-color:var(--danger)}
+.st.pale{opacity:.62}
+.st h4{margin:0 0 8px;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.chk{min-height:40px;display:flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer}
+.plan{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.plan select{min-height:40px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:8px;font:inherit;padding:0 10px}
+.qrow{display:flex;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--line)}
+.qrow .grow{flex:1}
+.steps{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.steps b{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);padding:8px 8px;border-bottom:2px solid var(--line);font-weight:600}
+.steps b.on{color:var(--accent);border-bottom-color:var(--accent)}
+.steps b.done{color:var(--ink)}
+.log{min-height:140px;border:1px solid var(--line);border-radius:var(--r);padding:10px;background:var(--surface);margin-bottom:12px;overflow:auto;max-height:40vh}
+.log p{margin:0 0 6px}
+.scene{display:flex;flex-direction:column;min-height:100%}
+.scene .acts{position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px}
+.sum .plus{color:var(--respect)}
+.sum .minus{color:#d9a599}
+.file-big .bar{height:10px}
+.kasa-big{font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:.04em;margin:0 0 8px}
+.led{display:flex;justify-content:space-between;gap:10px;min-height:40px;border-bottom:1px solid var(--line);align-items:center}
+.led .amt{font-variant-numeric:tabular-nums}
+.plus{color:var(--respect)}
+.minus{color:#d9a599}
+.row.age16{opacity:.4;color:var(--ink-dim)}
+.navbtn.lock{opacity:.62}
+.navhr{height:1px;background:var(--line);margin:8px 10px}
+.gate{max-width:420px;margin:28px auto;text-align:center}
+.gate .ico{width:22px;height:22px;margin:0 auto 10px;display:block}
+.gate p{margin:0 0 8px}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hi{color:var(--accent)}
+.lo{color:var(--ink-dim)}
+.unvan{letter-spacing:.12em;text-transform:uppercase;font-size:14px;margin:0 0 4px}
+.side-note{margin:0 0 12px;color:var(--ink-dim)}
+.menu-layer{position:absolute;inset:0;background:var(--bg);z-index:7;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.menu-layer.hide{display:none}
+.menu-card{width:min(380px,92vw)}
+.menu-card .brand{letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:14px;margin-bottom:8px}
+.menu-card .tag{margin:0 0 16px;color:var(--ink-dim)}
+.menu-card .stack{display:flex;flex-direction:column;gap:8px}
+.menu-card input, .menu-card textarea{
+  width:100%;min-height:40px;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line);border-radius:8px;font:inherit;padding:8px 10px}
+.menu-card textarea{min-height:120px}
+.modal-back{position:absolute;inset:0;background:#00000088;z-index:10;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal-back[hidden]{display:none}
+.modal-back .card{width:min(360px,92vw);margin:0}
+#rotate .rb{letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:14px}
+#rotate p{margin:0;color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<div id="rotate">
+  <div class="rb">Racon Manager</div>
+  <p>Telefonu yan çevir</p>
+</div>
+<div id="app">
+  <header class="top">
+    <div class="brand">Racon Manager</div>
+    <div class="meta" id="top-meta"></div>
+    <div class="spacer"></div>
+    <button type="button" class="btn ghost side-toggle" data-act="side" aria-label="Panel">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/><path d="M16 4v16"/></svg>
+    </button>
+    <button type="button" class="btn primary" id="btn-ilerlet" data-act="ilerlet">İLERLET</button>
+  </header>
+  <div class="body">
+    <nav class="nav" id="nav"></nav>
+    <main class="stage" id="stage"></main>
+    <aside class="side" id="side"></aside>
+  </div>
+  <div id="menu" class="menu-layer">
+    <div class="card menu-card">
+      <div class="brand">Racon Manager</div>
+      <p class="tag">Adamlar ölür. İsim kalır.</p>
+      <div id="menu-home" class="stack">
+        <p id="menu-err" class="dim" hidden></p>
+        <button type="button" class="btn primary" data-act="menu" data-go="nick">Yeni oyun</button>
+        <button type="button" class="btn" id="btn-devam" data-act="menu" data-go="play">Devam</button>
+        <button type="button" class="btn" data-act="menu" data-go="yedek">Yedek</button>
+        <button type="button" class="btn danger" data-act="menu" data-go="sil">Sil</button>
+      </div>
+      <div id="menu-nick" class="stack" hidden>
+        <label class="dim" for="lakap">Lakap · semt Fatih</label>
+        <input id="lakap" maxlength="16" placeholder="Adsız">
+        <button type="button" class="btn primary" data-act="start">Başla</button>
+        <button type="button" class="btn ghost" data-act="menu" data-go="home">Vazgeç</button>
+      </div>
+      <div id="menu-yedek" class="stack" hidden>
+        <p class="dim">İlk satır RACON/1, altı kayıt.</p>
+        <textarea id="yedek-txt"></textarea>
+        <button type="button" class="btn" data-act="copy">Kopyala</button>
+        <button type="button" class="btn" data-act="load">Yükle</button>
+        <button type="button" class="btn ghost" data-act="menu" data-go="home">Geri</button>
+      </div>
+      <div id="menu-sil" class="stack" hidden>
+        <button type="button" class="btn danger" data-act="menu" data-go="sil2">Sil</button>
+        <button type="button" class="btn ghost" data-act="menu" data-go="home">Vazgeç</button>
+      </div>
+      <div id="menu-sil2" class="stack" hidden>
+        <p>Emin misin? Bu kayıt gider.</p>
+        <button type="button" class="btn danger" data-act="silok">Emin misin? Bu kayıt gider.</button>
+        <button type="button" class="btn ghost" data-act="menu" data-go="home">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+  <div id="modal" class="modal-back" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="modal-txt" tabindex="-1">
+      <p id="modal-txt"></p>
+      <div class="acts" id="modal-acts"></div>
+    </div>
+  </div>
+</div>
+<div id="grain"></div>
+<div id="vig"></div>
+<script>
+(function () {
+  "use strict";
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&" + "amp;")
+      .replace(/</g, "&" + "lt;")
+      .replace(/>/g, "&" + "gt;")
+      .replace(/"/g, "&" + "quot;")
+      .replace(/'/g, "&#39;");
+  }
+  function up(s) {
+    return String(s).toLocaleUpperCase("tr-TR");
+  }
+  function ico(name) {
+    var inner = {
+      olaylar: '<rect x="3" y="6" width="18" height="13"/><path d="M3 6l9 7 9-7"/>',
+      takvim: '<rect x="3" y="5" width="18" height="16"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+      adamlar: '<circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><path d="M4 19c0-2.4 1.8-4.5 4-4.5s4 2.1 4 4.5M12 19c0-2.4 1.8-4.5 4-4.5s4 2.1 4 4.5"/>',
+      harita: '<rect x="3" y="3" width="18" height="18"/><path d="M5 19L19 5M9 19h10"/>',
+      isler: '<path d="M4 20l7-7M8 20h9"/><path d="M14 8l6-6"/>',
+      emniyet: '<path d="M4 8h16v12H4z"/><path d="M4 8h6l2-3h8v3"/>',
+      husumet: '<path d="M6 6l12 12M18 6L6 18"/>',
+      kasa: '<rect x="4" y="6" width="16" height="14"/><circle cx="12" cy="13" r="2"/><path d="M14 13h4"/>',
+      kilit: '<rect x="7" y="11" width="10" height="9"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>'
+    };
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">' + (inner[name] || "") + "</svg>";
+  }
+  function bar(cls, n, max) {
+    var pct = Math.max(0, Math.min(100, (n / (max || 100)) * 100));
+    return '<div class="bar ' + (cls || "") + '"><i style="width:' + pct + '%"></i></div>';
+  }
+  function barrow(label, n, max, cls) {
+    return '<div class="barrow"><div class="lbl">' + esc(label) + "<b>" + n + "</b></div>" + bar(cls, n, max) + "</div>";
+  }
+  function pill(durum) {
+    var cls = durum === "hazir" ? "ok" : durum === "yorgun" ? "warn" : "bad";
+    var t = durum === "hazir" ? "hazır" : durum === "yorgun" ? "yorgun" : durum;
+    return '<span class="pill ' + cls + '">' + t + "</span>";
+  }
+
+  var NAV = [
+    { id: "olaylar", label: "Olaylar", ico: "olaylar" },
+    { id: "takvim", label: "Takvim", ico: "takvim" },
+    { id: "adamlar", label: "Adamlar", ico: "adamlar" },
+    { id: "harita", label: "Harita", ico: "harita" },
+    { id: "isler", label: "İşler", ico: "isler" },
+    { id: "emniyet", label: "Emniyet", ico: "emniyet" },
+    { id: "husumet", label: "Husumet", ico: "husumet" },
+    { id: "kasa", label: "Kasa", ico: "kasa" }
+  ];
+  var LOCKED_NAV = [
+    { id: "mahalleler", label: "Çoklu mahalle", stage: "Ağabey" },
+    { id: "ekip", label: "Alt ekip", stage: "Ağabey" },
+    { id: "aklama", label: "Aklama", stage: "Ağabey" },
+    { id: "savci", label: "Savcı", stage: "Ağabey" },
+    { id: "masa", label: "Masa", stage: "Baba" },
+    { id: "hanedan", label: "Hanedan", stage: "Hanedan" }
+  ];
+  var DAYS = ["PZT", "SAL", "ÇAR", "PER", "CUM", "CMT", "PAZ"];
+  var STATS = [
+    ["kabadayilik", "Kabadayılık"],
+    ["silah", "Silah"],
+    ["sogukkan", "Soğukkan"],
+    ["kurnazlik", "Kurnazlık"],
+    ["agiz", "Ağız"],
+    ["sadakat", "Sadakat"],
+    ["gizlilik", "Gizlilik"],
+    ["direksiyon", "Direksiyon"],
+    ["hesap", "Hesap"]
+  ];
+  var ROL = {
+    ayakci: "ayakçı", sofor: "şoför", gozcu: "gözcü", kirici: "kırıcı",
+    tetikci: "tetikçi", agiz: "ağız", muhasebeci: "muhasebeci", muhbir: "muhbir"
+  };
+  var STAGE_TR = {
+    serseri: "serseri", delikanli: "delikanlı", kabadayi: "kabadayı",
+    agabey: "ağabey", baba: "baba", aile_reisi: "aile reisi", hanedan: "hanedan"
+  };
+  var BAND_TR = { yok: "yok", goz: "Göz", surtusme: "Sürtüşme", hasim: "Hasım", belali: "Belalı", kan: "Kan" };
+  var JOB_TR = { tahsilat: "tahsilat", kepenk: "kepenk", tek_arac: "tek araç", bakkal_soygunu: "bakkal soygunu" };
+  var KIND_TR = { kamera: "kamera", iz: "iz", tanik: "tanık", sinyal: "sinyal", ihbar: "ihbar" };
+  var KEY = "racon_v1";
+  var BAK = "racon_v1_bak";
+
+  var S = null;
+  var UI = {
+    mode: "menu",
+    sideOpen: false,
+    inboxId: null,
+    manId: null,
+    cmp: [],
+    streetId: null,
+    calId: null,
+    sahne: false,
+    showCmp: false,
+    loadErr: "",
+    modal: null,
+    threatOk: false,
+    spawnLeft: 0,
+    jobId: null,
+    jobLog: [],
+    jobWait: false,
+    jobOrders: [],
+    jobDone: false,
+    jobSummary: null,
+    planStreet: null,
+    planKind: "tahsilat",
+    planMen: null,
+    fastJob: false
+  };
+  var saveTimer = 0;
+
+  function num(v, d) { return typeof v === "number" && isFinite(v) ? v : d; }
+  function str(v, d) { return typeof v === "string" ? v : d; }
+  function arr(v, d) { return Array.isArray(v) ? v : d; }
+
+  function rng() {
+    var t = (S.seed += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function ri(a, b) { return a + Math.floor(rng() * (b - a + 1)); }
+
+  function defaultStats() {
+    return { kabadayilik: 6, silah: 6, sogukkan: 6, kurnazlik: 6, agiz: 6, sadakat: 6, gizlilik: 6, direksiyon: 6, hesap: 6 };
+  }
+  function rollStats() {
+    var o = {};
+    STATS.forEach(function (p) { o[p[0]] = ri(4, 9); });
+    return o;
+  }
+  function migrateMan(m) {
+    m = m || {};
+    var st = m.stats || {};
+    var ds = defaultStats();
+    Object.keys(ds).forEach(function (k) { if (typeof st[k] !== "number") st[k] = ds[k]; });
+    return {
+      id: str(m.id, "m"),
+      ad: str(m.ad, "Adsız"),
+      lakap: m.lakap ? String(m.lakap) : undefined,
+      rol: str(m.rol, "ayakci"),
+      stats: st,
+      gonul: num(m.gonul, 60),
+      yevmiye: num(m.yevmiye, 400),
+      durum: str(m.durum, "hazir"),
+      yaraTur: m.yaraTur,
+      bag: m.bag ? String(m.bag) : undefined,
+      yorgunluk: num(m.yorgunluk, 0),
+      kus: !!m.kus
+    };
+  }
+  function migrateJob(j) {
+    j = j || {};
+    return {
+      id: str(j.id, "j"),
+      kind: str(j.kind, "tahsilat"),
+      streetId: str(j.streetId, "st_fevzi"),
+      prepLeft: num(j.prepLeft, 0),
+      assigned: arr(j.assigned, []),
+      tags: arr(j.tags, []),
+      phase: str(j.phase, "idle"),
+      tickIndex: num(j.tickIndex, 0)
+    };
+  }
+  function canonical() {
+    return {
+      kind: "racon_v1",
+      week: 1,
+      day: 1,
+      stage: "serseri",
+      lakap: "Adsız",
+      streetHome: "st_fevzi",
+      kasa: 18000,
+      dosya: 0,
+      evidence: [],
+      rep: { korku: 5, saygi: 8, nam: 2, racon: 70 },
+      men: [
+        { id: "m_hasan", ad: "Hasan", lakap: "Kısa", rol: "ayakci", stats: defaultStats(), gonul: 62, yevmiye: 450, durum: "hazir", bag: "karakol kuzeni", yorgunluk: 0, kus: false },
+        { id: "m_muharrem", ad: "Muharrem", rol: "sofor", stats: defaultStats(), gonul: 58, yevmiye: 400, durum: "hazir", yorgunluk: 0, kus: false },
+        { id: "m_sabri", ad: "Sabri", rol: "gozcu", stats: defaultStats(), gonul: 66, yevmiye: 350, durum: "hazir", bag: "Çarşamba esnafı", yorgunluk: 0, kus: false }
+      ],
+      rivals: [{ id: "rival_kartallar", ad: "Kartallar", husumet: 0, band: "yok", agresiflik: 50, streetsClaimed: [] }],
+      streets: [
+        { id: "st_fevzi", ad: "Fevzi Paşa", sahip: "sen", heat: 8 },
+        { id: "st_aksem", ad: "Akşemsettin", sahip: "bos", heat: 4 },
+        { id: "st_carsamba", ad: "Çarşamba", sahip: "bos", heat: 5 },
+        { id: "st_macar", ad: "Macar Kardeşler", sahip: "bos", heat: 6 }
+      ],
+      cops: [],
+      calendar: [],
+      jobs: [],
+      inbox: [{ id: "in_1", title: "Mahalle duruyor.", body: "Mahalle duruyor. Yeni ad yok. Sokak kendi işini görüyor.", week: 1, read: false }],
+      defter: [],
+      flags: { paleStreet: "st_macar", toz: 0, idSeq: 10, rivalHits: 0, warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: { st_fevzi: 1, st_aksem: 1, st_carsamba: 1, st_macar: 1 } },
+      savedAt: 0,
+      seed: 1,
+      screen: "olaylar"
+    };
+  }
+  function migrate(raw) {
+    var b = canonical();
+    if (!raw || typeof raw !== "object") return b;
+    var rep = raw.rep && typeof raw.rep === "object" ? raw.rep : {};
+    var out = {
+      kind: "racon_v1",
+      week: num(raw.week, 1),
+      day: [1, 2, 3, 4, 5, 6, 7].indexOf(raw.day) >= 0 ? raw.day : 1,
+      stage: str(raw.stage, "serseri"),
+      lakap: str(raw.lakap, "Adsız"),
+      streetHome: str(raw.streetHome, b.streetHome),
+      kasa: num(raw.kasa, 18000),
+      dosya: num(raw.dosya, 0),
+      evidence: arr(raw.evidence, []),
+      rep: {
+        korku: num(rep.korku, 5),
+        saygi: num(rep.saygi, 8),
+        nam: num(rep.nam, 2),
+        racon: num(rep.racon, 70)
+      },
+      men: arr(raw.men, b.men).map(migrateMan),
+      rivals: arr(raw.rivals, b.rivals),
+      streets: arr(raw.streets, b.streets),
+      cops: arr(raw.cops, []),
+      calendar: arr(raw.calendar, []),
+      jobs: arr(raw.jobs, []).map(migrateJob),
+      inbox: arr(raw.inbox, b.inbox),
+      defter: arr(raw.defter, []),
+      flags: Object.assign({
+        paleStreet: "st_macar", toz: 0, idSeq: 10, rivalHits: 0,
+        warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: {}, gateAgabey: 0
+      }, (raw.flags && typeof raw.flags === "object") ? raw.flags : {}),
+      savedAt: num(raw.savedAt, 0),
+      seed: num(raw.seed, Date.now()),
+      screen: str(raw.screen, "olaylar")
+    };
+    var r0 = out.rivals[0];
+    if (r0) {
+      var h = num(r0.husumet, 0);
+      r0.band = h >= 90 ? "kan" : h >= 85 ? "belali" : h >= 70 ? "hasim" : h >= 40 ? "surtusme" : h >= 15 ? "goz" : "yok";
+    }
+    return out;
+  }
+  function blank(lakap) {
+    var s = canonical();
+    s.lakap = lakap || "Adsız";
+    s.seed = Date.now();
+    S = s;
+    s.men.forEach(function (m) {
+      m.stats = rollStats();
+      m.gonul = ri(55, 70);
+      m.yevmiye = 300 + ri(0, 20) * 10;
+      m.durum = "hazir";
+      m.yorgunluk = 0;
+      m.kus = false;
+    });
+    s.savedAt = Date.now();
+    return s;
+  }
+
+  function dumpSave() {
+    var o = {};
+    Object.keys(S).forEach(function (k) { if (k !== "busy") o[k] = S[k]; });
+    o.kind = "racon_v1";
+    o.savedAt = Date.now();
+    return o;
+  }
+  function writeSave() {
+    if (!S) return;
+    try {
+      var cur = localStorage.getItem(KEY);
+      if (cur) {
+        try { JSON.parse(cur); localStorage.setItem(BAK, cur); } catch (e) {}
+      }
+      localStorage.setItem(KEY, JSON.stringify(dumpSave()));
+    } catch (e) {}
+  }
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(writeSave, 200);
+  }
+  function parseSave(txt) {
+    try {
+      var o = JSON.parse(txt);
+      if (!o || typeof o !== "object") return null;
+      return migrate(o);
+    } catch (e) { return null; }
+  }
+  function loadSave() {
+    UI.loadErr = "";
+    var raw = null, bak = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) {}
+    try { bak = localStorage.getItem(BAK); } catch (e) {}
+    if (raw) {
+      var a = parseSave(raw);
+      if (a) return a;
+    }
+    if (bak) {
+      var b = parseSave(bak);
+      if (b) return b;
+    }
+    if (raw || bak) UI.loadErr = "Kayıt okunamadı, yedek de bozuk.";
+    return null;
+  }
+  function toB64(s) { return btoa(unescape(encodeURIComponent(s))); }
+  function fromB64(s) { return decodeURIComponent(escape(atob(s))); }
+  function exportText() {
+    if (!S) return "RACON/1";
+    return "RACON/1\n" + toB64(JSON.stringify(dumpSave()));
+  }
+  function importText(text) {
+    var lines = String(text || "").trim().split(/\n/);
+    if (lines[0] !== "RACON/1") throw new Error("Biçim uymuyor.");
+    var json = fromB64(lines.slice(1).join(""));
+    var o = JSON.parse(json);
+    S = migrate(o);
+  }
+
+  function manBy(id) { return S.men.filter(function (m) { return m.id === id; })[0]; }
+  function streetBy(id) { return S.streets.filter(function (x) { return x.id === id; })[0]; }
+  function inboxBy(id) { return S.inbox.filter(function (x) { return x.id === id; })[0]; }
+  function manName(m) { return m.lakap ? m.ad + ' "' + m.lakap + '"' : m.ad; }
+  function delayedN() {
+    return S.calendar.filter(function (c) { return c.status === "ertelendi" || c.status === "kacirildi"; }).length;
+  }
+  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+  function fmtPara(n) {
+    var s = Math.abs(Math.round(n)).toLocaleString("tr-TR");
+    return (n < 0 ? "-" : "+") + s;
+  }
+  function nid(prefix) {
+    S.flags.idSeq = num(S.flags.idSeq, 10) + 1;
+    return prefix + "_" + S.flags.idSeq;
+  }
+  function defter(line) {
+    S.defter.push("H" + S.week + "·" + DAYS[S.day - 1] + " · " + line);
+  }
+  function pushInbox(title, body, extra) {
+    var row = { id: nid("in"), title: title, body: body, week: S.week, read: false };
+    if (extra) Object.keys(extra).forEach(function (k) { row[k] = extra[k]; });
+    S.inbox.unshift(row);
+    return row;
+  }
+  function pushCal(o) {
+    var row = {
+      id: nid("cal"),
+      week: o.week,
+      day: o.day,
+      strip: o.strip,
+      title: o.title,
+      body: o.body || "",
+      ref: o.ref || {},
+      status: "bekler"
+    };
+    S.calendar.push(row);
+    return row;
+  }
+  function addDays(n) {
+    var d = S.day + n, w = S.week;
+    while (d > 7) { d -= 7; w += 1; }
+    return { week: w, day: d };
+  }
+  function syncBand() {
+    var r = S.rivals[0];
+    if (!r) return;
+    var h = num(r.husumet, 0);
+    r.band = h >= 90 ? "kan" : h >= 85 ? "belali" : h >= 70 ? "hasim" : h >= 40 ? "surtusme" : h >= 15 ? "goz" : "yok";
+  }
+  function recalcDosya() {
+    var sum = 0;
+    S.evidence.forEach(function (e) {
+      var age = S.week - e.week;
+      var w = e.weight;
+      if (age >= 16) w = 0;
+      else if (age >= 8) w = w * 0.5;
+      sum += w;
+    });
+    S.dosya = clamp(sum + S.rep.nam * 0.05 + num(S.flags.haftaGurultu, 0) + num(S.flags.toz, 0), 0, 100);
+  }
+  function tickJob(j) {
+    if (j.phase === "prep" && j.prepLeft > 0) {
+      j.prepLeft -= 1;
+      if (j.prepLeft <= 0) j.phase = "idle";
+    }
+  }
+  function jobBy(id) { return S.jobs.filter(function (j) { return j.id === id; })[0]; }
+  function PREP_OF(kind) {
+    return kind === "bakkal_soygunu" ? 2 : kind === "tahsilat" ? 0 : 1;
+  }
+  function jobSteps(kind) {
+    return kind === "bakkal_soygunu"
+      ? ["kesif", "yaklasma", "giris", "kasa", "temas", "tepki", "kacis", "iz"]
+      : ["kesif", "yaklasma", "temas", "tepki", "kacis", "iz"];
+  }
+  var STEP_TR = { kesif: "Keşif", yaklasma: "Yaklaşma", giris: "Giriş", kasa: "Kasa", temas: "Temas", tepki: "Tepki", kacis: "Kaçış", iz: "İz" };
+  function crewOf(j) {
+    return (j.assigned || []).map(manBy).filter(Boolean);
+  }
+  function leadOf(j) {
+    return crewOf(j)[0] || S.men[0];
+  }
+  function addRep(key, d) {
+    if (!d) return;
+    S.rep[key] = clamp(S.rep[key] + d, 0, 100);
+    if (d > 0) {
+      if (key === "korku" && S.rep.saygi >= 70) S.rep.saygi = clamp(S.rep.saygi - 1, 0, 100);
+      if (key === "saygi" && S.rep.korku >= 70) S.rep.korku = clamp(S.rep.korku - 1, 0, 100);
+    }
+  }
+  function expectWords(kind) {
+    if (kind === "bakkal_soygunu") return "para: yüksek · gürültü: çok · dosya: çok";
+    if (kind === "kepenk") return "para: orta · gürültü: orta · dosya: orta";
+    if (kind === "tek_arac") return "para: orta · gürültü: az · dosya: az";
+    return "para: iyi · gürültü: az · dosya: az";
+  }
+  function pickLine(arr) {
+    var last = UI.jobLog[UI.jobLog.length - 1];
+    var opts = arr.filter(function (x) { return x !== last; });
+    if (!opts.length) opts = arr;
+    return opts[Math.floor(rng() * opts.length)];
+  }
+  function linesFor(step, j) {
+    var st = streetBy(j.streetId);
+    var street = st ? st.ad : "sokak";
+    var a = leadOf(j);
+    var n = manName(a);
+    var rest = crewOf(j).filter(function (m) { return m.id !== a.id; });
+    var b = rest[0] ? manName(rest[0]) : n;
+    var prim = {
+      kesif: [
+        n + " " + street + " ağzını taradı.",
+        street + " sakin. " + n + " köşede durdu.",
+        n + " karşı kaldırımdan baktı."
+      ],
+      yaklasma: [
+        n + " kepenge yaklaştı.",
+        n + " adımını kısalttı. Kapı yakın.",
+        b + " arkadan geldi."
+      ],
+      giris: [
+        "Kapı açıldı. " + n + " içeri girdi.",
+        "İçeride iki kişi, biri bağırıyor."
+      ],
+      kasa: [
+        n + " kasaya yöneldi.",
+        "Kasa çekmecesi direndi, sonra açıldı."
+      ],
+      temas: [
+        "İçeride iki kişi, biri bağırıyor.",
+        "Adam tezgahın ardında. Konuşulacak.",
+        n + " karşıdakine bakıyor."
+      ],
+      tepki: [
+        "Karşı taraf bekliyor.",
+        "Ses yükseldi. Karar anı.",
+        b + " kapıya bakıyor."
+      ],
+      kacis: [
+        "Sokak açık. " + n + " geri çıktı.",
+        "Araç bekliyor. " + b + " direksiyonda."
+      ],
+      iz: [
+        "Karşı kaldırımda bir kamera var, " + b + " görmedi.",
+        street + " sessize döndü.",
+        "İz kaldı mı, belli değil."
+      ]
+    };
+    var extra = {
+      kesif: ["Cadde açık. Kalabalık yok.", n + " işaret verdi."],
+      yaklasma: ["Kepenk yarım. Işık içeride.", "Adım sesi yok."],
+      giris: ["Tezgahın arkasında bir gölge.", "İçeride iki kişi, biri bağırıyor."],
+      kasa: ["Paralar çekmecede. " + n + " aldı.", "Hesap defteri açık kaldı."],
+      temas: ["Söz kısa tutulacak.", "Karşı taraf eli masada."],
+      tepki: ["Zaman daralıyor.", n + " bekliyor."],
+      kacis: ["Köşe boş. Dönüş temiz.", "Kimse arkadan bakmıyor."],
+      iz: [b + " arkayı taradı.", "Sokak kendi işine döndü."]
+    };
+    var out = [];
+    if (prim[step]) out.push(pickLine(prim[step]));
+    if (extra[step] && rng() < 0.65) out.push(pickLine(extra[step]));
+    if (step === "kesif" && (j.tags || []).indexOf("okul") >= 0) {
+      if (out.length >= 2) out[1] = "Okul çıkışına denk geldi.";
+      else out.push("Okul çıkışına denk geldi.");
+    }
+    if (out.length > 2) out = out.slice(0, 2);
+    return out;
+  }
+  function clearJobTimer() {
+    if (UI.jobTimer) { clearTimeout(UI.jobTimer); UI.jobTimer = 0; }
+  }
+  function startJob(id) {
+    var j = jobBy(id);
+    if (!j || j.phase === "done") return;
+    if (j.prepLeft > 0) return;
+    if (j.kind === "bakkal_soygunu" && crewOf(j).length < 3) return;
+    var live = crewOf(j).filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+    if (!live.length) return;
+    j.phase = "running";
+    j.tickIndex = 0;
+    UI.sahne = true;
+    UI.jobId = id;
+    UI.jobLog = [];
+    UI.jobWait = false;
+    UI.jobOrders = [];
+    UI.jobDone = false;
+    UI.jobSummary = null;
+    S.screen = "isler";
+    playTick();
+  }
+  function playTick() {
+    if (!UI.sahne || !UI.jobId) return;
+    var j = jobBy(UI.jobId);
+    if (!j) return;
+    var steps = jobSteps(j.kind);
+    if (j.tickIndex >= steps.length) { finishJob(); return; }
+    var step = steps[j.tickIndex];
+    UI.jobWait = false;
+    UI.jobQueue = linesFor(step, j);
+    drainLines();
+  }
+  function drainLines() {
+    if (!UI.sahne) return;
+    if (!UI.jobQueue || !UI.jobQueue.length) {
+      UI.jobWait = true;
+      if (!UI.fastJob) render();
+      return;
+    }
+    var line = UI.jobQueue.shift();
+    if (UI.jobLog[UI.jobLog.length - 1] === line && UI.jobQueue.length) {
+      drainLines();
+      return;
+    }
+    UI.jobLog.push(line);
+    if (UI.fastJob) {
+      drainLines();
+      return;
+    }
+    render();
+    var box = document.querySelector(".log");
+    if (box) box.scrollTop = box.scrollHeight;
+    clearJobTimer();
+    UI.jobTimer = setTimeout(drainLines, 120 + (UI.jobLog.length % 3) * 30);
+  }
+  function orderJob(code) {
+    if (!UI.sahne || !UI.jobWait || UI.jobDone) return;
+    var j = jobBy(UI.jobId);
+    var steps = jobSteps(j.kind);
+    var step = steps[j.tickIndex];
+    if (step === "temas" || step === "tepki") {
+      if (!code || code === "devam") return;
+      UI.jobOrders.push(code);
+      crewOf(j).forEach(function (m) {
+        var sad = (m.stats && m.stats.sadakat ? m.stats.sadakat : 6) * 5;
+        if (sad >= 40) return;
+        if (code !== "cekil" && code !== "sessiz") return;
+        if (rng() * 100 < (50 - sad)) {
+          UI.jobLog.push(manName(m) + " dinlemedi.");
+        }
+      });
+    }
+    UI.jobWait = false;
+    j.tickIndex += 1;
+    if (!UI.fastJob) render();
+    clearJobTimer();
+    if (UI.fastJob) playTick();
+    else UI.jobTimer = setTimeout(playTick, 140);
+  }
+  function finishJob() {
+    var j = jobBy(UI.jobId);
+    if (!j) return;
+    var st = streetBy(j.streetId);
+    var orders = UI.jobOrders || [];
+    var fired = orders.indexOf("ates") >= 0;
+    var fled = !fired && orders.indexOf("cekil") >= 0;
+    var para = 0, yara = "—", tanik = 0, delil = "—", heatD = 0;
+    var giz = crewOf(j).reduce(function (a, m) { return a + m.stats.gizlilik; }, 0);
+    giz = giz / Math.max(1, crewOf(j).length);
+
+    if (j.kind === "bakkal_soygunu") {
+      if (fled) {
+        para = 0;
+        addRep("korku", -2);
+        addRep("saygi", -2);
+        heatD = 6;
+        if (rng() < 0.4) {
+          yara = "yara";
+        } else if (rng() < 0.35) yara = "hapis";
+      } else if (fired) {
+        para = ri(4000, 9000);
+        addRep("korku", 6);
+        addRep("saygi", -3);
+        addRep("nam", 5);
+        S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 10;
+        heatD = 16;
+        tanik = ri(1, 2);
+      } else {
+        para = ri(12000, 20000);
+        addRep("nam", 4);
+        addRep("saygi", 1);
+        S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 4;
+        heatD = 8;
+      }
+    } else if (fired) {
+      para = ri(2000, 5000);
+      addRep("korku", 6);
+      addRep("saygi", -3);
+      addRep("nam", 5);
+      S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 10;
+      heatD = 14;
+      tanik = ri(0, 2);
+    } else if (fled) {
+      para = 0;
+      addRep("korku", -2);
+      addRep("saygi", -2);
+      heatD = 2;
+    } else {
+      para = ri(4000, 7000);
+      addRep("saygi", 2);
+      addRep("nam", 1);
+      S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 2;
+      heatD = 4;
+    }
+
+    S.kasa += para;
+    if (para) defter((JOB_TR[j.kind] || j.kind) + " · " + fmtPara(para));
+    if (st) st.heat = clamp(st.heat + heatD, 0, 100);
+
+    if (yara === "yara" || yara === "hapis") {
+      var vic = crewOf(j)[0];
+      if (vic) {
+        vic.durum = yara === "hapis" ? "hapis" : "yarali";
+        vic.yorgunluk = yara === "yara" ? 80 : vic.yorgunluk;
+        yara = manName(vic) + " · " + (yara === "hapis" ? "hapis" : "yaralı");
+      }
+    }
+
+    if (tanik > 0) {
+      S.evidence.push({ id: nid("ev"), kind: "tanik", streetId: j.streetId, week: S.week, weight: tanik });
+    }
+    if (giz < 6) {
+      delil = rng() < 0.5 ? "kamera" : "iz";
+      S.evidence.push({ id: nid("ev"), kind: delil, streetId: j.streetId, week: S.week, weight: 2 });
+    }
+
+    (j.tags || []).forEach(function (t) {
+      if (["kadin", "cocuk", "okul", "cenaze", "ispiyon", "masada_yalan"].indexOf(t) >= 0) {
+        addRep("racon", -8);
+        pushInbox("Racon çatladı.", "İşin üzerinde " + t + " vardı.");
+      }
+    });
+
+    noteRivalJob(j.streetId);
+    recalcDosya();
+    j.phase = "done";
+    stageGate();
+    UI.jobDone = true;
+    UI.jobWait = false;
+    UI.jobSummary = {
+      title: up((JOB_TR[j.kind] || j.kind) + " · " + (st ? st.ad : "") + " · bitti"),
+      rows: [
+        { k: "para", v: (para >= 0 ? "+" : "") + para.toLocaleString("tr-TR"), good: para > 0, bad: para <= 0 && fled },
+        { k: "yara", v: yara, bad: yara !== "—" },
+        { k: "tanık", v: String(tanik), bad: tanik > 0 },
+        { k: "delil", v: delil, bad: delil !== "—" },
+        { k: "heat", v: (heatD >= 0 ? "+" : "") + heatD, bad: heatD > 6, good: heatD <= 4 }
+      ]
+    };
+    persist();
+    writeSave();
+    if (!UI.fastJob) render();
+  }
+  function endSahne() {
+    clearJobTimer();
+    UI.sahne = false;
+    UI.jobId = null;
+    UI.jobDone = false;
+    UI.jobSummary = null;
+    UI.jobLog = [];
+    UI.jobWait = false;
+    S.screen = "isler";
+  }
+  function noteRivalJob(streetId) {
+    var st = streetBy(streetId);
+    if (!st) return;
+    if (!S.flags.lastTouch) S.flags.lastTouch = {};
+    S.flags.lastTouch[st.id] = S.week;
+    if (st.sahip !== "rakip") return;
+    S.flags.rivalHits = num(S.flags.rivalHits, 0) + 1;
+    var n = S.flags.rivalHits;
+    var when = addDays(2);
+    var title = n >= 3 ? "Hasım" : n === 2 ? "Sürtüşme" : "Göz";
+    var body = n >= 3
+      ? "Pusu teklifi. Kartallar " + st.ad + " için bekliyor."
+      : "Kartallar " + st.ad + " tarafında.";
+    var c = pushCal({ strip: "tehdit", title: title, body: body, week: when.week, day: when.day, ref: { rivalId: "rival_kartallar", streetId: st.id } });
+    pushInbox(title + " · " + st.ad, body, { href: "takvim", calId: c.id });
+  }
+  function pendingThreatsToday() {
+    return S.calendar.filter(function (c) {
+      return c.week === S.week && c.day === S.day && c.strip === "tehdit" && c.status === "bekler";
+    });
+  }
+  function delayThreat(c) {
+    c.status = "ertelendi";
+    if (rng() < 0.5) {
+      S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) + 8, 0, 100);
+      defter("tehdit ertelendi · husumet +8");
+    } else {
+      S.dosya = clamp(S.dosya + 6, 0, 100);
+      defter("tehdit ertelendi · dosya +6");
+    }
+    syncBand();
+  }
+  function missDuties() {
+    S.calendar.forEach(function (c) {
+      if (c.week !== S.week || c.day !== S.day) return;
+      if (c.strip !== "yukumluluk" || c.status !== "bekler") return;
+      c.status = "kacirildi";
+      var hard = /cenaze|bakım|bakim/i.test(c.title + " " + (c.body || ""));
+      S.rep.saygi = clamp(S.rep.saygi - 3, 0, 100);
+      S.rep.racon = clamp(S.rep.racon - (hard ? 4 : 2), 0, 100);
+      pushInbox("Kaçırıldı: " + c.title, "Yükümlülük durdu. Mahalle gördü.");
+    });
+  }
+  function payWages() {
+    if (S.day !== 7) return;
+    S.men.forEach(function (m) {
+      if (m.durum === "olu") return;
+      if (S.kasa >= m.yevmiye) {
+        S.kasa -= m.yevmiye;
+        defter("yevmiye · " + manName(m) + " · " + fmtPara(-m.yevmiye));
+      } else {
+        m.gonul = clamp(m.gonul - 15, 0, 100);
+        m.kus = true;
+        pushInbox("Yevmiye yok: " + manName(m) + ".", "Kasa yetmedi. Gönül inceldi.");
+      }
+    });
+  }
+  function tickFatigue() {
+    var working = {};
+    S.jobs.forEach(function (j) {
+      if (j.phase === "running") (j.assigned || []).forEach(function (id) { working[id] = true; });
+    });
+    S.men.forEach(function (m) {
+      if (m.durum === "olu" || m.durum === "hapis") return;
+      if (working[m.id]) m.yorgunluk = clamp(m.yorgunluk + 12, 0, 100);
+      else m.yorgunluk = clamp(m.yorgunluk - 8, 0, 100);
+      if (m.yorgunluk >= 80) m.durum = "yorgun";
+      else if (m.yorgunluk < 40 && m.durum === "yorgun") m.durum = "hazir";
+    });
+  }
+  function rivalWalk() {
+    if (S.day !== 7) return;
+    var r = S.rivals[0];
+    if (!r) return;
+    if (!S.flags.lastTouch) S.flags.lastTouch = {};
+    S.streets.forEach(function (st) {
+      if (st.sahip !== "bos") return;
+      if (UI.spawnLeft <= 0) return;
+      var last = num(S.flags.lastTouch[st.id], 1);
+      if (S.week - last < 2) return;
+      if (rng() >= 0.4) return;
+      st.sahip = "rakip";
+      if (r.streetsClaimed.indexOf(st.id) < 0) r.streetsClaimed.push(st.id);
+      if (S.flags.paleStreet === st.id) S.flags.paleStreet = "";
+      pushInbox("Kartallar " + st.ad + "'da göründü.", "Sokak artık onların.", { href: "harita" });
+      UI.spawnLeft -= 1;
+    });
+  }
+  function spawnEvents() {
+    var r = S.rivals[0];
+    var band = r ? r.band : "yok";
+    var p = { yok: 0, goz: 0.12, surtusme: 0.22, hasim: 0.32, belali: 0.42, kan: 0.52 }[band] || 0;
+    if (p && rng() < p && UI.spawnLeft > 0) {
+      var when = addDays(1);
+      var title = BAND_TR[band] || "Göz";
+      var c = pushCal({
+        strip: "tehdit",
+        title: title,
+        body: "Kartallar hareket etti.",
+        week: when.week,
+        day: when.day,
+        ref: { rivalId: r.id }
+      });
+      pushInbox(title + " kâğıdı düştü.", "Kartallar hareket etti.", { href: "takvim", calId: c.id });
+      UI.spawnLeft -= 1;
+    }
+    if (S.dosya >= 40 && !S.flags.warn40 && UI.spawnLeft > 0) {
+      S.flags.warn40 = 1;
+      pushInbox("Karakol sivil sordu.", "Dosya 40. Karakol sivil araç sordu.");
+      UI.spawnLeft -= 1;
+    }
+    if (S.dosya >= 75 && !S.flags.warn75 && UI.spawnLeft > 0) {
+      S.flags.warn75 = 1;
+      pushInbox("Sivil araç.", "Dosya 75. Sivil araç mahallede.");
+      UI.spawnLeft -= 1;
+    }
+    S.men.forEach(function (m) {
+      if (UI.spawnLeft <= 0) return;
+      if (m.gonul < 30 && rng() < 0.2) {
+        pushInbox(manName(m) + " ince.", "Gönül 30'un altında. İhanet riski.");
+        UI.spawnLeft -= 1;
+      }
+    });
+  }
+  function stageDown() { /* Faz 1: geri düşme kapalı */ }
+  function doneJobN() {
+    return S.jobs.filter(function (j) { return j.phase === "done"; }).length;
+  }
+  function liveN() {
+    return S.men.filter(function (m) { return m.durum !== "olu"; }).length;
+  }
+  function ownN() {
+    return S.streets.filter(function (s) { return s.sahip === "sen"; }).length;
+  }
+  function promote(next, line) {
+    S.stage = next;
+    var row = pushInbox(line, line);
+    UI.inboxId = row.id;
+    defter(line);
+  }
+  function stageGate() {
+    if (!S) return;
+    if (S.stage === "serseri") {
+      var home = streetBy(S.streetHome);
+      var heat = home ? home.heat : 0;
+      if (doneJobN() >= 3 && liveN() >= 2 && heat < 80) {
+        promote("delikanli", "Artık sana delikanlı diyorlar.");
+      }
+      return;
+    }
+    if (S.stage === "delikanli") {
+      if (ownN() >= 1 && S.kasa >= 40000 && S.rep.nam >= 20 && S.dosya < 70) {
+        promote("kabadayi", "Artık sana kabadayı diyorlar.");
+      }
+      return;
+    }
+    if (S.stage === "kabadayi") {
+      if (!S.flags.gateAgabey) S.flags.gateAgabey = 1;
+    }
+  }
+  function lockOf(id) {
+    return LOCKED_NAV.filter(function (n) { return n.id === id; })[0];
+  }
+  function rivalLastEvents() {
+    var seen = {};
+    var out = [];
+    function add(title, week, day) {
+      var k = title + "|" + week + "|" + (day || "");
+      if (seen[k] || !title) return;
+      seen[k] = 1;
+      out.push({ title: title, week: week, day: day });
+    }
+    S.inbox.forEach(function (x) {
+      var t = (x.title || "") + " " + (x.body || "");
+      if (/Kartallar|Sürtüşme|Hasım|Belalı/.test(t) || /^Göz/.test(x.title || "")) {
+        add(x.title, x.week);
+      }
+    });
+    S.calendar.forEach(function (c) {
+      if (c.strip !== "tehdit") return;
+      add(c.title, c.week, c.day);
+    });
+    return out.slice(0, 3);
+  }
+  function doAdvance() {
+    UI.spawnLeft = 2;
+    missDuties();
+    S.jobs.forEach(tickJob);
+    payWages();
+    tickFatigue();
+    recalcDosya();
+    rivalWalk();
+    syncBand();
+    spawnEvents();
+    S.day += 1;
+    if (S.day > 7) {
+      S.day = 1;
+      S.week += 1;
+      S.flags.toz = num(S.flags.toz, 0) + 1;
+      S.flags.haftaGurultu = 0;
+    }
+    stageGate();
+    recalcDosya();
+  }
+  function closeModal() { UI.modal = null; }
+  function openModal(text, buttons) {
+    UI.modal = { text: text, buttons: buttons };
+  }
+  function drawModal() {
+    var el = document.getElementById("modal");
+    var chrome = [document.querySelector(".top"), document.querySelector(".body"), document.getElementById("menu")];
+    function inert(on) {
+      chrome.forEach(function (n) { if (n) n.inert = on; });
+    }
+    if (!UI.modal) {
+      el.hidden = true;
+      inert(false);
+      return;
+    }
+    el.hidden = false;
+    inert(true);
+    document.getElementById("modal-txt").textContent = UI.modal.text;
+    document.getElementById("modal-acts").innerHTML = UI.modal.buttons.map(function (b) {
+      return '<button type="button" class="btn' + (b.ghost ? " ghost" : b.danger ? " danger" : "") + '" data-act="' + b.act + '"' + (b.id ? ' data-id="' + b.id + '"' : "") + ">" + esc(b.label) + "</button>";
+    }).join("");
+    if (!el.contains(document.activeElement)) {
+      var first = el.querySelector("button");
+      if (first) first.focus();
+    }
+  }
+  function advance() {
+    if (!S || S.busy || UI.sahne || UI.modal) return;
+    var th = pendingThreatsToday();
+    if (th.length && !UI.threatOk) {
+      openModal("Ertelenecek tehdit var. Bedeli olsun mu?", [
+        { label: "Ertele", act: "threat-yes" },
+        { label: "Vazgeç", act: "threat-no", ghost: true }
+      ]);
+      render();
+      return;
+    }
+    UI.threatOk = false;
+    S.busy = true;
+    doAdvance();
+    render();
+    persist();
+    if (UI.fastJob) {
+      S.busy = false;
+      return;
+    }
+    if (UI.advTimer) clearTimeout(UI.advTimer);
+    UI.advTimer = setTimeout(function () {
+      S.busy = false;
+      UI.advTimer = 0;
+      render();
+    }, 400);
+  }
+  function enterPlay() {
+    UI.mode = "play";
+    UI.sahne = false;
+    S.screen = "olaylar";
+    S.busy = false;
+    UI.inboxId = (S.inbox[0] && S.inbox[0].id) || null;
+    UI.manId = (S.men[0] && S.men[0].id) || null;
+    UI.cmp = [];
+    UI.streetId = null;
+    UI.calId = null;
+  }
+
+  function drawNav() {
+    if (!S) { document.getElementById("nav").innerHTML = ""; return; }
+    var unread = S.inbox.some(function (x) { return !x.read; });
+    var main = NAV.map(function (n) {
+      var cur = S.screen === n.id ? ' aria-current="page"' : "";
+      var dot = n.id === "olaylar" && unread ? '<i class="dot"></i>' : "";
+      var dis = UI.sahne ? " disabled" : "";
+      return '<button type="button" class="navbtn" data-act="nav" data-id="' + n.id + '" aria-label="' + n.label + '"' + cur + dis + ">" + ico(n.ico) + "<span>" + up(n.label) + "</span>" + dot + "</button>";
+    }).join("");
+    var lock = LOCKED_NAV.map(function (n) {
+      var cur = S.screen === n.id ? ' aria-current="page"' : "";
+      var dis = UI.sahne ? " disabled" : "";
+      return '<button type="button" class="navbtn lock" data-act="nav" data-id="' + n.id + '" aria-label="' + n.label + '"' + cur + dis + ">" + ico("kilit") + "<span>" + up(n.label) + "</span></button>";
+    }).join("");
+    document.getElementById("nav").innerHTML = main + '<div class="navhr"></div>' + lock;
+  }
+
+  function drawTop() {
+    if (!S) { document.getElementById("top-meta").innerHTML = ""; return; }
+    var dc = S.dosya >= 75 ? "is-danger" : S.dosya >= 40 ? "is-heat" : "";
+    var delay = delayedN();
+    document.getElementById("top-meta").innerHTML =
+      "<span>FATİH</span><span>H" + S.week + " · " + DAYS[S.day - 1] + "</span>" +
+      '<span class="' + dc + '">DOSYA <b>' + Math.round(S.dosya) + "%</b></span>" +
+      "<span>₺" + S.kasa.toLocaleString("tr-TR") + "</span>" +
+      (delay ? '<span class="pill bad">!' + delay + " gecikmiş</span>" : "");
+    document.getElementById("btn-ilerlet").disabled = !!S.busy || UI.sahne;
+  }
+
+  function drawSide() {
+    var el = document.getElementById("side");
+    el.className = "side" + (UI.sideOpen ? " open" : "");
+    if (!S) { el.innerHTML = ""; return; }
+    var raconCls = S.rep.racon < 40 ? "red" : "";
+    var extra = "";
+    var st = UI.streetId ? streetBy(UI.streetId) : null;
+    if (st && S.screen === "harita") {
+      extra =
+        '<div class="hr"></div><div class="card" style="margin:0">' +
+        "<h3>" + esc(up(st.ad)) + "</h3>" +
+        '<p class="dim">sahip: ' + (st.sahip === "sen" ? "sen" : st.sahip === "rakip" ? "rakip" : "—") + "</p>" +
+        barrow("Heat", st.heat, 100, "heat") +
+        '<button type="button" class="btn" data-act="nav" data-id="isler">Bu sokakta iş planla</button></div>';
+    }
+    var notes = S.inbox.slice(0, 3).map(function (n) { return "<p>" + esc(n.title) + "</p>"; }).join("");
+    if (!notes) notes = "<p class=\"dim\">Mahalle duruyor.</p>";
+    el.innerHTML =
+      '<p class="unvan">' + up((STAGE_TR[S.stage] || S.stage) + " · Fatih") + "</p>" +
+      '<p class="side-note">' + esc(S.lakap) + "</p>" +
+      barrow("Korku", S.rep.korku, 100, "") +
+      barrow("Saygı", S.rep.saygi, 100, "green") +
+      barrow("Nam", S.rep.nam, 100, "") +
+      barrow("Racon", S.rep.racon, 100, raconCls) +
+      '<div class="card"><h3>Bu hafta</h3>' + notes + "</div>" + extra;
+  }
+
+  function drawOlaylar() {
+    var listSrc = S.inbox.slice().sort(function (a, b) { return a.read === b.read ? 0 : a.read ? 1 : -1; });
+    var it = inboxBy(UI.inboxId);
+    var list = listSrc.map(function (x) {
+      var sel = x.id === UI.inboxId ? ' aria-selected="true"' : "";
+      var unread = x.read ? "" : '<i class="unread"></i>';
+      var cls = "row" + (x.read ? " read" : "");
+      return '<button type="button" class="' + cls + '" data-act="inbox" data-id="' + x.id + '"' + sel + ">" + unread + '<span class="who">' + esc(x.title) + '</span><span class="when">H' + x.week + "</span></button>";
+    }).join("");
+    if (!list) list = '<p class="dim" style="padding:12px">Kâğıt yok.</p>';
+    var sheet;
+    if (it) {
+      var acts;
+      if (it.title.indexOf("Hasım") === 0 || (it.calId && (function () {
+        var c = S.calendar.filter(function (x) { return x.id === it.calId; })[0];
+        return c && c.title === "Hasım";
+      })())) {
+        acts = '<button type="button" class="btn" data-act="paper-kabul" data-id="' + it.id + '">Kabul</button>' +
+          '<button type="button" class="btn" data-act="paper-ertele" data-id="' + it.id + '">Ertele</button>';
+      } else {
+        acts = '<button type="button" class="btn" data-act="paper-git" data-id="' + it.id + '">Git</button>' +
+          '<button type="button" class="btn" data-act="paper-ertele" data-id="' + it.id + '">Ertele</button>' +
+          '<button type="button" class="btn ghost" data-act="paper-dosya" data-id="' + it.id + '">Dosyala</button>';
+      }
+      sheet = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(it.title) + '</p><div class="hr"></div><p>' + esc(it.body) + '</p><div class="acts">' + acts + "</div></div>";
+    } else {
+      sheet = '<div class="card paper-empty"><span class="dim">Kâğıt seç.</span></div>';
+    }
+    return '<div class="split"><div class="list">' + list + '</div><div class="sheet">' + sheet + "</div></div>";
+  }
+
+  function drawTakvim() {
+    var heads = DAYS.map(function (d) { return '<div class="hd">' + d + "</div>"; }).join("");
+    var cells = DAYS.map(function (_, i) {
+      var day = i + 1;
+      var items = S.calendar.filter(function (c) { return c.week === S.week && c.day === day; });
+      var cls = "cell" + (day === S.day ? " today" : "") + (day < S.day ? " past" : "");
+      var strips = items.map(function (c) {
+        var k = c.strip === "tehdit" ? "teh" : c.strip === "yukumluluk" ? "yuk" : "";
+        return '<button type="button" class="strip ' + k + '" data-act="cal" data-id="' + c.id + '">' + esc(c.title) + "</button>";
+      }).join("");
+      return '<div class="' + cls + '">' + strips + "</div>";
+    }).join("");
+    var paper = "";
+    if (UI.calId) {
+      var c = S.calendar.filter(function (x) { return x.id === UI.calId; })[0];
+      if (c) {
+        var lab = c.strip === "tehdit" ? "Tehdit" : c.strip === "yukumluluk" ? "Yükümlülük" : "Plan";
+        paper = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(c.title) + '</p><p>' + esc(c.body || "") + '</p><p class="dim">' + lab + " · " + DAYS[c.day - 1] + "</p></div>";
+      }
+    }
+    return '<div class="cal">' + heads + cells + "</div>" + paper;
+  }
+
+  function manPaper(m) {
+    if (!m) return '<div class="card paper-empty"><span class="dim">Adam seç.</span></div>';
+    var bars = STATS.map(function (p) { return barrow(p[1], m.stats[p[0]], 20, ""); }).join("");
+    var kus = m.kus ? ' <span class="pill warn">küs</span>' : "";
+    return '<div class="card"><p class="ttl">' + esc(up(manName(m))) + " · " + esc(up(ROL[m.rol] || m.rol)) + "</p><div class=\"hr\"></div>" + bars +
+      "<p>Gönül <b class=\"num\">" + m.gonul + "</b> · Yevmiye ₺" + m.yevmiye + "</p>" +
+      barrow("Yorgunluk", m.yorgunluk, 100, m.yorgunluk >= 80 ? "heat" : "") +
+      '<p>' + pill(m.durum) + kus + '</p>' +
+      '<p class="dim">Bağ: ' + esc(m.bag || "—") + "</p></div>";
+  }
+
+  function drawAdamlar() {
+    var list = S.men.map(function (m) {
+      var sel = m.id === UI.manId ? ' aria-selected="true"' : "";
+      var on = UI.cmp.indexOf(m.id) >= 0;
+      var kus = m.kus ? ' <span class="pill warn">küs</span>' : "";
+      return '<div class="row"' + sel + '><button type="button" class="btn ghost" style="min-width:40px;padding:0" data-act="cmp" data-id="' + m.id + '" aria-label="Seç" aria-pressed="' + (on ? "true" : "false") + '">' + (on ? "[x]" : "[ ]") + '</button><button type="button" class="btn ghost" style="flex:1;justify-content:flex-start;text-align:left;border:0" data-act="man" data-id="' + m.id + '"><span class="who">' + esc(manName(m)) + " · " + esc(ROL[m.rol] || m.rol) + "</span>" + pill(m.durum) + kus + "</button></div>";
+    }).join("");
+    var sheet;
+    if (UI.cmp.length === 2 && UI.showCmp) {
+      var a = manBy(UI.cmp[0]), b = manBy(UI.cmp[1]);
+      var rows = STATS.map(function (p) {
+        var va = a.stats[p[0]], vb = b.stats[p[0]];
+        return "<p>" + esc(p[1]) + ' <span class="' + (va > vb ? "hi" : "lo") + '">' + va + '</span> / <span class="' + (vb > va ? "hi" : "lo") + '">' + vb + "</span></p>";
+      }).join("");
+      sheet = '<div class="card"><h3>Karşılaştırma</h3><p class="ttl">' + esc(manName(a)) + " · " + esc(manName(b)) + "</p>" + rows + "</div>";
+    } else {
+      sheet = manPaper(manBy(UI.manId) || S.men[0]);
+    }
+    var n = UI.cmp.length;
+    return '<div class="split"><div class="list">' + list + '<div class="acts" style="padding:8px"><button type="button" class="btn" data-act="cmpgo" ' + (n < 2 ? "disabled" : "") + ">Karşılaştır (" + n + ")</button></div></div><div class=\"sheet\">" + sheet + "</div></div>";
+  }
+
+  function drawHarita() {
+    var pale = S.flags && S.flags.paleStreet;
+    return '<div class="map">' + S.streets.map(function (s) {
+      var own = s.sahip === "sen" ? "sen" : s.sahip === "rakip" ? "rakip" : "bos";
+      var ownTxt = s.sahip === "sen" ? "SEN" : s.sahip === "rakip" ? "RAKİP" : "—";
+      return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">sahip: " + ownTxt + "</p>" + barrow("Heat", s.heat, 100, "heat") + "</button>";
+    }).join("") + "</div>";
+  }
+
+  function drawSahne() {
+    var j = jobBy(UI.jobId);
+    if (!j) return '<p class="dim">İş yok.</p>';
+    var steps = jobSteps(j.kind);
+    var bar = steps.map(function (s, i) {
+      var cls = i < j.tickIndex ? "done" : i === j.tickIndex ? "on" : "";
+      return "<b class=\"" + cls + "\">" + STEP_TR[s] + "</b>";
+    }).join("");
+    var log = '<div class="log">' + UI.jobLog.map(function (ln) { return "<p>" + esc(ln) + "</p>"; }).join("") + "</div>";
+    if (UI.jobDone && UI.jobSummary) {
+      var rows = UI.jobSummary.rows.map(function (r) {
+        var cls = r.good ? "plus" : r.bad ? "minus" : "";
+        return "<p>" + esc(r.k) + ' <span class="' + cls + '">' + esc(r.v) + "</span></p>";
+      }).join("");
+      return '<div class="scene"><div class="card sum"><p class="ttl">' + esc(UI.jobSummary.title) + "</p>" + rows +
+        '<div class="acts"><button type="button" class="btn primary" data-act="job-tamam">Tamam</button></div></div></div>';
+    }
+    var acts = "";
+    var step = steps[j.tickIndex];
+    if (UI.jobWait && (step === "temas" || step === "tepki")) {
+      acts = '<p class="dim">Talimat</p><div class="acts">' +
+        '<button type="button" class="btn" data-act="job-emir" data-id="sessiz">Sessiz</button>' +
+        '<button type="button" class="btn" data-act="job-emir" data-id="sikistir">Sıkıştır</button>' +
+        '<button type="button" class="btn" data-act="job-emir" data-id="cekil">Çekil</button>' +
+        '<button type="button" class="btn danger" data-act="job-emir" data-id="ates">Ateş</button></div>';
+    } else if (UI.jobWait) {
+      acts = '<div class="acts"><button type="button" class="btn primary" data-act="job-emir" data-id="devam">Devam</button></div>';
+    }
+    return '<div class="scene"><div class="steps">' + bar + "</div>" + log + acts + "</div>";
+  }
+
+  function drawIsler() {
+    if (UI.sahne) return drawSahne();
+    var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+    var checks = live.map(function (m) {
+      var on = !UI.planMen || UI.planMen.indexOf(m.id) >= 0;
+      return '<label class="chk"><input type="checkbox" data-man="' + m.id + '"' + (on ? " checked" : "") + "> " + esc(manName(m)) + "</label>";
+    }).join("");
+    var q = S.jobs.filter(function (j) { return j.phase !== "done"; }).map(function (j) {
+      var st = streetBy(j.streetId);
+      var bakkalBlock = j.kind === "bakkal_soygunu" && (j.assigned || []).length < 3;
+      var ready = j.prepLeft <= 0 && !bakkalBlock;
+      var right = bakkalBlock
+        ? '<span class="dim">3 adam gerek</span>'
+        : ready
+          ? '<button type="button" class="btn" data-act="sahne" data-id="' + j.id + '">İş günü</button>'
+          : '<span class="dim">hazırlık ' + j.prepLeft + ' tur</span>';
+      return '<div class="qrow"><div class="grow">' + esc(JOB_TR[j.kind] || j.kind) + " · " + esc(st ? st.ad : "") + " · " + (ready ? "hazır" : "hazırlık") + "</div>" + right + "</div>";
+    }).join("");
+    if (!q) q = '<p class="dim">Kuyruk boş.</p>';
+    var kind = UI.planKind || "tahsilat";
+    var opts = S.streets.map(function (s) {
+      var sel = s.id === UI.planStreet ? " selected" : "";
+      return "<option value=\"" + s.id + "\"" + sel + ">" + esc(s.ad) + "</option>";
+    }).join("");
+    var kinds = ["tahsilat", "kepenk", "tek_arac", "bakkal_soygunu"].map(function (k) {
+      return "<option value=\"" + k + "\"" + (k === kind ? " selected" : "") + ">" + esc(JOB_TR[k]) + "</option>";
+    }).join("");
+    return '<div class="card"><h3>Plan</h3><div class="plan">' +
+      '<select id="job-street" aria-label="Sokak">' + opts + "</select>" +
+      '<select id="job-kind" aria-label="İş türü">' + kinds + "</select>" +
+      '<button type="button" class="btn primary" data-act="planla">Planla</button></div>' +
+      '<p class="dim">Adam seç</p><div class="acts">' + (checks || '<span class="dim">Adam yok.</span>') + "</div>" +
+      '<p class="dim">' + expectWords(kind) + "</p></div>" +
+      '<div class="card"><h3>Kuyruk</h3>' + q + "</div>";
+  }
+
+  function drawEmniyet() {
+    var rows = S.evidence.map(function (e) {
+      var st = streetBy(e.streetId);
+      var age = S.week - e.week;
+      var fade = age >= 16 ? " age16" : age >= 8 ? " read" : "";
+      return '<div class="row' + fade + '" style="cursor:default"><span class="who">' + esc(KIND_TR[e.kind] || e.kind) + " · " + esc(st ? st.ad : "") + " · H" + e.week + " · ağırlık " + e.weight + "</span></div>";
+    }).join("");
+    if (!rows) rows = '<p class="dim">Delil yok.</p>';
+    var warn = "";
+    if (S.dosya >= 75) warn = '<p class="minus">Sivil araç mahallede.</p>';
+    else if (S.dosya >= 40) warn = '<p style="color:var(--heat)">Karakol sivil sordu.</p>';
+    var barCls = S.dosya >= 75 ? "red" : S.dosya >= 40 ? "heat" : "";
+    return '<div class="card file-big"><h3>Dosya</h3>' + barrow("Dosya", S.dosya, 100, barCls) + '<p class="num">' + Math.round(S.dosya) + "%</p>" + warn + "</div>" +
+      '<div class="card"><h3>Delil</h3>' + rows + "</div>" +
+      '<button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Polis tanıdıkları — kilitli") + " (Ağabey)</button>";
+  }
+
+  function drawHusumet() {
+    var r = S.rivals[0];
+    if (!r) return '<div class="card"><p class="dim">Rakip yok.</p></div>';
+    var held = (r.streetsClaimed || []).map(function (id) {
+      var st = streetBy(id);
+      return st ? st.ad : id;
+    }).join(", ") || "—";
+    var ev = rivalLastEvents();
+    var son = ev.length
+      ? ev.map(function (e) {
+          return "<p>" + esc(e.title) + ' <span class="dim">H' + e.week + (e.day ? "·" + DAYS[e.day - 1] : "") + "</span></p>";
+        }).join("")
+      : '<p class="dim">Son: —</p>';
+    return '<div class="card"><p class="ttl">' + esc(up(r.ad)) + "</p>" +
+      "<p>Durum: <b>" + esc(up(BAND_TR[r.band] || r.band)) + "</b></p>" +
+      '<p class="dim">Tuttukları: ' + esc(held) + "</p>" +
+      '<div class="hr"></div>' + son +
+      '<div class="hr"></div><button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Masa — kilitli") + " (Baba)</button></div>";
+  }
+
+  function drawKasa() {
+    var yev = S.men.filter(function (m) { return m.durum !== "olu"; }).reduce(function (a, m) { return a + m.yevmiye; }, 0);
+    var rows = S.defter.slice(-8).reverse().map(function (line) {
+      var i = line.lastIndexOf(" · ");
+      var amt = i >= 0 ? line.slice(i + 3) : "";
+      if (i < 0 || !/^[+\-]\d/.test(amt)) {
+        return '<div class="led"><span>' + esc(line) + "</span></div>";
+      }
+      var left = line.slice(0, i);
+      var cls = amt.charAt(0) === "-" ? "minus" : "plus";
+      return '<div class="led"><span>' + esc(left) + '</span><span class="amt ' + cls + '">' + esc(amt) + "</span></div>";
+    }).join("");
+    if (!rows) rows = '<p class="dim">Hareket yok.</p>';
+    return '<div class="card"><h3>Kasa</h3><p class="kasa-big">₺' + S.kasa.toLocaleString("tr-TR") + '</p><p class="dim">Haftalık yevmiye ₺' + yev.toLocaleString("tr-TR") + "</p></div>" +
+      '<div class="card"><h3>Hareket</h3>' + rows + "</div>";
+  }
+
+  function drawLocked(id) {
+    var n = lockOf(id);
+    var st = n ? n.stage : "Ağabey";
+    return '<div class="card gate">' + ico("kilit") +
+      '<p class="ttl">Kilitli</p>' +
+      "<p>Bu aşamada kilitli. — " + esc(st) + "</p></div>";
+  }
+
+  function drawStage() {
+    if (!S) { document.getElementById("stage").innerHTML = ""; return; }
+    var html = "";
+    if (S.screen === "olaylar") html = drawOlaylar();
+    else if (S.screen === "takvim") html = drawTakvim();
+    else if (S.screen === "adamlar") html = drawAdamlar();
+    else if (S.screen === "harita") html = drawHarita();
+    else if (S.screen === "isler") html = drawIsler();
+    else if (S.screen === "emniyet") html = drawEmniyet();
+    else if (S.screen === "husumet") html = drawHusumet();
+    else if (S.screen === "kasa") html = drawKasa();
+    else html = drawLocked(S.screen);
+    document.getElementById("stage").innerHTML = html;
+  }
+
+  function showMenu(which) {
+    ["home", "nick", "yedek", "sil", "sil2"].forEach(function (k) {
+      var n = document.getElementById("menu-" + k);
+      if (n) n.hidden = k !== which;
+    });
+    if (which === "yedek") document.getElementById("yedek-txt").value = exportText();
+  }
+
+  function render() {
+    document.getElementById("menu").classList.toggle("hide", UI.mode === "play");
+    var err = document.getElementById("menu-err");
+    if (UI.loadErr) { err.hidden = false; err.textContent = UI.loadErr; }
+    else { err.hidden = true; err.textContent = ""; }
+    var devam = document.getElementById("btn-devam");
+    if (devam) devam.disabled = !S;
+    drawTop();
+    drawNav();
+    drawSide();
+    drawStage();
+    drawModal();
+  }
+
+  function act(code, payload) {
+    if (code === "menu") {
+      if (payload.go === "play") {
+        if (!S) return;
+        enterPlay();
+        persist();
+      } else showMenu(payload.go || "home");
+      render();
+      return;
+    }
+    if (code === "start") {
+      var v = (document.getElementById("lakap").value || "").trim().slice(0, 16);
+      blank(v || "Adsız");
+      enterPlay();
+      writeSave();
+      render();
+      return;
+    }
+    if (code === "silok") {
+      try { localStorage.removeItem(KEY); localStorage.removeItem(BAK); } catch (e) {}
+      S = null;
+      UI.loadErr = "";
+      showMenu("home");
+      render();
+      return;
+    }
+    if (code === "copy") {
+      try { navigator.clipboard.writeText(document.getElementById("yedek-txt").value); } catch (e) {}
+      return;
+    }
+    if (code === "load") {
+      try {
+        importText(document.getElementById("yedek-txt").value);
+        enterPlay();
+        writeSave();
+        render();
+      } catch (e) {
+        UI.loadErr = "Yedek okunamadı.";
+        showMenu("home");
+        render();
+      }
+      return;
+    }
+    if (!S) return;
+    if (code === "nav") {
+      if (UI.sahne) return;
+      S.screen = payload.id;
+      if (payload.id === "isler" && UI.streetId) UI.planStreet = UI.streetId;
+      UI.sahne = false;
+      UI.showCmp = false;
+      UI.calId = null;
+      if (payload.id !== "harita") UI.streetId = null;
+      UI.sideOpen = false;
+      persist();
+      render();
+      return;
+    }
+    if (code === "side") {
+      UI.sideOpen = !UI.sideOpen;
+      render();
+      return;
+    }
+    if (code === "ilerlet") {
+      advance();
+      return;
+    }
+    if (code === "threat-yes") {
+      pendingThreatsToday().forEach(delayThreat);
+      UI.threatOk = true;
+      closeModal();
+      advance();
+      return;
+    }
+    if (code === "threat-no") {
+      closeModal();
+      render();
+      return;
+    }
+    if (code === "paper-git") {
+      var g = inboxBy(payload.id);
+      if (g) {
+        g.read = true;
+        if (g.calId) { S.screen = "takvim"; UI.calId = g.calId; }
+        else if (g.href) S.screen = g.href;
+      }
+      persist();
+      render();
+      return;
+    }
+    if (code === "paper-ertele") {
+      var pe = inboxBy(payload.id);
+      if (pe) pe.read = true;
+      if (pe && pe.calId) {
+        var cc = S.calendar.filter(function (x) { return x.id === pe.calId; })[0];
+        if (cc && cc.status === "bekler") delayThreat(cc);
+      }
+      persist();
+      render();
+      return;
+    }
+    if (code === "paper-dosya") {
+      var pd = inboxBy(payload.id);
+      if (pd) pd.read = true;
+      persist();
+      render();
+      return;
+    }
+    if (code === "paper-kabul") {
+      var pk = inboxBy(payload.id);
+      if (pk) pk.read = true;
+      if (pk && pk.calId) {
+        var cal = S.calendar.filter(function (x) { return x.id === pk.calId; })[0];
+        if (cal) cal.status = "kabul";
+        var sid = cal && cal.ref && cal.ref.streetId ? cal.ref.streetId : S.streetHome;
+        var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+        var job = {
+          id: nid("j"), kind: "tahsilat", streetId: sid, prepLeft: 0,
+          assigned: live.slice(0, 3), tags: [], phase: "idle", tickIndex: 0
+        };
+        S.jobs.push(job);
+        persist();
+        startJob(job.id);
+        render();
+        return;
+      }
+      persist();
+      render();
+      return;
+    }
+    if (code === "inbox") {
+      UI.inboxId = payload.id;
+      var it = inboxBy(payload.id);
+      if (it) it.read = true;
+      persist();
+      render();
+      return;
+    }
+    if (code === "man") {
+      UI.manId = payload.id;
+      UI.showCmp = false;
+      render();
+      return;
+    }
+    if (code === "cmp") {
+      var i = UI.cmp.indexOf(payload.id);
+      if (i >= 0) UI.cmp.splice(i, 1);
+      else if (UI.cmp.length < 2) UI.cmp.push(payload.id);
+      UI.showCmp = false;
+      render();
+      return;
+    }
+    if (code === "cmpgo") {
+      if (UI.cmp.length === 2) UI.showCmp = true;
+      render();
+      return;
+    }
+    if (code === "street") {
+      UI.streetId = payload.id;
+      UI.planStreet = payload.id;
+      UI.sideOpen = true;
+      render();
+      return;
+    }
+    if (code === "cal") {
+      UI.calId = payload.id;
+      render();
+      return;
+    }
+    if (code === "sahne") {
+      startJob(payload.id);
+      render();
+      return;
+    }
+    if (code === "planla") {
+      var selS = document.getElementById("job-street");
+      var selK = document.getElementById("job-kind");
+      var streetId = selS ? selS.value : S.streetHome;
+      var kind = selK ? selK.value : "tahsilat";
+      UI.planStreet = streetId;
+      UI.planKind = kind;
+      var assigned = [];
+      document.querySelectorAll('input[data-man]:checked').forEach(function (el) { assigned.push(el.getAttribute("data-man")); });
+      if (!assigned.length) return;
+      if (kind === "bakkal_soygunu" && assigned.length < 3) return;
+      UI.planMen = assigned.slice();
+      var tags = [];
+      if (rng() < 0.08) {
+        tags.push("okul");
+        pushInbox("Okul çıkışına denk geldi.", "İş, okul çıkışına denk geldi.");
+      }
+      var prep = PREP_OF(kind);
+      S.jobs.push({
+        id: nid("j"),
+        kind: kind,
+        streetId: streetId,
+        prepLeft: prep,
+        assigned: assigned,
+        tags: tags,
+        phase: prep > 0 ? "prep" : "idle",
+        tickIndex: 0
+      });
+      persist();
+      render();
+      return;
+    }
+    if (code === "job-emir") {
+      orderJob(payload.id);
+      return;
+    }
+    if (code === "job-tamam") {
+      endSahne();
+      persist();
+      render();
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-act]");
+    if (!el || el.disabled) return;
+    act(el.getAttribute("data-act"), el.dataset);
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (!t || !S || UI.sahne) return;
+    if (t.id === "job-kind") {
+      UI.planKind = t.value;
+      capturePlanMen();
+      render();
+      return;
+    }
+    if (t.id === "job-street") {
+      UI.planStreet = t.value;
+      return;
+    }
+    if (t.getAttribute && t.getAttribute("data-man") != null) capturePlanMen();
+  });
+  function capturePlanMen() {
+    UI.planMen = [];
+    document.querySelectorAll("input[data-man]:checked").forEach(function (el) {
+      UI.planMen.push(el.getAttribute("data-man"));
+    });
+  }
+
+  function runJobInstant(id, orders) {
+    var prev = UI.fastJob;
+    UI.fastJob = true;
+    clearJobTimer();
+    startJob(id);
+    var oi = 0, n = 0;
+    while (UI.sahne && !UI.jobDone && n++ < 40) {
+      var j = jobBy(id);
+      if (!j) break;
+      var steps = jobSteps(j.kind);
+      if (j.tickIndex >= steps.length) { finishJob(); break; }
+      var step = steps[j.tickIndex];
+      if (step === "temas" || step === "tepki") orderJob(orders[oi++] || "sessiz");
+      else orderJob("devam");
+    }
+    endSahne();
+    UI.fastJob = prev;
+  }
+
+  window.__raconTest = function () {
+    var issues = [];
+    var prevKey = null, prevBak = null;
+    try { prevKey = localStorage.getItem(KEY); } catch (e) {}
+    try { prevBak = localStorage.getItem(BAK); } catch (e) {}
+    var prevFast = UI.fastJob;
+    function fail(msg) { issues.push(msg); }
+    function boundsOk() {
+      function lim(n, a, b, name) {
+        if (typeof n !== "number" || n < a || n > b) fail(name + " sınır dışı: " + n);
+      }
+      lim(S.dosya, 0, 100, "dosya");
+      lim(S.rep.korku, 0, 100, "korku");
+      lim(S.rep.saygi, 0, 100, "saygi");
+      lim(S.rep.nam, 0, 100, "nam");
+      lim(S.rep.racon, 0, 100, "racon");
+      S.streets.forEach(function (st) { lim(st.heat, 0, 100, "heat " + st.ad); });
+      S.rivals.forEach(function (r) { lim(r.husumet, 0, 100, "husumet"); });
+      S.men.forEach(function (m) {
+        lim(m.gonul, 0, 100, "gonul");
+        lim(m.yorgunluk, 0, 100, "yorgunluk");
+      });
+      if (S.kasa < 0) fail("kasa negatif: " + S.kasa);
+    }
+
+    UI.fastJob = false;
+    UI.modal = null;
+    UI.sahne = false;
+    blank("Test");
+    enterPlay();
+    if (S.calendar.length !== 0) fail("takvim yeni oyunda boş değil");
+    if (S.inbox.length !== 1) fail("inbox tek satır değil: " + S.inbox.length);
+
+    var d0 = S.day, w0 = S.week;
+    advance();
+    var d1 = S.day, w1 = S.week;
+    advance();
+    if (S.day !== d1 || S.week !== w1) fail("çift İlerlet çift gün yedi");
+    S.busy = false;
+    if (UI.advTimer) { clearTimeout(UI.advTimer); UI.advTimer = 0; }
+    if (!(d1 !== d0 || w1 !== w0)) fail("İlerlet gün ilerletmedi");
+
+    var aksem = streetBy("st_aksem");
+    if (aksem) aksem.sahip = "rakip";
+    var crew = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+    var planned = [];
+    for (var i = 0; i < 3; i++) {
+      var job = {
+        id: nid("j"),
+        kind: "tahsilat",
+        streetId: "st_aksem",
+        prepLeft: 0,
+        assigned: crew.slice(),
+        tags: [],
+        phase: "idle",
+        tickIndex: 0
+      };
+      S.jobs.push(job);
+      planned.push(job.id);
+    }
+    planned.forEach(function (id) { runJobInstant(id, ["sessiz", "sessiz"]); });
+    var goz = S.calendar.filter(function (c) { return c.title === "Göz"; });
+    if (!goz.length) fail("rakip sokağında 2 iş sonrası Göz tehdidi düşmedi");
+
+    UI.fastJob = true;
+    S.busy = false;
+    UI.sahne = false;
+    UI.modal = null;
+    var wageOk = false;
+    var delayOk = false;
+    for (var t = 0; t < 14; t++) {
+      var th = pendingThreatsToday();
+      if (th.length) {
+        var hu = S.rivals[0].husumet;
+        var dos = S.dosya;
+        th.forEach(delayThreat);
+        UI.threatOk = true;
+        if (S.rivals[0].husumet > hu || S.dosya > dos) delayOk = true;
+        else fail("tehdit ertelenince husumet veya dosya artmadı");
+      }
+      var sun = S.day === 7;
+      var kasaBefore = S.kasa;
+      advance();
+      S.busy = false;
+      if (sun && S.kasa < kasaBefore) wageOk = true;
+    }
+    if (!wageOk) fail("hafta 7'de yevmiye kesilmedi");
+    if (!delayOk) fail("tehdit ertelenmedi");
+
+    boundsOk();
+    if (S.rep.korku >= 70 && S.rep.saygi >= 70) fail("korku ve saygı ikisi 70+ kaldı");
+    S.rep.korku = 70;
+    S.rep.saygi = 70;
+    addRep("korku", 5);
+    if (S.rep.korku >= 70 && S.rep.saygi >= 70) fail("soft cap korku/saygı tutmadı");
+
+    writeSave();
+    var shot = {
+      week: S.week, day: S.day, kasa: S.kasa, dosya: S.dosya,
+      stage: S.stage, seed: S.seed, jobs: S.jobs.length,
+      inbox: S.inbox.length, cal: S.calendar.length,
+      rep: JSON.stringify(S.rep)
+    };
+    var loaded = parseSave(localStorage.getItem(KEY));
+    if (!loaded) fail("kayıt okunamadı");
+    else if (
+      loaded.week !== shot.week || loaded.day !== shot.day || loaded.kasa !== shot.kasa ||
+      loaded.stage !== shot.stage || loaded.seed !== shot.seed ||
+      loaded.jobs.length !== shot.jobs || JSON.stringify(loaded.rep) !== shot.rep
+    ) fail("kayıt yaz-oku state'i bozdu");
+
+    try {
+      if (prevKey) localStorage.setItem(KEY, prevKey);
+      else localStorage.removeItem(KEY);
+      if (prevBak) localStorage.setItem(BAK, prevBak);
+      else localStorage.removeItem(BAK);
+    } catch (e) {}
+    clearTimeout(saveTimer);
+    if (UI.advTimer) { clearTimeout(UI.advTimer); UI.advTimer = 0; }
+    UI.fastJob = prevFast;
+    UI.sahne = false;
+    UI.modal = null;
+    S = loadSave();
+    UI.mode = "menu";
+    showMenu("home");
+    render();
+    return issues;
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if (!UI.modal || e.key !== "Tab") return;
+    var list = Array.prototype.slice.call(document.querySelectorAll("#modal button:not([disabled])"));
+    if (!list.length) return;
+    var i = list.indexOf(document.activeElement);
+    if (e.shiftKey) {
+      if (i <= 0) { list[list.length - 1].focus(); e.preventDefault(); }
+    } else if (i === list.length - 1 || i < 0) {
+      list[0].focus();
+      e.preventDefault();
+    }
+  });
+
+  S = loadSave();
+  showMenu("home");
+  render();
+})();
+</script>
+</body>
+</html>
