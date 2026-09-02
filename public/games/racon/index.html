@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="14">
+<meta name="racon-rev" content="15">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -2233,8 +2233,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     if (S.dosya >= 92) iddianame();
   }
   function iddianame() {
-    if (num(S.flags.iddianame, 0) >= S.week - 20) return;
+    if (S.flags.iddianame && S.week - num(S.flags.iddianame, 0) < 20) return;
     S.flags.iddianame = S.week;
+    S.flags.iddianameSay = num(S.flags.iddianameSay, 0) + 1;
     var kayip = Math.round(S.kasa * 0.35);
     S.kasa = Math.max(0, S.kasa - kayip);
     S.evidence = [];
@@ -4285,8 +4286,13 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     return issues;
   };
 
-  window.__raconSim = function (n) {
+  window.__raconSim = function (n, profil) {
     n = Math.max(1, Math.min(200, n || 100));
+    /* Oyun tarzı profilleri: bot tek türlü oynarsa emniyet baskısı hiç
+       sınanmıyor. "karma" kariyerleri üçe böler. */
+    var PROFIL = ["temkinli", "dengeli", "pervasiz"];
+    var istenen = PROFIL.indexOf(profil) >= 0 ? profil : "karma";
+    var aktif = istenen === "karma" ? PROFIL[0] : istenen;
     var prevKey = null, prevBak = null;
     try { prevKey = localStorage.getItem(KEY); } catch (e) {}
     try { prevBak = localStorage.getItem(BAK); } catch (e) {}
@@ -4299,15 +4305,27 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     var siraSay = [0, 0, 0, 0, 0, 0];
     var kasaToplam = 0, kasaN = 0, kasaMin = 1e12, kasaMax = 0;
     var baskin = 0, kazan = 0, kaybet = 0, kacti = 0, sezon = 0, son = 0, gun = 0;
+    var iddia = 0, dosyaZirve = 0;
+    var perProfil = {};
+    PROFIL.forEach(function (pf) {
+      perProfil[pf] = { kariyer: 0, sezon: 0, baskin: 0, iddia: 0, oyunSonu: 0, dosyaZirve: 0, kasa: 0, kazan: 0, mac: 0 };
+    });
     var sonHafta = 0, sonCap = 0, sonGecmis = 0;
     function tarzSec() {
+      if (aktif === "pervasiz") return "pusu";
       var hazir = S.men.filter(function (m) { return m.durum === "hazir"; });
-      var best = "kapi", bestN = -1;
-      TARZ_UI.forEach(function (t) {
+      var havuz = aktif === "temkinli" ? ["masa", "bolusme"] : TARZ_UI;
+      var best = havuz[0], bestN = -1;
+      havuz.forEach(function (t) {
         var g = kadroGucu(hazir, t);
         if (g > bestN) { bestN = g; best = t; }
       });
       return best;
+    }
+    function emirSec() {
+      if (aktif === "pervasiz") return ["sikistir", "ates"];
+      if (aktif === "temkinli") return ["sessiz", "sessiz"];
+      return rng() < 0.5 ? ["sessiz", "sikistir"] : ["sikistir", "sessiz"];
     }
     function gunOyna() {
       UI.modal = null;
@@ -4329,16 +4347,62 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         hz.kapali = true;
       }
       var km = S.inbox.filter(function (x) { return x.kind === "komiser" && !x.read; })[0];
-      if (km && S.kasa > (km.ucret || 5000) + 4000 && S.komiser) {
-        S.kasa -= km.ucret || 5000;
-        S.komiser.baglilik = clamp(S.komiser.baglilik + 18, 0, 100);
+      if (km && S.komiser) {
+        var ucret = km.ucret || 5000;
+        var zarfVer = aktif === "temkinli" ? true : aktif === "dengeli" ? rng() < 0.5 : false;
+        if (zarfVer && S.kasa > ucret + 4000) {
+          S.kasa -= ucret;
+          S.komiser.baglilik = clamp(S.komiser.baglilik + 18, 0, 100);
+          S.evidence = S.evidence.slice(0, Math.max(0, S.evidence.length - 2));
+          recalcDosya();
+        } else if (aktif === "pervasiz") {
+          S.komiser.baglilik = clamp(S.komiser.baglilik - 20, 0, 100);
+          S.komiser.risk = clamp(S.komiser.risk + 14, 0, 100);
+          addRep("korku", 4);
+          addRep("racon", -2);
+        } else {
+          S.komiser.risk = clamp(S.komiser.risk + 6, 0, 100);
+        }
         km.read = true;
         km.kapali = true;
       }
+      var tuyo = S.inbox.filter(function (x) { return x.kind === "tuyo" && !x.read; })[0];
+      if (tuyo) {
+        if (aktif !== "pervasiz" && S.kasa > 4000) {
+          S.flags.kepenkHafta = S.week;
+          S.kasa = Math.max(0, S.kasa - Math.round(2000 + S.kasa * 0.02));
+        }
+        tuyo.read = true;
+        tuyo.kapali = true;
+      }
+      if (S.dosya > dosyaZirve) dosyaZirve = S.dosya;
+      if (S.dosya > perProfil[aktif].dosyaZirve) perProfil[aktif].dosyaZirve = S.dosya;
+      /* Bot kendi işini de planlar; yoksa dosya hiç yükselmiyor ve
+         emniyet baskısı sınanmadan kalıyor. */
+      var acik = S.jobs.filter(function (j) { return j.phase !== "done"; }).length;
+      var hazirlar = S.men.filter(function (m) { return m.durum === "hazir"; });
+      var kota = aktif === "pervasiz" ? 2 : aktif === "dengeli" ? 1 : 1;
+      if (acik < kota && hazirlar.length) {
+        var stL = S.streets[ri(0, S.streets.length - 1)];
+        var tur = aktif === "pervasiz"
+          ? (rng() < 0.35 ? "bakkal_soygunu" : "tahsilat")
+          : aktif === "dengeli"
+            ? (rng() < 0.5 ? "kepenk" : "tahsilat")
+            : "tahsilat";
+        if (tur === "bakkal_soygunu" && hazirlar.length < 3) tur = "kepenk";
+        var pr = PREP_OF(tur);
+        S.jobs.push({
+          id: nid("j"), kind: tur, streetId: stL.id, prepLeft: pr,
+          assigned: hazirlar.slice(0, 3).map(function (m) { return m.id; }),
+          tags: [], phase: pr > 0 ? "prep" : "idle", tickIndex: 0
+        });
+      }
       var idle = S.jobs.filter(function (j) { return j.phase === "idle"; })[0];
-      if (idle && S.day !== 7) runJobInstant(idle.id, ["sessiz", "sessiz"]);
+      if (idle && (S.day !== 7 || aktif === "pervasiz")) runJobInstant(idle.id, emirSec());
     }
-    function kariyer(seed) {
+    function kariyer(seed, idx) {
+      aktif = istenen === "karma" ? PROFIL[idx % PROFIL.length] : istenen;
+      perProfil[aktif].kariyer += 1;
       blank("Sim");
       S.seed = seed;
       S.origin = "koy";
@@ -4366,20 +4430,29 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
           if (S.kasa < kasaMin) kasaMin = S.kasa;
           if (S.kasa > kasaMax) kasaMax = S.kasa;
           baskin += num(S.flags.baskinSay, 0);
+          perProfil[aktif].baskin += num(S.flags.baskinSay, 0);
+          perProfil[aktif].sezon += 1;
+          perProfil[aktif].kasa += S.kasa;
           S.flags.baskinSay = 0;
         }
       }
+      var kK = 0, kB = 0, kC = 0;
       S.lig.fikstur.forEach(function (f) {
-        if (f.sonuc === "kazandi") kazan += 1;
-        else if (f.sonuc === "kaybetti") kaybet += 1;
-        else if (f.sonuc === "kacti" || f.sonuc === "cekildi") kacti += 1;
+        if (f.sonuc === "kazandi") kK += 1;
+        else if (f.sonuc === "kaybetti") kB += 1;
+        else if (f.sonuc === "kacti" || f.sonuc === "cekildi") kC += 1;
       });
-      kazan += num(S.flags.macKazan, 0);
-      kaybet += num(S.flags.macKaybet, 0);
-      kacti += num(S.flags.macKacir, 0);
-      if (S.flags.oyunSonu) son += 1;
+      kK += num(S.flags.macKazan, 0);
+      kB += num(S.flags.macKaybet, 0);
+      kC += num(S.flags.macKacir, 0);
+      kazan += kK; kaybet += kB; kacti += kC;
+      perProfil[aktif].kazan += kK;
+      perProfil[aktif].mac += kK + kB + kC;
+      iddia += num(S.flags.iddianameSay, 0);
+      perProfil[aktif].iddia += num(S.flags.iddianameSay, 0);
+      if (S.flags.oyunSonu) { son += 1; perProfil[aktif].oyunSonu += 1; }
     }
-    for (var i = 0; i < n; i++) kariyer(10007 + i * 97);
+    for (var i = 0; i < n; i++) kariyer(10007 + i * 97, i);
     try {
       if (prevKey) localStorage.setItem(KEY, prevKey);
       else localStorage.removeItem(KEY);
@@ -4408,6 +4481,18 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       baskinSezon: sezon ? Math.round(100 * baskin / sezon) / 100 : 0,
       baskinToplam: baskin,
       gun: gun,
+      profil: istenen,
+      iddianame: iddia,
+      dosyaZirve: Math.round(dosyaZirve),
+      profiller: PROFIL.map(function (pf) {
+        var d = perProfil[pf];
+        return {
+          ad: pf, kariyer: d.kariyer, baskin: d.baskin, iddianame: d.iddia,
+          oyunSonu: d.oyunSonu, dosyaZirve: Math.round(d.dosyaZirve),
+          kasa: d.sezon ? Math.round(d.kasa / d.sezon) : 0,
+          kazanOran: d.mac ? Math.round(1000 * d.kazan / d.mac) / 10 : 0
+        };
+      }).filter(function (x) { return x.kariyer > 0; }),
       debug: { sonHafta: sonHafta, sonCap: sonCap, sonGecmis: sonGecmis, ligSezon: S && S.lig ? S.lig.sezon : 0 }
     };
   };
