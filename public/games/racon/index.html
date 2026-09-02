@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="13">
+<meta name="racon-rev" content="14">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -173,6 +173,13 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .st.rakip{border-left-color:var(--danger)}
 .st.pale{opacity:.62}
 .st h4{margin:0 0 8px;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.emirler{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.btn.emir{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  min-height:52px;padding:8px 12px;text-align:left;line-height:1.3}
+.btn.emir b{font-weight:600;letter-spacing:.04em}
+.btn.emir .ne{color:var(--ink-dim);font-size:12px}
+.btn.emir .sayi{color:var(--accent);font-size:11px;font-variant-numeric:tabular-nums}
+.btn.emir.danger .sayi{color:#d9a599}
 .log .lg-adim{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:8px}
 .log .lg-adim:first-child{border-top:0;margin-top:0;padding-top:0}
 .log .lg-emir{color:var(--ink);border-left:2px solid var(--heat);padding-left:8px;margin-left:-2px}
@@ -1255,6 +1262,61 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     clearJobTimer();
     UI.jobTimer = setTimeout(drainLines, 120 + (UI.jobLog.length % 3) * 30);
   }
+  /* Talimatın ne getireceği — finishJob'daki dallarla birebir aynı sayılar. */
+  function emirOnizle(kind, code) {
+    var g;
+    if (kind === "bakkal_soygunu" || kind === "kuyum") {
+      g = {
+        sessiz: { para: kind === "kuyum" ? "18–36 bin" : "12–20 bin", heat: 8, ek: "tanık yok · nam +4" },
+        sikistir: { para: kind === "kuyum" ? "18–36 bin" : "12–20 bin", heat: 8, ek: "tanık yok · nam +4" },
+        ates: { para: kind === "kuyum" ? "8–18 bin" : "4–9 bin", heat: 16, ek: "tanık 1–2 · korku +6 · saygı −3" },
+        cekil: { para: "yok", heat: 6, ek: "yara/hapis riski · korku −2 · saygı −2" }
+      };
+    } else if (kind === "kacak_mal" || kind === "insaat_harac") {
+      g = {
+        sessiz: { para: "8–16 bin", heat: 6, ek: "nam +3 · saygı +1" },
+        sikistir: { para: "8–16 bin", heat: 6, ek: "nam +3 · saygı +1" },
+        ates: { para: "5–12 bin", heat: 12, ek: "tanık 0–2 · korku +5 · saygı −2" },
+        cekil: { para: "yok", heat: 5, ek: "korku −2 · saygı −2" }
+      };
+    } else if (kind === "tek_arac") {
+      g = {
+        sessiz: { para: "4,5–8,5 bin", heat: 3, ek: "saygı +1" },
+        sikistir: { para: "4,5–8,5 bin", heat: 3, ek: "saygı +1" },
+        ates: { para: "2–5 bin", heat: 10, ek: "tanık 0–1 · nam +3" },
+        cekil: { para: "yok", heat: 3, ek: "saygı −1" }
+      };
+    } else if (kind === "kepenk" || kind === "gazino_kapi") {
+      g = {
+        sessiz: { para: "5–10 bin", heat: 5, ek: "nam +2" },
+        sikistir: { para: "5–10 bin", heat: 5, ek: "nam +2" },
+        ates: { para: "2,5–6 bin", heat: 11, ek: "korku +3 · saygı −2" },
+        cekil: { para: "yok", heat: 4, ek: "korku −1" }
+      };
+    } else if (kind === "esnaf_koruma") {
+      g = {
+        sessiz: { para: "2,8–5,2 bin", heat: 2, ek: "saygı +3" },
+        sikistir: { para: "2,8–5,2 bin", heat: 2, ek: "saygı +3" },
+        ates: { para: "0,8–2,5 bin", heat: 8, ek: "saygı −4 · nam +2" },
+        cekil: { para: "yok", heat: 1, ek: "saygı −3" }
+      };
+    } else {
+      g = {
+        sessiz: { para: "4–7 bin", heat: 4, ek: "saygı +2 · nam +1" },
+        sikistir: { para: "4–7 bin", heat: 4, ek: "saygı +2 · nam +1" },
+        ates: { para: "2–5 bin", heat: 14, ek: "tanık 0–2 · korku +6 · saygı −3 · nam +5" },
+        cekil: { para: "yok", heat: 2, ek: "korku −2 · saygı −2" }
+      };
+    }
+    if (code === "sikistir") {
+      return { para: g.sessiz.para + " · +%25", heat: g.sessiz.heat + 3, ek: "korku +2 · saygı −1 · yaralanma %12" };
+    }
+    return g[code] || g.sessiz;
+  }
+  function emirYazi(kind, code) {
+    var t = emirOnizle(kind, code);
+    return "para " + t.para + " · heat +" + t.heat + " · " + t.ek;
+  }
   function orderJob(code) {
     if (!UI.sahne || !UI.jobWait || UI.jobDone) return;
     var j = jobBy(UI.jobId);
@@ -1283,6 +1345,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         ]
       }[code];
       if (yanki) yanki.forEach(function (l) { UI.jobLog.push(l); });
+      UI.jobLog.push("· " + emirYazi(j.kind, code));
       crewOf(j).forEach(function (m) {
         var sad = (m.stats && m.stats.sadakat ? m.stats.sadakat : 6) * 5;
         if (sad >= 40) return;
@@ -1375,6 +1438,13 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       heatD = 4;
     }
 
+    if (orders.indexOf("sikistir") >= 0 && !fired && !fled) {
+      para = Math.round(para * 1.25);
+      heatD += 3;
+      addRep("korku", 2);
+      addRep("saygi", -1);
+      if (yara === "—" && rng() < 0.12) yara = "yara";
+    }
     if (fired && yara === "—") {
       var kaza = rng();
       yara = kaza < 0.1 ? "olu" : kaza < 0.3 ? "yara" : kaza < 0.4 ? "hapis" : "—";
@@ -1897,7 +1967,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   var TARZ_UI = ["masa", "pusu", "kapi", "bolusme"];
   function ligKur(sezon) {
     var ek = LIG_EKIP.map(function (e) {
-      return { id: e.id, ad: e.ad, guc: e.guc + ri(-6, 6) + (sezon - 1) * 4, sokak: ri(0, 2), nam: ri(8, 26), korku: ri(6, 24) };
+      return { id: e.id, ad: e.ad, guc: e.guc + ri(-6, 6) + (sezon - 1) * 9, sokak: ri(0, 2), nam: ri(8, 26), korku: ri(6, 24) };
     });
     /* Fikstür kolaydan zora: ilk tur güce göre sıralı, sonra dönüyor. */
     var sirali = ek.slice().sort(function (a, b) { return a.guc - b.guc; });
@@ -2323,15 +2393,31 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       return "<b" + (i === Math.min(r.adim, RND_ADIM.length - 1) ? ' class="on"' : "") + ">" + esc(ad) + "</b>";
     }).join("");
     var log = r.lines.map(function (l) { return "<p>" + esc(l) + "</p>"; }).join("");
+    var kararlar = [
+      { k: "bas", ad: "Bastır", not: "Üstüne yürü.", sayi: "güç +%12 · gürültü +4 · dosya işler" },
+      { k: "konus", ad: "Konuş", not: "Ağzınla çöz.", sayi: "güç −%5 · racon +2 · saygı +1" },
+      { k: "cekil", ad: "Çekil", not: "Masadan kalk, kavga çıkmasın.", sayi: "sonuç yok · nam −2 · racon +1" }
+    ];
     var acts = r.bekle
-      ? '<div class="acts"><button type="button" class="btn primary" data-act="rnd-karar" data-k="bas">Bastır</button>' +
-        '<button type="button" class="btn" data-act="rnd-karar" data-k="konus">Konuş</button>' +
-        '<button type="button" class="btn ghost" data-act="rnd-karar" data-k="cekil">Çekil</button></div>'
+      ? '<p class="dim">Karar · ne seçersen ne olur</p><div class="emirler">' + kararlar.map(function (x) {
+          return '<button type="button" class="btn emir" data-act="rnd-karar" data-k="' + x.k + '"><b>' + x.ad + "</b>" +
+            '<span class="ne">' + esc(x.not) + '</span><span class="sayi">' + esc(x.sayi) + "</span></button>";
+        }).join("") + "</div>"
       : '<p class="dim">…</p>';
     return '<div class="card"><h3>Randevu</h3><div class="steps">' + seritler + "</div>" +
       '<div class="log">' + log + "</div>" + acts + "</div>";
   }
 
+  var STAT_TR_KISA = { agiz: "ağız", silah: "silah", kabadayilik: "kabadayılık", hesap: "hesap",
+    sogukkan: "soğukkanlılık", kurnazlik: "kurnazlık", gizlilik: "gizlilik", sadakat: "sadakat", direksiyon: "direksiyon" };
+  function tarzYazi(id) {
+    var t = TARZ[id];
+    if (!t) return "";
+    var g = t.guc === 1 ? "güç normal" : t.guc > 1 ? "güç +%" + Math.round((t.guc - 1) * 100) : "güç −%" + Math.round((1 - t.guc) * 100);
+    return g + " · " + (STAT_TR_KISA[t.stat] || t.stat) + " belirler · dosya +" + t.dosya +
+      " · korku +" + t.korku + (t.racon ? " · racon " + (t.racon > 0 ? "+" : "") + t.racon : "") +
+      " · yaralanma %" + Math.round(t.yara * 100);
+  }
   function randevuKadro() {
     var hazir = S.men.filter(function (m) { return m.durum === "hazir"; });
     if (!UI.randevuMen) return hazir;
@@ -2790,10 +2876,11 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
             '" data-act="hazirlik" data-id="' + it.id + '" data-tip="' + t + '">' + HAZIRLIK[t].ad + "</button>";
         }).join("");
       } else if (randevu) {
-        acts = TARZ_UI.map(function (t) {
-          return '<button type="button" class="btn' + (t === "kapi" ? " primary" : "") +
-            '" data-act="randevu-git" data-id="' + kal.id + '" data-tarz="' + t + '">' + TARZ[t].ad + "</button>";
-        }).join("") +
+        acts = '<div class="emirler">' + TARZ_UI.map(function (t) {
+          return '<button type="button" class="btn emir' + (t === "pusu" ? " danger" : "") +
+            '" data-act="randevu-git" data-id="' + kal.id + '" data-tarz="' + t + '"><b>' + TARZ[t].ad + "</b>" +
+            '<span class="ne">' + esc(TARZ[t].not || "") + '</span><span class="sayi">' + esc(tarzYazi(t)) + "</span></button>";
+        }).join("") + "</div>" +
           '<button type="button" class="btn" data-act="randevu-ertele" data-id="' + kal.id + '">Ertele</button>' +
           '<button type="button" class="btn ghost" data-act="randevu-gitme" data-id="' + kal.id + '">Gitme</button>';
       } else if (hasim) {
@@ -2857,10 +2944,11 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         var git = "";
         if (c.strip === "randevu" && c.status === "bekler") {
           git = '<div class="acts">' +
-            TARZ_UI.map(function (t) {
-              return '<button type="button" class="btn' + (t === "kapi" ? " primary" : "") +
-                '" data-act="randevu-git" data-id="' + c.id + '" data-tarz="' + t + '">' + TARZ[t].ad + "</button>";
-            }).join("") +
+            '<div class="emirler">' + TARZ_UI.map(function (t) {
+              return '<button type="button" class="btn emir' + (t === "pusu" ? " danger" : "") +
+                '" data-act="randevu-git" data-id="' + c.id + '" data-tarz="' + t + '"><b>' + TARZ[t].ad + "</b>" +
+                '<span class="sayi">' + esc(tarzYazi(t)) + "</span></button>";
+            }).join("") + "</div>" +
             '<button type="button" class="btn" data-act="randevu-ertele" data-id="' + c.id + '">Ertele</button>' +
             '<button type="button" class="btn ghost" data-act="randevu-gitme" data-id="' + c.id + '">Gitme</button></div>';
         }
@@ -2966,11 +3054,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     var acts = "";
     var step = steps[j.tickIndex];
     if (UI.jobWait && (step === "temas" || step === "tepki")) {
-      acts = '<p class="dim">Talimat</p><div class="acts">' +
-        '<button type="button" class="btn" data-act="job-emir" data-id="sessiz">Sessiz</button>' +
-        '<button type="button" class="btn" data-act="job-emir" data-id="sikistir">Sıkıştır</button>' +
-        '<button type="button" class="btn" data-act="job-emir" data-id="cekil">Çekil</button>' +
-        '<button type="button" class="btn danger" data-act="job-emir" data-id="ates">Ateş</button></div>';
+      var emirler = [
+        { id: "sessiz", ad: "Sessiz", not: "Ses çıkarmadan hallet." },
+        { id: "sikistir", ad: "Sıkıştır", not: "Yakasına yapış, korkut." },
+        { id: "cekil", ad: "Çekil", not: "Bırak, çık. Para yok." },
+        { id: "ates", ad: "Ateş", not: "Silah çek. Geri dönüşü yok." }
+      ];
+      acts = '<p class="dim">Talimat · ne seçersen ne olur</p><div class="emirler">' +
+        emirler.map(function (e) {
+          return '<button type="button" class="btn emir' + (e.id === "ates" ? " danger" : "") +
+            '" data-act="job-emir" data-id="' + e.id + '"><b>' + e.ad + "</b>" +
+            '<span class="ne">' + esc(e.not) + "</span>" +
+            '<span class="sayi">' + esc(emirYazi(j.kind, e.id)) + "</span></button>";
+        }).join("") + "</div>";
     } else if (UI.jobWait) {
       acts = '<div class="acts"><button type="button" class="btn primary" data-act="job-emir" data-id="devam">Devam</button></div>';
     }
