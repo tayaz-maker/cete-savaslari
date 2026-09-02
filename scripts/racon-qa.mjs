@@ -391,7 +391,7 @@ await oyunaDon(page);
     await page.waitForTimeout(200);
     const dugme = await page.evaluate(() =>
       [...document.querySelectorAll(".sheet .acts button")].map((b) => b.textContent.trim()));
-    if (dugme.length !== 1) not("kâğıt: hedefsiz kâğıtta " + dugme.length + " düğme var (1 bekleniyor): " + dugme.join(","));
+    if (dugme.length !== 2) not("kâğıt: hedefsiz kâğıtta " + dugme.length + " düğme var (2 bekleniyor: Okundu+Ağza bırak): " + dugme.join(","));
     if (dugme.length) {
       await page.locator(".sheet .acts button").first().click().catch(() => {});
       await page.waitForTimeout(200);
