@@ -296,6 +296,91 @@ for (const [w, h, ad] of [[390, 800, "dikey 390x800"], [844, 346, "yatay 844x346
 await page.setViewportSize({ width: 1280, height: 800 });
 await page.waitForTimeout(200);
 
+// 10) lig / fikstür / kâğıt eylemleri
+{
+  const oku = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem("racon_v1")); } catch (e) { return null; } });
+  let j = await oku();
+  if (!j || !j.lig) not("lig: state yok");
+  else {
+    if (j.lig.ekipler.length < 4) not("lig: sıralamada " + j.lig.ekipler.length + " ekip var");
+    if (j.lig.fikstur.length < 8) not("lig: fikstür " + j.lig.fikstur.length + " randevu");
+    if (j.lig.hedefler.length !== 3) not("lig: hedef sayısı " + j.lig.hedefler.length);
+  }
+  // randevu haftasına ilerle
+  let randevu = null;
+  for (let t = 0; t < 24 && !randevu; t++) {
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(460);
+    for (let k = 0; k < 5; k++) {
+      const md = await page.evaluate(() => !!document.querySelector("#modal button"));
+      if (!md) break;
+      await page.locator("#modal button").first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(80);
+    }
+    j = await oku();
+    randevu = (j.calendar || []).filter((c) => c.strip === "randevu" && c.status === "bekler")[0];
+  }
+  if (!randevu) not("lig: 24 günde takvime randevu düşmedi");
+  else {
+    await page.locator('.navbtn[data-id="olaylar"]').click().catch(() => {});
+    await page.waitForTimeout(200);
+    const satir = page.locator(".list button.row").filter({ hasText: /randevu verdi/i }).first();
+    if (!(await satir.count())) not("lig: randevu kâğıdı olaylarda yok");
+    else {
+      await satir.click().catch(() => {});
+      await page.waitForTimeout(200);
+      const tarz = await page.evaluate(() => [...document.querySelectorAll('[data-act="randevu-git"]')].length);
+      if (tarz !== 3) not("lig: randevu kâğıdında " + tarz + " gidiş tarzı var (3 bekleniyor)");
+      const once = await oku();
+      await page.locator('[data-act="randevu-git"][data-tarz="kalabalik"]').first().click().catch(() => {});
+      await page.waitForTimeout(400);
+      const sonra = await oku();
+      const bitti = (sonra.lig.fikstur || []).some((f) => f.sonuc);
+      if (!bitti) not("lig: randevu çözülmedi (sonuç yazılmadı)");
+      if (JSON.stringify(once.rep) === JSON.stringify(sonra.rep) && once.kasa === sonra.kasa) {
+        not("lig: randevu sonucu hiçbir değeri değiştirmedi");
+      }
+    }
+  }
+  // sıralama ekranı
+  await page.locator('.navbtn[data-id="siralama"]').click().catch(() => {});
+  await page.waitForTimeout(250);
+  const st = await page.evaluate(() => ({
+    txt: document.querySelector(".stage")?.textContent || "",
+    satir: document.querySelectorAll(".lig-row").length
+  }));
+  if (!/Mahalle sıralaması/.test(st.txt)) not("lig: sıralama ekranı açılmadı");
+  if (st.satir < 5) not("lig: tabloda " + st.satir + " satır var");
+  if (!/Amcanın hedefi/.test(st.txt)) not("lig: hedef kartı yok");
+  if (!/Fikstür/.test(st.txt)) not("lig: fikstür kartı yok");
+
+  // hedefsiz bilgi kâğıdında ölü düğme kalmasın
+  await page.locator('.navbtn[data-id="olaylar"]').click().catch(() => {});
+  await page.waitForTimeout(200);
+  const bos = await page.evaluate(() => {
+    const j2 = JSON.parse(localStorage.getItem("racon_v1"));
+    const it = (j2.inbox || []).filter((x) => !x.kapali && !x.href && !x.calId && !x.siparis)[0];
+    return it ? it.id : null;
+  });
+  if (bos) {
+    await page.locator(`.list button.row[data-id="${bos}"]`).first().click().catch(() => {});
+    await page.waitForTimeout(200);
+    const dugme = await page.evaluate(() =>
+      [...document.querySelectorAll(".sheet .acts button")].map((b) => b.textContent.trim()));
+    if (dugme.length !== 1) not("kâğıt: hedefsiz kâğıtta " + dugme.length + " düğme var (1 bekleniyor): " + dugme.join(","));
+    if (dugme.length) {
+      await page.locator(".sheet .acts button").first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      const kaldiMi = await page.evaluate((id) => {
+        const j3 = JSON.parse(localStorage.getItem("racon_v1"));
+        const x = (j3.inbox || []).filter((y) => y.id === id)[0];
+        return x ? !!x.kapali : null;
+      }, bos);
+      if (!kaldiMi) not("kâğıt: 'kaldır' kâğıdı kapatmadı");
+    }
+  }
+}
+
 // 6) kayıt
 const kayit = await page.evaluate(() => {
   try { const s = localStorage.getItem("racon_v1"); return s ? JSON.parse(s).kind : null; } catch (e) { return "bozuk"; }
