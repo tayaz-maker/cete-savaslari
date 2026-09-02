@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#080706">
-<meta name="racon-rev" content="4">
+<meta name="racon-rev" content="5">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -377,7 +377,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   var BAND_TR = { yok: "yok", goz: "Göz", surtusme: "Sürtüşme", hasim: "Hasım", belali: "Belalı", kan: "Kan" };
   var JOB_TR = {
     tahsilat: "tahsilat", kepenk: "kepenk", tek_arac: "tek araç", bakkal_soygunu: "bakkal soygunu",
-    tombala: "tombala", insaat_harac: "inşaat haraç", kuyum: "kuyum tırnak", kacak_mal: "kaçak mal"
+    tombala: "tombala", insaat_harac: "inşaat haraç", kuyum: "kuyum tırnak", kacak_mal: "kaçak mal",
+    esnaf_koruma: "esnaf koruma", gazino_kapi: "gazino kapı"
   };
   var KIND_TR = { kamera: "kamera", iz: "iz", tanik: "tanık", sinyal: "sinyal", ihbar: "ihbar" };
   var KEY = "racon_v1";
@@ -450,6 +451,24 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     { id: "at_kara", ad: "Karagöz", oran: 2.2 },
     { id: "at_yil", ad: "Yıldırım", oran: 3.6 },
     { id: "at_hal", ad: "Haliç", oran: 6.1 }
+  ];
+  var STREET_NOTE = {
+    st_fevzi: "Caddenin belkemiği. Esnaf kalabalık, karakol iki durak.",
+    st_aksem: "Dar sokak, berber, köşe başı. Gece kısa kesilir.",
+    st_carsamba: "Pazar günü kalabalık. Çarşamba esnafı her şeyi görür.",
+    st_macar: "Soluk cadde. Kartallar buradan sızmayı sever.",
+    st_draman: "Yokuş, tahta ev, sessiz komşu. İz bırakmak zor.",
+    st_fener: "Haliç kenarı. Balıkçı, kilise çanı, gece sis."
+  };
+  var SIPARIS = [
+    { id: "sp_naci", kim: "Naci Bey", kind: "tahsilat", bonus: 1400, text: "Pavyon çıkışı kirlendi. Sarhoşu sen temizle, hesap bende." },
+    { id: "sp_riza", kim: "Tombalacı Rıza", kind: "tombala", bonus: 2600, text: "Bu gece masayı sen çevir. Polis başka semtte, diyorlar." },
+    { id: "sp_haydar", kim: "Haydar Usta", kind: "kepenk", bonus: 1800, text: "Kepenk inmeden geç. Tezgah açık kalmasın." },
+    { id: "sp_veli", kim: "Hurdacı Veli", kind: "tek_arac", bonus: 2200, text: "Bir araç, bir koli. Macar'dan Fevzi'ye, iz yok." },
+    { id: "sp_semih", kim: "Jilet Semih", kind: "insaat_harac", bonus: 4200, text: "Şantiye 'güvenlik' yazacak. Sen çay iç, kasa dolsun." },
+    { id: "sp_orhan", kim: "Piranha Orhan", kind: "kacak_mal", bonus: 9000, text: "Eminönü iskele. Koli, zarf, kepenk. Sen bilirsin." },
+    { id: "sp_hasan", kim: "Büfeci Hasan", kind: "esnaf_koruma", bonus: 1100, text: "Büfe rahat durmuyor. Bir gece kapıda dur." },
+    { id: "sp_neriman", kim: "Gazino Neriman", kind: "gazino_kapi", bonus: 3500, text: "Haliç gazinosu kapı. Sarhoş, kasa, karakol ayrı." }
   ];
   var ORIGIN = {
     hapis: {
@@ -550,7 +569,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       yaraTur: m.yaraTur,
       bag: m.bag ? String(m.bag) : undefined,
       yorgunluk: num(m.yorgunluk, 0),
-      kus: !!m.kus
+      kus: !!m.kus,
+      hapisLeft: num(m.hapisLeft, 0)
     };
   }
   function migrateJob(j) {
@@ -563,7 +583,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       assigned: arr(j.assigned, []),
       tags: arr(j.tags, []),
       phase: str(j.phase, "idle"),
-      tickIndex: num(j.tickIndex, 0)
+      tickIndex: num(j.tickIndex, 0),
+      bonus: num(j.bonus, 0),
+      siparis: j.siparis ? String(j.siparis) : ""
     };
   }
   function canonical() {
@@ -588,14 +610,16 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
         { id: "st_fevzi", ad: "Fevzi Paşa", sahip: "sen", heat: 8 },
         { id: "st_aksem", ad: "Akşemsettin", sahip: "bos", heat: 4 },
         { id: "st_carsamba", ad: "Çarşamba", sahip: "bos", heat: 5 },
-        { id: "st_macar", ad: "Macar Kardeşler", sahip: "bos", heat: 6 }
+        { id: "st_macar", ad: "Macar Kardeşler", sahip: "bos", heat: 6 },
+        { id: "st_draman", ad: "Draman", sahip: "bos", heat: 3 },
+        { id: "st_fener", ad: "Fener", sahip: "bos", heat: 4 }
       ],
       cops: [],
       calendar: [],
       jobs: [],
       inbox: [{ id: "in_1", title: "Mahalle duruyor.", body: "Mahalle duruyor. Yeni ad yok. Sokak kendi işini görüyor.", week: 1, read: false }],
       defter: [],
-      flags: { paleStreet: "st_macar", toz: 0, idSeq: 10, rivalHits: 0, warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: { st_fevzi: 1, st_aksem: 1, st_carsamba: 1, st_macar: 1 } },
+      flags: { paleStreet: "st_macar", toz: 0, idSeq: 10, rivalHits: 0, warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: { st_fevzi: 1, st_aksem: 1, st_carsamba: 1, st_macar: 1, st_draman: 1, st_fener: 1 }, touchJobs: {}, lastSiparis: 0, bugun: "", koseKesildi: 0, lastGozdagi: 0, soz: 0 },
       inventory: ["w101"],
       equipped: { silah: "w101", ust: "", arac: "" },
       estates: [],
@@ -641,7 +665,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       defter: arr(raw.defter, []),
       flags: Object.assign({
         paleStreet: "st_macar", toz: 0, idSeq: 10, rivalHits: 0,
-        warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: {}, gateAgabey: 0
+        warn40: 0, warn75: 0, haftaGurultu: 0, lastTouch: {}, gateAgabey: 0,
+        touchJobs: {}, lastSiparis: 0, bugun: "", koseKesildi: 0, lastGozdagi: 0, soz: 0
       }, (raw.flags && typeof raw.flags === "object") ? raw.flags : {}),
       savedAt: num(raw.savedAt, 0),
       seed: num(raw.seed, Date.now()),
@@ -667,6 +692,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       }),
       rel: Object.assign({ id: "", yakin: 0 }, (raw.rel && typeof raw.rel === "object") ? raw.rel : {})
     };
+    b.streets.forEach(function (st) {
+      if (!out.streets.filter(function (x) { return x.id === st.id; })[0]) out.streets.push(st);
+    });
     var r0 = out.rivals[0];
     if (r0) {
       var h = num(r0.husumet, 0);
@@ -834,7 +862,10 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       var e = emlakBy(id);
       if (e) n += e.hafta;
     });
-    if (S.kose > 0 && KOSE[S.kose - 1]) n += KOSE[S.kose - 1].hafta;
+    if (S.kose > 0 && KOSE[S.kose - 1] && !S.flags.koseKesildi) n += KOSE[S.kose - 1].hafta;
+    S.streets.forEach(function (st) {
+      if (st.sahip === "sen") n += 650 + Math.max(0, 40 - st.heat) * 8;
+    });
     return n;
   }
   function manName(m) { return m.lakap ? m.ad + ' "' + m.lakap + '"' : m.ad; }
@@ -930,8 +961,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   function expectWords(kind) {
     if (kind === "bakkal_soygunu" || kind === "kuyum") return "para: yüksek · gürültü: çok · dosya: çok";
     if (kind === "kacak_mal" || kind === "insaat_harac") return "para: yüksek · gürültü: orta · dosya: orta";
-    if (kind === "kepenk" || kind === "tombala") return "para: orta · gürültü: orta · dosya: orta";
-    if (kind === "tek_arac") return "para: orta · gürültü: az · dosya: az";
+    if (kind === "kepenk" || kind === "tombala" || kind === "gazino_kapi") return "para: orta · gürültü: orta · dosya: orta";
+    if (kind === "tek_arac" || kind === "esnaf_koruma") return "para: orta · gürültü: az · dosya: az";
     return "para: iyi · gürültü: az · dosya: az";
   }
   function pickLine(arr) {
@@ -996,6 +1027,25 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       kacis: ["Köşe boş. Dönüş temiz.", "Kimse arkadan bakmıyor."],
       iz: [b + " arkayı taradı.", "Sokak kendi işine döndü."]
     };
+    if (j.kind === "tahsilat") {
+      extra.kesif = [n + " esnafı taradı. Defter açık.", "Borç kâğıdı cebinde. " + street + " bekliyor."];
+      extra.temas = ["Adam tezgahın ardında. 'Bu hafta yok' dedi.", n + " kâğıdı masaya bıraktı."];
+      extra.tepki = ["Ses kısık. Mahalle duymaz, duymak istemez.", "El uzandı. Nakit mi, senet mi."];
+    } else if (j.kind === "tombala") {
+      extra.kesif = ["Arka oda ışığı yanık. Kartlar dağılmış.", "Kapıda gözcü var. " + b + " işaret verdi."];
+      extra.temas = ["Masa durdu. Rıza bakıyor.", "Zar atılmadı. Söz şimdi."];
+      extra.kacis = ["Sokak boş. Tombala sesi kesildi.", "Kâğıt cebinde, iz yok."];
+    } else if (j.kind === "kuyum" || j.kind === "bakkal_soygunu") {
+      extra.kesif = ["Vitrin ışığı. Karşı kaldırımda bir adam.", "Kepenk yarım. İçeride kasa."];
+      extra.giris = ["Zil çaldı. " + n + " içeri girdi.", "Tezgahın arkasında bir gölge."];
+      extra.kasa = ["Gramlar çekmecede. El titremiyor.", "Hesap defteri açık kaldı."];
+    } else if (j.kind === "kacak_mal") {
+      extra.kesif = ["İskele sisli. Koli yığılı.", "Bekçi uzak. " + n + " saydı."];
+      extra.temas = ["Memur zarfı bekliyor. Söz yok.", "Koli ağır. " + b + " omuz verdi."];
+    } else if (j.kind === "gazino_kapi" || j.kind === "esnaf_koruma") {
+      extra.kesif = [street + " kapısı kalabalık.", "İçeriden müzik. Dışarıda iki adam."];
+      extra.temas = ["Sarhoş çıkıyor. Hesap konuşulacak.", n + " kapıda durdu."];
+    }
     var out = [];
     if (prim[step]) out.push(pickLine(prim[step]));
     if (extra[step] && rng() < 0.65) out.push(pickLine(extra[step]));
@@ -1129,6 +1179,18 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
         para = ri(8000, 16000); addRep("nam", 3); addRep("saygi", 1);
         S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 3; heatD = 6;
       }
+    } else if (j.kind === "tek_arac") {
+      if (fled) { para = 0; heatD = 3; addRep("saygi", -1); }
+      else if (fired) { para = ri(2000, 5000); heatD = 10; tanik = ri(0, 1); addRep("nam", 3); }
+      else { para = ri(4500, 8500); heatD = 3; addRep("saygi", 1); }
+    } else if (j.kind === "kepenk" || j.kind === "gazino_kapi") {
+      if (fled) { para = 0; heatD = 4; addRep("korku", -1); }
+      else if (fired) { para = ri(2500, 6000); heatD = 11; addRep("korku", 3); addRep("saygi", -2); }
+      else { para = ri(5000, 10000); heatD = 5; addRep("nam", 2); }
+    } else if (j.kind === "esnaf_koruma") {
+      if (fled) { para = 0; addRep("saygi", -3); heatD = 1; }
+      else if (fired) { para = ri(800, 2500); addRep("saygi", -4); addRep("nam", 2); heatD = 8; }
+      else { para = ri(2800, 5200); addRep("saygi", 3); heatD = 2; }
     } else if (fired) {
       para = ri(2000, 5000);
       addRep("korku", 6);
@@ -1160,6 +1222,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     var def = gearBonus("def");
     if (def && heatD > 2) heatD = Math.max(1, heatD - Math.floor(def / 20));
     addRep("nam", gearBonus("nam") > 8 ? 1 : 0);
+    if (j.bonus) para += j.bonus;
 
     S.kasa += para;
     if (para) defter((JOB_TR[j.kind] || j.kind) + " · " + fmtPara(para));
@@ -1183,6 +1246,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       } else if (vic) {
         vic.durum = yara === "hapis" ? "hapis" : "yarali";
         vic.yorgunluk = yara === "yara" ? 80 : vic.yorgunluk;
+        if (yara === "hapis") vic.hapisLeft = 10;
         yara = manName(vic) + " · " + (yara === "hapis" ? "hapis" : "yaralı");
       }
     }
@@ -1203,6 +1267,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     });
 
     noteRivalJob(j.streetId);
+    if (st && para > 0) {
+      if (!S.flags.touchJobs) S.flags.touchJobs = {};
+      S.flags.touchJobs[st.id] = num(S.flags.touchJobs[st.id], 0) + 1;
+      if (st.sahip === "bos" && S.flags.touchJobs[st.id] >= 2) {
+        pushInbox(st.ad + " boş duruyor.", "İki iş görüldü. Sokak tutulabilir.", { href: "harita" });
+      }
+    }
     if (para >= 4000 && rng() < 0.28) {
       var due = addDays(7);
       var sn = {
@@ -1450,6 +1521,76 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
         UI.spawnLeft -= 1;
       }
     });
+    if (S.kose > 0 && !S.flags.koseKesildi) {
+      var homeH = streetBy(S.streetHome);
+      if (homeH && homeH.heat >= 48 && rng() < 0.18) {
+        S.flags.koseKesildi = 1;
+        pushInbox("Baskın: köşe sustu.", "Devriye köşeyi boşalttı. Bu hafta kâğıt yok.");
+      }
+    }
+    spawnSiparis();
+    writeBugun();
+  }
+  function writeBugun() {
+    var pool = [
+      "Hava kurşun. Fevzi Paşa toz içinde.",
+      "Yağmur ince. Kepenkler erken indi.",
+      "Pazar günü kalabalık. Çarşamba konuşuyor.",
+      "İnönü'de maç var. Mahalle boşaldı.",
+      "Düğün konvoyu geçti. Toz kaldı.",
+      "Cuma çıkışı. Cami önü kalabalık.",
+      "Sis Haliç'ten yürüdü. Fener görünmüyor.",
+      "Karakol sivil iki kişi sordu, geçti.",
+      "Kartallar kahve önünde durdu, konuşmadı.",
+      "Esnaf şikayet etti. Ses mahallede."
+    ];
+    S.flags.bugun = pool[Math.floor(rng() * pool.length)];
+  }
+  function spawnSiparis() {
+    if (UI.spawnLeft <= 0) return;
+    if (S.week === num(S.flags.lastSiparis, 0)) return;
+    if (rng() > 0.42) return;
+    var pending = S.inbox.filter(function (x) { return x.siparis && !x.read; });
+    if (pending.length) return;
+    var liveJobs = S.jobs.filter(function (j) { return j.phase !== "done"; }).length;
+    if (liveJobs >= 3) return;
+    var sp = SIPARIS[Math.floor(rng() * SIPARIS.length)];
+    S.flags.lastSiparis = S.week;
+    var row = pushInbox(sp.kim + " kâğıt bıraktı.", sp.text + " Bonus ₺" + sp.bonus.toLocaleString("tr-TR") + ".", { siparis: sp.id, href: "isler" });
+    UI.spawnLeft -= 1;
+    return row;
+  }
+  function tickHapis() {
+    S.men.forEach(function (m) {
+      if (m.durum !== "hapis") return;
+      m.hapisLeft = Math.max(0, num(m.hapisLeft, 10) - 1);
+      if (m.hapisLeft <= 0) {
+        m.durum = "yorgun";
+        m.yorgunluk = 70;
+        m.gonul = clamp(m.gonul - 6, 0, 100);
+        pushInbox(manName(m) + " çıktı.", "Hapis bitti. Yorgun, konuşkan değil.");
+      }
+    });
+  }
+  function tickBetrayal() {
+    S.men.forEach(function (m) {
+      if (m.durum === "olu" || m.durum === "hapis") return;
+      if (m.gonul >= 25) return;
+      if (rng() >= 0.16) return;
+      if (rng() < 0.5 && S.kasa > 0) {
+        var steal = Math.min(S.kasa, 1800 + ri(0, 2200));
+        S.kasa -= steal;
+        defter("ihanet · " + manName(m) + " · " + fmtPara(-steal));
+        pushInbox(manName(m) + " kaçtı.", "Kasa eksildi. Adam yok.");
+        m.durum = "olu";
+        m.gonul = 0;
+      } else {
+        S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome, week: S.week, weight: 3 });
+        addRep("racon", -3);
+        pushInbox(manName(m) + " konuştu.", "Karakola kâğıt düştü.");
+        m.kus = true;
+      }
+    });
   }
   function stageDown() { /* Faz 1: geri düşme kapalı */ }
   function doneJobN() {
@@ -1484,7 +1625,10 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       return;
     }
     if (S.stage === "kabadayi") {
-      if (!S.flags.gateAgabey) S.flags.gateAgabey = 1;
+      if (ownN() >= 3 && S.kasa >= 120000 && S.rep.nam >= 40 && S.rep.racon >= 55 && S.dosya < 65) {
+        promote("agabey", "Artık sana ağabey diyorlar.");
+      }
+      return;
     }
   }
   function lockOf(id) {
@@ -1519,6 +1663,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     payWages();
     collectSenet();
     tickFatigue();
+    tickHapis();
+    tickBetrayal();
     walkMarket();
     recalcDosya();
     rivalWalk();
@@ -1530,6 +1676,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       S.week += 1;
       S.flags.toz = num(S.flags.toz, 0) + 1;
       S.flags.haftaGurultu = 0;
+      S.flags.koseKesildi = 0;
     }
     stageGate();
     recalcDosya();
@@ -1597,6 +1744,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     UI.cmp = [];
     UI.streetId = null;
     UI.calId = null;
+    if (S && !S.flags.bugun) writeBugun();
   }
 
   function drawNav() {
@@ -1639,19 +1787,27 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       extra =
         '<div class="hr"></div><div class="card" style="margin:0">' +
         "<h3>" + esc(up(st.ad)) + "</h3>" +
+        '<p class="dim">' + esc(STREET_NOTE[st.id] || "") + "</p>" +
         '<p class="dim">sahip: ' + (st.sahip === "sen" ? "sen" : st.sahip === "rakip" ? "rakip" : "—") + "</p>" +
         barrow("Heat", st.heat, 100, "heat") +
-        '<button type="button" class="btn" data-act="nav" data-id="isler">Bu sokakta iş planla</button></div>';
+        '<div class="acts"><button type="button" class="btn" data-act="nav" data-id="isler">Bu sokakta iş planla</button>' +
+        (st.sahip === "bos" ? '<button type="button" class="btn" data-act="tut" data-id="' + st.id + '"' + (S.kasa < 4500 ? " disabled" : "") + ">Tut · ₺4.500</button>" : "") +
+        "</div></div>";
     }
     var notes = S.inbox.slice(0, 3).map(function (n) { return "<p>" + esc(n.title) + "</p>"; }).join("");
     if (!notes) notes = "<p class=\"dim\">Mahalle duruyor.</p>";
+    var gear = ["silah", "ust", "arac"].map(function (slot) {
+      var it = itemBy(S.equipped && S.equipped[slot]);
+      return it ? it.ad : "—";
+    }).join(" · ");
     el.innerHTML =
       '<p class="unvan">' + up((STAGE_TR[S.stage] || S.stage) + " · Fatih") + "</p>" +
-      '<p class="side-note">' + esc(S.lakap) + "</p>" +
+      '<p class="side-note">' + esc(S.lakap) + (S.origin ? " · " + esc((ORIGIN[S.origin] || {}).title || "") : "") + "</p>" +
       barrow("Korku", S.rep.korku, 100, "") +
       barrow("Saygı", S.rep.saygi, 100, "green") +
       barrow("Nam", S.rep.nam, 100, "") +
       barrow("Racon", S.rep.racon, 100, raconCls) +
+      '<p class="dim">Kuşanılan: ' + esc(gear) + "</p>" +
       '<div class="card"><h3>Bu hafta</h3>' + notes + "</div>" + extra;
   }
 
@@ -1668,7 +1824,10 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     var sheet;
     if (it) {
       var acts;
-      if (it.title.indexOf("Hasım") === 0 || (it.calId && (function () {
+      if (it.siparis) {
+        acts = '<button type="button" class="btn primary" data-act="siparis" data-id="' + it.id + '">Kabul et</button>' +
+          '<button type="button" class="btn ghost" data-act="paper-dosya" data-id="' + it.id + '">Dosyala</button>';
+      } else if (it.title.indexOf("Hasım") === 0 || (it.calId && (function () {
         var c = S.calendar.filter(function (x) { return x.id === it.calId; })[0];
         return c && c.title === "Hasım";
       })())) {
@@ -1683,7 +1842,10 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     } else {
       sheet = '<div class="card paper-empty"><span class="dim">Kâğıt seç.</span></div>';
     }
-    return '<div class="split"><div class="list">' + list + '</div><div class="sheet">' + sheet + "</div></div>";
+    var bugun = S.flags && S.flags.bugun
+      ? '<div class="card"><h3>Bugün</h3><p>' + esc(S.flags.bugun) + "</p></div>"
+      : "";
+    return bugun + '<div class="split"><div class="list">' + list + '</div><div class="sheet">' + sheet + "</div></div>";
   }
 
   function drawTakvim() {
@@ -1760,7 +1922,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     return '<div class="map">' + S.streets.map(function (s) {
       var own = s.sahip === "sen" ? "sen" : s.sahip === "rakip" ? "rakip" : "bos";
       var ownTxt = s.sahip === "sen" ? "SEN" : s.sahip === "rakip" ? "RAKİP" : "—";
-      return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">sahip: " + ownTxt + "</p>" + barrow("Heat", s.heat, 100, "heat") + "</button>";
+      return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">" + esc(STREET_NOTE[s.id] || "") + "</p><p class=\"dim\">sahip: " + ownTxt + "</p>" + barrow("Heat", s.heat, 100, "heat") + "</button>";
     }).join("") + "</div>" + drawKose();
   }
   function drawKose() {
@@ -1832,7 +1994,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       var sel = s.id === UI.planStreet ? " selected" : "";
       return "<option value=\"" + s.id + "\"" + sel + ">" + esc(s.ad) + "</option>";
     }).join("");
-    var kinds = ["tahsilat", "kepenk", "tek_arac", "tombala", "insaat_harac", "bakkal_soygunu", "kuyum", "kacak_mal"].map(function (k) {
+    var kinds = ["tahsilat", "kepenk", "tek_arac", "esnaf_koruma", "tombala", "gazino_kapi", "insaat_harac", "bakkal_soygunu", "kuyum", "kacak_mal"].map(function (k) {
       return "<option value=\"" + k + "\"" + (k === kind ? " selected" : "") + ">" + esc(JOB_TR[k]) + "</option>";
     }).join("");
     return '<div class="card"><h3>Plan</h3><div class="plan">' +
@@ -1858,7 +2020,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     var barCls = S.dosya >= 75 ? "red" : S.dosya >= 40 ? "heat" : "";
     return '<div class="card file-big"><h3>Dosya</h3>' + barrow("Dosya", S.dosya, 100, barCls) + '<p class="num">' + Math.round(S.dosya) + "%</p>" + warn + "</div>" +
       '<div class="card"><h3>Delil</h3>' + rows + "</div>" +
-      '<button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Polis tanıdıkları — kilitli") + " (Ağabey)</button>";
+      '<div class="card"><h3>Zarf</h3><p class="dim">Karakol tanıdığı. ₺2.500, bir delil solar.</p><div class="acts"><button type="button" class="btn" data-act="zarf"' + (S.kasa < 2500 || !S.evidence.length ? " disabled" : "") + ">Zarf bırak · ₺2.500</button></div></div>" +
+      '<button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Savcı — kilitli") + " (Ağabey)</button>";
   }
 
   function drawHusumet() {
@@ -1877,7 +2040,12 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     return '<div class="card"><p class="ttl">' + esc(up(r.ad)) + "</p>" +
       "<p>Durum: <b>" + esc(up(BAND_TR[r.band] || r.band)) + "</b></p>" +
       '<p class="dim">Tuttukları: ' + esc(held) + "</p>" +
+      barrow("Husumet", num(r.husumet, 0), 100, "red") +
       '<div class="hr"></div>' + son +
+      '<div class="acts">' +
+      '<button type="button" class="btn" data-act="gozdagi"' + (S.flags.lastGozdagi === S.week ? " disabled" : "") + ">Gözdağı</button>" +
+      '<button type="button" class="btn" data-act="pazarlik"' + (S.kasa < 5000 ? " disabled" : "") + ">Pazarlık · ₺5.000</button>" +
+      '<button type="button" class="btn danger" data-act="pusu">Pusu planla</button></div>' +
       '<div class="hr"></div><button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Masa — kilitli") + " (Baba)</button></div>";
   }
 
@@ -1961,7 +2129,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
       var yakin = on ? num(S.rel.yakin, 0) : 0;
       return '<div class="card item"><p class="ttl">' + esc(up(k.ad)) + '</p><p class="dim">' + esc(k.desc) + (on ? " · yakın " + yakin : "") + "</p><div class=\"acts\">" +
         '<button type="button" class="btn" data-act="hediye" data-id="' + k.id + '"' + (S.kasa < k.hediye ? " disabled" : "") + ">Hediye · ₺" + k.hediye.toLocaleString("tr-TR") + "</button>" +
-        '<button type="button" class="btn" data-act="randevu" data-id="' + k.id + '"' + (S.kasa < 600 ? " disabled" : "") + ">Randevu · ₺600</button></div></div>";
+        '<button type="button" class="btn" data-act="randevu" data-id="' + k.id + '"' + (S.kasa < 600 ? " disabled" : "") + ">Randevu · ₺600</button>" +
+        (on && yakin >= 70 && !S.flags.soz ? '<button type="button" class="btn primary" data-act="soz" data-id="' + k.id + '">Söz</button>' : "") +
+        "</div></div>";
     }).join("");
     return '<div class="card"><h3>Hayat</h3><p class="dim">Kahve, sofra, pavyon. Gönül ve racon burada incelir.</p>' + rows + "</div>" + okey + vel + '<div class="card"><h3>Kadın</h3><p class="dim">Mahalle görür. Söz ağırlaşır.</p></div><div class="shop-grid">' + kad + "</div>";
   }
@@ -2357,6 +2527,104 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
         if (m.durum !== "olu") m.gonul = clamp(m.gonul + 2, 0, 100);
       });
       defter("randevu · " + kr.ad + " · " + fmtPara(-600));
+      persist();
+      render();
+      return;
+    }
+    if (code === "soz") {
+      var ks = KADIN.filter(function (k) { return k.id === payload.id; })[0];
+      if (!ks || !S.rel || S.rel.id !== ks.id || num(S.rel.yakin, 0) < 70 || S.flags.soz) return;
+      S.flags.soz = 1;
+      addRep("saygi", 4);
+      addRep("nam", 2);
+      addRep("racon", 2);
+      pushInbox("Söz verildi.", ks.ad + " ile söz. Mahalle gördü.");
+      defter("söz · " + ks.ad);
+      persist();
+      render();
+      return;
+    }
+    if (code === "siparis") {
+      var paper = inboxBy(payload.id);
+      if (!paper || !paper.siparis) return;
+      paper.read = true;
+      var sp = SIPARIS.filter(function (x) { return x.id === paper.siparis; })[0];
+      if (!sp) return;
+      var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+      S.jobs.push({
+        id: nid("j"), kind: sp.kind, streetId: S.streetHome, prepLeft: PREP_OF(sp.kind),
+        assigned: live.slice(0, 3), tags: [], phase: PREP_OF(sp.kind) > 0 ? "prep" : "idle",
+        tickIndex: 0, bonus: sp.bonus, siparis: sp.id
+      });
+      pushInbox("Sipariş alındı.", sp.kim + " bekliyor. " + (JOB_TR[sp.kind] || sp.kind) + ".");
+      S.screen = "isler";
+      persist();
+      render();
+      return;
+    }
+    if (code === "tut") {
+      var ts = streetBy(payload.id);
+      if (!ts || ts.sahip !== "bos") return;
+      if (S.kasa < 4500) return;
+      S.kasa -= 4500;
+      ts.sahip = "sen";
+      addRep("korku", 2);
+      addRep("nam", 1);
+      defter("sokak · " + ts.ad + " · " + fmtPara(-4500));
+      pushInbox(ts.ad + " sende.", STREET_NOTE[ts.id] || "Sokak tutuldu.");
+      persist();
+      render();
+      return;
+    }
+    if (code === "zarf") {
+      if (S.kasa < 2500 || !S.evidence.length) return;
+      S.kasa -= 2500;
+      S.evidence.sort(function (a, b) { return b.weight - a.weight; });
+      var gone = S.evidence.shift();
+      defter("zarf · " + fmtPara(-2500));
+      recalcDosya();
+      pushInbox("Zarf bırakıldı.", (gone ? (KIND_TR[gone.kind] || gone.kind) + " soldu." : "Dosya inceldi."));
+      persist();
+      render();
+      return;
+    }
+    if (code === "gozdagi") {
+      if (S.flags.lastGozdagi === S.week) return;
+      S.flags.lastGozdagi = S.week;
+      var homeG = streetBy(S.streetHome);
+      if (homeG) homeG.heat = clamp(homeG.heat + 4, 0, 100);
+      addRep("korku", 3);
+      addRep("saygi", -1);
+      if (S.rivals[0]) S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) + 6, 0, 100);
+      syncBand();
+      pushInbox("Gözdağı verildi.", "Kartallar gördü. Mahalle de.");
+      persist();
+      render();
+      return;
+    }
+    if (code === "pazarlik") {
+      if (S.kasa < 5000 || !S.rivals[0]) return;
+      S.kasa -= 5000;
+      S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) - 14, 0, 100);
+      syncBand();
+      defter("pazarlık · " + fmtPara(-5000));
+      pushInbox("Pazarlık bitti.", "Kartallar bir hafta susar. Belki.");
+      persist();
+      render();
+      return;
+    }
+    if (code === "pusu") {
+      var rivalSt = S.streets.filter(function (s) { return s.sahip === "rakip"; })[0] || streetBy("st_macar");
+      if (!rivalSt) return;
+      var crewP = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+      S.jobs.push({
+        id: nid("j"), kind: "kepenk", streetId: rivalSt.id, prepLeft: 1,
+        assigned: crewP.slice(0, 3), tags: [], phase: "prep", tickIndex: 0, bonus: 2000
+      });
+      if (S.rivals[0]) S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) + 8, 0, 100);
+      syncBand();
+      S.screen = "isler";
+      pushInbox("Pusu planlandı.", rivalSt.ad + " tarafında. Kartallar bekliyor.");
       persist();
       render();
       return;
