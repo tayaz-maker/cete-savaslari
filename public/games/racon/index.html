@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="15">
+<meta name="racon-rev" content="16">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -684,6 +684,86 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     STATS.forEach(function (p) { o[p[0]] = ri(4, 9); });
     return o;
   }
+  /* migrate() sırasında S.seed henüz atanmamış olabilir (rng() çalışmaz).
+     Kimlikten türeyen deterministik bir doldurucu — Math.random() değil. */
+  function hashRange(seed, a, b) {
+    var h = 0;
+    for (var i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    return a + (h % (b - a + 1));
+  }
+  var HIDDEN_KEYS = ["sinir", "buyukIs", "kir", "agizBozuk", "kacisRefleksi", "tutarlilik", "yaraEgilim"];
+  function migrateHidden(id, raw) {
+    var h = (raw && typeof raw === "object") ? raw : {};
+    var out = {};
+    HIDDEN_KEYS.forEach(function (k, i) {
+      out[k] = typeof h[k] === "number" ? h[k] : hashRange(id + ":" + k + i, 4, 10);
+    });
+    return out;
+  }
+  function migratePerson(p) {
+    p = p || {};
+    return {
+      id: str(p.id, "p"),
+      ad: str(p.ad, "Adsız"),
+      kind: ["esnaf", "berber", "kapici", "kahveci", "muhtar", "cavus", "avukat", "amca", "tanik", "diger"].indexOf(p.kind) >= 0 ? p.kind : "diger",
+      streetId: p.streetId ? String(p.streetId) : undefined,
+      rel: num(p.rel, 0),
+      mods: Array.isArray(p.mods) ? p.mods.map(function (mo) {
+        return { id: str(mo.id, "rm"), delta: num(mo.delta, 0), reason: str(mo.reason, ""), expireWeek: num(mo.expireWeek, 0) };
+      }) : [],
+      favor: clamp(num(p.favor, 0), 0, 3),
+      bag: p.bag ? String(p.bag) : undefined,
+      kilitli: !!p.kilitli
+    };
+  }
+  function kanonPeople() {
+    return [
+      { id: "p_berber", ad: "Necati", kind: "berber", streetId: "st_fevzi", rel: 0, mods: [], favor: 0, bag: "", kilitli: false },
+      { id: "p_kahveci", ad: "İsmail", kind: "kahveci", streetId: "st_fevzi", rel: 0, mods: [], favor: 0, bag: "", kilitli: false },
+      { id: "p_kapici", ad: "Rüstem", kind: "kapici", streetId: "st_aksem", rel: 0, mods: [], favor: 0, bag: "", kilitli: false },
+      { id: "p_cavus", ad: "Çavuş Nedim", kind: "cavus", streetId: "", rel: 0, mods: [], favor: 0, bag: "", kilitli: false },
+      { id: "p_avukat", ad: "Avukat Ferit", kind: "avukat", streetId: "", rel: 0, mods: [], favor: 0, bag: "", kilitli: false }
+    ];
+  }
+  function migrateScout(x) {
+    x = x || {};
+    return {
+      subjectKind: ["man", "rival", "street", "person"].indexOf(x.subjectKind) >= 0 ? x.subjectKind : "street",
+      subjectId: str(x.subjectId, ""),
+      band: [0, 1, 2, 3].indexOf(x.band) >= 0 ? x.band : 1,
+      week: num(x.week, 1)
+    };
+  }
+  function kanonScout(men, rivals, streets) {
+    var out = [];
+    men.forEach(function (m) { out.push({ subjectKind: "man", subjectId: m.id, band: 3, week: 1 }); });
+    rivals.forEach(function (r) { out.push({ subjectKind: "rival", subjectId: r.id, band: 0, week: 1 }); });
+    streets.forEach(function (st) { out.push({ subjectKind: "street", subjectId: st.id, band: 1, week: 1 }); });
+    return out;
+  }
+  var STREET_ORDER = ["st_fevzi", "st_aksem", "st_carsamba", "st_macar", "st_draman", "st_fener"];
+  function komsulariBul(id) {
+    var i = STREET_ORDER.indexOf(id);
+    if (i < 0) return [];
+    var n = STREET_ORDER.length;
+    return [STREET_ORDER[(i - 1 + n) % n], STREET_ORDER[(i + 1) % n]];
+  }
+  function migrateStreet(st) {
+    st = st || {};
+    return {
+      id: str(st.id, "st"),
+      ad: str(st.ad, "Sokak"),
+      sahip: str(st.sahip, "bos"),
+      heat: num(st.heat, 0),
+      saygiPuan: num(st.saygiPuan, 0),
+      sadakatMahalle: num(st.sadakatMahalle, 50),
+      terorMahalle: num(st.terorMahalle, 0),
+      komsular: Array.isArray(st.komsular) && st.komsular.length ? st.komsular.slice() : komsulariBul(str(st.id, "")),
+      hafiza: Array.isArray(st.hafiza) ? st.hafiza.slice(-8) : [],
+      dikey: (st.dikey && typeof st.dikey === "object") ? { site: str(st.dikey.site, ""), kapiciId: st.dikey.kapiciId } : undefined,
+      insaat: (st.insaat && typeof st.insaat === "object") ? { weekLeft: num(st.insaat.weekLeft, 0) } : undefined
+    };
+  }
   function migrateMan(m) {
     m = m || {};
     var st = m.stats || {};
@@ -702,7 +782,22 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       bag: m.bag ? String(m.bag) : undefined,
       yorgunluk: num(m.yorgunluk, 0),
       kus: !!m.kus,
-      hapisLeft: num(m.hapisLeft, 0)
+      hapisLeft: num(m.hapisLeft, 0),
+      form: num(m.form, 55),
+      hidden: migrateHidden(str(m.id, "m"), m.hidden),
+      gonulNeden: Array.isArray(m.gonulNeden) ? m.gonulNeden.slice(0, 3) : [],
+      hizip: ["eski", "genc", "yok"].indexOf(m.hizip) >= 0 ? m.hizip : "yok",
+      baglar: Array.isArray(m.baglar) ? m.baglar.map(function (b) {
+        return { manId: str(b.manId, ""), isSayisi: num(b.isSayisi, 0) };
+      }) : [],
+      donusGun: (m.donusGun && typeof m.donusGun === "object")
+        ? { week: num(m.donusGun.week, 1), day: num(m.donusGun.day, 1) } : undefined,
+      lakapIstegi: m.lakapIstegi ? String(m.lakapIstegi) : undefined,
+      yevmiyeTalep: num(m.yevmiyeTalep, num(m.yevmiye, 400)),
+      birlikteYurumez: Array.isArray(m.birlikteYurumez) ? m.birlikteYurumez.slice() : [],
+      kofilOldugu: m.kofilOldugu ? String(m.kofilOldugu) : undefined,
+      uzman: ["agiz", "kirici", "gozcu", "hapishane_kusu", "sofor"].indexOf(m.uzman) >= 0 ? m.uzman : null,
+      kesifSeviyesi: [0, 1, 2, 3].indexOf(m.kesifSeviyesi) >= 0 ? m.kesifSeviyesi : 3
     };
   }
   function migrateJob(j) {
@@ -739,12 +834,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       ],
       rivals: [{ id: "rival_kartallar", ad: "Kartallar", husumet: 0, band: "yok", agresiflik: 50, streetsClaimed: [] }],
       streets: [
-        { id: "st_fevzi", ad: "Fevzi Paşa", sahip: "sen", heat: 8 },
-        { id: "st_aksem", ad: "Akşemsettin", sahip: "bos", heat: 4 },
-        { id: "st_carsamba", ad: "Çarşamba", sahip: "bos", heat: 5 },
-        { id: "st_macar", ad: "Macar Kardeşler", sahip: "bos", heat: 6 },
-        { id: "st_draman", ad: "Draman", sahip: "bos", heat: 3 },
-        { id: "st_fener", ad: "Fener", sahip: "bos", heat: 4 }
+        migrateStreet({ id: "st_fevzi", ad: "Fevzi Paşa", sahip: "sen", heat: 8 }),
+        migrateStreet({ id: "st_aksem", ad: "Akşemsettin", sahip: "bos", heat: 4 }),
+        migrateStreet({ id: "st_carsamba", ad: "Çarşamba", sahip: "bos", heat: 5 }),
+        migrateStreet({ id: "st_macar", ad: "Macar Kardeşler", sahip: "bos", heat: 6 }),
+        migrateStreet({ id: "st_draman", ad: "Draman", sahip: "bos", heat: 3 }),
+        migrateStreet({ id: "st_fener", ad: "Fener", sahip: "bos", heat: 4 })
       ],
       cops: [],
       calendar: [],
@@ -765,6 +860,18 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       lig: { sezon: 1, uzunluk: 13, ekipler: [], fikstur: [], hedefler: [], gecmis: [], rozet: {} },
       adaylar: [],
       komiser: null,
+      people: kanonPeople(),
+      scout: [],
+      dirtyKasa: 18000,
+      cleanKasa: 0,
+      aklamaKapasite: 2000,
+      blood: [],
+      nick: null,
+      throne: { dead: false, weeksEmpty: 0, heirId: undefined },
+      amcaHedef: null,
+      defterHafta: "",
+      plateBook: [],
+      weekColor: "normal",
       savedAt: 0,
       seed: 1,
       screen: "olaylar"
@@ -837,8 +944,35 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
           status: str(x.status, "bekler")
         };
       }),
-      rel: Object.assign({ id: "", yakin: 0 }, (raw.rel && typeof raw.rel === "object") ? raw.rel : {})
+      rel: Object.assign({ id: "", yakin: 0 }, (raw.rel && typeof raw.rel === "object") ? raw.rel : {}),
+      people: Array.isArray(raw.people) && raw.people.length ? raw.people.map(migratePerson) : kanonPeople(),
+      scout: Array.isArray(raw.scout) ? raw.scout.map(migrateScout) : [],
+      dirtyKasa: num(raw.dirtyKasa, num(raw.kasa, 18000)),
+      cleanKasa: num(raw.cleanKasa, 0),
+      aklamaKapasite: num(raw.aklamaKapasite, 2000),
+      blood: Array.isArray(raw.blood) ? raw.blood.map(function (x) {
+        return { id: str(x.id, "bl"), rivalOrFamily: str(x.rivalOrFamily, ""), weekDue: num(x.weekDue, 1), status: str(x.status, "acik") };
+      }) : [],
+      nick: (raw.nick && typeof raw.nick === "object")
+        ? { offered: str(raw.nick.offered, ""), week: num(raw.nick.week, 1), status: str(raw.nick.status, "bekler") }
+        : null,
+      throne: (raw.throne && typeof raw.throne === "object")
+        ? { dead: !!raw.throne.dead, weeksEmpty: num(raw.throne.weeksEmpty, 0), heirId: raw.throne.heirId }
+        : { dead: false, weeksEmpty: 0, heirId: undefined },
+      amcaHedef: (raw.amcaHedef && typeof raw.amcaHedef === "object")
+        ? { text: str(raw.amcaHedef.text, ""), weekDue: num(raw.amcaHedef.weekDue, 1), ok: raw.amcaHedef.ok }
+        : null,
+      defterHafta: str(raw.defterHafta, ""),
+      plateBook: Array.isArray(raw.plateBook) ? raw.plateBook.map(function (x) {
+        return { plate: str(x.plate, ""), count: num(x.count, 0) };
+      }) : [],
+      weekColor: ["normal", "ramazan", "derbi", "pazar", "cenaze"].indexOf(raw.weekColor) >= 0 ? raw.weekColor : "normal"
     };
+    if (!Array.isArray(raw.scout) || !raw.scout.length) {
+      out.scout = kanonScout(out.men, out.rivals, out.streets);
+    }
+    if (!Number.isFinite(raw.dirtyKasa)) out.dirtyKasa = out.kasa;
+    out.streets = out.streets.map(migrateStreet);
     b.streets.forEach(function (st) {
       if (!out.streets.filter(function (x) { return x.id === st.id; })[0]) out.streets.push(st);
     });
@@ -864,6 +998,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     });
     ligBaslat(1);
     s.lig = S.lig;
+    s.scout = kanonScout(s.men, s.rivals, s.streets);
+    s.dirtyKasa = s.kasa;
+    s.cleanKasa = 0;
     s.savedAt = Date.now();
     return s;
   }
