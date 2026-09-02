@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="28">
+<meta name="racon-rev" content="29">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -763,6 +763,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     (person.mods || []).forEach(function (mo) { if (modAktif(mo)) toplam += mo.delta; });
     person.rel = clamp(toplam, -100, 100);
     return person.rel;
+  }
+  /* Blok 7 adım 6: süresi dolan RelMod'lar diziden düşer (expireWeek 0 = unutulmaz). */
+  function relModTemizle() {
+    (S.people || []).forEach(function (p) {
+      if (!Array.isArray(p.mods) || !p.mods.length) return;
+      p.mods = p.mods.filter(modAktif);
+      personRelHesap(p);
+    });
   }
   function relModEkle(person, delta, reason, expireWeek) {
     person.mods.push({ id: nid("rm"), delta: delta, reason: reason, expireWeek: expireWeek });
@@ -2624,7 +2632,6 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       pushInbox("Sivil araç.", "Dosya 75. Sivil araç mahallede.");
       UI.spawnLeft -= 1;
     }
-    if (S.dosya >= 85 && num(S.flags.amcaKonusulmuyor, 0) === 0) stageDown();
     S.men.forEach(function (m) {
       if (UI.spawnLeft <= 0) return;
       if (m.gonul < 30 && rng() < 0.2) {
@@ -3594,8 +3601,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
 
   function doAdvance() {
+    /* Blok 7 sırası: 1 yükümlülük · 2 iş tick · 3 yevmiye · 4 yorgunluk/form
+       5 dosya · 6 relmod/scout/aklama · 7 rakip · 8 terör · 9 olay · 10 kan
+       11 gün+1 · 12 kademe · 13 kaydet */
     UI.spawnLeft = 2;
+    /* 1 — günün yükümlülüğü: önce bugünün kâğıtları kurulur, sonra kaçan işaretlenir */
     ensureDuties();
+    missDuties();
     randevuAc();
     rakipSokakSaldiri();
     missRandevu();
@@ -3604,20 +3616,25 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     spawnAday();
     komiserHafta();
     baskinTick();
-    missDuties();
+    /* 2 — running iş 1 tick */
     S.jobs.forEach(tickJob);
+    /* 3 — gün 7 ise yevmiye */
     payWages();
     collectSenet();
+    /* 4 — yorgunluk / form / durum dönüşleri */
     tickFatigue();
     tickHapis();
     tickYarali();
     tickIzin();
     tickBetrayal();
-    walkMarket();
+    /* 5 — dosya yeniden hesap */
     recalcDosya();
+    walkMarket();
     recalcSaygi();
+    /* 7 — rakip AI */
     rivalWalk();
     syncBand();
+    /* 9 — olay üret (en fazla 2) */
     spawnEvents();
     S.day += 1;
     if (S.day > 7) {
@@ -3629,6 +3646,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.flags.haftaIsTip = null;
       ligHafta();
       sokakEkonomi();
+      /* 6 — RelMod expire · scout çürümesi · aklama tick */
+      relModTemizle();
       scoutHaftalikCoz();
       kasaAklaHaftalik();
       rivalHafta();
@@ -3643,10 +3662,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       kanDavasiTick();
       if (sezonBitti()) sezonKapat();
     }
+    /* 12 — kademe · konuşulmama · lakap teklifi */
     stageGate();
+    if (S.dosya >= 85 && num(S.flags.amcaKonusulmuyor, 0) === 0) stageDown();
     lakapTeklifKontrol();
     rozetKontrol();
     recalcDosya();
+    /* 13 — kaydet: advance() içinde persist() */
   }
   function closeModal() { UI.modal = null; }
   function openModal(text, buttons) {
@@ -4461,22 +4483,24 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         '<div class="acts"><button type="button" class="btn primary" data-act="menu" data-go="home">Menü</button></div></div>';
       return;
     }
-    var html = "";
     if (UI.rnd) { document.getElementById("stage").innerHTML = drawRandevuSahne(); return; }
-    if (S.screen === "olaylar") html = drawOlaylar();
-    else if (S.screen === "takvim") html = drawTakvim();
-    else if (S.screen === "adamlar") html = drawAdamlar();
-    else if (S.screen === "harita") html = drawHarita();
-    else if (S.screen === "isler") html = drawIsler();
-    else if (S.screen === "pazar") html = drawPazar();
-    else if (S.screen === "emlak") html = drawEmlak();
-    else if (S.screen === "hayat") html = drawHayat();
-    else if (S.screen === "emniyet") html = drawEmniyet();
-    else if (S.screen === "husumet") html = drawHusumet();
-    else if (S.screen === "kasa") html = drawKasa();
-    else if (S.screen === "siralama") html = drawSiralama();
-    else html = drawLocked(S.screen);
-    document.getElementById("stage").innerHTML = html;
+    document.getElementById("stage").innerHTML = screenHtml();
+  }
+  /* Ekran gövdesi — DOM'a dokunmaz, testten de çağrılabilir. */
+  function screenHtml() {
+    if (S.screen === "olaylar") return drawOlaylar();
+    if (S.screen === "takvim") return drawTakvim();
+    if (S.screen === "adamlar") return drawAdamlar();
+    if (S.screen === "harita") return drawHarita();
+    if (S.screen === "isler") return drawIsler();
+    if (S.screen === "pazar") return drawPazar();
+    if (S.screen === "emlak") return drawEmlak();
+    if (S.screen === "hayat") return drawHayat();
+    if (S.screen === "emniyet") return drawEmniyet();
+    if (S.screen === "husumet") return drawHusumet();
+    if (S.screen === "kasa") return drawKasa();
+    if (S.screen === "siralama") return drawSiralama();
+    return drawLocked(S.screen);
   }
 
   function showMenu(which) {
@@ -6121,6 +6145,80 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
       if (num(S.flags.amcaKonusulmuyor, 0) !== 0) fail("2 sessiz işle unvan toparlanmadı");
     }
+
+    /* --- Blok 10 kabul kriteri: otomatik kapanmayan maddeler --- */
+
+    /* 1) yeni oyun varsayılanı: adsız · dirty 18000 · rakip scout 0 */
+    (function () {
+      var kan = canonical();
+      if (kan.lakap !== "Adsız") fail("yeni oyun: lakap 'Adsız' değil (" + kan.lakap + ")");
+      if (num(kan.dirtyKasa, 0) !== 18000) fail("yeni oyun: dirtyKasa 18000 değil (" + kan.dirtyKasa + ")");
+      var tutS = S;
+      S = blank("Adsız");
+      var rb = scoutBand("rival", "rival_kartallar");
+      var mb = S.men[0] ? scoutBand("man", S.men[0].id) : -1;
+      S = tutS;
+      if (rb !== 0) fail("yeni oyun: rakip scout bandı 0 değil (" + rb + ")");
+      if (mb !== 3) fail("yeni oyun: kendi adamın scout bandı 3 değil (" + mb + ")");
+    })();
+
+    /* 9) ölüm → taziye yükümlülüğü (ateşli işi ölüm çıkana kadar sür) */
+    (function () {
+      var om = S.men.filter(function (m) { return m.durum !== "olu"; })[0];
+      if (!om) return;
+      var oldu = false;
+      for (var k = 0; k < 60 && !oldu; k++) {
+        var canli = S.men.filter(function (m) { return m.durum !== "olu"; });
+        if (!canli.length) break;
+        var calOnce = S.calendar.length;
+        var oJ = { id: nid("j"), kind: "kepenk", streetId: S.streetHome, prepLeft: 0, assigned: [canli[0].id], tags: [], phase: "running", tickIndex: 0 };
+        S.jobs.push(oJ);
+        UI.jobId = oJ.id; UI.jobOrders = ["ates"]; UI.fastJob = true;
+        finishJob();
+        S.jobs = S.jobs.filter(function (x) { return x.id !== oJ.id; });
+        if (canli[0].durum === "olu") {
+          oldu = true;
+          var cen = S.calendar.filter(function (c) { return c.title === "Cenaze" && c.ref && c.ref.olen === canli[0].id; })[0];
+          if (!cen) fail("ölüm: taziye yükümlülüğü takvime düşmedi");
+          else if (cen.strip !== "yukumluluk") fail("ölüm: taziye kâğıdı yükümlülük şeridinde değil");
+          else if (cen.week * 7 + cen.day - (S.week * 7 + S.day) > 7) fail("ölüm: taziye 7 günden uzağa düştü");
+          if (S.calendar.length <= calOnce) fail("ölüm: takvim boş kaldı");
+        }
+      }
+      if (!oldu) fail("ölüm: 60 ateşli işte hiç ölüm çıkmadı (taziye yolu test edilemedi)");
+    })();
+
+    /* 11) migrate: eksik alanlı eski kayıt kırılmadan açılır */
+    (function () {
+      var eski = { kind: "racon_v1", week: 4, day: 3, kasa: 9000, stage: "delikanli", lakap: "Eski",
+        men: [{ id: "m_eski", ad: "Kadir", rol: "ayakci", gonul: 50 }],
+        streets: [{ id: "st_fevzi", ad: "Fevzi Paşa", sahip: "sen" }] };
+      var esk;
+      try { esk = migrate(eski); } catch (e) { fail("migrate: eski kayıt patladı — " + e.message); return; }
+      if (!esk || esk.week !== 4 || esk.kasa !== 9000) fail("migrate: eski kayıt temel alanları korunmadı");
+      var em = esk.men[0];
+      if (!em || !em.hidden || typeof em.hidden.agizBozuk !== "number") fail("migrate: eski adamda hidden stat dolmadı");
+      if (num(em.form, -1) !== 55) fail("migrate: eski adamda form 55 varsayılanı gelmedi");
+      if (!Array.isArray(esk.people) || !esk.people.length) fail("migrate: eski kayıtta people kurulmadı");
+      if (num(esk.dirtyKasa, -1) !== 9000) fail("migrate: dirtyKasa kasadan türetilmedi");
+      if (!esk.streets[0].komsular || !esk.streets[0].komsular.length) fail("migrate: sokak komşuları dolmadı");
+      if (num(esk.aklamaKapasite, 0) !== 2000) fail("migrate: aklamaKapasite varsayılanı yok");
+    })();
+
+    /* 13) hiçbir ekranda yasak kelime geçmiyor */
+    (function () {
+      var yasak = /(\blig\b|fikstür|fikstur|\bmaç\b|puan tablosu|sıradaki maç|\bXP\b|\bseviye\b|\blevel\b|beklenen gol|konfeti)/i;
+      var ekranlar = ["olaylar", "takvim", "adamlar", "harita", "isler", "pazar", "emlak", "hayat", "emniyet", "husumet", "kasa", "siralama"];
+      var tutEkran = S.screen;
+      ekranlar.forEach(function (ek) {
+        S.screen = ek;
+        var html2 = "";
+        try { html2 = screenHtml(); } catch (e) { fail("ekran çizilemedi: " + ek + " — " + e.message); return; }
+        var m2 = html2.replace(/<[^>]*>/g, " ").match(yasak);
+        if (m2) fail("yasak kelime '" + m2[0] + "' " + ek + " ekranında görünüyor");
+      });
+      S.screen = tutEkran;
+    })();
 
     writeSave();
     var shot = {
