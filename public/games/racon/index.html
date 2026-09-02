@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="17">
+<meta name="racon-rev" content="18">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -792,6 +792,35 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
 
   /* ---- KART 4: Çavuş kartı + akraba tuzağı ---- */
+  /* ---- KART 5: Gönül altında 3 neden ---- */
+  /* ---- KART 6: Birlikte yürümez ---- */
+  function celiskiliCift(crew) {
+    for (var i = 0; i < crew.length; i++) {
+      for (var k = i + 1; k < crew.length; k++) {
+        var a = crew[i], bm = crew[k];
+        var tanimaz = (a.birlikteYurumez || []).indexOf(bm.id) >= 0 || (bm.birlikteYurumez || []).indexOf(a.id) >= 0;
+        var zitHizip = a.hizip && bm.hizip && a.hizip !== "yok" && bm.hizip !== "yok" && a.hizip !== bm.hizip;
+        if (tanimaz || zitHizip) return [a, bm];
+      }
+    }
+    return null;
+  }
+
+  function nedenEkle(m, text) {
+    if (!m.gonulNeden) m.gonulNeden = [];
+    if (m.gonulNeden.indexOf(text) >= 0) return;
+    m.gonulNeden.push(text);
+    if (m.gonulNeden.length > 3) m.gonulNeden = m.gonulNeden.slice(-3);
+  }
+  function isIzDus(m, kind) {
+    if (!m.sonIsler) m.sonIsler = [];
+    m.sonIsler.push(kind);
+    if (m.sonIsler.length > 3) m.sonIsler = m.sonIsler.slice(-3);
+    if (m.sonIsler.length === 3 && m.sonIsler[0] === kind && m.sonIsler[1] === kind) {
+      nedenEkle(m, "hep aynı iş");
+    }
+  }
+
   function cavusAkrabaMi(m) { return !!m && m.bag === "karakol kuzeni"; }
   function cavusKapat() {
     if (S.komiser) S.komiser.kilitli = true;
@@ -1581,6 +1610,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           UI.jobLog.push(manName(m) + " dinlemedi.");
         }
       });
+      var cift = celiskiliCift(crewOf(j));
+      if (cift && rng() < 0.35) {
+        UI.jobLog.push(manName(cift[0]) + " ve " + manName(cift[1]) + " aynı anda durmadı.");
+        j.itaatsizlik = num(j.itaatsizlik, 0) + 1;
+      }
     }
     UI.jobWait = false;
     j.tickIndex += 1;
@@ -1738,6 +1772,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (esnafDusman(j.streetId)) tanik = Math.max(tanik, 1);
     }
     if (orders.length && orders.every(function (o) { return o === "sessiz"; })) favorEkle("p_kapici", 1);
+    crewOf(j).forEach(function (m) { isIzDus(m, j.kind); });
     if (crewOf(j).some(function (m) { return m.rol === "gozcu"; })) scoutYukselt("street", j.streetId, 2);
     noteRivalJob(j.streetId);
     var buyuyen = crewOf(j);
@@ -1934,6 +1969,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         m.gonul = clamp(m.gonul - 15, 0, 100);
         m.kus = true;
         eksik = true;
+        nedenEkle(m, "yevmiye geçti");
         pushInbox("Yevmiye yok: " + manName(m) + ".", "Kasa yetmedi. Gönül inceldi.");
       }
     });
@@ -2104,8 +2140,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function tickBetrayal() {
     S.men.forEach(function (m) {
       if (m.durum === "olu" || m.durum === "hapis") return;
-      if (m.gonul >= 25) return;
-      if (rng() >= 0.16) return;
+      var yevmiyeDertli = (m.gonulNeden || []).indexOf("yevmiye geçti") >= 0;
+      var esikGecti = m.gonul < 25 || (m.gonul < 30 && yevmiyeDertli);
+      if (!esikGecti) return;
+      var sansi = yevmiyeDertli && m.gonul < 30 ? 0.3 : 0.16;
+      if (rng() >= sansi) return;
       if (rng() < 0.5 && S.kasa > 0) {
         var steal = Math.min(S.kasa, 1800 + ri(0, 2200));
         S.kasa -= steal;
@@ -3212,6 +3251,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var kus = m.kus ? ' <span class="pill warn">küs</span>' : "";
     return '<div class="card"><p class="ttl">' + esc(up(manName(m))) + " · " + esc(up(ROL[m.rol] || m.rol)) + "</p><div class=\"hr\"></div>" + bars +
       "<p>Gönül <b class=\"num\">" + m.gonul + "</b> · Yevmiye ₺" + m.yevmiye + "</p>" +
+      (m.gonul <= 62
+        ? ((m.gonulNeden && m.gonulNeden.length)
+            ? m.gonulNeden.map(function (n) { return '<p class="dim">· ' + esc(n) + "</p>"; }).join("")
+            : '<p class="dim">· bir şey demiyor.</p>')
+        : "") +
       barrow("Yorgunluk", m.yorgunluk, 100, m.yorgunluk >= 80 ? "heat" : "") +
       '<p>' + pill(m.durum) + kus + '</p>' +
       '<p class="dim">Bağ: ' + esc(m.bag || "—") + "</p>" +
