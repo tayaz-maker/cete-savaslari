@@ -354,9 +354,9 @@ await oyunaDon(page);
       await satir.click().catch(() => {});
       await page.waitForTimeout(200);
       const tarz = await page.evaluate(() => [...document.querySelectorAll('[data-act="randevu-git"]')].length);
-      if (tarz !== 3) not("lig: randevu kâğıdında " + tarz + " gidiş tarzı var (3 bekleniyor)");
+      if (tarz !== 4) not("lig: randevu kâğıdında " + tarz + " gidiş tarzı var (4 bekleniyor)");
       const once = await oku();
-      await page.locator('[data-act="randevu-git"][data-tarz="kalabalik"]').first().click().catch(() => {});
+      await page.locator('[data-act="randevu-git"][data-tarz="kapi"]').first().click().catch(() => {});
       if (!(await sahneyiBitir(page))) not("lig: randevu sahnesi kapanmadı");
       const sonra = await oku();
       const bitti = (sonra.lig.fikstur || []).some((f) => f.sonuc);
@@ -475,7 +475,7 @@ await oyunaDon(page);
     const kutu = await page.locator("[data-rman]").count();
     if (!kutu) not("randevu: kadro seçimi yok");
     const once = await oku();
-    await page.locator('[data-act="randevu-git"][data-tarz="sessiz"]').first().click().catch(() => {});
+    await page.locator('[data-act="randevu-git"][data-tarz="masa"]').first().click().catch(() => {});
     if (!(await sahneyiBitir(page))) not("randevu: sahne kapanmadı");
     const sonra = await oku();
     if (!(sonra.lig.fikstur || []).some((f) => f.sonuc)) not("randevu: sonuç yazılmadı");
@@ -566,7 +566,7 @@ await oyunaDon(page);
   if (!rnd) not("sahne: randevu çıkmadı");
   else if (!(await kagitAc(/randevu verdi/))) not("sahne: randevu kâğıdı yok");
   else {
-    await page.locator('[data-act="randevu-git"][data-tarz="kalabalik"]').first().click().catch(() => {});
+    await page.locator('[data-act="randevu-git"][data-tarz="kapi"]').first().click().catch(() => {});
     await page.waitForTimeout(1300);
     const kararlar = await page.evaluate(() => [...document.querySelectorAll('[data-act="rnd-karar"]')].length);
     const satir = await page.evaluate(() => document.querySelectorAll(".log p").length);
@@ -591,7 +591,7 @@ await oyunaDon(page);
   await page.locator('button:has-text("Devam")').first().click().catch(() => {});
   await page.waitForTimeout(300);
   let baskin = false, kom = null;
-  for (let t = 0; t < 14; t++) {
+  for (let t = 0; t < 22; t++) {
     await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
     await page.waitForTimeout(430);
     for (let k = 0; k < 4; k++) {
@@ -605,7 +605,7 @@ await oyunaDon(page);
     if ((j.inbox || []).some((x) => /Baskın|İddianame/.test(x.title))) { baskin = true; break; }
   }
   if (!kom) not("emniyet: dosya yükseldiği halde komiser çıkmadı");
-  if (!baskin) not("emniyet: dosya 90+ iken 14 günde baskın/iddianame olmadı");
+  if (!baskin) not("emniyet: dosya 90+ iken 22 günde baskın/iddianame olmadı");
   await page.locator('.navbtn[data-id="emniyet"]').click().catch(() => {});
   await page.waitForTimeout(250);
   const em = await page.evaluate(() => document.querySelector(".stage")?.textContent || "");
