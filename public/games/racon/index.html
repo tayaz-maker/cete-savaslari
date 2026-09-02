@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="20">
+<meta name="racon-rev" content="21">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -183,6 +183,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .log .lg-adim{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:8px}
 .log .lg-adim:first-child{border-top:0;margin-top:0;padding-top:0}
 .log .lg-emir{color:var(--ink);border-left:2px solid var(--heat);padding-left:8px;margin-left:-2px}
+.ince2{display:flex;gap:10px;font-size:11px;color:var(--ink-dim);margin:2px 0}
 .split2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
 .chks{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .chk{min-height:40px;display:flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer}
@@ -835,6 +836,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     return S.men.filter(function (m) { return m.durum !== "olu"; }).reduce(function (a, m) { return a + m.yevmiye; }, 0);
   }
   function kasaAklaHaftalik() {
+    if (S.flags.avukatTutuldu) {
+      if (S.kasa >= 6000) { S.kasa -= 6000; defter("avukat · " + fmtPara(-6000)); }
+      else { S.flags.avukatTutuldu = false; pushInbox("Avukat bıraktı.", "Ücret ödenmedi, Ferit çekildi."); }
+    }
     var akt = Math.min(num(S.dirtyKasa, 0), num(S.aklamaKapasite, 0));
     if (akt > 0) {
       S.dirtyKasa -= akt;
@@ -857,6 +862,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         }
       }
     }
+  }
+
+  /* ---- Blok 6: iş sonrası çay kâğıdı ---- */
+  function cayKagidiOlustur(j, st) {
+    var lead = leadOf(j);
+    pushInbox(manName(lead) + " çaya kaldı.",
+      "İş bitti. " + manName(lead) + " çayı içerken bir şey söyledi mi, dinlemek sana kalmış.",
+      { kind: "cay", manId: lead.id });
   }
 
   function cavusAkrabaMi(m) { return !!m && m.bag === "karakol kuzeni"; }
@@ -1421,7 +1434,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       else if (age >= 8) w = w * 0.5;
       sum += w;
     });
-    S.dosya = clamp(sum + S.rep.nam * 0.05 + num(S.flags.haftaGurultu, 0) + num(S.flags.toz, 0), 0, 100);
+    var av = S.flags.avukatTutuldu ? 0.8 : 1;
+    S.dosya = clamp((sum + S.rep.nam * 0.05 + num(S.flags.haftaGurultu, 0)) * av + num(S.flags.toz, 0), 0, 100);
   }
   function tickJob(j) {
     if (j.phase === "prep" && j.prepLeft > 0) {
@@ -1955,6 +1969,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         { k: "heat", v: (heatD >= 0 ? "+" : "") + heatD, bad: heatD > 6, good: heatD <= 4 }
       ]
     };
+    if (!fled && rng() < 0.4) cayKagidiOlustur(j, st);
     persist();
     writeSave();
     if (!UI.fastJob) render();
@@ -3312,6 +3327,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (it.kind === "lakap") {
         acts = '<button type="button" class="btn primary" data-act="lakap-al" data-id="' + it.id + '">Kabul et</button>' +
           '<button type="button" class="btn ghost" data-act="lakap-red" data-id="' + it.id + '">Red</button>';
+      } else if (it.kind === "cay") {
+        acts = '<button type="button" class="btn primary" data-act="cay-dinle" data-id="' + it.id + '">Dinle</button>' +
+          '<button type="button" class="btn ghost" data-act="cay-kov" data-id="' + it.id + '">Kes, iş var</button>';
       } else if (it.kind === "hazirlik") {
         acts = Object.keys(HAZIRLIK).map(function (t) {
           return '<button type="button" class="btn' + (t === "kahve" ? " primary" : "") +
@@ -3404,12 +3422,18 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     return '<div class="cal">' + heads + cells + "</div>" + paper;
   }
 
+  var HIZIP_TR = { eski: "eski kuşak", genc: "genç kuşak", yok: "" };
   function manPaper(m) {
     if (!m) return '<div class="card paper-empty"><span class="dim">Adam seç.</span></div>';
     var bars = STATS.map(function (p) { return barrow(p[1], m.stats[p[0]], 20, ""); }).join("");
     var kus = m.kus ? ' <span class="pill warn">küs</span>' : "";
-    return '<div class="card"><p class="ttl">' + esc(up(manName(m))) + " · " + esc(up(ROL[m.rol] || m.rol)) + "</p><div class=\"hr\"></div>" + bars +
-      "<p>Gönül <b class=\"num\">" + m.gonul + "</b> · Yevmiye ₺" + m.yevmiye + "</p>" +
+    var hizipHap = m.hizip && m.hizip !== "yok" ? ' <span class="pill">' + esc(HIZIP_TR[m.hizip]) + "</span>" : "";
+    var donus = "";
+    if (m.durum === "hapis") donus = '<p class="dim">Dönüş: ' + num(m.hapisLeft, 0) + " gün</p>";
+    else if (m.durum === "yarali") donus = '<p class="dim">Dönüş: ' + num(m.iyilesme, 0) + " gün</p>";
+    return '<div class="card"><p class="ttl">' + esc(up(manName(m))) + " · " + esc(up(ROL[m.rol] || m.rol)) + hizipHap + "</p><div class=\"hr\"></div>" + bars +
+      barrow("Form", num(m.form, 55), 100, num(m.form, 55) < 35 ? "heat" : "") +
+      "<p>Gönül <b class=\"num\">" + m.gonul + "</b> · Yevmiye ₺" + m.yevmiye + "</p>" + donus +
       (m.gonul <= 62
         ? ((m.gonulNeden && m.gonulNeden.length)
             ? m.gonulNeden.map(function (n) { return '<p class="dim">· ' + esc(n) + "</p>"; }).join("")
@@ -3465,7 +3489,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var heatHtml = (s.sahip === "rakip" && sBand < 2)
         ? '<p class="dim">heat: bilinmiyor</p>'
         : barrow("Heat", s.heat, 100, "heat");
-      return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">" + esc(STREET_NOTE[s.id] || "") + "</p><p class=\"dim\">sahip: " + ownTxt + "</p>" + heatHtml + "</button>";
+      var ince = '<div class="ince2"><span title="sadakat">S ' + Math.round(num(s.sadakatMahalle, 50)) +
+        '</span><span title="terör">T ' + Math.round(num(s.terorMahalle, 0)) + "</span></div>";
+      var komsu = (s.komsular || []).map(function (kid) { var k = streetBy(kid); return k ? k.ad : ""; }).filter(Boolean).join(", ");
+      return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">" + esc(STREET_NOTE[s.id] || "") + "</p><p class=\"dim\">sahip: " + ownTxt + "</p>" + heatHtml + ince +
+        (komsu ? '<p class="dim">komşu: ' + esc(komsu) + "</p>" : "") + "</button>";
     }).join("") + "</div>" + drawKose();
   }
   function drawKose() {
@@ -3545,7 +3573,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         ? '<span class="dim">3 adam gerek</span>'
         : ready
           ? '<button type="button" class="btn" data-act="sahne" data-id="' + j.id + '">İş günü</button>'
-          : '<span class="dim">hazırlık ' + j.prepLeft + ' tur</span>';
+          : '<span class="dim">' + (j.prepLeft === 1 ? "çay · son laf (1 tur)" : "keşif · laf · çay (" + j.prepLeft + " tur)") + "</span>";
       return '<div class="qrow"><div class="grow">' + esc(JOB_TR[j.kind] || j.kind) + " · " + esc(st ? st.ad : "") + " · " + (ready ? "hazır" : "hazırlık") + "</div>" + right + "</div>";
     }).join("");
     if (!q) q = '<p class="dim">Kuyruk boş.</p>';
@@ -3609,6 +3637,17 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       '<div class="card"><h3>Delil</h3>' + rows + "</div>" +
       '<div class="card"><h3>Zarf</h3><p class="dim">' + (S.flags.cavusTanisik ? "Karakol tanıdığı. ₺2.500, bir delil solar." : "Kimseyi tanımıyorsun. Önce tanıştır.") + '</p><div class="acts"><button type="button" class="btn" data-act="zarf"' + (!S.flags.cavusTanisik || S.kasa < 2500 || !S.evidence.length ? " disabled" : "") + ">Zarf bırak · ₺2.500</button></div></div>" +
       drawIyilik() +
+      (function () {
+        var av = personBy("p_avukat");
+        if (!av) return "";
+        var tut = !!S.flags.avukatTutuldu;
+        return '<div class="card"><h3>' + esc(av.ad) + '</h3><p class="dim">' +
+          (tut ? "Tutuldun. Fezleke yavaşlıyor." : "Fezleke hızını keser, kasa yer, racon'a dokunmaz.") + "</p>" +
+          '<div class="acts"><button type="button" class="btn" data-act="avukat-tut"' +
+          (tut || S.kasa < 6000 ? " disabled" : "") + ">Tut · ₺6.000/hafta</button>" +
+          (tut ? '<button type="button" class="btn ghost" data-act="avukat-birak">Bırak</button>' : "") +
+          "</div></div>";
+      })() +
       (S.komiser && S.komiser.kilitli
         ? '<div class="card"><p class="ttl">' + esc(up(S.komiser.ad)) + '</p><p class="minus">Bu kapı kapandı.</p></div>'
         : S.flags.cavusKapali
@@ -4064,6 +4103,41 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "lakap-red") {
       var lr = inboxBy(payload.id);
       if (lr) { lr.read = true; lr.kapali = true; UI.inboxId = ""; }
+      persist(); render(); return;
+    }
+    if (code === "avukat-tut") {
+      if (S.kasa >= 6000) {
+        S.kasa -= 6000;
+        S.flags.avukatTutuldu = true;
+        defter("avukat · " + fmtPara(-6000));
+        pushInbox("Avukat tutuldu.", "Ferit dosyaya bakacak.");
+      }
+      persist(); render(); return;
+    }
+    if (code === "avukat-birak") {
+      S.flags.avukatTutuldu = false;
+      persist(); render(); return;
+    }
+    if (code === "cay-dinle") {
+      var cp = inboxBy(payload.id);
+      var cm = cp ? manBy(cp.manId) : null;
+      if (cp) {
+        cp.read = true; cp.kapali = true; UI.inboxId = "";
+        if (cm) {
+          cm.gonul = clamp(cm.gonul + 3, 0, 100);
+          var cumleler = ["Kartallar'ın kasası boşmuş, duymuş.", "Bir esnaf senden şikayetçiymiş.", "Karakolda tanıdığı biri varmış."];
+          pushInbox("Dinledin.", cm.ad + ": \"" + cumleler[ri(0, cumleler.length - 1)] + "\"");
+        }
+      }
+      persist(); render(); return;
+    }
+    if (code === "cay-kov") {
+      var ck = inboxBy(payload.id);
+      var km2 = ck ? manBy(ck.manId) : null;
+      if (ck) {
+        ck.read = true; ck.kapali = true; UI.inboxId = "";
+        if (km2) km2.gonul = clamp(km2.gonul - 4, 0, 100);
+      }
       persist(); render(); return;
     }
     if (code === "hazirlik") {
