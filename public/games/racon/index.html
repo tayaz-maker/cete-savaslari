@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="30">
+<meta name="racon-rev" content="31">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -1096,7 +1096,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         migrateMan({ id: "m_muharrem", ad: "Muharrem", rol: "sofor", stats: defaultStats(), gonul: 58, yevmiye: 400, durum: "hazir", yorgunluk: 0, kus: false }),
         migrateMan({ id: "m_sabri", ad: "Sabri", rol: "gozcu", stats: defaultStats(), gonul: 66, yevmiye: 350, durum: "hazir", bag: "Çarşamba esnafı", yorgunluk: 0, kus: false })
       ],
-      rivals: [{ id: "rival_kartallar", ad: "Kartallar", husumet: 0, band: "yok", agresiflik: 50, streetsClaimed: [] }],
+      rivals: [
+        { id: "rival_kartallar", ad: "Kartallar", husumet: 0, band: "yok", agresiflik: 50, streetsClaimed: [] },
+        { id: "rival_sessizler", ad: "Sessizler", husumet: 0, band: "yok", agresiflik: 30, streetsClaimed: [] },
+        { id: "rival_amca", ad: "Eski amca ekibi", husumet: 0, band: "yok", agresiflik: 20, streetsClaimed: [] }
+      ],
       streets: cs,
       cops: [],
       calendar: [],
@@ -1467,10 +1471,51 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     return { week: w, day: d };
   }
   function syncBand() {
-    var r = S.rivals[0];
-    if (!r) return;
-    var h = num(r.husumet, 0);
-    r.band = h >= 90 ? "kan" : h >= 85 ? "belali" : h >= 70 ? "hasim" : h >= 40 ? "surtusme" : h >= 15 ? "goz" : "yok";
+    (S.rivals || []).forEach(function (r) {
+      var h = num(r.husumet, 0);
+      r.band = h >= 90 ? "kan" : h >= 85 ? "belali" : h >= 70 ? "hasim" : h >= 40 ? "surtusme" : h >= 15 ? "goz" : "yok";
+    });
+  }
+  /* Eski kayıtta 2./3. rakip yoksa tamamla. */
+  function rivalGuvence() {
+    var kanon = [
+      { id: "rival_sessizler", ad: "Sessizler", agresiflik: 30 },
+      { id: "rival_amca", ad: "Eski amca ekibi", agresiflik: 20 }
+    ];
+    kanon.forEach(function (k) {
+      if ((S.rivals || []).some(function (r) { return r.id === k.id; })) return;
+      S.rivals.push({ id: k.id, ad: k.ad, husumet: 0, band: "yok", agresiflik: k.agresiflik, streetsClaimed: [] });
+      if (!(S.scout || []).some(function (x) { return x.subjectKind === "rival" && x.subjectId === k.id; })) {
+        S.scout.push({ subjectKind: "rival", subjectId: k.id, band: 0, week: S.week });
+      }
+    });
+  }
+  /* Husumet ikili matrisi: sen kavga etmezken üçüncü taraf sokak yer. */
+  function rivalMatrisTick() {
+    var rs = S.rivals || [];
+    if (rs.length < 2) return;
+    for (var i = 1; i < rs.length; i++) {
+      var r2 = rs[i];
+      var bandOnce = r2.band;
+      if (rng() < 0.25) r2.husumet = clamp(num(r2.husumet, 0) + ri(1, 3), 0, 100);
+      syncBand();
+      if (bandOnce === "yok" && r2.band !== "yok") {
+        pushInbox(r2.ad + " göründü.", "Üçüncü taraf kımıldadı. " + (r2.id === "rival_sessizler"
+          ? "Sesleri çıkmıyor ama dosyaları kabarık."
+          : "Masaya oturmak istiyorlar, racon konuşuyorlar."), { href: "husumet" });
+      }
+    }
+    if (num(S.flags.rakipGerilim, 0) > 0) S.flags.rakipGerilim = num(S.flags.rakipGerilim, 0) - 1;
+    else if (rng() < 0.2) {
+      var a = rs[0], b2 = rs[ri(1, rs.length - 1)];
+      if (a && b2 && a !== b2) {
+        S.flags.rakipGerilim = 2;
+        a.husumet = clamp(num(a.husumet, 0) - 4, 0, 100);
+        b2.husumet = clamp(num(b2.husumet, 0) - 4, 0, 100);
+        syncBand();
+        pushInbox(a.ad + " ile " + b2.ad + " karşı karşıya.", "Sen kavga etmedin, üçüncü sokak yedi. Bu hafta üstündeki göz azaldı.");
+      }
+    }
   }
   function recalcDosya() {
     var sum = 0;
@@ -1567,6 +1612,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var genc = S.men.filter(function (m) { return m.id !== vic.id && m.durum !== "olu" && m.hizip === "genc" && !m.lakap; });
     if (!genc.length || rng() > 0.4) return;
     var istekli = genc[ri(0, genc.length - 1)];
+    istekli.lakapIstegi = vic.lakap;
     pushInbox(manName(istekli) + " lakabı istiyor.", manName(istekli) + " " + vic.lakap + " lakabını almak istiyor.",
       { kind: "lakap-hirsiz", manId: istekli.id, lakap: vic.lakap });
   }
@@ -1610,6 +1656,91 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       addRep("saygi", -4);
       pushInbox("Dilekçeler birikti.", "Ertelenen dilekçeler patladı. Mahalle konuşuyor, saygı düştü.");
     }
+  }
+  /* --- Ö23 BOŞ TAHT --- */
+  function bosTahtMi() { return !!(S.throne && S.throne.dead); }
+  /* Oyuncu düşer: Blok 0 yasa 7 zinciri (delil + husumet + taziye + bağ kırılması + kan davası). */
+  function oyuncuDustu() {
+    if (bosTahtMi()) return;
+    S.throne.dead = true;
+    S.throne.weeksEmpty = 0;
+    S.throne.heirId = undefined;
+    S.evidence.push({ id: nid("ev"), kind: "iz", streetId: S.streetHome, week: S.week, weight: 4 });
+    var rv = S.rivals[0];
+    if (rv) { rv.husumet = clamp(num(rv.husumet, 0) + 15, 0, 100); syncBand(); }
+    var whenT = addDays(ri(3, 7));
+    pushCal({
+      strip: "yukumluluk", title: "Cenaze", body: "Senin cenazen. Mahalle toplanacak.",
+      week: whenT.week, day: whenT.day, ref: { olen: "sen" }
+    });
+    S.men.forEach(function (m) {
+      if (m.durum === "olu") return;
+      m.gonul = clamp(m.gonul - 12, 0, 100);
+      m.baglar = [];
+    });
+    S.blood.push({ id: nid("bl"), rivalOrFamily: "sen", weekDue: S.week + 6, status: "acik", evre: 0 });
+    addRep("korku", -8);
+    defter("taht boşaldı");
+    agirOlay(100, "Sen düştün. Taht boş.");
+    pushInbox("Sen düştün.", "Baskında kurşun sana geldi. Mahalle sahipsiz kaldı. Üç hafta boş taht.", { href: "adamlar" });
+  }
+  /* Üç yol: en saygı (ağız) · en korku (kabadayılık) · en sadakat. */
+  function halefAta() {
+    var aday = S.men.filter(function (m) { return m.durum !== "olu"; });
+    if (!aday.length) {
+      S.flags.oyunSonu = "hanedan";
+      pushInbox("Kimse kalmadı.", "Taht boş, ardında duracak adam yok. Mahalle elden gitti.");
+      return null;
+    }
+    function enIyi(key) {
+      return aday.slice().sort(function (a, b) {
+        return num(b.stats[key], 0) - num(a.stats[key], 0);
+      })[0];
+    }
+    var yollar = [
+      { yol: "saygi", m: enIyi("agiz"), soz: "Sözü geçiyor." },
+      { yol: "korku", m: enIyi("kabadayilik"), soz: "Eli ağır." },
+      { yol: "sadakat", m: enIyi("sadakat"), soz: "Hiç dönmedi." }
+    ].filter(function (y) { return !!y.m; });
+    var sec = yollar[ri(0, yollar.length - 1)];
+    var h = sec.m;
+    S.throne.dead = false;
+    S.throne.weeksEmpty = 0;
+    S.throne.heirId = h.id;
+    S.lakap = h.lakap ? h.lakap : h.ad;
+    S.flags.halefYol = sec.yol;
+    S.flags.halefHidden = h.hidden;
+    S.flags.halefStats = h.stats;
+    S.men = S.men.filter(function (m) { return m.id !== h.id; });
+    if (sec.yol === "saygi") { addRep("saygi", 10); addRep("korku", -5); }
+    else if (sec.yol === "korku") { addRep("korku", 10); addRep("saygi", -5); }
+    else { addRep("racon", 8); addRep("nam", -3); }
+    S.flags.amcaKonusulmuyor = 1;
+    S.flags.sessizDonusSay = 0;
+    defter("halef · " + S.lakap);
+    pushInbox("Taht doldu: " + S.lakap, h.ad + " öne çıktı. " + sec.soz +
+      " Artık mahalle onun ağzından konuşuyor. Unvan soluk, iki sessiz işle toparlanır.", { href: "adamlar" });
+    return h;
+  }
+  function throneTick() {
+    if (!bosTahtMi()) return;
+    S.throne.weeksEmpty = num(S.throne.weeksEmpty, 0) + 1;
+    if (S.throne.weeksEmpty >= 3) { halefAta(); return; }
+    pushInbox("Taht boş.", "Mahalle sahipsiz. " + (3 - S.throne.weeksEmpty) + " hafta daha bekleyecek.");
+  }
+  /* Blok 3C: adam zam ister; yoksa küser (yevmiyeTalep). */
+  function zamTalebiTick() {
+    if (UI.spawnLeft <= 0) return;
+    var aday = S.men.filter(function (m) {
+      return m.durum !== "olu" && m.durum !== "hapis" && !m.kus && num(m.yevmiyeTalep, 0) <= num(m.yevmiye, 0);
+    });
+    if (!aday.length || rng() >= 0.12) return;
+    var zm = aday[ri(0, aday.length - 1)];
+    zm.yevmiyeTalep = num(zm.yevmiye, 400) + 50 + ri(0, 6) * 25;
+    pushInbox(manName(zm) + " zam istiyor.",
+      manName(zm) + " haftalığını ₺" + zm.yevmiyeTalep.toLocaleString("tr-TR") + " istiyor. Şimdiki ₺" +
+      num(zm.yevmiye, 0).toLocaleString("tr-TR") + ".", { kind: "zam", manId: zm.id, tutar: zm.yevmiyeTalep });
+    UI.spawnLeft -= 1;
   }
   function kanDavasiAcikMi() {
     return (S.blood || []).some(function (b) { return b.status === "acik"; });
@@ -2522,11 +2653,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       defter("kira ve köşe · " + fmtPara(pas));
     }
     var eksik = false;
+    /* Ö23: taht boşken adamlar iki katı ister. */
+    var tahtCarp = bosTahtMi() ? 2 : 1;
     S.men.forEach(function (m) {
       if (m.durum === "olu") return;
-      if (S.kasa >= m.yevmiye) {
-        S.kasa -= m.yevmiye;
-        defter("yevmiye · " + manName(m) + " · " + fmtPara(-m.yevmiye));
+      var yev = m.yevmiye * tahtCarp;
+      if (S.kasa >= yev) {
+        S.kasa -= yev;
+        defter("yevmiye · " + manName(m) + " · " + fmtPara(-yev));
       } else {
         m.gonul = clamp(m.gonul - 15, 0, 100);
         m.kus = true;
@@ -2586,7 +2720,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (UI.spawnLeft <= 0) return;
       var last = num(S.flags.lastTouch[st.id], 1);
       if (S.week - last < 2) return;
-      var sans = r.kus ? 0.15 : 0.4;
+      var sans = ((r.kus ? 0.15 : 0.4) + (bosTahtMi() ? 0.35 : 0)) * (num(S.flags.rakipGerilim, 0) > 0 ? 0.5 : 1);
       if (rng() >= sans) {
         if (r.kus && rng() < 0.3 && UI.spawnLeft > 0) {
           pushInbox("Kartallar " + st.ad + "'de durdular.", "Yevmiye kesemediler, sokak sessiz kaldı.");
@@ -3125,6 +3259,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var aday = S.men.filter(function (m) { return m.id !== manId && m.durum !== "olu"; });
     var kefilId = aday.length && rng() < 0.5 ? aday[ri(0, aday.length - 1)].id : "sen";
     S.kefiller.push({ manId: manId, kefilId: kefilId, tutar: ri(2000, 6000), week: S.week });
+    var yeni = manBy(manId);
+    if (yeni) yeni.kofilOldugu = kefilId;
   }
 
   /* ---- EMNİYET: isimli komiser, baskın, iddianame ---- */
@@ -3197,6 +3333,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       "Kasadan " + fmtPara(-elKoy) + ".", { href: "emniyet" });
     agirOlay(90, "Karakol kapıyı kırdı.");
     S.flags.baskinSay = num(S.flags.baskinSay, 0) + 1;
+    /* Ö23 tetiği: dosya 90+ baskında kurşun oyuncuya da gelebilir. */
+    if (S.dosya >= 90 && !bosTahtMi() && rng() < 0.04) oyuncuDustu();
     if (S.dosya >= 92) iddianame();
   }
   function iddianame() {
@@ -3218,6 +3356,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
 
   function randevuAc() {
+    if (bosTahtMi()) return; /* Ö23: taht boşken masa/randevu kapalı */
     var f = fiksturBu(S.week);
     if (!f || f.calId || f.sonuc) return;
     var e = ekipBy(f.rakipId);
@@ -3662,6 +3801,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       weekColorKur();
       defterFarkTick();
       kanDavasiTick();
+      throneTick();
+      rivalMatrisTick();
+      zamTalebiTick();
       if (sezonBitti()) sezonKapat();
     }
     /* 12 — kademe · konuşulmama · lakap teklifi */
@@ -3735,6 +3877,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
   function enterPlay() {
     ligGuvence();
+    rivalGuvence();
     UI.mode = "play";
     UI.sahne = false;
     S.screen = "olaylar";
@@ -3826,7 +3969,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return it ? it.ad : "—";
     }).join(" · ");
     el.innerHTML =
-      '<p class="unvan' + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " dim" : "") + '">' + up((STAGE_TR[S.stage] || S.stage) + " · Fatih") + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " · soluk" : "") + "</p>" +
+      (bosTahtMi()
+        ? '<p class="unvan dim">' + up("TAHT BOŞ · " + Math.max(0, 3 - num(S.throne.weeksEmpty, 0)) + " HAFTA") + "</p>"
+        : '<p class="unvan' + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " dim" : "") + '">' + up((STAGE_TR[S.stage] || S.stage) + " · Fatih") + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " · soluk" : "") + "</p>") +
       '<p class="side-note">' + esc(S.lakap) + (S.origin ? " · " + esc((ORIGIN[S.origin] || {}).title || "") : "") + "</p>" +
       '<p class="side-note"><b>BU HAFTA</b><br>' + esc(S.defterHafta || "Hafta yeni başladı.") + "</p>" +
       barrow("Korku", S.rep.korku, 100, "") +
@@ -3899,6 +4044,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (it.kind === "dilekce") {
         acts = '<button type="button" class="btn primary" data-act="dilekce-kabul" data-id="' + it.id + '">Kabul et</button>' +
           '<button type="button" class="btn ghost" data-act="dilekce-red" data-id="' + it.id + '">Reddet</button>';
+      } else if (it.kind === "zam") {
+        acts = '<button type="button" class="btn primary" data-act="zam-kabul" data-id="' + it.id + '"' +
+          (S.kasa < num(it.tutar, 0) ? " disabled" : "") + ">Kabul · ₺" + num(it.tutar, 0).toLocaleString("tr-TR") + "</button>" +
+          '<button type="button" class="btn ghost" data-act="zam-red" data-id="' + it.id + '">Yok</button>';
       } else if (it.kind === "lakap-hirsiz") {
         acts = '<button type="button" class="btn primary" data-act="lakap-hirsiz-izin" data-id="' + it.id + '">İzin ver</button>' +
           '<button type="button" class="btn ghost" data-act="lakap-hirsiz-red" data-id="' + it.id + '">Red</button>';
@@ -3910,7 +4059,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (randevu) {
         acts = '<div class="emirler">' + TARZ_UI.map(function (t) {
           return '<button type="button" class="btn emir' + (t === "pusu" ? " danger" : "") +
-            '" data-act="randevu-git" data-id="' + kal.id + '" data-tarz="' + t + '"' + (t === "masa" && kanDavasiAcikMi() ? " disabled" : "") + "><b>" + TARZ[t].ad + "</b>" +
+            '" data-act="randevu-git" data-id="' + kal.id + '" data-tarz="' + t + '"' + ((t === "masa" && kanDavasiAcikMi()) || bosTahtMi() ? " disabled" : "") + "><b>" + TARZ[t].ad + "</b>" +
             '<span class="ne">' + esc(TARZ[t].not || "") + '</span><span class="sayi">' + esc(tarzYazi(t)) + "</span></button>";
         }).join("") + "</div>" +
           '<button type="button" class="btn" data-act="randevu-ertele" data-id="' + kal.id + '">Ertele</button>' +
@@ -3981,7 +4130,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           git = '<div class="acts">' +
             '<div class="emirler">' + TARZ_UI.map(function (t) {
               return '<button type="button" class="btn emir' + (t === "pusu" ? " danger" : "") +
-                '" data-act="randevu-git" data-id="' + c.id + '" data-tarz="' + t + '"' + (t === "masa" && kanDavasiAcikMi() ? " disabled" : "") + "><b>" + TARZ[t].ad + "</b>" +
+                '" data-act="randevu-git" data-id="' + c.id + '" data-tarz="' + t + '"' + ((t === "masa" && kanDavasiAcikMi()) || bosTahtMi() ? " disabled" : "") + "><b>" + TARZ[t].ad + "</b>" +
                 '<span class="sayi">' + esc(tarzYazi(t)) + "</span></button>";
             }).join("") + "</div>" +
             '<button type="button" class="btn" data-act="randevu-ertele" data-id="' + c.id + '">Ertele</button>' +
@@ -4297,6 +4446,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       '<button type="button" class="btn" data-act="pazarlik"' + (S.kasa < 5000 ? " disabled" : "") + ">Pazarlık · ₺5.000</button>" +
       '<button type="button" class="btn danger" data-act="pusu">Pusu planla</button></div>' +
       '<div class="hr"></div><button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Masa — kilitli") + " (Baba)</button></div>" +
+      (S.rivals || []).slice(1).map(function (r2) {
+        var b2 = scoutBand("rival", r2.id);
+        return '<div class="card"><p class="ttl">' + (b2 >= 1 ? esc(up(r2.ad)) : "BİRİ DAHA VAR") + "</p>" +
+          "<p>Durum: <b>" + esc(up(BAND_TR[r2.band] || r2.band)) + "</b></p>" +
+          '<p class="dim">Keşif: ' + esc(SCOUT_KELIME[b2]) + "</p>" +
+          (num(S.flags.rakipGerilim, 0) > 0 ? '<p class="dim">Şu an başka kapıyla meşguller.</p>' : "") + "</div>";
+      }).join("") +
       (function () {
         var acik = (S.blood || []).filter(function (b) { return b.status === "acik"; });
         if (!acik.length) return "";
@@ -4812,12 +4968,34 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       pushInbox("Muhtarı korkuttun.", "Fikret sesini kesti. Tapu, dernek işleri açık, ama kin tuttu.");
       persist(); render(); return;
     }
+    if (code === "zam-kabul" || code === "zam-red") {
+      var zp = inboxBy(payload.id);
+      var zmm = zp ? manBy(zp.manId) : null;
+      if (zp) {
+        zp.read = true; zp.kapali = true; UI.inboxId = "";
+        if (zmm) {
+          if (code === "zam-kabul") {
+            zmm.yevmiye = num(zp.tutar, zmm.yevmiye);
+            zmm.yevmiyeTalep = zmm.yevmiye;
+            zmm.gonul = clamp(zmm.gonul + 6, 0, 100);
+            zmm.kus = false;
+            pushInbox("Zam verildi.", manName(zmm) + " memnun. Haftalık ₺" + zmm.yevmiye.toLocaleString("tr-TR") + ".");
+          } else {
+            zmm.kus = true;
+            zmm.gonul = clamp(zmm.gonul - 10, 0, 100);
+            nedenEkle(zmm, "zam yok");
+            pushInbox("Zam yok.", manName(zmm) + " küstü. Gönül ince.");
+          }
+        }
+      }
+      persist(); render(); return;
+    }
     if (code === "lakap-hirsiz-izin") {
       var lhi = inboxBy(payload.id);
       var lhm = lhi ? manBy(lhi.manId) : null;
       if (lhi) {
         lhi.read = true; lhi.kapali = true; UI.inboxId = "";
-        if (lhm) lhm.lakap = lhi.lakap;
+        if (lhm) { lhm.lakap = lhi.lakap; lhm.lakapIstegi = undefined; }
         addRep("saygi", -3);
         addRep("nam", 2);
       }
@@ -4828,7 +5006,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var lhm2 = lhr ? manBy(lhr.manId) : null;
       if (lhr) {
         lhr.read = true; lhr.kapali = true; UI.inboxId = "";
-        if (lhm2) lhm2.gonul = clamp(lhm2.gonul - 5, 0, 100);
+        if (lhm2) { lhm2.gonul = clamp(lhm2.gonul - 5, 0, 100); lhm2.lakapIstegi = undefined; }
       }
       persist(); render(); return;
     }
@@ -4969,6 +5147,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return;
     }
     if (code === "randevu-git") {
+      if (bosTahtMi()) return;
       if (payload.tarz === "masa" && kanDavasiAcikMi()) return;
       randevuSahneBaslat(payload.id, payload.tarz);
       persist();
@@ -6147,6 +6326,82 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
       if (num(S.flags.amcaKonusulmuyor, 0) !== 0) fail("2 sessiz işle unvan toparlanmadı");
     }
+
+    /* Blok 6: 2. ve 3. rakip + ikili matris · Blok 3C: zam talebi */
+    (function () {
+      rivalGuvence();
+      if (S.rivals.length < 3) fail("rakip: 2./3. rakip kurulmadı (" + S.rivals.length + ")");
+      var ss = S.rivals.filter(function (r) { return r.id === "rival_sessizler"; })[0];
+      if (!ss) fail("rakip: Sessizler yok");
+      else {
+        ss.husumet = 50; syncBand();
+        if (ss.band !== "surtusme") fail("rakip: ikincil rakip bandı hesaplanmadı (" + ss.band + ")");
+        ss.husumet = 0; syncBand();
+      }
+      S.flags.rakipGerilim = 0;
+      var gerilimOldu = false;
+      for (var rg = 0; rg < 80 && !gerilimOldu; rg++) {
+        rivalMatrisTick();
+        if (num(S.flags.rakipGerilim, 0) > 0) gerilimOldu = true;
+      }
+      if (!gerilimOldu) fail("rakip: 80 turda ikili matris gerilimi hiç çıkmadı");
+      S.flags.rakipGerilim = 0;
+
+      var zm2 = S.men.filter(function (m) { return m.durum !== "olu"; })[0];
+      if (zm2) {
+        zm2.kus = false; zm2.yevmiyeTalep = zm2.yevmiye; zm2.durum = "hazir";
+        var zamGeldi = false;
+        for (var zk = 0; zk < 80 && !zamGeldi; zk++) {
+          UI.spawnLeft = 2;
+          zamTalebiTick();
+          zamGeldi = S.inbox.some(function (x) { return x.kind === "zam" && !x.kapali; });
+        }
+        if (!zamGeldi) fail("zam: 80 turda talep kâğıdı gelmedi");
+        else {
+          var zr = S.inbox.filter(function (x) { return x.kind === "zam" && !x.kapali; })[0];
+          var hedef = manBy(zr.manId);
+          S.kasa = 200000;
+          act("zam-kabul", { id: zr.id });
+          if (!hedef || hedef.yevmiye !== num(zr.tutar, 0)) fail("zam: kabul edilince yevmiye güncellenmedi");
+        }
+      }
+    })();
+
+    /* Ö23 boş taht: ölüm oyunu bitirmiyor, 3 tur boş, sonra halef */
+    (function () {
+      S.throne = { dead: false, weeksEmpty: 0, heirId: undefined };
+      S.flags.oyunSonu = "";
+      while (S.men.filter(function (m) { return m.durum !== "olu"; }).length < 2) {
+        S.men.push(migrateMan({ id: nid("m"), ad: "Yedek", rol: "ayakci", gonul: 60, yevmiye: 400, durum: "hazir" }));
+      }
+      var manOnce = S.men.length;
+      var calOnce2 = S.calendar.length;
+      var bloodOnce2 = S.blood.length;
+      oyuncuDustu();
+      if (!bosTahtMi()) fail("Ö23: oyuncu düştü ama taht boşalmadı");
+      if (S.flags.oyunSonu) fail("Ö23: oyuncu ölümü oyunu bitirdi (bitirmemeli)");
+      if (S.calendar.length <= calOnce2) fail("Ö23: oyuncu cenazesi takvime düşmedi");
+      if (S.blood.length <= bloodOnce2) fail("Ö23: oyuncu ölümünde kan davası açılmadı");
+      if (S.men.some(function (m) { return (m.baglar || []).length; })) fail("Ö23: ölümde bağlar kırılmadı");
+      var yevOnce = S.men[0].yevmiye;
+      S.kasa = 500000; S.day = 7;
+      var kasaOnce3 = S.kasa;
+      payWages();
+      if (kasaOnce3 - S.kasa < yevOnce * 2) fail("Ö23: boş tahtta yevmiye iki katına çıkmadı");
+      throneTick();
+      if (!bosTahtMi() || num(S.throne.weeksEmpty, 0) !== 1) fail("Ö23: 1. turda halef erken atandı");
+      throneTick();
+      if (!bosTahtMi()) fail("Ö23: 2. turda halef erken atandı");
+      throneTick();
+      if (bosTahtMi()) fail("Ö23: 3 tur sonunda taht hâlâ boş");
+      if (!S.throne.heirId) fail("Ö23: halef atanmadı");
+      if (S.men.some(function (m) { return m.id === S.throne.heirId; })) fail("Ö23: halef hâlâ kadroda duruyor");
+      if (S.men.length !== manOnce - 1) fail("Ö23: kadro halef kadar azalmadı");
+      if (!S.flags.halefHidden || typeof S.flags.halefHidden.agizBozuk !== "number") fail("Ö23: halefin hidden statları taşınmadı");
+      if (["saygi", "korku", "sadakat"].indexOf(S.flags.halefYol) < 0) fail("Ö23: halef yolu üç yoldan biri değil");
+      if (!S.lakap) fail("Ö23: halef lakabı boş");
+      S.day = 1;
+    })();
 
     /* --- Blok 10 kabul kriteri: otomatik kapanmayan maddeler --- */
 
