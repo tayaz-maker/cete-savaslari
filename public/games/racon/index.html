@@ -3,22 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#080706">
-<meta name="racon-rev" content="5">
+<meta name="theme-color" content="#1a1714">
+<meta name="racon-rev" content="6">
 <title>Racon Manager</title>
 <style>
 :root{
-  --bg:#080706; --surface:#141210; --surface-2:#1c1916; --line:#2a2622;
-  --ink:#f0e6d4; --ink-dim:#8a8074; --accent:#c4a574; --danger:#8b2e1f;
-  --respect:#6b8f71; --heat:#b8860b;
+  --bg:#1a1714; --surface:#2a251f; --surface-2:#362f27; --line:#5a5146;
+  --ink:#f6efe2; --ink-dim:#c9bba8; --accent:#d7b07a; --danger:#c45a45;
+  --respect:#7fa984; --heat:#d4a017;
   --font: ui-sans-serif,-apple-system,"Segoe UI", Roboto,sans-serif;
   --top:44px; --nav:200px; --side:240px; --r:10px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--ink);
   font:13px/1.45 var(--font);overflow:hidden;
   -webkit-text-size-adjust:100%;}
-#app{height:100dvh;display:flex;flex-direction:column;position:relative}
+#app{height:100%;max-height:100%;display:flex;flex-direction:column;position:relative}
+[hidden]{display:none !important}
 
 /* ÜST ŞERİT */
 .top{height:var(--top);flex:0 0 var(--top);display:flex;align-items:center;
@@ -92,7 +93,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 .pill.bad{color:#d9a599;border-color:#4a201a}
 
 /* BAR (itibar, heat, dosya, gönül) */
-.bar{height:6px;background:#0f0d0b;border:1px solid var(--line);
+.bar{height:6px;background:#1a1612;border:1px solid var(--line);
   border-radius:3px;overflow:hidden}
 .bar>i{display:block;height:100%;background:var(--accent)}
 .bar.red>i{background:var(--danger)} .bar.green>i{background:var(--respect)}
@@ -104,10 +105,10 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 .barrow .lbl b{color:var(--ink);font-weight:600}
 
 /* DOKU */
-#grain{position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:9;
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.025;z-index:9;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
 #vig{position:fixed;inset:0;pointer-events:none;z-index:8;
-  box-shadow:inset 0 0 160px 40px #000}
+  box-shadow:inset 0 0 80px 12px rgba(0,0,0,.28)}
 
 /* DAR EKRAN */
 @media (max-width:1100px){ :root{--nav:64px} .navbtn span{display:none}
@@ -119,9 +120,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 /* DİKEY KİLİT */
 #rotate{display:none}
 @media (orientation:portrait){ #app{display:none}
-  #rotate{display:flex;height:100dvh;flex-direction:column;
-  align-items:center;justify-content:center;gap:14px;text-align:center;
-  padding:24px} }
+  #rotate{display:flex;height:100%;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;text-align:center;
+    padding:24px} }
 
 /* --- iskelet ekleri (sınıf adları yukarıdakilere dokunmaz) --- */
 .ico{width:18px;height:18px;flex:0 0 18px}
@@ -187,9 +188,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 .lo{color:var(--ink-dim)}
 .unvan{letter-spacing:.12em;text-transform:uppercase;font-size:14px;margin:0 0 4px}
 .side-note{margin:0 0 12px;color:var(--ink-dim)}
-.menu-layer{position:absolute;inset:0;background:var(--bg);z-index:7;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.menu-layer{position:absolute;inset:0;background:var(--bg);z-index:7;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
 .menu-layer.hide{display:none}
-.menu-card{width:min(380px,92vw)}
+.menu-card{width:min(400px,94vw);max-height:100%;overflow:auto}
 .menu-card .brand{letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:14px;margin-bottom:8px}
 .menu-card .tag{margin:0 0 16px;color:var(--ink-dim)}
 .menu-card .stack{display:flex;flex-direction:column;gap:8px}
@@ -210,6 +211,36 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 .item{min-height:0}
 .item .price{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--accent)}
 .night p{margin:0 0 8px}
+
+/* Kısa yatay: iframe + telefon */
+@media (max-height:520px){
+  :root{--top:36px;--nav:52px;--side:220px}
+  .top{gap:8px;padding:0 8px}
+  .top .brand{display:none}
+  .top .meta{gap:8px;font-size:11px}
+  .top .btn.primary{min-width:84px;min-height:32px;padding:0 10px;font-size:12px}
+  .navbtn{height:36px}
+  .stage{padding:8px 10px}
+  .side{padding:8px}
+  .card{padding:10px;margin-bottom:8px}
+  .split{min-height:0;gap:8px}
+  .paper-empty{min-height:72px}
+  .cal .cell{min-height:56px;padding:4px}
+  .st{min-height:78px;padding:8px}
+  .log{min-height:72px;max-height:28vh}
+  .kasa-big{font-size:22px}
+  .menu-layer{padding:8px;align-items:flex-start}
+  .menu-card{width:min(440px,96vw)}
+  .menu-card textarea{min-height:72px}
+  #vig{display:none}
+  .btn{min-height:36px}
+}
+@media (max-height:380px){
+  :root{--top:32px}
+  .top .meta span:first-child{display:none}
+  .navbtn{height:32px}
+  .ico{width:16px;height:16px}
+}
 </style>
 </head>
 <body>
