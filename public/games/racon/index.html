@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="18">
+<meta name="racon-rev" content="19">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -183,6 +183,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .log .lg-adim{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:8px}
 .log .lg-adim:first-child{border-top:0;margin-top:0;padding-top:0}
 .log .lg-emir{color:var(--ink);border-left:2px solid var(--heat);padding-left:8px;margin-left:-2px}
+.split2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
 .chks{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .chk{min-height:40px;display:flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer}
 .plan{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
@@ -818,6 +819,43 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (m.sonIsler.length > 3) m.sonIsler = m.sonIsler.slice(-3);
     if (m.sonIsler.length === 3 && m.sonIsler[0] === kind && m.sonIsler[1] === kind) {
       nedenEkle(m, "hep aynı iş");
+    }
+  }
+
+  /* ---- KART 7 ek: cenaze günü iş yaparsan bedeli var ---- */
+  function cenazeBugun() {
+    return S.calendar.filter(function (c) {
+      return c.strip === "yukumluluk" && c.title === "Cenaze" && c.status === "bekler" &&
+        c.week === S.week && c.day === S.day;
+    })[0];
+  }
+
+  /* ---- KART 8: Kirli / temiz kasa ---- */
+  function yevmiyeToplami() {
+    return S.men.filter(function (m) { return m.durum !== "olu"; }).reduce(function (a, m) { return a + m.yevmiye; }, 0);
+  }
+  function kasaAklaHaftalik() {
+    var akt = Math.min(num(S.dirtyKasa, 0), num(S.aklamaKapasite, 0));
+    if (akt > 0) {
+      S.dirtyKasa -= akt;
+      S.cleanKasa = num(S.cleanKasa, 0) + akt;
+      defter("aklama (pazar/dernek) · " + fmtPara(akt));
+    }
+    var tavan = 3 * yevmiyeToplami();
+    if (tavan > 0 && S.dirtyKasa > tavan) {
+      S.dosya = clamp(S.dosya + 2, 0, 100);
+      if (rng() < 0.25) {
+        S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome, week: S.week, weight: 2 });
+        pushInbox("Nakit sokakta.", "Kirli kasa şişti. Biri bu kadar parayı sordu.");
+      }
+      if (rng() < 0.15) {
+        var aday = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+        if (aday.length) {
+          var m2 = aday[ri(0, aday.length - 1)];
+          m2.gonul = clamp(m2.gonul - 6, 0, 100);
+          nedenEkle(m2, "para elde durmuyor");
+        }
+      }
     }
   }
 
@@ -1626,6 +1664,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function finishJob() {
     var j = jobBy(UI.jobId);
     if (!j) return;
+    var cbugun = cenazeBugun();
+    if (cbugun && j.tags.indexOf("cenaze") < 0) {
+      j.tags.push("cenaze");
+      addRep("racon", -8);
+      pushInbox("Cenaze günü iş yaptın.", "Mahalle bunu unutmaz. Racon çatladı.");
+    }
     var st = streetBy(j.streetId);
     var orders = UI.jobOrders || [];
     var fired = orders.indexOf("ates") >= 0;
@@ -1725,6 +1769,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (j.bonus) para += j.bonus;
 
     S.kasa += para;
+    if (para > 0) S.dirtyKasa = num(S.dirtyKasa, 0) + para;
     if (para) defter((JOB_TR[j.kind] || j.kind) + " · " + fmtPara(para));
     if (st) st.heat = clamp(st.heat + heatD, 0, 100);
 
@@ -1737,8 +1782,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         S.evidence.push({ id: nid("ev"), kind: "iz", streetId: j.streetId, week: S.week, weight: 4 });
         var rv = S.rivals[0];
         if (rv) { rv.husumet = clamp(rv.husumet + 10, 0, 100); syncBand(); }
-        var whenC = addDays(2);
-        pushCal({ strip: "yukumluluk", title: "Cenaze", body: manName(vic) + " için. Gitmezsen mahalle konuşur.", week: whenC.week, day: whenC.day, ref: { manId: vic.id } });
+        var whenC = addDays(ri(3, 7));
+        pushCal({ strip: "yukumluluk", title: "Cenaze", body: manName(vic) + " için. Gitmezsen mahalle konuşur.", week: whenC.week, day: whenC.day, ref: { manId: vic.id, olen: vic.id } });
         S.men.forEach(function (m) { if (m.durum !== "olu") m.gonul = clamp(m.gonul - 8, 0, 100); });
         addRep("korku", 4);
         pushInbox(manName(vic) + " öldü.", "İş kanla bitti. Cenaze var.");
@@ -1942,6 +1987,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.rep.saygi = clamp(S.rep.saygi - 3, 0, 100);
       S.rep.racon = clamp(S.rep.racon - (hard ? 4 : 2), 0, 100);
       pushInbox("Kaçırıldı: " + c.title, "Yükümlülük durdu. Mahalle gördü.");
+      if (c.title === "Cenaze") {
+        S.blood.push({ id: nid("bl"), rivalOrFamily: (c.ref && c.ref.olen) ? c.ref.olen : "aile", weekDue: S.week + 6, status: "acik" });
+        pushInbox("Aile unutmadı.", "Cenazeye gitmedin. Hesap açık kaldı.");
+      }
     });
   }
   function walkMarket() {
@@ -2940,6 +2989,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       ligHafta();
       sokakEkonomi();
       scoutHaftalikCoz();
+      kasaAklaHaftalik();
       if (sezonBitti()) sezonKapat();
     }
     stageGate();
@@ -3505,7 +3555,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return '<div class="led"><span>' + esc(sn.kind === "alacak" ? "alacak" : "borç") + " · " + esc(sn.ad) + " · H" + sn.week + "·" + DAYS[sn.day - 1] + '</span><span class="amt ' + (sn.kind === "alacak" ? "plus" : "minus") + '">₺' + sn.tutar.toLocaleString("tr-TR") + "</span></div>";
     }).join("");
     if (!sen) sen = '<p class="dim">Senet yok.</p>';
-    return '<div class="card"><h3>Kasa</h3><p class="kasa-big">₺' + S.kasa.toLocaleString("tr-TR") + '</p><p class="dim">Haftalık yevmiye ₺' + yev.toLocaleString("tr-TR") + " · kira/köşe ₺" + weeklyPassive().toLocaleString("tr-TR") + (S.debt ? " · borç ₺" + S.debt.toLocaleString("tr-TR") : "") + "</p></div>" +
+    var dirty = num(S.dirtyKasa, 0), clean = num(S.cleanKasa, 0);
+    var tasti = dirty > num(S.aklamaKapasite, 0);
+    return '<div class="card"><h3>Kasa</h3><p class="kasa-big">₺' + S.kasa.toLocaleString("tr-TR") + '</p><p class="dim">Haftalık yevmiye ₺' + yev.toLocaleString("tr-TR") + " · kira/köşe ₺" + weeklyPassive().toLocaleString("tr-TR") + (S.debt ? " · borç ₺" + S.debt.toLocaleString("tr-TR") : "") + "</p>" +
+      '<div class="split2col"><div><p class="dim">KİRLİ</p><p class="num">₺' + dirty.toLocaleString("tr-TR") + "</p></div>" +
+      '<div><p class="dim">TEMİZ</p><p class="num">₺' + clean.toLocaleString("tr-TR") + "</p></div></div>" +
+      '<p class="dim">Aklama kapasitesi haftada ₺' + num(S.aklamaKapasite, 0).toLocaleString("tr-TR") + "</p>" +
+      (tasti ? '<p class="minus">Nakit sokakta. Kirli kasa kapasiteyi aştı.</p>' : "") +
+      "</div>" +
       '<div class="card"><h3>Piyasa</h3><p>Gram altın <b class="num">₺' + S.market.altin + '</b> · Dolar <b class="num">₺' + S.market.dolar + "</b></p>" +
       "<p class=\"dim\">Elinde: " + (S.hold.altin || 0) + " g · " + (S.hold.dolar || 0) + " $</p>" +
       '<div class="acts">' +
@@ -4406,7 +4463,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           duty.status = "bitti";
           if (masraf) defter(duty.title.toLocaleLowerCase("tr-TR") + " · " + fmtPara(-masraf));
           pushInbox(duty.title + " görüldü.", "Gittin. Mahalle gördü.");
-          if (duty.title === "Cenaze") favorEkle("p_berber", 1);
+          if (duty.title === "Cenaze") {
+            addRep("nam", 3);
+            addRep("racon", 4);
+            if (rng() < 0.5) favorEkle("p_berber", 1);
+          }
         }
       }
       persist();
