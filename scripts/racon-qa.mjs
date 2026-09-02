@@ -25,6 +25,9 @@ const not = (m) => sorunlar.push(m);
 const exe = process.env.RACON_CHROME || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
 const browser = await chromium.launch(fs.existsSync(exe) ? { executablePath: exe } : {});
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+/* Determinizm: yeni oyun seed'i sabit. RACON_SEED ile değiştirilebilir. */
+const seed = Number(process.env.RACON_SEED || 4242);
+await ctx.addInitScript((s) => { window.__raconSeedSabit = s; }, seed);
 const page = await ctx.newPage();
 const konsol = [];
 page.on("console", (m) => m.type() === "error" && konsol.push(m.text()));
@@ -72,7 +75,9 @@ async function oyunaGir(pg) {
   await pg.locator("#lakap").fill("Test").catch(() => {});
   await pg.locator('[data-go="origin"]').first().click().catch(() => {});
   await pg.waitForTimeout(150);
-  await pg.locator('[data-act="origin"]').first().click().catch(() => {});
+  /* "koy" seçilir: tam kadro (3 adam) ile başlar, "hapis" (1 adam) gibi
+     ince kadroya bağlı testleri (randevu vb.) rastgele kırmasın diye. */
+  await pg.locator('[data-act="origin"][data-id="koy"]').click().catch(() => {});
   await pg.waitForTimeout(200);
   for (let i = 0; i < 5; i++) {
     const n = pg.locator("#menu-night button:not([disabled])").first();

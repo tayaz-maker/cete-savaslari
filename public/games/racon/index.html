@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="29">
+<meta name="racon-rev" content="30">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -1255,7 +1255,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function blank(lakap) {
     var s = canonical();
     s.lakap = lakap || "Adsız";
-    s.seed = Date.now();
+    /* Testte sabitlenebilsin diye: window.__raconSeedSabit varsa o kullanılır.
+       Normal oyunda bayrak yok, seed yine saate göre değişir. */
+    s.seed = num(window.__raconSeedSabit, 0) || Date.now();
     S = s;
     s.men.forEach(function (m) {
       m.stats = rollStats();
