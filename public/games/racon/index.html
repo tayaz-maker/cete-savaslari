@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="7">
+<meta name="racon-rev" content="8">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -30,8 +30,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .top .brand{letter-spacing:.14em;text-transform:uppercase;font-weight:600;
   color:var(--accent);font-size:12px;white-space:nowrap}
 .top .meta{display:flex;gap:14px;align-items:center;color:var(--ink-dim);
+  flex-wrap:nowrap;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
   font-size:12px;font-variant-numeric:tabular-nums;overflow:hidden}
 .top .meta b{color:var(--ink);font-weight:600}
+.top .meta::-webkit-scrollbar{display:none}
+.top .meta span{white-space:nowrap;flex:0 0 auto}
 .top .spacer{flex:1}
 
 /* GÖVDE: üç sütun */
@@ -113,8 +117,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   box-shadow:inset 0 0 80px 12px rgba(0,0,0,.28)}
 
 /* DAR / MOBİL */
-@media (max-width:1100px){ :root{--nav:64px} .navbtn span{display:none}
-  .navbtn{justify-content:center;padding:0} }
+@media (max-width:1100px){ #app:not(.nav-detay):not(.nav-kisa){--nav:64px}
+  #app:not(.nav-detay):not(.nav-kisa) .navbtn span{display:none}
+  #app:not(.nav-detay):not(.nav-kisa) .navbtn{justify-content:center;padding:0} }
+#app.nav-kisa{--nav:58px}
+#app.nav-kisa .navbtn span{display:none}
+#app.nav-kisa .navbtn{justify-content:center;padding:0}
+#app.nav-detay{--nav:190px}
+.navtog{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  color:var(--ink-dim);margin-bottom:4px}
+.nav{position:relative;scrollbar-width:thin}
+.nav.more{box-shadow:inset 0 -2px 0 var(--accent)}
+.nav::-webkit-scrollbar{width:4px;height:4px}
+.nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
 @media (max-width:900px){ .side{position:absolute;right:0;top:calc(var(--top) + var(--safe-t));
   bottom:0;width:min(280px,86vw);transform:translateX(100%);transition:transform .15s;
   z-index:6;border-left:1px solid var(--line)}
@@ -217,6 +232,8 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   .top .meta{gap:8px;font-size:11px}
   .top .btn.primary{min-width:84px;min-height:32px;padding:0 10px;font-size:12px}
   .navbtn{height:36px}
+  #app:not(.nav-detay) .navbtn.lock{display:none}
+  .navtog{height:32px}
   .stage{padding:8px 10px}
   .side{padding:8px}
   .card{padding:10px;margin-bottom:8px}
@@ -244,7 +261,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   :root{--top:40px}
   .top{gap:6px;padding:var(--safe-t) 8px 0}
   .top .brand{display:none}
-  .top .meta{gap:6px;font-size:11px;min-width:0;flex:1}
+  .top .meta{gap:8px;font-size:11px;min-width:0;flex:1 1 auto}
   .top .meta span:first-child{display:none}
   .top .btn.primary{min-width:78px;min-height:36px;padding:0 10px;font-size:12px}
   .body{flex-direction:column}
@@ -273,12 +290,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   .navbtn .dot{margin:0;position:relative;top:-2px}
   .stage{padding:10px 10px 12px}
   .side{
-    top:auto;left:0;right:0;bottom:calc(56px + var(--safe-b));
+    top:auto;left:0;right:0;bottom:0;
     width:100%;height:min(46vh,340px);
-    transform:translateY(110%);
+    padding-bottom:calc(60px + var(--safe-b));
+    transform:translateY(100%);visibility:hidden;
     border-left:0;border-top:1px solid var(--line);
   }
-  .side.open{transform:none}
+  .side.open{transform:none;visibility:visible}
+  .nav{min-height:56px}
+  .nav.more{box-shadow:inset -2px 0 0 var(--accent)}
+  #app.nav-kisa .nav{min-height:46px}
+  #app.nav-kisa .navbtn{min-width:46px;height:40px;padding:4px 6px}
+  #app.nav-kisa .navbtn span{display:none !important}
+  .navtog{border:0;border-top:2px solid transparent;margin-bottom:0}
   .split{flex-direction:column;min-height:0;gap:8px}
   .split .list{flex:0 0 auto;max-height:38vh;min-width:0}
   .paper-empty{min-height:88px}
@@ -291,7 +315,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   .qrow{flex-wrap:wrap;min-height:40px;gap:6px;padding:6px 0}
   .plan{flex-direction:column;align-items:stretch}
   .plan select{width:100%}
-  .menu-layer{padding:12px 12px calc(12px + var(--safe-b));align-items:flex-end}
+  .menu-layer{padding:12px 12px calc(12px + var(--safe-b));align-items:center}
   .menu-card{width:100%;max-width:480px}
   .kasa-big{font-size:24px}
   .log{min-height:100px;max-height:32vh}
@@ -403,7 +427,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       pazar: '<path d="M4 10h16M6 10v10h12V10M8 10V7l4-3 4 3v3"/>',
       emlak: '<path d="M4 20V10l8-6 8 6v10"/><path d="M10 20v-6h4v6"/>',
       hayat: '<circle cx="12" cy="12" r="8"/><path d="M8 12h8M12 8v8"/>',
-      kilit: '<rect x="7" y="11" width="10" height="9"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>'
+      kilit: '<rect x="7" y="11" width="10" height="9"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>',
+      detay: '<path d="M4 7h10M4 12h10M4 17h10M17 9l3 3-3 3"/>',
+      kisa: '<path d="M10 7h10M10 12h10M10 17h10M7 9l-3 3 3 3"/>'
     };
     return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">' + (inner[name] || "") + "</svg>";
   }
@@ -1834,6 +1860,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     if (S && !S.flags.bugun) writeBugun();
   }
 
+  function navMode() {
+    var f = num(S && S.flags ? S.flags.navDetay : 0, 0);
+    if (f === 1) return "detay";
+    if (f === 2) return "kisa";
+    return window.innerWidth >= 1100 ? "detay" : "kisa";
+  }
+  function applyNavMode() {
+    var app = document.getElementById("app");
+    if (!app) return;
+    var m = navMode();
+    app.classList.toggle("nav-detay", m === "detay");
+    app.classList.toggle("nav-kisa", m === "kisa");
+  }
   function drawNav() {
     if (!S) { document.getElementById("nav").innerHTML = ""; return; }
     var unread = S.inbox.some(function (x) { return !x.read; });
@@ -1848,7 +1887,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       var dis = UI.sahne ? " disabled" : "";
       return '<button type="button" class="navbtn lock" data-act="nav" data-id="' + n.id + '" aria-label="' + n.label + '"' + cur + dis + ">" + ico("kilit") + "<span>" + up(n.label) + "</span></button>";
     }).join("");
-    document.getElementById("nav").innerHTML = main + '<div class="navhr"></div>' + lock;
+    var kisa = navMode() === "kisa";
+    var tog = '<button type="button" class="navbtn navtog" data-act="navdetay" aria-label="' +
+      (kisa ? "Menüyü aç" : "Menüyü daralt") + '">' + ico(kisa ? "detay" : "kisa") +
+      "<span>" + up(kisa ? "Detay" : "Kısa") + "</span></button>";
+    applyNavMode();
+    document.getElementById("nav").innerHTML = tog + main + '<div class="navhr"></div>' + lock;
+    var navEl = document.getElementById("nav");
+    navEl.classList.toggle("more",
+      navEl.scrollHeight > navEl.clientHeight + 4 || navEl.scrollWidth > navEl.clientWidth + 4);
+    var akt = document.querySelector('.navbtn[aria-current="page"]');
+    if (akt && akt.scrollIntoView) {
+      try { akt.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {}
+    }
   }
 
   function drawTop() {
@@ -2257,6 +2308,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     if (which === "yedek") document.getElementById("yedek-txt").value = exportText();
   }
 
+  var navResizeTimer = 0;
+  window.addEventListener("resize", function () {
+    if (!S) return;
+    clearTimeout(navResizeTimer);
+    navResizeTimer = setTimeout(function () { if (S) drawNav(); }, 120);
+  });
   function render() {
     document.getElementById("menu").classList.toggle("hide", UI.mode === "play");
     var err = document.getElementById("menu-err");
@@ -2334,6 +2391,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       return;
     }
     if (!S) return;
+    if (code === "navdetay") {
+      S.flags.navDetay = navMode() === "kisa" ? 1 : 2;
+      persist();
+      render();
+      return;
+    }
     if (code === "nav") {
       if (UI.sahne) return;
       S.screen = payload.id;

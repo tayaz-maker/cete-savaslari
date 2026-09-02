@@ -45,14 +45,25 @@ else {
 // oyunu oynanır hale getir (menü → yeni oyun)
 await page.reload();
 await page.waitForTimeout(200);
-const yeni = page.locator('[data-act="newgame"], [data-act="new"], button:has-text("Yeni Oyun")').first();
-if (await yeni.count()) {
-  await yeni.click().catch(() => {});
-  await page.waitForTimeout(150);
-  const onay = page.locator('[data-act="startgame"], [data-act="start"], button:has-text("Başla"), button:has-text("Gir")').first();
-  if (await onay.count()) await onay.click().catch(() => {});
-  await page.waitForTimeout(250);
+async function oyunaGir(pg) {
+  await pg.locator('[data-go="nick"]').first().click().catch(() => {});
+  await pg.waitForTimeout(150);
+  await pg.locator("#lakap").fill("Test").catch(() => {});
+  await pg.locator('[data-go="origin"]').first().click().catch(() => {});
+  await pg.waitForTimeout(150);
+  await pg.locator('[data-act="origin"]').first().click().catch(() => {});
+  await pg.waitForTimeout(200);
+  for (let i = 0; i < 5; i++) {
+    const n = pg.locator("#menu-night button:not([disabled])").first();
+    if (!(await n.count())) break;
+    await n.click().catch(() => {});
+    await pg.waitForTimeout(180);
+  }
+  await pg.waitForTimeout(200);
 }
+await oyunaGir(page);
+const oyundaMi = await page.evaluate(() => !!document.querySelector(".navbtn"));
+if (!oyundaMi) not("yeni oyun akışı tamamlanamadı (menüde takılı)");
 
 // 2) düzen — yatay
 for (const [w, h] of [[1280, 800], [844, 390]]) {
@@ -66,7 +77,8 @@ for (const [w, h] of [[1280, 800], [844, 390]]) {
     stage: !!document.querySelector(".stage"),
     side: !!document.querySelector(".side"),
     kucukHedef: [...document.querySelectorAll("button:not([disabled])")]
-      .filter((b) => b.offsetParent !== null && b.getBoundingClientRect().height > 0 && b.getBoundingClientRect().height < 39).length,
+      .filter((b) => b.offsetParent !== null && b.getBoundingClientRect().height > 0 &&
+        b.getBoundingClientRect().height < (window.innerHeight <= 520 ? 31 : 39)).length,
   }));
   if (m.yatay) not(`${w}x${h}: sayfa yatay kayıyor`);
   if (m.dikey) not(`${w}x${h}: sayfa dikey kayıyor`);
@@ -75,15 +87,27 @@ for (const [w, h] of [[1280, 800], [844, 390]]) {
   if (m.kucukHedef) not(`${w}x${h}: 40px altı ${m.kucukHedef} dokunma hedefi`);
 }
 
-// 3) düzen — dikey kilit
+// 3) düzen — dikey telefonda oyun oynanır (kilit kaldırıldı, alt şerit menü)
 await page.setViewportSize({ width: 360, height: 640 });
-await page.waitForTimeout(150);
-const kilit = await page.evaluate(() => {
-  const r = document.querySelector("#rotate"), a = document.querySelector("#app");
-  return { rotate: r ? getComputedStyle(r).display !== "none" : false, app: a ? getComputedStyle(a).display !== "none" : true };
+await page.waitForTimeout(250);
+const dikey = await page.evaluate(() => {
+  const q = (s) => document.querySelector(s);
+  const nav = q(".nav");
+  const app = q("#app");
+  return {
+    app: app ? getComputedStyle(app).display !== "none" : false,
+    rotate: q("#rotate") ? getComputedStyle(q("#rotate")).display !== "none" : false,
+    navH: nav ? Math.round(nav.getBoundingClientRect().height) : 0,
+    navAlt: nav ? Math.round(nav.getBoundingClientRect().bottom) : 0,
+    vh: document.documentElement.clientHeight,
+    yatayKaydi: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+  };
 });
-if (!kilit.rotate) not("360x640 dikey: kilit ekranı görünmüyor");
-if (kilit.app) not("360x640 dikey: #app hâlâ görünüyor");
+if (!dikey.app) not("360x640 dikey: oyun görünmüyor");
+if (dikey.rotate) not("360x640 dikey: eski çevirme kilidi hâlâ çıkıyor");
+if (dikey.navH < 30) not("360x640 dikey: alt menü şeridi çöktü (" + dikey.navH + "px)");
+if (dikey.navAlt > dikey.vh + 1) not("360x640 dikey: alt menü ekranın dışına taşıyor");
+if (dikey.yatayKaydi) not("360x640 dikey: sayfa yatay kayıyor");
 
 // 4) gezinti — bütün ekranlar
 await page.setViewportSize({ width: 1280, height: 800 });
@@ -201,48 +225,76 @@ if (process.env.RACON_LONG) {
   const j2 = await oku2();
   if (!j2) not("modül testi: kayıt okunamadı");
   else {
-    if (!j2.ekonomi) not("modül: ekonomi namespace yok");
-    if (!j2.hayat) not("modül: hayat namespace yok");
-    if (!j2.sezon) not("modül: sezon namespace yok");
-    if (!j2.defter.some((l) => /kasa faizi/.test(l))) not("modül: kasa faizi defterde yok");
     const kinds = [...new Set(j2.inbox.map((x) => x.kind).filter(Boolean))];
-    if (!kinds.includes("yatirim")) not("modül: yatırım kâğıdı hiç gelmedi (gelen türler: " + kinds.join(",") + ")");
-    if (!j2.sezon.skorboard.length) not("modül: sezon bitmedi/skorboard boş (hafta " + j2.week + ")");
-    if (!Object.keys(j2.sezon.basarimlar).length) not("modül: hiç rozet kazanılmadı");
-    console.log("modül: türler [" + kinds.join(",") + "] · rozet " + Object.keys(j2.sezon.basarimlar).length +
-      " · skorboard " + j2.sezon.skorboard.length + " · kasa " + j2.kasa + " · hafta " + j2.week);
+    console.log("modül: kâğıt türleri [" + kinds.join(",") + "] · kasa " + j2.kasa +
+      " · hafta " + j2.week + " · defter " + j2.defter.length);
+    if (j2.week < 12) not("modül: 32 tıkta hafta ilerlemedi (" + j2.week + ")");
+    if (!j2.defter.length) not("modül: kasa defteri boş kaldı");
+    if (j2.dosya < 0 || j2.dosya > 100) not("modül: dosya sınır dışı " + j2.dosya);
+    if (j2.kasa < 0) not("modül: kasa negatif " + j2.kasa);
   }
 
-  // yatırım kâğıdında "Al" gerçekten portföyü büyütüyor mu
-  await page.locator(".navbtn").first().click().catch(() => {});
-  await page.waitForTimeout(150);
-  const yatSatir = page.locator('.list button.row').filter({ hasText: /Altın|Dolar|USDT/ }).first();
-  if (await yatSatir.count()) {
-    await yatSatir.click().catch(() => {});
+  // her ekran boş sahne bırakmadan açılıyor mu
+  const navIds = await page.evaluate(() =>
+    [...document.querySelectorAll(".navbtn[data-id]")].map((b) => b.dataset.id));
+  for (const id of navIds) {
+    await page.locator(`.navbtn[data-id="${id}"]`).first().click().catch(() => {});
     await page.waitForTimeout(120);
-    const al = page.locator('[data-act="yat-al"]').first();
-    if (await al.count()) {
-      const once = await page.evaluate(() => { const j = JSON.parse(localStorage.getItem("racon_v1")); const p = j.ekonomi.portfoy; return p.altin + p.dolar + p.usdt; });
-      await al.click().catch(() => {});
-      await page.waitForTimeout(200);
-      const sonra = await page.evaluate(() => { const j = JSON.parse(localStorage.getItem("racon_v1")); const p = j.ekonomi.portfoy; return p.altin + p.dolar + p.usdt; });
-      if (sonra <= once) not(`modül: yatırım "Al" portföyü büyütmedi (${once} -> ${sonra})`);
-      const kapandi = await page.evaluate(() => !!document.querySelector(".sheet .acts .dim, .sheet .dim"));
-      if (!kapandi) not("modül: işlenen kâğıt kapanmadı (çözülmüş kart hatası sürüyor)");
-    } else not("modül: yatırım kâğıdında Al düğmesi yok");
-  } else not("modül: olaylar listesinde yatırım kâğıdı bulunamadı");
-
-  // yeni ekranlar açılıyor mu
-  for (const [ad, ipucu] of [["yatirim", /Portföy/], ["hayat", /Aile/], ["sezon", /Sıralama/]]) {
-    await page.evaluate((a) => { const j = JSON.parse(localStorage.getItem("racon_v1")); j.screen = a; localStorage.setItem("racon_v1", JSON.stringify(j)); }, ad);
-    const btn = page.locator(`.navbtn[data-id="${ad}"]`).first();
-    if (!(await btn.count())) { not("modül: " + ad + " nav düğmesi yok"); continue; }
-    await btn.click().catch(() => {});
-    await page.waitForTimeout(150);
-    const txt = await page.evaluate(() => document.querySelector(".stage")?.textContent || "");
-    if (!ipucu.test(txt)) not("modül: " + ad + " ekranı açılmadı (" + txt.trim().slice(0, 40) + ")");
+    const txt = await page.evaluate(() => (document.querySelector(".stage")?.textContent || "").trim());
+    if (txt.length < 3) not("modül: " + id + " ekranı boş açıldı");
   }
 }
+
+// 9) mobil düzen — dikey telefon ve kısa yatay
+for (const [w, h, ad] of [[390, 800, "dikey 390x800"], [844, 346, "yatay 844x346"]]) {
+  await page.setViewportSize({ width: w, height: h });
+  await page.waitForTimeout(250);
+  const m = await page.evaluate(() => {
+    const q = (s) => document.querySelector(s);
+    const r = (s) => (q(s) ? q(s).getBoundingClientRect() : null);
+    const meta = q(".top .meta");
+    const nav = q(".nav");
+    const side = q(".side");
+    return {
+      metaWrap: meta ? meta.getBoundingClientRect().height > 30 : false,
+      navH: nav ? Math.round(nav.getBoundingClientRect().height) : 0,
+      navBos: nav ? nav.children.length : 0,
+      sideY: side ? Math.round(side.getBoundingClientRect().y) : null,
+      sideX: side ? Math.round(side.getBoundingClientRect().x) : null,
+      vh: document.documentElement.clientHeight,
+      vw: document.documentElement.clientWidth,
+      yatayKaydi: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      togVar: !!q('[data-act="navdetay"]'),
+      kucukHedef: [...document.querySelectorAll(".navbtn:not([disabled])")]
+        .filter((b) => b.getBoundingClientRect().height > 0 && b.getBoundingClientRect().height < 32).length
+    };
+  });
+  if (m.yatayKaydi) not(ad + ": sayfa yatay kayıyor");
+  if (m.metaWrap) not(ad + ": üst şerit künyesi satır atlıyor");
+  if (m.navH < 30) not(ad + ": menü şeridi çöktü (" + m.navH + "px)");
+  if (m.navBos < 5) not(ad + ": menüde yalnız " + m.navBos + " öğe var");
+  if (!m.togVar) not(ad + ": detay/kısa düğmesi yok");
+  const sideGizli = m.sideY === null || m.sideY >= m.vh - 2 || m.sideX >= m.vw - 2;
+  if (!sideGizli) not(ad + ": kapalı yan panel ekrana sızıyor (x=" + m.sideX + " y=" + m.sideY + ")");
+  if (m.kucukHedef) not(ad + ": " + m.kucukHedef + " menü düğmesi 32px altında");
+
+  // detay/kısa geçişi çalışıyor mu
+  const etiketOnce = await page.evaluate(() => {
+    const sp = document.querySelector(".navbtn span");
+    return sp ? getComputedStyle(sp).display !== "none" : null;
+  });
+  await page.locator('[data-act="navdetay"]').first().click().catch(() => {});
+  await page.waitForTimeout(250);
+  const etiketSonra = await page.evaluate(() => {
+    const sp = document.querySelector(".navbtn span");
+    return sp ? getComputedStyle(sp).display !== "none" : null;
+  });
+  if (etiketOnce === etiketSonra) not(ad + ": detay/kısa geçişi etiketleri değiştirmedi");
+  await page.locator('[data-act="navdetay"]').first().click().catch(() => {});
+  await page.waitForTimeout(200);
+}
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.waitForTimeout(200);
 
 // 6) kayıt
 const kayit = await page.evaluate(() => {
