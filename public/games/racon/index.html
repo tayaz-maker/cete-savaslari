@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="12">
+<meta name="racon-rev" content="13">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -173,6 +173,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .st.rakip{border-left-color:var(--danger)}
 .st.pale{opacity:.62}
 .st h4{margin:0 0 8px;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+.log .lg-adim{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:8px}
+.log .lg-adim:first-child{border-top:0;margin-top:0;padding-top:0}
+.log .lg-emir{color:var(--ink);border-left:2px solid var(--heat);padding-left:8px;margin-left:-2px}
 .chks{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .chk{min-height:40px;display:flex;align-items:center;gap:8px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);cursor:pointer}
 .plan{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
@@ -1119,57 +1122,57 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     var b = rest[0] ? manName(rest[0]) : n;
     var prim = {
       kesif: [
-        n + " " + street + " ağzını taradı.",
-        street + " sakin. " + n + " köşede durdu.",
-        n + " karşı kaldırımdan baktı."
+        n + ", " + street + "'yi baştan aşağı süzdü. Kimin nerede olduğu belli.",
+        street + " ölü gibi. " + n + " köşede sigara yakmış, bekliyor.",
+        n + " karşı kaldırımdan baktı. İçerisi kalabalık değil."
       ],
       yaklasma: [
-        n + " kepenge yaklaştı.",
-        n + " adımını kısalttı. Kapı yakın.",
-        b + " arkadan geldi."
+        n + " kepenge yanaştı. Elini cebinden çıkarmadı.",
+        n + " adımlarını kısalttı. Kapıya üç adım kaldı.",
+        b + " arkadan geldi, kimse fark etmedi."
       ],
       giris: [
-        "Kapı açıldı. " + n + " içeri girdi.",
-        "İçeride iki kişi, biri bağırıyor."
+        "Kapı açıldı. " + n + " girdi, arkasından " + b + ".",
+        "İçeride iki kişi var. Biri ayağa kalktı, oturdu."
       ],
       kasa: [
-        n + " kasaya yöneldi.",
-        "Kasa çekmecesi direndi, sonra açıldı."
+        n + " doğruca kasaya yürüdü. Adam yerinden kıpırdamadı.",
+        "Çekmece sıkışmış. " + n + " zorladı, açıldı."
       ],
       temas: [
-        "İçeride iki kişi, biri bağırıyor.",
-        "Adam tezgahın ardında. Konuşulacak.",
-        n + " karşıdakine bakıyor."
+        "Adam tezgahın ardında. Gözünü kaçırıyor.",
+        "'Ne var lan?' der gibi baktı ama demedi.",
+        n + " karşısında dikildi. Şimdi konuşma sırası."
       ],
       tepki: [
-        "Karşı taraf bekliyor.",
-        "Ses yükseldi. Karar anı.",
-        b + " kapıya bakıyor."
+        "Adam bekliyor. Eli tezgahın altında mı, belli değil.",
+        "Ses yükseldi. Ya susturursun ya büyür.",
+        b + " kapıyı tutuyor. Dışarısı sakin ama uzun sürmez."
       ],
       kacis: [
-        "Sokak açık. " + n + " geri çıktı.",
-        "Araç bekliyor. " + b + " direksiyonda."
+        "Sokak açık. " + n + " normal adımlarla çıktı, koşmadı.",
+        "Araç köşede. " + b + " direksiyonda, motor çalışıyor."
       ],
       iz: [
-        "Karşı kaldırımda bir kamera var, " + b + " görmedi.",
-        street + " sessize döndü.",
-        "İz kaldı mı, belli değil."
+        "Karşı binada kamera var. " + b + " görmemiş.",
+        street + " kendi işine döndü. Kimse bir şey sormadı.",
+        "Ayak izi kaldı mı, orası belli olmaz."
       ]
     };
     var extra = {
-      kesif: ["Cadde açık. Kalabalık yok.", n + " işaret verdi."],
-      yaklasma: ["Kepenk yarım. Işık içeride.", "Adım sesi yok."],
-      giris: ["Tezgahın arkasında bir gölge.", "İçeride iki kişi, biri bağırıyor."],
-      kasa: ["Paralar çekmecede. " + n + " aldı.", "Hesap defteri açık kaldı."],
-      temas: ["Söz kısa tutulacak.", "Karşı taraf eli masada."],
-      tepki: ["Zaman daralıyor.", n + " bekliyor."],
-      kacis: ["Köşe boş. Dönüş temiz.", "Kimse arkadan bakmıyor."],
-      iz: [b + " arkayı taradı.", "Sokak kendi işine döndü."]
+      kesif: ["Cadde tenha. Bakkalın önü boş.", n + " başıyla işaret etti: temiz."],
+      yaklasma: ["Kepenk yarım, içeride ışık yanıyor.", "Kimse arkadan gelmiyor."],
+      giris: ["Tezgahın arkasında bir gölge kımıldadı.", "İçerisi sıcak, radyo açık."],
+      kasa: ["Para çekmecede, bozukluk üstte. " + n + " kâğıtları aldı.", "Defter açık kalmış. Kimin ne borcu var, yazıyor."],
+      temas: ["Lafı uzatmaya gerek yok.", "Adamın eli masanın üstünde duruyor. İyi işaret."],
+      tepki: ["Vakit daralıyor. Dışarıda birileri durdu.", n + " emri bekliyor, gözünü kırpmıyor."],
+      kacis: ["Köşe boş. Dönüş rahat.", "Arkadan bakan yok. Hızlanmaya gerek kalmadı."],
+      iz: [b + " arkayı kolaçan etti.", "Sokak gene kendi hâline döndü."]
     };
     if (j.kind === "tahsilat") {
-      extra.kesif = [n + " esnafı taradı. Defter açık.", "Borç kâğıdı cebinde. " + street + " bekliyor."];
-      extra.temas = ["Adam tezgahın ardında. 'Bu hafta yok' dedi.", n + " kâğıdı masaya bıraktı."];
-      extra.tepki = ["Ses kısık. Mahalle duymaz, duymak istemez.", "El uzandı. Nakit mi, senet mi."];
+      extra.kesif = [n + " esnafı tek tek saydı. Kimin kasası dolu, belli.", "Borç kâğıdı cebinde. " + street + " ödeme günü."];
+      extra.temas = ["Adam 'bu hafta olmadı abi' dedi, gözüne bakmadan.", n + " kâğıdı masaya koydu. Rakam ortada."];
+      extra.tepki = ["Ses kısık tutuluyor. Mahalle duyar ama duymamış gibi yapar.", "El uzandı: nakit mi çıkacak, senet mi."];
     } else if (j.kind === "tombala") {
       extra.kesif = ["Arka oda ışığı yanık. Kartlar dağılmış.", "Kapıda gözcü var. " + b + " işaret verdi."];
       extra.temas = ["Masa durdu. Rıza bakıyor.", "Zar atılmadı. Söz şimdi."];
@@ -1225,6 +1228,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     if (j.tickIndex >= steps.length) { finishJob(); return; }
     var step = steps[j.tickIndex];
     UI.jobWait = false;
+    UI.jobLog.push("§" + (STEP_TR[step] || step));
     UI.jobQueue = linesFor(step, j);
     drainLines();
   }
@@ -1259,6 +1263,26 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     if (step === "temas" || step === "tepki") {
       if (!code || code === "devam") return;
       UI.jobOrders.push(code);
+      var yanki = {
+        sessiz: [
+          "» Sesini yükseltmedin. Adam anladı, cebine davrandı.",
+          "Kimse dönüp bakmadı. Bu iş sessiz kapanır."
+        ],
+        sikistir: [
+          "» Yakasına yapıştın. Ayakları yerden kesildi.",
+          "Adam sustu. Ama gözü kapıda, bunu unutmaz."
+        ],
+        cekil: [
+          "» Bıraktın. Arkanı dönüp çıktın.",
+          "Para kalmadı. Mahalle bunu da konuşur."
+        ],
+        ates: [
+          "» Silahı çektin, bir el sıktın. Cam indi.",
+          "Ses mahalleyi dolaştı. Pencereler açıldı, gören oldu.",
+          "Bu iş artık karakola gider."
+        ]
+      }[code];
+      if (yanki) yanki.forEach(function (l) { UI.jobLog.push(l); });
       crewOf(j).forEach(function (m) {
         var sad = (m.stats && m.stats.sadakat ? m.stats.sadakat : 6) * 5;
         if (sad >= 40) return;
@@ -1439,6 +1463,11 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     UI.jobSummary = {
       title: up((JOB_TR[j.kind] || j.kind) + " · " + (st ? st.ad : "") + " · bitti"),
       rows: [
+        { k: "ne yaptın", v: (UI.jobOrders || []).length
+          ? (UI.jobOrders || []).map(function (o) {
+              return { sessiz: "sessiz durdun", sikistir: "sıkıştırdın", cekil: "çekildin", ates: "ateş ettin" }[o] || o;
+            }).join(", ")
+          : "iş kendi akışında bitti", bad: (UI.jobOrders || []).indexOf("ates") >= 0 },
         { k: "para", v: (para >= 0 ? "+" : "") + para.toLocaleString("tr-TR"), good: para > 0, bad: para <= 0 && fled },
         { k: "yara", v: yara, bad: yara !== "—" },
         { k: "tanık", v: String(tanik), bad: tanik > 0 },
@@ -2921,7 +2950,11 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       var cls = i < j.tickIndex ? "done" : i === j.tickIndex ? "on" : "";
       return "<b class=\"" + cls + "\">" + STEP_TR[s] + "</b>";
     }).join("");
-    var log = '<div class="log">' + UI.jobLog.map(function (ln) { return "<p>" + esc(ln) + "</p>"; }).join("") + "</div>";
+    var log = '<div class="log">' + UI.jobLog.map(function (ln) {
+      if (ln.charAt(0) === "§") return '<p class="lg-adim">' + esc(ln.slice(1)) + "</p>";
+      if (ln.charAt(0) === "»") return '<p class="lg-emir">' + esc(ln.slice(1)) + "</p>";
+      return "<p>" + esc(ln) + "</p>";
+    }).join("") + "</div>";
     if (UI.jobDone && UI.jobSummary) {
       var rows = UI.jobSummary.rows.map(function (r) {
         var cls = r.good ? "plus" : r.bad ? "minus" : "";
