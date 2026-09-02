@@ -359,7 +359,7 @@ await page.waitForTimeout(200);
   await page.waitForTimeout(200);
   const bos = await page.evaluate(() => {
     const j2 = JSON.parse(localStorage.getItem("racon_v1"));
-    const it = (j2.inbox || []).filter((x) => !x.kapali && !x.href && !x.calId && !x.siparis)[0];
+    const it = (j2.inbox || []).filter((x) => !x.kapali && !x.href && !x.calId && !x.siparis && !x.kind)[0];
     return it ? it.id : null;
   });
   if (bos) {
@@ -378,6 +378,83 @@ await page.waitForTimeout(200);
       }, bos);
       if (!kaldiMi) not("kâğıt: 'kaldır' kâğıdı kapatmadı");
     }
+  }
+}
+
+// 11) FM halkaları: haftalık hazırlık, süreli sipariş, kadro seçimi, rakip raporu
+{
+  const oku = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem("racon_v1")); } catch (e) { return null; } });
+  const kagitAc = async (re) => {
+    await page.locator('.navbtn[data-id="olaylar"]').click().catch(() => {});
+    await page.waitForTimeout(150);
+    const r = page.locator(".list button.row").filter({ hasText: re }).first();
+    if (!(await r.count())) return false;
+    await r.click().catch(() => {});
+    await page.waitForTimeout(200);
+    return true;
+  };
+
+  // haftalık hazırlık kâğıdı gelmeli ve gerçekten etki etmeli
+  let haz = false;
+  for (let t = 0; t < 10 && !haz; t++) {
+    haz = await kagitAc(/Haftanın hazırlığı/);
+    if (!haz) { await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {}); await page.waitForTimeout(460); }
+  }
+  if (!haz) not("hazırlık: haftalık hazırlık kâğıdı gelmedi");
+  else {
+    const secenek = await page.evaluate(() => [...document.querySelectorAll('[data-act="hazirlik"]')].length);
+    if (secenek !== 3) not("hazırlık: " + secenek + " seçenek var (3 bekleniyor)");
+    const once = await oku();
+    await page.locator('[data-act="hazirlik"][data-tip="kahve"]').first().click().catch(() => {});
+    await page.waitForTimeout(300);
+    const sonra = await oku();
+    const g0 = once.men.reduce((a, m) => a + m.gonul, 0);
+    const g1 = sonra.men.reduce((a, m) => a + m.gonul, 0);
+    if (g1 <= g0) not("hazırlık: kahve gönülleri artırmadı (" + g0 + " -> " + g1 + ")");
+  }
+
+  // sipariş takvime süreli düşmeli
+  let j = await oku();
+  let sip = (j.calendar || []).filter((c) => c.ref && c.ref.siparis)[0];
+  for (let t = 0; t < 12 && !sip; t++) {
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(460);
+    j = await oku();
+    sip = (j.calendar || []).filter((c) => c.ref && c.ref.siparis)[0];
+  }
+  if (!sip) not("sipariş: takvime son gün düşmedi");
+  else if (!/Sipariş: /.test(sip.title)) not("sipariş: takvim başlığı beklenenden farklı (" + sip.title + ")");
+
+  // randevu kâğıdında rakip raporu ve kadro seçimi
+  let rnd = null;
+  for (let t = 0; t < 24 && !rnd; t++) {
+    j = await oku();
+    rnd = (j.calendar || []).filter((c) => c.strip === "randevu" && c.status === "bekler")[0];
+    if (rnd) break;
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(460);
+    for (let k = 0; k < 4; k++) {
+      const md = await page.evaluate(() => !!document.querySelector("#modal button"));
+      if (!md) break;
+      await page.locator("#modal button").first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(80);
+    }
+  }
+  if (!rnd) not("randevu: 24 günde randevu çıkmadı");
+  else if (!(await kagitAc(/randevu verdi/))) not("randevu: kâğıt olaylarda yok");
+  else {
+    const rapor = await page.evaluate(() => document.querySelector(".sheet")?.textContent || "");
+    if (!/güçlü|denk|zayıf/.test(rapor)) not("randevu: rakip raporu yok");
+    if (!/Senin gücün \d+ · onlarınki \d+/.test(rapor)) not("randevu: güç kıyası yazmıyor");
+    const kutu = await page.locator("[data-rman]").count();
+    if (!kutu) not("randevu: kadro seçimi yok");
+    const once = await oku();
+    await page.locator('[data-act="randevu-git"][data-tarz="sessiz"]').first().click().catch(() => {});
+    await page.waitForTimeout(400);
+    const sonra = await oku();
+    if (!(sonra.lig.fikstur || []).some((f) => f.sonuc)) not("randevu: sonuç yazılmadı");
+    if (num(sonra.flags.form) === num(once.flags.form)) not("randevu: form değişmedi");
+    function num(v) { return typeof v === "number" ? v : 0; }
   }
 }
 
