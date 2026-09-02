@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="10">
+<meta name="racon-rev" content="11">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -752,7 +752,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       origin: "",
       senet: [],
       rel: { id: "", yakin: 0 },
-      lig: { sezon: 1, uzunluk: 13, ekipler: [], fikstur: [], hedefler: [], gecmis: [] },
+      lig: { sezon: 1, uzunluk: 13, ekipler: [], fikstur: [], hedefler: [], gecmis: [], rozet: {} },
+      adaylar: [],
+      komiser: null,
       savedAt: 0,
       seed: 1,
       screen: "olaylar"
@@ -796,9 +798,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         return {
           sezon: num(l.sezon, 1), uzunluk: num(l.uzunluk, 13),
           ekipler: arr(l.ekipler, []), fikstur: arr(l.fikstur, []),
-          hedefler: arr(l.hedefler, []), gecmis: arr(l.gecmis, [])
+          hedefler: arr(l.hedefler, []), gecmis: arr(l.gecmis, []),
+          rozet: (l.rozet && typeof l.rozet === "object") ? l.rozet : {}
         };
       })(),
+      adaylar: arr(raw.adaylar, []),
+      komiser: (raw.komiser && typeof raw.komiser === "object") ? raw.komiser : null,
       savedAt: num(raw.savedAt, 0),
       seed: num(raw.seed, Date.now()),
       screen: str(raw.screen, "olaylar"),
@@ -1941,6 +1946,184 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     });
     return "Talim yapıldı: " + secim.map(manName).join(", ") + ".";
   }
+  /* ---- ROZET + KADRO DERİNLİĞİ ---- */
+  var ROZET = [
+    { id: "ilk_randevu", ad: "İlk randevu kazanıldı", test: function () { return S.lig.fikstur.some(function (f) { return f.sonuc === "kazandi"; }); } },
+    { id: "seri3", ad: "Üç maç üç galibiyet", test: function () { return num(S.flags.form, 0) >= 3; } },
+    { id: "ilk_sokak", ad: "İlk sokak", test: function () { return ownN() >= 1; } },
+    { id: "mahalle", ad: "Mahallenin yarısı", test: function () { return ownN() >= 2; } },
+    { id: "yuz_bin", ad: "İlk ₺100.000", test: function () { return S.kasa >= 100000; } },
+    { id: "on_is", ad: "On iş bitti", test: function () { return doneJobN() >= 10; } },
+    { id: "kalabalik", ad: "Altı kişilik ekip", test: function () { return liveN() >= 6; } },
+    { id: "racon90", ad: "Racon doksan", test: function () { return S.rep.racon >= 90; } },
+    { id: "zirve", ad: "Sıralamada birinci", test: function () { return benimSira() === 1; } },
+    { id: "temiz", ad: "Dosya kırktan aşağı", test: function () { return S.week > 6 && S.dosya < 40 && doneJobN() >= 5; } },
+    { id: "hedef3", ad: "Amcaya tam not", test: function () { return S.lig.gecmis.some(function (g) { return g.basari >= 3; }); } }
+  ];
+  function rozetKontrol() {
+    if (!S.lig.rozet) S.lig.rozet = {};
+    ROZET.forEach(function (r) {
+      if (S.lig.rozet[r.id]) return;
+      var ok = false;
+      try { ok = r.test(); } catch (e) { ok = false; }
+      if (!ok) return;
+      S.lig.rozet[r.id] = S.week;
+      pushInbox("Rozet: " + r.ad, "Mahalle kaydetti. Sezon defterine geçti.", { kind: "rozet" });
+    });
+  }
+
+  var ADAY_AD = ["Necmi", "Kadir", "Şükrü", "Bahri", "Turgay", "İlyas", "Nurettin", "Ergün",
+    "Cengiz", "Fikret", "Sadık", "Ekrem", "Yaşar", "Rasim", "Vedat", "Hulusi"];
+  var ADAY_LAKAP = ["Uzun", "Deli", "Sessiz", "Kör", "Yağlı", "Tırnak", "Zeytin", "Kalem",
+    "Balık", "Demir", "Kısa", "Ceviz", ""];
+  var ADAY_BAG = ["kahveden tanıdık", "askerlik arkadaşı", "hemşehri", "eski hücre arkadaşı",
+    "esnafın yeğeni", "sabıkası temiz", "karakolda kaydı var", "borcu var"];
+  var ADAY_ROL = ["kirici", "tetikci", "gozcu", "sofor", "agiz", "muhasebeci", "ayakci"];
+  function adayUret() {
+    var kalite = clamp(3 + Math.floor((S.rep.nam + S.rep.korku) / 22) + ri(-1, 2), 1, 8);
+    var st = {};
+    STATS.forEach(function (pr) { st[pr[0]] = clamp(ri(3, 8) + kalite, 1, 20); });
+    var rol = ADAY_ROL[ri(0, ADAY_ROL.length - 1)];
+    var lak = ADAY_LAKAP[ri(0, ADAY_LAKAP.length - 1)];
+    var guc = STATS.reduce(function (a, pr) { return a + st[pr[0]]; }, 0);
+    return {
+      id: nid("m"),
+      ad: ADAY_AD[ri(0, ADAY_AD.length - 1)],
+      lakap: lak,
+      rol: rol,
+      stats: st,
+      gonul: ri(45, 68),
+      yevmiye: Math.round((200 + guc * 4) / 10) * 10,
+      pesin: Math.round((700 + guc * 35) / 100) * 100,
+      durum: "hazir",
+      yorgunluk: 0,
+      kus: false,
+      iyilesme: 0,
+      bag: ADAY_BAG[ri(0, ADAY_BAG.length - 1)]
+    };
+  }
+  function adayOzet(a) {
+    return ROL[a.rol] + " · kabadayılık " + a.stats.kabadayilik + " · silah " + a.stats.silah +
+      " · sadakat " + a.stats.sadakat + " · yevmiye ₺" + a.yevmiye.toLocaleString("tr-TR") +
+      " · peşin ₺" + a.pesin.toLocaleString("tr-TR") + " · " + a.bag;
+  }
+  function adayKagit(a, nereden) {
+    if (!S.adaylar) S.adaylar = [];
+    S.adaylar.push(a);
+    pushInbox(manName(a) + " iş arıyor.",
+      nereden + " " + adayOzet(a) + ".",
+      { kind: "aday", aday: a.id });
+  }
+  function spawnAday() {
+    if (liveN() >= 7 || UI.spawnLeft <= 0) return;
+    if (num(S.flags.adayHafta, 0) === S.week) return;
+    var sans = 0.1 + (S.rep.nam + S.rep.korku) / 400 + (liveN() <= 2 ? 0.25 : 0);
+    if (rng() > sans) return;
+    S.flags.adayHafta = S.week;
+    UI.spawnLeft -= 1;
+    adayKagit(adayUret(), "Kahvede oturuyordu.");
+  }
+  function adayBy(id) {
+    return (S.adaylar || []).filter(function (a) { return a.id === id; })[0];
+  }
+  function adayAl(a) {
+    S.kasa -= a.pesin;
+    var m = {
+      id: a.id, ad: a.ad, lakap: a.lakap, rol: a.rol, stats: a.stats,
+      gonul: a.gonul, yevmiye: a.yevmiye, durum: "hazir", yorgunluk: 0,
+      kus: false, iyilesme: 0, bag: a.bag
+    };
+    S.men.push(m);
+    S.adaylar = (S.adaylar || []).filter(function (x) { return x.id !== a.id; });
+    defter("adam tutuldu · " + fmtPara(-a.pesin));
+    pushInbox(manName(m) + " ekipte.", ROL[m.rol] + ". Haftalık ₺" + m.yevmiye.toLocaleString("tr-TR") + ".");
+    addRep("nam", 1);
+  }
+
+  /* ---- EMNİYET: isimli komiser, baskın, iddianame ---- */
+  var KOMISER_AD = ["Komiser Nedim", "Komiser Şevket", "Komiser Raif", "Komiser Bülent"];
+  function komiserKur() {
+    if (S.komiser) return;
+    S.komiser = {
+      ad: KOMISER_AD[ri(0, KOMISER_AD.length - 1)],
+      acgoz: ri(30, 80),
+      risk: ri(10, 30),
+      baglilik: 0
+    };
+    pushInbox(S.komiser.ad + " sordu.", "Karakoldan biri mahalleyi soruyor. Adını öğrendin.", { href: "emniyet" });
+  }
+  function komiserHafta() {
+    if (S.dosya >= 35) komiserKur();
+    var k = S.komiser;
+    if (!k) return;
+    k.baglilik = clamp(k.baglilik - 2, 0, 100);
+    if (S.dosya >= 40 && S.day === 3 && rng() < 0.45 && UI.spawnLeft > 0) {
+      UI.spawnLeft -= 1;
+      var ucret = Math.round((4000 + k.acgoz * 90) / 100) * 100;
+      pushInbox(k.ad + " kahveye uğradı.",
+        "Çayını içti, dosyayı sordu. Zarf ₺" + ucret.toLocaleString("tr-TR") + ". Bağlılık " + k.baglilik + ".",
+        { kind: "komiser", ucret: ucret });
+    }
+  }
+  function baskinRiski() {
+    if (S.dosya < 68) return 0;
+    var k = S.komiser;
+    var kalkan = k ? k.baglilik / 5 : 0;
+    return Math.max(0, (S.dosya - 66) / 2.2 - kalkan);
+  }
+  function baskinTick() {
+    var risk = baskinRiski();
+    if (risk <= 0) return;
+    var k = S.komiser;
+    if (k && k.baglilik >= 45 && !num(S.flags.tuyoHafta, 0) && rng() < 0.5) {
+      S.flags.tuyoHafta = S.week;
+      pushInbox(k.ad + " haber saldı.", "Bu hafta kapıyı çalarlar. Kepenk indir, kâğıt saklama.", { kind: "tuyo" });
+      return;
+    }
+    if (rng() * 100 > risk) return;
+    if (num(S.flags.kepenkHafta, 0) === S.week) {
+      pushInbox("Baskın boşa gitti.", "Kepenk kapalıydı. Ellerinde bir şey kalmadı.");
+      S.evidence = S.evidence.slice(0, Math.max(0, S.evidence.length - 2));
+      recalcDosya();
+      return;
+    }
+    var alinan = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+    var kac = Math.min(alinan.length, S.dosya >= 90 ? 2 : 1);
+    var isim = [];
+    for (var i = 0; i < kac; i++) {
+      var m = alinan[ri(0, alinan.length - 1)];
+      if (!m || m.durum === "hapis") continue;
+      m.durum = "hapis";
+      m.hapisLeft = ri(6, 14);
+      isim.push(manName(m));
+    }
+    var elKoy = Math.round(S.kasa * (S.dosya >= 90 ? 0.3 : 0.15));
+    S.kasa = Math.max(0, S.kasa - elKoy);
+    S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome, week: S.week, weight: 3 });
+    addRep("korku", -3);
+    addRep("saygi", -2);
+    defter("baskın · " + fmtPara(-elKoy));
+    recalcDosya();
+    pushInbox("Baskın.", "Kapı kırıldı. " + (isim.length ? isim.join(", ") + " içeride. " : "") +
+      "Kasadan " + fmtPara(-elKoy) + ".", { href: "emniyet" });
+    if (S.dosya >= 92) iddianame();
+  }
+  function iddianame() {
+    if (num(S.flags.iddianame, 0) >= S.week - 20) return;
+    S.flags.iddianame = S.week;
+    var kayip = Math.round(S.kasa * 0.35);
+    S.kasa = Math.max(0, S.kasa - kayip);
+    S.evidence = [];
+    S.flags.toz = 0;
+    S.flags.haftaGurultu = 0;
+    addRep("nam", -6);
+    addRep("saygi", -6);
+    recalcDosya();
+    defter("iddianame · " + fmtPara(-kayip));
+    pushInbox("İddianame yazıldı.", "Savcı dosyayı aldı. Avukat " + fmtPara(-kayip) +
+      " yedi. Dosya sıfırlandı ama mahalle bunu unutmaz.", { href: "emniyet" });
+  }
+
   function randevuAc() {
     var f = fiksturBu(S.week);
     if (!f || f.calId || f.sonuc) return;
@@ -1955,6 +2138,98 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     pushInbox(e.ad + " randevu verdi.", DAYS[f.day - 1] + " günü. Nasıl gideceğini seç.", { calId: c.id, href: "takvim" });
   }
   /* Gidilmeyen randevunun bedeli. */
+  /* ---- RANDEVU SAHNESİ (haftanın doruk noktası) ---- */
+  var RND_ADIM = ["Buluşma", "Bakışma", "Söz", "Karar", "Dağılma"];
+  function randevuSahneBaslat(calId, tarz) {
+    var c = S.calendar.filter(function (x) { return x.id === calId; })[0];
+    if (!c || c.status !== "bekler") return;
+    var f = S.lig.fikstur.filter(function (x) { return x.calId === calId; })[0];
+    var e = f ? ekipBy(f.rakipId) : null;
+    var ekip = randevuKadro();
+    var bas = ekip[0] ? manName(ekip[0]) : "Sen";
+    var t = TARZ[tarz] || TARZ.kalabalik;
+    UI.rnd = {
+      calId: calId, tarz: tarz, adim: 0, karar: "", bekle: false,
+      lines: [],
+      havuz: [
+        (e ? e.ad : "Adamlar") + " kahvenin önünde duruyor.",
+        t.ad.replace(" git", "") + " gidildi. " + bas + " öne çıktı.",
+        "Kimse oturmuyor. Ayakta konuşulacak.",
+        (e ? e.ad : "Karşı taraf") + " sözü uzatıyor. Kalabalık arttı."
+      ],
+      son: [
+        "Söz bitti. Sıra işe geldi.",
+        "Kalabalık dağıldı, hesap kaldı."
+      ]
+    };
+    UI.sahne = true;
+    S.screen = "olaylar";
+    render();
+    rndTick();
+  }
+  function rndTick() {
+    var r = UI.rnd;
+    if (!r || r.bekle) return;
+    if (r.adim < r.havuz.length) {
+      r.lines.push(r.havuz[r.adim]);
+      r.adim += 1;
+      render();
+      if (r.adim === 2) { r.bekle = true; render(); return; }
+      UI.rndTimer = setTimeout(rndTick, 460);
+      return;
+    }
+    if (r.adim < r.havuz.length + r.son.length) {
+      r.lines.push(r.son[r.adim - r.havuz.length]);
+      r.adim += 1;
+      render();
+      UI.rndTimer = setTimeout(rndTick, 460);
+      return;
+    }
+    var calId = r.calId, tarz = r.tarz, karar = r.karar;
+    UI.rnd = null;
+    UI.sahne = false;
+    if (karar === "cekil") {
+      var c = S.calendar.filter(function (x) { return x.id === calId; })[0];
+      var f = S.lig.fikstur.filter(function (x) { return x.calId === calId; })[0];
+      if (c) c.status = "bitti";
+      if (f) f.sonuc = "cekildi";
+      addRep("nam", -2);
+      addRep("racon", 1);
+      UI.randevuMen = null;
+      pushInbox("Masadan kalkıldı.", "Kavga çıkmadı. Nam gitti, racon kaldı.", { href: "siralama" });
+    } else {
+      randevuCoz(calId, tarz, karar);
+    }
+    persist();
+    render();
+  }
+  function rndKarar(k) {
+    var r = UI.rnd;
+    if (!r || !r.bekle) return;
+    r.karar = k;
+    r.bekle = false;
+    var yazi = k === "bas" ? "Bastırıldı. Ses yükseldi."
+      : k === "konus" ? "Konuşuldu. Ağız aradı."
+      : "Geri çekildi. Kalabalık gevşedi.";
+    r.lines.push(yazi);
+    render();
+    UI.rndTimer = setTimeout(rndTick, 460);
+  }
+  function drawRandevuSahne() {
+    var r = UI.rnd;
+    var seritler = RND_ADIM.map(function (ad, i) {
+      return "<b" + (i === Math.min(r.adim, RND_ADIM.length - 1) ? ' class="on"' : "") + ">" + esc(ad) + "</b>";
+    }).join("");
+    var log = r.lines.map(function (l) { return "<p>" + esc(l) + "</p>"; }).join("");
+    var acts = r.bekle
+      ? '<div class="acts"><button type="button" class="btn primary" data-act="rnd-karar" data-k="bas">Bastır</button>' +
+        '<button type="button" class="btn" data-act="rnd-karar" data-k="konus">Konuş</button>' +
+        '<button type="button" class="btn ghost" data-act="rnd-karar" data-k="cekil">Çekil</button></div>'
+      : '<p class="dim">…</p>';
+    return '<div class="card"><h3>Randevu</h3><div class="steps">' + seritler + "</div>" +
+      '<div class="log">' + log + "</div>" + acts + "</div>";
+  }
+
   function randevuKadro() {
     var hazir = S.men.filter(function (m) { return m.durum === "hazir"; });
     if (!UI.randevuMen) return hazir;
@@ -1963,7 +2238,8 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   }
   function kadroGucu(list) {
     var kuvvet = list.reduce(function (a, m) {
-      return a + m.stats.kabadayilik + m.stats.silah + m.stats.sogukkan / 2 + (m.gonul - 50) / 12;
+      var rolBonus = (m.rol === "kirici" || m.rol === "tetikci") ? 3 : (m.rol === "gozcu" || m.rol === "sofor") ? 1 : 0;
+      return a + m.stats.kabadayilik + m.stats.silah + m.stats.sogukkan / 2 + (m.gonul - 50) / 12 + rolBonus;
     }, 0);
     return kuvvet + S.rep.korku * 0.6 + ownN() * 4 + num(S.flags.form, 0) * 3;
   }
@@ -1983,7 +2259,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     defter("randevu kaçtı · nam -4");
   }
   /* Randevuyu çöz: güç kıyası + tarz. */
-  function randevuCoz(calId, tarzId) {
+  function randevuCoz(calId, tarzId, karar) {
     var c = S.calendar.filter(function (x) { return x.id === calId; })[0];
     if (!c || c.status !== "bekler") return;
     var f = S.lig.fikstur.filter(function (x) { return x.calId === calId; })[0];
@@ -1991,6 +2267,8 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     var t = TARZ[tarzId] || TARZ.kalabalik;
     var ekip = randevuKadro();
     var bizim = kadroGucu(ekip) * t.guc;
+    if (karar === "bas") { bizim *= 1.12; S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 4; }
+    else if (karar === "konus") { bizim *= 0.95; addRep("racon", 2); addRep("saygi", 1); }
     var onlar = ekipGucu(e) + ri(0, 10);
     var fark = bizim - onlar;
     var kazan = fark > 0 ? rng() < 0.55 + Math.min(0.35, fark / 200) : rng() < 0.3 + Math.max(-0.2, fark / 300);
@@ -2094,6 +2372,9 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     missRandevu();
     missSiparis();
     haftalikHazirlik();
+    spawnAday();
+    komiserHafta();
+    baskinTick();
     missDuties();
     S.jobs.forEach(tickJob);
     payWages();
@@ -2117,6 +2398,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       if (sezonBitti()) sezonKapat();
     }
     stageGate();
+    rozetKontrol();
     recalcDosya();
   }
   function closeModal() { UI.modal = null; }
@@ -2307,6 +2589,24 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         acts = '<button type="button" class="btn primary" data-act="siparis" data-id="' + it.id + '">Kabul et</button>' +
           '<button type="button" class="btn" data-act="paper-ertele" data-id="' + it.id + '">Ertele</button>' +
           '<button type="button" class="btn ghost" data-act="paper-dosya" data-id="' + it.id + '">Reddet</button>';
+      } else if (it.kind === "komiser") {
+        acts = '<button type="button" class="btn primary" data-act="kom-zarf" data-id="' + it.id + '"' +
+          (S.kasa < num(it.ucret, 5000) ? " disabled" : "") + ">Zarfı ver</button>" +
+          '<button type="button" class="btn" data-act="kom-sus" data-id="' + it.id + '">Sus, çay ver</button>' +
+          '<button type="button" class="btn ghost" data-act="kom-tehdit" data-id="' + it.id + '">Diklen</button>';
+      } else if (it.kind === "tuyo") {
+        acts = '<button type="button" class="btn primary" data-act="kepenk-indir" data-id="' + it.id + '">Kepenk indir</button>' +
+          '<button type="button" class="btn ghost" data-act="paper-dosya" data-id="' + it.id + '">Aldırma</button>';
+      } else if (it.kind === "aday") {
+        var ad0 = adayBy(it.aday);
+        if (!ad0) {
+          acts = '<button type="button" class="btn" data-act="paper-dosya" data-id="' + it.id + '">Kaldır</button>';
+        } else {
+          acts = '<button type="button" class="btn primary" data-act="aday-al" data-id="' + it.id + '"' +
+            (S.kasa < ad0.pesin ? " disabled" : "") + ">Tut · ₺" + ad0.pesin.toLocaleString("tr-TR") + "</button>" +
+            '<button type="button" class="btn" data-act="aday-pazarlik" data-id="' + it.id + '">Pazarlık et</button>' +
+            '<button type="button" class="btn ghost" data-act="paper-dosya" data-id="' + it.id + '">Vazgeç</button>';
+        }
       } else if (it.kind === "hazirlik") {
         acts = Object.keys(HAZIRLIK).map(function (t) {
           return '<button type="button" class="btn' + (t === "kahve" ? " primary" : "") +
@@ -2431,10 +2731,17 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       sheet = manPaper(manBy(UI.manId) || S.men[0]);
     }
     var n = UI.cmp.length;
+    var yevT = S.men.filter(function (m) { return m.durum !== "olu"; }).reduce(function (a, m) { return a + m.yevmiye; }, 0);
+    var kunye = '<div class="card"><h3>Kadro</h3><p>' + liveN() + " kişi · haftalık yevmiye ₺" + yevT.toLocaleString("tr-TR") +
+      ' · hazır ' + S.men.filter(function (m) { return m.durum === "hazir"; }).length + "</p>" +
+      '<div class="acts"><button type="button" class="btn" data-act="adam-ara"' +
+      (S.kasa < 800 || liveN() >= 7 || num(S.flags.aramaHafta, 0) === S.week ? " disabled" : "") +
+      ">Kahvede adam ara · ₺800</button></div>" +
+      (num(S.flags.aramaHafta, 0) === S.week ? '<p class="dim">Bu hafta arandı.</p>' : "") + "</div>";
     var hire = HIRE.filter(function (h) { return !manBy(h.id); }).map(function (h) {
       return '<div class="qrow"><div class="grow">' + esc(h.ad) + " · " + esc(ROL[h.rol] || h.rol) + " · ₺" + h.hire.toLocaleString("tr-TR") + '</div><button type="button" class="btn" data-act="hire" data-id="' + h.id + '"' + (S.kasa < h.hire ? " disabled" : "") + ">Tut</button></div>";
     }).join("");
-    return '<div class="split"><div class="list">' + list + '<div class="acts" style="padding:8px"><button type="button" class="btn" data-act="cmpgo" ' + (n < 2 ? "disabled" : "") + ">Karşılaştır (" + n + ")</button></div></div><div class=\"sheet\">" + sheet + (hire ? '<div class="card"><h3>Tutulacak adam</h3>' + hire + "</div>" : "") + "</div></div>";
+    return '<div class="split"><div class="list">' + list + '<div class="acts" style="padding:8px"><button type="button" class="btn" data-act="cmpgo" ' + (n < 2 ? "disabled" : "") + ">Karşılaştır (" + n + ")</button></div></div><div class=\"sheet\">" + sheet + kunye + (hire ? '<div class="card"><h3>Tutulacak adam</h3>' + hire + "</div>" : "") + "</div></div>";
   }
 
   function drawHarita() {
@@ -2541,6 +2848,14 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     return '<div class="card file-big"><h3>Dosya</h3>' + barrow("Dosya", S.dosya, 100, barCls) + '<p class="num">' + Math.round(S.dosya) + "%</p>" + warn + "</div>" +
       '<div class="card"><h3>Delil</h3>' + rows + "</div>" +
       '<div class="card"><h3>Zarf</h3><p class="dim">Karakol tanıdığı. ₺2.500, bir delil solar.</p><div class="acts"><button type="button" class="btn" data-act="zarf"' + (S.kasa < 2500 || !S.evidence.length ? " disabled" : "") + ">Zarf bırak · ₺2.500</button></div></div>" +
+      (S.komiser
+        ? '<div class="card"><h3>' + esc(S.komiser.ad) + "</h3>" +
+          barrow("Bağlılık", S.komiser.baglilik, 100, S.komiser.baglilik >= 45 ? "green" : "") +
+          barrow("Gözü üstünde", S.komiser.risk, 100, S.komiser.risk >= 60 ? "red" : "heat") +
+          '<p class="dim">Açgözlülük ' + S.komiser.acgoz + " · zarf istediğinde kâğıt gelir.</p></div>"
+        : '<div class="card"><h3>Karakol</h3><p class="dim">Henüz isim yok. Dosya 35\'i geçince biri sorar.</p></div>') +
+      '<div class="card"><h3>Baskın riski</h3>' + barrow("Risk", Math.min(100, Math.round(baskinRiski() * 4)), 100, baskinRiski() > 6 ? "red" : "heat") +
+      '<p class="dim">' + (baskinRiski() <= 0 ? "Şimdilik kapı çalmaz." : "Dosya yükseldi. Kapı çalabilir.") + "</p></div>" +
       '<button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Savcı — kilitli") + " (Ağabey)</button>";
   }
 
@@ -2676,7 +2991,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     }).join("");
     var gecmis = S.lig.fikstur.filter(function (f) { return f.sonuc; }).slice(-5).reverse().map(function (f) {
       var e = ekipBy(f.rakipId);
-      var tr = { kazandi: "kazandın", kaybetti: "kaybettin", kacti: "gitmedin" }[f.sonuc] || f.sonuc;
+      var tr = { kazandi: "kazandın", kaybetti: "kaybettin", kacti: "gitmedin", cekildi: "çekildin" }[f.sonuc] || f.sonuc;
       return '<div class="led"><span>H' + f.week + " · " + esc(e ? e.ad : "?") +
         '</span><span class="amt ' + (f.sonuc === "kazandi" ? "plus" : "minus") + '">' + tr + "</span></div>";
     }).join("");
@@ -2687,7 +3002,18 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       '<div class="card"><h3>Mahalle sıralaması</h3>' + satir + "</div>" +
       '<div class="card"><h3>Amcanın hedefi</h3>' + (hed || '<p class="dim">Hedef yok.</p>') + "</div>" +
       '<div class="card"><h3>Fikstür</h3>' + (fik || '<p class="dim">Randevu kalmadı.</p>') + "</div>" +
-      (gecmis ? '<div class="card"><h3>Geçmiş</h3>' + gecmis + "</div>" : "");
+      (gecmis ? '<div class="card"><h3>Son sonuçlar</h3>' + gecmis + "</div>" : "") +
+      '<div class="card"><h3>Rozetler</h3>' + ROZET.map(function (r) {
+        var k = S.lig.rozet ? S.lig.rozet[r.id] : 0;
+        return '<div class="led' + (k ? "" : " read") + '"><span>' + esc(r.ad) +
+          '</span><span class="amt">' + (k ? "H" + k : "—") + "</span></div>";
+      }).join("") + "</div>" +
+      (S.lig.gecmis.length
+        ? '<div class="card"><h3>Sezon geçmişi</h3>' + S.lig.gecmis.slice().reverse().map(function (g) {
+            return '<div class="led"><span>Sezon ' + g.sezon + " · " + g.sira + ". sıra</span>" +
+              '<span class="amt ' + (g.basari >= 2 ? "plus" : "minus") + '">' + g.basari + "/3 hedef</span></div>";
+          }).join("") + "</div>"
+        : "");
   }
   function drawLocked(id) {
     var n = lockOf(id);
@@ -2700,6 +3026,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   function drawStage() {
     if (!S) { document.getElementById("stage").innerHTML = ""; return; }
     var html = "";
+    if (UI.rnd) { document.getElementById("stage").innerHTML = drawRandevuSahne(); return; }
     if (S.screen === "olaylar") html = drawOlaylar();
     else if (S.screen === "takvim") html = drawTakvim();
     else if (S.screen === "adamlar") html = drawAdamlar();
@@ -2847,6 +3174,94 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       render();
       return;
     }
+    if (code === "kom-zarf" || code === "kom-sus" || code === "kom-tehdit") {
+      var kp = inboxBy(payload.id);
+      var kk = S.komiser;
+      if (kp && kk) {
+        if (code === "kom-zarf") {
+          var uc = num(kp.ucret, 5000);
+          if (S.kasa >= uc) {
+            S.kasa -= uc;
+            kk.baglilik = clamp(kk.baglilik + 18, 0, 100);
+            kk.risk = clamp(kk.risk - 4, 0, 100);
+            S.evidence = S.evidence.slice(0, Math.max(0, S.evidence.length - 2));
+            recalcDosya();
+            defter("komiser zarfı · " + fmtPara(-uc));
+            pushInbox("Zarf gitti.", kk.ad + " dosyadan iki kâğıt çekti. Bağlılık " + kk.baglilik + ".");
+          }
+        } else if (code === "kom-sus") {
+          kk.risk = clamp(kk.risk + 6, 0, 100);
+          pushInbox("Çay içildi.", kk.ad + " bir şey almadan gitti. Gözü üstünde.");
+        } else {
+          kk.baglilik = clamp(kk.baglilik - 20, 0, 100);
+          kk.risk = clamp(kk.risk + 14, 0, 100);
+          addRep("korku", 4);
+          addRep("racon", -2);
+          pushInbox("Diklendin.", kk.ad + " sessiz çıktı. Bu iş burada bitmez.");
+        }
+        kp.read = true; kp.kapali = true; UI.inboxId = "";
+      }
+      persist(); render(); return;
+    }
+    if (code === "kepenk-indir") {
+      var tp = inboxBy(payload.id);
+      S.flags.kepenkHafta = S.week;
+      var zarar = Math.round(2000 + S.kasa * 0.02);
+      S.kasa = Math.max(0, S.kasa - zarar);
+      defter("kepenk indi · " + fmtPara(-zarar));
+      if (tp) { tp.read = true; tp.kapali = true; UI.inboxId = ""; }
+      pushInbox("Kepenk indi.", "İş durdu, " + fmtPara(-zarar) + " gitti. Baskın gelirse eli boş döner.");
+      persist(); render(); return;
+    }
+    if (code === "aday-al") {
+      var ap = inboxBy(payload.id);
+      var aa = ap ? adayBy(ap.aday) : null;
+      if (ap && aa && S.kasa >= aa.pesin) {
+        adayAl(aa);
+        ap.read = true; ap.kapali = true; UI.inboxId = "";
+      } else if (ap) {
+        pushInbox("Para yetmedi.", "Peşin olmadan kimse gelmiyor.");
+      }
+      persist(); render(); return;
+    }
+    if (code === "aday-pazarlik") {
+      var pp = inboxBy(payload.id);
+      var pa = pp ? adayBy(pp.aday) : null;
+      if (pp && pa) {
+        if (num(pa.pazarlik, 0) >= 1) {
+          pushInbox("Pazarlık bitti.", manName(pa) + " son sözünü söyledi.");
+        } else if (rng() < 0.35) {
+          S.adaylar = (S.adaylar || []).filter(function (x) { return x.id !== pa.id; });
+          pp.read = true; pp.kapali = true; UI.inboxId = "";
+          pushInbox(manName(pa) + " kalktı gitti.", "Fazla sıkıştırdın. Başkasına bakacak.");
+          addRep("saygi", -1);
+        } else {
+          pa.pazarlik = 1;
+          pa.pesin = Math.round(pa.pesin * 0.8 / 100) * 100;
+          pa.yevmiye = Math.round(pa.yevmiye * 0.88 / 10) * 10;
+          pa.gonul = clamp(pa.gonul - 5, 0, 100);
+          pp.body = "Pazarlık oldu. " + adayOzet(pa) + ".";
+          pushInbox("Pazarlık tuttu.", manName(pa) + " indirdi. Gönlü biraz kırıldı.");
+        }
+      }
+      persist(); render(); return;
+    }
+    if (code === "adam-ara") {
+      if (num(S.flags.aramaHafta, 0) === S.week) {
+        pushInbox("Bu hafta aradın.", "Kahve boş. Haftaya bak.");
+      } else if (S.kasa < 800) {
+        pushInbox("Para yetmedi.", "Kahvede bedava adam bulunmuyor.");
+      } else if (liveN() >= 7) {
+        pushInbox("Ekip kalabalık.", "Daha fazlasını beslemek zor.");
+      } else {
+        S.kasa -= 800;
+        S.flags.aramaHafta = S.week;
+        defter("adam arandı · " + fmtPara(-800));
+        adayKagit(adayUret(), "Kahveciye sordun.");
+        S.screen = "olaylar";
+      }
+      persist(); render(); return;
+    }
     if (code === "hazirlik") {
       var hp = inboxBy(payload.id);
       if (hp) {
@@ -2862,10 +3277,12 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       return;
     }
     if (code === "randevu-git") {
-      randevuCoz(payload.id, payload.tarz);
-      S.screen = "olaylar";
+      randevuSahneBaslat(payload.id, payload.tarz);
       persist();
-      render();
+      return;
+    }
+    if (code === "rnd-karar") {
+      rndKarar(payload.k);
       return;
     }
     if (code === "randevu-ertele") {

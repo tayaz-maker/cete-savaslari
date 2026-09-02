@@ -45,6 +45,27 @@ else {
 // oyunu oynanır hale getir (menü → yeni oyun)
 await page.reload();
 await page.waitForTimeout(200);
+async function oyunaDon(pg) {
+  await pg.reload();
+  await pg.waitForTimeout(250);
+  await pg.locator('button:has-text("Devam")').first().click().catch(() => {});
+  await pg.waitForTimeout(300);
+  const nav = await pg.locator(".navbtn").count();
+  if (!nav) not("oyuna dönülemedi (menüde takılı)");
+}
+
+async function sahneyiBitir(pg) {
+  for (let i = 0; i < 16; i++) {
+    const k = pg.locator('[data-act="rnd-karar"]').first();
+    if (await k.count()) await k.click({ force: true }).catch(() => {});
+    await pg.waitForTimeout(400);
+    const acik = await pg.evaluate(() => !!document.querySelector('[data-act="rnd-karar"]') ||
+      !!document.querySelector(".stage .log"));
+    if (!acik) { await pg.waitForTimeout(500); return true; }
+  }
+  return false;
+}
+
 async function oyunaGir(pg) {
   await pg.locator('[data-go="nick"]').first().click().catch(() => {});
   await pg.waitForTimeout(150);
@@ -245,6 +266,8 @@ if (process.env.RACON_LONG) {
   }
 }
 
+await oyunaDon(page);
+
 // 9) mobil düzen — dikey telefon ve kısa yatay
 for (const [w, h, ad] of [[390, 800, "dikey 390x800"], [844, 346, "yatay 844x346"]]) {
   await page.setViewportSize({ width: w, height: h });
@@ -297,6 +320,7 @@ await page.setViewportSize({ width: 1280, height: 800 });
 await page.waitForTimeout(200);
 
 // 10) lig / fikstür / kâğıt eylemleri
+await oyunaDon(page);
 {
   const oku = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem("racon_v1")); } catch (e) { return null; } });
   let j = await oku();
@@ -333,7 +357,7 @@ await page.waitForTimeout(200);
       if (tarz !== 3) not("lig: randevu kâğıdında " + tarz + " gidiş tarzı var (3 bekleniyor)");
       const once = await oku();
       await page.locator('[data-act="randevu-git"][data-tarz="kalabalik"]').first().click().catch(() => {});
-      await page.waitForTimeout(400);
+      if (!(await sahneyiBitir(page))) not("lig: randevu sahnesi kapanmadı");
       const sonra = await oku();
       const bitti = (sonra.lig.fikstur || []).some((f) => f.sonuc);
       if (!bitti) not("lig: randevu çözülmedi (sonuç yazılmadı)");
@@ -380,6 +404,8 @@ await page.waitForTimeout(200);
     }
   }
 }
+
+await oyunaDon(page);
 
 // 11) FM halkaları: haftalık hazırlık, süreli sipariş, kadro seçimi, rakip raporu
 {
@@ -450,12 +476,149 @@ await page.waitForTimeout(200);
     if (!kutu) not("randevu: kadro seçimi yok");
     const once = await oku();
     await page.locator('[data-act="randevu-git"][data-tarz="sessiz"]').first().click().catch(() => {});
-    await page.waitForTimeout(400);
+    if (!(await sahneyiBitir(page))) not("randevu: sahne kapanmadı");
     const sonra = await oku();
     if (!(sonra.lig.fikstur || []).some((f) => f.sonuc)) not("randevu: sonuç yazılmadı");
     if (num(sonra.flags.form) === num(once.flags.form)) not("randevu: form değişmedi");
     function num(v) { return typeof v === "number" ? v : 0; }
   }
+}
+
+await oyunaDon(page);
+
+// 12) kadro derinliği · randevu sahnesi · emniyet · rozet
+{
+  const oku = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem("racon_v1")); } catch (e) { return null; } });
+  const kagitAc = async (re) => {
+    await page.locator('.navbtn[data-id="olaylar"]').click().catch(() => {});
+    await page.waitForTimeout(140);
+    const r = page.locator(".list button.row").filter({ hasText: re }).first();
+    if (!(await r.count())) return false;
+    await r.click().catch(() => {});
+    await page.waitForTimeout(180);
+    return true;
+  };
+
+  // KADRO: kahvede ara -> aday kâğıdı -> pazarlık -> tut
+  await page.evaluate(() => {
+    const x = JSON.parse(localStorage.getItem("racon_v1"));
+    x.kasa = 40000;
+    localStorage.setItem("racon_v1", JSON.stringify(x));
+  });
+  await page.reload();
+  await page.waitForTimeout(250);
+  await page.locator('button:has-text("Devam")').first().click().catch(() => {});
+  await page.waitForTimeout(300);
+  await page.locator('.navbtn[data-id="adamlar"]').click().catch(() => {});
+  await page.waitForTimeout(200);
+  const kadro0 = (await oku()).men.length;
+  if (!(await page.locator('[data-act="adam-ara"]').count())) not("kadro: 'adam ara' düğmesi yok");
+  await page.locator('[data-act="adam-ara"]').first().click().catch(() => {});
+  await page.waitForTimeout(300);
+  if (!(await kagitAc(/iş arıyor/))) not("kadro: aday kâğıdı gelmedi");
+  else {
+    const acikId = await page.evaluate(() => {
+      const b = document.querySelector('[data-act="aday-pazarlik"]');
+      if (!b) return null;
+      const j = JSON.parse(localStorage.getItem("racon_v1"));
+      const it = (j.inbox || []).filter((x) => x.id === b.dataset.id)[0];
+      return it ? it.aday : null;
+    });
+    const bul = (st) => (st.adaylar || []).filter((a) => a.id === acikId)[0];
+    const p0 = bul(await oku());
+    await page.locator('[data-act="aday-pazarlik"]').first().click().catch(() => {});
+    await page.waitForTimeout(250);
+    const p1 = bul(await oku());
+    if (p0 && p1 && p1.pesin >= p0.pesin) not("kadro: pazarlık peşinatı düşürmedi");
+    await kagitAc(/iş arıyor/);
+    if (await page.locator('[data-act="aday-al"]:not([disabled])').count()) {
+      await page.locator('[data-act="aday-al"]').first().click().catch(() => {});
+      await page.waitForTimeout(300);
+      const son = await oku();
+      if (son.men.length <= kadro0) not("kadro: adam tutulunca kadro büyümedi (" + kadro0 + " -> " + son.men.length + ")");
+      if (son.kasa >= 40000) not("kadro: adam bedava geldi");
+    } else not("kadro: 'Tut' düğmesi ₺40.000 kasayla bile kapalı");
+  }
+
+  // RANDEVU SAHNESİ — fikstürü bugüne çekip tek ilerletmede randevuyu aç
+  await page.evaluate(() => {
+    const x = JSON.parse(localStorage.getItem("racon_v1"));
+    const f = (x.lig.fikstur || []).filter((y) => !y.sonuc)[0];
+    if (f) {
+      (x.lig.fikstur || []).forEach((y) => { if (y !== f && y.week === x.week) y.week = x.week + 1; });
+      f.week = x.week;
+      f.day = Math.min(7, x.day + 1);
+      f.calId = "";
+    }
+    localStorage.setItem("racon_v1", JSON.stringify(x));
+  });
+  await page.reload();
+  await page.waitForTimeout(250);
+  await page.locator('button:has-text("Devam")').first().click().catch(() => {});
+  await page.waitForTimeout(300);
+  let rnd = null, j = await oku();
+  for (let t = 0; t < 3 && !rnd; t++) {
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(460);
+    j = await oku();
+    rnd = (j.calendar || []).filter((c) => c.strip === "randevu" && c.status === "bekler")[0];
+  }
+  if (!rnd) not("sahne: randevu çıkmadı");
+  else if (!(await kagitAc(/randevu verdi/))) not("sahne: randevu kâğıdı yok");
+  else {
+    await page.locator('[data-act="randevu-git"][data-tarz="kalabalik"]').first().click().catch(() => {});
+    await page.waitForTimeout(1300);
+    const kararlar = await page.evaluate(() => [...document.querySelectorAll('[data-act="rnd-karar"]')].length);
+    const satir = await page.evaluate(() => document.querySelectorAll(".log p").length);
+    if (satir < 2) not("sahne: satır yazılmadı");
+    if (kararlar !== 3) not("sahne: orta karar " + kararlar + " seçenek (3 bekleniyor)");
+    await page.locator('[data-act="rnd-karar"][data-k="bas"]').first().click().catch(() => {});
+    await page.waitForTimeout(4000);
+    const sonra = await oku();
+    if (!(sonra.lig.fikstur || []).some((f) => f.sonuc)) not("sahne: sonuç yazılmadı");
+    const acikMi = await page.evaluate(() => !!document.querySelector('[data-act="rnd-karar"]'));
+    if (acikMi) not("sahne: bitmesine rağmen kapanmadı");
+  }
+
+  // EMNİYET: komiser, baskın, iddianame
+  await page.evaluate(() => {
+    const x = JSON.parse(localStorage.getItem("racon_v1"));
+    for (let i = 0; i < 34; i++) x.evidence.push({ id: "ev_qa" + i, kind: "kamera", streetId: x.streetHome, week: x.week, weight: 3 });
+    localStorage.setItem("racon_v1", JSON.stringify(x));
+  });
+  await page.reload();
+  await page.waitForTimeout(250);
+  await page.locator('button:has-text("Devam")').first().click().catch(() => {});
+  await page.waitForTimeout(300);
+  let baskin = false, kom = null;
+  for (let t = 0; t < 14; t++) {
+    await page.locator("#btn-ilerlet").click({ force: true }).catch(() => {});
+    await page.waitForTimeout(430);
+    for (let k = 0; k < 4; k++) {
+      const md = await page.evaluate(() => !!document.querySelector("#modal button"));
+      if (!md) break;
+      await page.locator("#modal button").first().click({ force: true }).catch(() => {});
+      await page.waitForTimeout(70);
+    }
+    j = await oku();
+    if (j.komiser) kom = j.komiser;
+    if ((j.inbox || []).some((x) => /Baskın|İddianame/.test(x.title))) { baskin = true; break; }
+  }
+  if (!kom) not("emniyet: dosya yükseldiği halde komiser çıkmadı");
+  if (!baskin) not("emniyet: dosya 90+ iken 14 günde baskın/iddianame olmadı");
+  await page.locator('.navbtn[data-id="emniyet"]').click().catch(() => {});
+  await page.waitForTimeout(250);
+  const em = await page.evaluate(() => document.querySelector(".stage")?.textContent || "");
+  if (!/Baskın riski/.test(em)) not("emniyet: baskın riski kartı yok");
+  if (kom && !/Bağlılık/.test(em)) not("emniyet: komiser kartı yok");
+
+  // ROZET + SEZON GEÇMİŞİ
+  await page.locator('.navbtn[data-id="siralama"]').click().catch(() => {});
+  await page.waitForTimeout(250);
+  const sr = await page.evaluate(() => document.querySelector(".stage")?.textContent || "");
+  if (!/Rozetler/.test(sr)) not("rozet: kart yok");
+  const rz = Object.keys((await oku()).lig.rozet || {}).length;
+  if (!rz) not("rozet: hiç rozet kazanılmadı");
 }
 
 // 6) kayıt
