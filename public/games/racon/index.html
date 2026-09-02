@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="21">
+<meta name="racon-rev" content="22">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -995,6 +995,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       yorgunluk: num(m.yorgunluk, 0),
       kus: !!m.kus,
       hapisLeft: num(m.hapisLeft, 0),
+      iyilesme: num(m.iyilesme, 0),
+      izinLeft: num(m.izinLeft, 0),
       form: num(m.form, 55),
       hidden: migrateHidden(str(m.id, "m"), m.hidden),
       gonulNeden: Array.isArray(m.gonulNeden) ? m.gonulNeden.slice(0, 3) : [],
@@ -1891,7 +1893,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (vic) {
         vic.durum = yara === "hapis" ? "hapis" : "yarali";
         vic.yorgunluk = yara === "yara" ? 80 : vic.yorgunluk;
-        if (yara === "hapis") vic.hapisLeft = 10;
+        var donusGunC;
+        if (yara === "hapis") { vic.hapisLeft = 10; donusGunC = addDays(10); }
+        else { vic.iyilesme = ri(4, 7); donusGunC = addDays(vic.iyilesme); }
+        pushCal({
+          strip: "yukumluluk", title: "Dönüş: " + manName(vic),
+          body: manName(vic) + " " + (yara === "hapis" ? "içeride." : "yatakta.") + " Dönüş bekleniyor.",
+          week: donusGunC.week, day: donusGunC.day, ref: { manId: vic.id, kind: "donus" }
+        });
         yara = manName(vic) + " · " + (yara === "hapis" ? "hapis" : "yaralı");
       }
     }
@@ -2041,6 +2050,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         });
       }
     }
+    var oca = S.calendar.filter(function (c) { return c.week === S.week && c.ref && c.ref.kind === "ocagi"; })[0];
+    if (!oca && num(S.flags.kahveHafta, 0) !== S.week) {
+      pushCal({
+        week: S.week, day: 7, strip: "yukumluluk", title: "Ocağı",
+        body: "İsmail'in ocağına haftalık uğrama. Gitmezsen laf dönmez.",
+        ref: { kind: "ocagi" }
+      });
+    }
   }
   function missRandevu() {
     S.calendar.forEach(function (c) {
@@ -2069,7 +2086,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     S.calendar.forEach(function (c) {
       if (c.week !== S.week || c.day !== S.day) return;
       if (c.strip !== "yukumluluk" || c.status !== "bekler") return;
-      if (c.ref && c.ref.kind === "yevmiye") return;
+      if (c.ref && (c.ref.kind === "yevmiye" || c.ref.kind === "donus")) return;
       if (c.ref && c.ref.kind === "borc") {
         if (S.kasa >= S.debt && S.debt > 0) {
           S.kasa -= S.debt;
@@ -2223,6 +2240,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         UI.spawnLeft -= 1;
       }
     });
+    S.men.forEach(function (m) {
+      if (UI.spawnLeft <= 0) return;
+      if (m.durum === "hazir" && m.yorgunluk >= 45 && rng() < 0.1) {
+        var gun = ri(2, 4);
+        pushInbox(manName(m) + " izin istiyor.", manName(m) + " " + gun + " gün izin istiyor. Yorgun, dinlenmek istiyor.", { kind: "izin", manId: m.id, izinGun: gun });
+        UI.spawnLeft -= 1;
+      }
+    });
     if (S.kose > 0 && !S.flags.koseKesildi) {
       var homeH = streetBy(S.streetHome);
       if (homeH && homeH.heat >= 48 && rng() < 0.18) {
@@ -2238,7 +2263,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       "Hava kurşun. Fevzi Paşa toz içinde.",
       "Yağmur ince. Kepenkler erken indi.",
       "Pazar günü kalabalık. Çarşamba konuşuyor.",
-      "İnönü'de maç var. Mahalle boşaldı.",
+      "İnönü'de düğün var. Mahalle boşaldı.",
       "Düğün konvoyu geçti. Toz kaldı.",
       "Cuma çıkışı. Cami önü kalabalık.",
       "Sis Haliç'ten yürüdü. Fener görünmüyor.",
@@ -2286,6 +2311,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     UI.spawnLeft -= 1;
     return row;
   }
+  function kapatDonusKagidi(m) {
+    var c = S.calendar.filter(function (x) {
+      return x.status === "bekler" && x.ref && x.ref.kind === "donus" && x.ref.manId === m.id;
+    })[0];
+    if (c) c.status = "bitti";
+  }
   function tickHapis() {
     S.men.forEach(function (m) {
       if (m.durum !== "hapis") return;
@@ -2295,6 +2326,29 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         m.yorgunluk = 70;
         m.gonul = clamp(m.gonul - 6, 0, 100);
         pushInbox(manName(m) + " çıktı.", "Hapis bitti. Yorgun, konuşkan değil.");
+        kapatDonusKagidi(m);
+      }
+    });
+  }
+  function tickYarali() {
+    S.men.forEach(function (m) {
+      if (m.durum !== "yarali") return;
+      m.iyilesme = Math.max(0, num(m.iyilesme, 5) - 1);
+      if (m.iyilesme <= 0) {
+        m.durum = "yorgun";
+        m.yorgunluk = 60;
+        pushInbox(manName(m) + " toparlandı.", "Kendi kendine iyileşti. Yorgun ama ayakta.");
+        kapatDonusKagidi(m);
+      }
+    });
+  }
+  function tickIzin() {
+    S.men.forEach(function (m) {
+      if (m.durum !== "izinli") return;
+      m.izinLeft = Math.max(0, num(m.izinLeft, 3) - 1);
+      if (m.izinLeft <= 0) {
+        m.durum = "hazir";
+        pushInbox(manName(m) + " döndü.", "İzin bitti. Yerinde.");
       }
     });
   }
@@ -2386,10 +2440,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     });
     return out.slice(0, 3);
   }
-  /* ================= MAHALLE LİGİ (sezon · fikstür · hedef) =================
-     Football Manager omurgası: önden belli bir randevu takvimi, haftalık
-     sıralama tablosu ve sezon başında verilen hedefler. Maç yok; randevu
-     var. Fikstür takvime "randevu" şeridi olarak düşer, oyuncu hazırlanır. */
+  /* ================= MAHALLE SIRALAMASI (sezon · randevu takvimi · hedef) =================
+     Önden belli bir randevu takvimi, haftalık sıralama tablosu ve sezon
+     başında verilen hedefler. Randevu takvime "randevu" şeridi olarak
+     düşer, oyuncu hazırlanır. */
   var LIG_EKIP = [
     { id: "rival_kartallar", ad: "Kartallar", guc: 56 },
     { id: "e_hacilar", ad: "Hacılar", guc: 62 },
@@ -2411,7 +2465,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var ek = LIG_EKIP.map(function (e) {
       return { id: e.id, ad: e.ad, guc: e.guc + ri(-6, 6) + (sezon - 1) * 9, sokak: ri(0, 2), nam: ri(8, 26), korku: ri(6, 24) };
     });
-    /* Fikstür kolaydan zora: ilk tur güce göre sıralı, sonra dönüyor. */
+    /* Randevu sırası kolaydan zora: ilk tur güce göre sıralı, sonra dönüyor. */
     var sirali = ek.slice().sort(function (a, b) { return a.guc - b.guc; });
     var fik = [];
     var bas = (sezon - 1) * 13 + 2;
@@ -2993,6 +3047,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         var vic = aday[ri(0, aday.length - 1)];
         vic.durum = "yarali";
         vic.iyilesme = ri(4, 7);
+        var vicDonus = addDays(vic.iyilesme);
+        pushCal({
+          strip: "yukumluluk", title: "Dönüş: " + manName(vic),
+          body: manName(vic) + " yatakta. Dönüş bekleniyor.",
+          week: vicDonus.week, day: vicDonus.day, ref: { manId: vic.id, kind: "donus" }
+        });
         satir.push(manName(vic) + " yaralandı.");
       }
     }
@@ -3051,7 +3111,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         addRep("nam", -8);
         pushInbox("Mahalle elden gidiyor.", "Amca kademeni indirdi. Bir sezon daha kaçırma.", { href: "siralama" });
         ligBaslat(S.lig.sezon + 1);
-        pushInbox("Yeni sezon açıldı.", "Fikstür asıldı. Amca son şansı verdi.", { href: "siralama" });
+        pushInbox("Yeni sezon açıldı.", "Randevu takvimi asıldı. Amca son şansı verdi.", { href: "siralama" });
       } else {
         S.flags.oyunSonu = "amca";
         S.streets.forEach(function (st) {
@@ -3062,7 +3122,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return;
     }
     ligBaslat(S.lig.sezon + 1);
-    pushInbox("Yeni sezon açıldı.", "Fikstür asıldı. Amca yeni hedef verdi.", { href: "siralama" });
+    pushInbox("Yeni sezon açıldı.", "Randevu takvimi asıldı. Amca yeni hedef verdi.", { href: "siralama" });
   }
   /* Rakipler de yaşar: haftalık küçük oynamalar. */
   function ligHafta() {
@@ -3090,6 +3150,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     collectSenet();
     tickFatigue();
     tickHapis();
+    tickYarali();
+    tickIzin();
     tickBetrayal();
     walkMarket();
     recalcDosya();
@@ -3330,6 +3392,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (it.kind === "cay") {
         acts = '<button type="button" class="btn primary" data-act="cay-dinle" data-id="' + it.id + '">Dinle</button>' +
           '<button type="button" class="btn ghost" data-act="cay-kov" data-id="' + it.id + '">Kes, iş var</button>';
+      } else if (it.kind === "izin") {
+        acts = '<button type="button" class="btn primary" data-act="izin-ver" data-id="' + it.id + '">İzin ver</button>' +
+          '<button type="button" class="btn ghost" data-act="izin-red" data-id="' + it.id + '">Red</button>';
       } else if (it.kind === "hazirlik") {
         acts = Object.keys(HAZIRLIK).map(function (t) {
           return '<button type="button" class="btn' + (t === "kahve" ? " primary" : "") +
@@ -3412,8 +3477,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
             '<button type="button" class="btn" data-act="randevu-ertele" data-id="' + c.id + '">Ertele</button>' +
             '<button type="button" class="btn ghost" data-act="randevu-gitme" data-id="' + c.id + '">Gitme</button></div>';
         }
-        if (c.strip === "yukumluluk" && c.status === "bekler" && !(c.ref && c.ref.kind === "yevmiye")) {
-          var label = c.ref && c.ref.kind === "borc" ? ("Öde (₺" + S.debt.toLocaleString("tr-TR") + ")") : ("Git (₺" + Math.min(2000, S.kasa).toLocaleString("tr-TR") + ")");
+        if (c.strip === "yukumluluk" && c.status === "bekler" && !(c.ref && (c.ref.kind === "yevmiye" || c.ref.kind === "donus"))) {
+          var label = c.ref && c.ref.kind === "borc" ? ("Öde (₺" + S.debt.toLocaleString("tr-TR") + ")")
+            : c.ref && c.ref.kind === "ocagi" ? "Uğra"
+            : ("Git (₺" + Math.min(2000, S.kasa).toLocaleString("tr-TR") + ")");
           git = '<div class="acts"><button type="button" class="btn" data-act="duty-go" data-id="' + c.id + '">' + label + "</button></div>";
         }
         paper = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(c.title) + '</p><p>' + esc(c.body || "") + '</p><p class="dim">' + lab + " · " + DAYS[c.day - 1] + " · " + durum + "</p>" + git + "</div>";
@@ -3431,6 +3498,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var donus = "";
     if (m.durum === "hapis") donus = '<p class="dim">Dönüş: ' + num(m.hapisLeft, 0) + " gün</p>";
     else if (m.durum === "yarali") donus = '<p class="dim">Dönüş: ' + num(m.iyilesme, 0) + " gün</p>";
+    else if (m.durum === "izinli") donus = '<p class="dim">Dönüş: ' + num(m.izinLeft, 0) + " gün</p>";
     return '<div class="card"><p class="ttl">' + esc(up(manName(m))) + " · " + esc(up(ROL[m.rol] || m.rol)) + hizipHap + "</p><div class=\"hr\"></div>" + bars +
       barrow("Form", num(m.form, 55), 100, num(m.form, 55) < 35 ? "heat" : "") +
       "<p>Gönül <b class=\"num\">" + m.gonul + "</b> · Yevmiye ₺" + m.yevmiye + "</p>" + donus +
@@ -3818,7 +3886,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       " · " + sabirYazi + "</p></div>" +
       '<div class="card"><h3>Mahalle sıralaması</h3>' + satir + "</div>" +
       '<div class="card"><h3>Amcanın hedefi</h3>' + (hed || '<p class="dim">Hedef yok.</p>') + "</div>" +
-      '<div class="card"><h3>Fikstür</h3>' + (fik || '<p class="dim">Randevu kalmadı.</p>') + "</div>" +
+      '<div class="card"><h3>Randevu takvimi</h3>' + (fik || '<p class="dim">Randevu kalmadı.</p>') + "</div>" +
       (gecmis ? '<div class="card"><h3>Son sonuçlar</h3>' + gecmis + "</div>" : "") +
       '<div class="card"><h3>Rozetler</h3>' + ROZET.map(function (r) {
         var k = S.lig.rozet ? S.lig.rozet[r.id] : 0;
@@ -4140,6 +4208,29 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
       persist(); render(); return;
     }
+    if (code === "izin-ver") {
+      var ip = inboxBy(payload.id);
+      var im = ip ? manBy(ip.manId) : null;
+      if (ip) {
+        ip.read = true; ip.kapali = true; UI.inboxId = "";
+        if (im && im.durum === "hazir") {
+          im.durum = "izinli";
+          im.izinLeft = num(ip.izinGun, 3);
+          im.gonul = clamp(im.gonul + 5, 0, 100);
+          pushInbox(manName(im) + " izne çıktı.", manName(im) + " " + im.izinLeft + " gün yok.");
+        }
+      }
+      persist(); render(); return;
+    }
+    if (code === "izin-red") {
+      var ir = inboxBy(payload.id);
+      var im2 = ir ? manBy(ir.manId) : null;
+      if (ir) {
+        ir.read = true; ir.kapali = true; UI.inboxId = "";
+        if (im2) im2.gonul = clamp(im2.gonul - 6, 0, 100);
+      }
+      persist(); render(); return;
+    }
     if (code === "hazirlik") {
       var hp = inboxBy(payload.id);
       if (hp) {
@@ -4371,6 +4462,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.kasa -= 1200;
       tm.durum = "hazir";
       tm.yorgunluk = 20;
+      kapatDonusKagidi(tm);
       defter("tedavi · " + manName(tm) + " · -1.200");
       persist();
       render();
@@ -4660,6 +4752,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
             duty.status = "bitti";
             pushInbox("Borç ödendi.", "Kartallar sustu.");
           }
+        } else if (duty.ref && duty.ref.kind === "ocagi") {
+          duty.status = "bitti";
+          if (num(S.flags.kahveHafta, 0) !== S.week) {
+            S.flags.kahveHafta = S.week;
+            favorEkle("p_kahveci", 1);
+          }
+          pushInbox("Kahve turu.", "İsmail'in ocağına uğradın. Laf döndü.");
         } else {
           var masraf = Math.min(2000, S.kasa);
           S.kasa -= masraf;
@@ -4976,6 +5075,33 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     S.rep.saygi = 70;
     addRep("korku", 5);
     if (S.rep.korku >= 70 && S.rep.saygi >= 70) fail("soft cap korku/saygı tutmadı");
+
+    ensureDuties();
+    if (!S.calendar.some(function (c) { return c.ref && c.ref.kind === "ocagi" && c.strip === "yukumluluk"; })) fail("ocağı yükümlülük kartı düşmedi");
+
+    var tman = S.men[0];
+    tman.durum = "hapis";
+    tman.hapisLeft = 1;
+    var tdCal = pushCal({ strip: "yukumluluk", title: "Dönüş: " + manName(tman), body: "test", week: S.week, day: S.day, ref: { manId: tman.id, kind: "donus" } });
+    tickHapis();
+    if (tman.durum === "hapis") fail("hapisLeft 0 olunca durum değişmedi");
+    if (tdCal.status !== "bitti") fail("dönüş kâğıdı hapis çıkışında kapanmadı");
+
+    tman.durum = "yarali";
+    tman.iyilesme = 1;
+    var tdCal2 = pushCal({ strip: "yukumluluk", title: "Dönüş: " + manName(tman), body: "test", week: S.week, day: S.day, ref: { manId: tman.id, kind: "donus" } });
+    tickYarali();
+    if (tman.durum === "yarali") fail("iyilesme 0 olunca durum değişmedi");
+    if (tdCal2.status !== "bitti") fail("dönüş kâğıdı iyileşmede kapanmadı");
+
+    var izinRow = pushInbox("test izin", "test", { kind: "izin", manId: tman.id, izinGun: 2 });
+    tman.durum = "hazir";
+    act("izin-ver", { id: izinRow.id });
+    if (tman.durum !== "izinli") fail("izin-ver adamı izinli yapmadı");
+    if (num(tman.izinLeft, 0) !== 2) fail("izinLeft ayarlanmadı");
+    tman.izinLeft = 1;
+    tickIzin();
+    if (tman.durum !== "hazir") fail("izin bitince adam hazır olmadı");
 
     writeSave();
     var shot = {

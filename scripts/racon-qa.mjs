@@ -376,7 +376,7 @@ await oyunaDon(page);
   if (!/Mahalle sıralaması/.test(st.txt)) not("lig: sıralama ekranı açılmadı");
   if (st.satir < 5) not("lig: tabloda " + st.satir + " satır var");
   if (!/Amcanın hedefi/.test(st.txt)) not("lig: hedef kartı yok");
-  if (!/Fikstür/.test(st.txt)) not("lig: fikstür kartı yok");
+  if (!/Randevu takvimi/.test(st.txt)) not("lig: randevu takvimi kartı yok");
 
   // hedefsiz bilgi kâğıdında ölü düğme kalmasın
   await page.locator('.navbtn[data-id="olaylar"]').click().catch(() => {});
