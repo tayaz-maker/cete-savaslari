@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="33">
+<meta name="racon-rev" content="34">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -232,6 +232,19 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .modal-back{position:absolute;inset:0;background:#00000088;z-index:10;display:flex;align-items:center;justify-content:center;padding:24px}
 .modal-back[hidden]{display:none}
 .modal-back .card{width:min(360px,92vw);margin:0}
+.yardim-back{position:absolute;inset:0;background:#00000088;z-index:11;display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}
+.yardim-back[hidden]{display:none}
+.yardim-back .card{width:min(560px,94vw);margin:24px 0;max-height:none}
+.yardim-back h2{margin:0 0 2px;font-size:18px;letter-spacing:.02em}
+.yardim-back .tag{margin:0 0 16px}
+.yardim-back h3{margin:20px 0 6px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.yardim-back h3:first-of-type{margin-top:0}
+.yardim-back p{margin:0 0 8px;color:var(--ink-dim);line-height:1.5}
+.yardim-back p b{color:var(--ink);font-weight:600}
+.yardim-back ul{margin:0 0 8px;padding-left:18px;color:var(--ink-dim);line-height:1.5}
+.yardim-back li{margin:0 0 4px}
+.yardim-back .acts{margin-top:18px;position:sticky;bottom:0;background:var(--surface);padding-top:10px}
+.help-toggle{position:relative}
 #rotate .rb{letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:14px}
 #rotate p{margin:0;color:var(--ink-dim)}
 .origin{display:flex;flex-direction:column;gap:8px}
@@ -352,6 +365,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     <div class="brand">Racon Manager</div>
     <div class="meta" id="top-meta"></div>
     <div class="spacer"></div>
+    <button type="button" class="btn ghost help-toggle" data-act="yardim-ac" aria-label="Nasıl oynanır">?</button>
     <button type="button" class="btn ghost side-toggle" data-act="side" aria-label="Panel">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/><path d="M16 4v16"/></svg>
     </button>
@@ -371,6 +385,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
         <button type="button" class="btn primary" data-act="menu" data-go="nick">Yeni oyun</button>
         <button type="button" class="btn" id="btn-devam" data-act="menu" data-go="play">Devam</button>
         <button type="button" class="btn" data-act="menu" data-go="yedek">Yedek</button>
+        <button type="button" class="btn ghost" data-act="yardim-ac">Nasıl oynanır?</button>
         <button type="button" class="btn danger" data-act="menu" data-go="sil">Sil</button>
       </div>
       <div id="menu-nick" class="stack" hidden>
@@ -413,6 +428,54 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="modal-txt" tabindex="-1">
       <p id="modal-txt"></p>
       <div class="acts" id="modal-acts"></div>
+    </div>
+  </div>
+  <div id="yardim" class="yardim-back" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="yardim-baslik" tabindex="-1">
+      <h2 id="yardim-baslik">Nasıl oynanır?</h2>
+      <p class="tag">Kısaca, kolay Türkçe.</p>
+
+      <h3>Oyun ne anlatıyor</h3>
+      <p>Fatih'te <b>adsız</b> başlıyorsun. Elinde ad yok, para az, ekip yok. İş yapa yapa <b>ad</b> kazanıyorsun; ad ile <b>adam</b> topluyorsun; adamla <b>sokak</b> tutuyorsun. Ama her iş bir iz bırakıyor: dosyan büyüyor, polis dikkat kesiliyor. Amaç mahallede güçlenirken dosyanı fazla şişirmemek.</p>
+
+      <h3>Başlarken</h3>
+      <p>Bir <b>lakap</b> yaz, bir <b>köken</b> seç (hapisten çıkan / köyden gelen / borçlu). Köken, ilk elindeki para ve adamı belirler.</p>
+
+      <h3>Ana döngü: İLERLET</h3>
+      <p>Sağ üstteki <b>İLERLET</b> butonuna her bastığında bir gün geçer. Yevmiye ödenir, işler ilerler, mahallede yeni kâğıtlar (haberler) düşer. Oyun bunun etrafında dönüyor: plan yap, İlerlet'e bas, sonucu gör.</p>
+
+      <h3>Sol menüdeki 8 ekran</h3>
+      <ul>
+        <li><b>Olaylar</b> — gelen kutun. Sana gelen her "kâğıt" (haber, teklif, tehdit) burada. Kâğıda tıkla, ne yapacağını seç.</li>
+        <li><b>Takvim</b> — haftanın günleri. Randevu, borç, taziye gibi <b>yükümlülüklerin</b> hangi gün olduğunu gösterir.</li>
+        <li><b>Adamlar</b> — ekibin. Kimin gönlü kırık, kim yorgun, kim hapiste, hepsi burada.</li>
+        <li><b>Harita</b> — mahalledeki sokaklar. Hangisi sende, hangisi rakipte, ne kadar "heat" (dikkat) var.</li>
+        <li><b>İşler</b> — buradan iş <b>planlarsın</b>: sokak seç, iş türü seç, adam ata, "Planla" de. İş hazır olunca sahnesi açılır.</li>
+        <li><b>Emniyet</b> — dosyan (polis kaydın) ve delillerin. Yükselirse baskın riski artar.</li>
+        <li><b>Husumet</b> — rakip çete Kartallar. Aranızdaki gerginlik burada.</li>
+        <li><b>Kasa</b> — paran. Kirli (iş parası) ve temiz (aklanmış) diye ikiye ayrılır.</li>
+      </ul>
+
+      <h3>Bir iş nasıl yapılır</h3>
+      <p><b>İşler</b> ekranından sokak ve iş türü seç, en az bir adam işaretle, <b>Planla</b>'ya bas. İş sırada bekler, hazır olunca <b>İş günü</b> butonu çıkar. Sahne açılınca adamların ne yapacağını sen yönlendirirsin: sessiz dur, sıkıştır, ateş et ya da çekil. Sert gidersen para artar ama heat ve dosya da artar.</p>
+
+      <h3>Dört çubuk (itibarın)</h3>
+      <p><b>Korku</b>, <b>Saygı</b>, <b>Nam</b>, <b>Racon</b> — dördü ayrı ayrı takip edilir, tek bir "şöhret" barı yok. Korku ile saygı aynı anda çok yüksek olamaz: biri fazla çıkarsa diğeri biraz düşer. Sert davranış korkuyu, düzgün davranış saygıyı besler.</p>
+
+      <h3>Dosya (polis kaydın)</h3>
+      <p>Her iz, her tanık, her delil dosyanı büyütür. Dosya yükseldikçe karakolda dikkat çekersin; belli eşiklerden sonra baskın riski doğar. Avukat tutmak veya sessiz iş yapmak dosyayı yavaşlatır.</p>
+
+      <h3>İpuçları</h3>
+      <ul>
+        <li>Adamların <b>gönlünü</b> düşürme — yevmiyeyi zamanında öde, sürekli aynı işe yollama.</li>
+        <li>Her hafta gelen <b>yükümlülükleri</b> (taziye, borç, randevu) kaçırma; kaçırmanın bedeli olur.</li>
+        <li>Kirli kasa çok şişerse aklama kapasitesini aşarsın — "nakit sokakta" kalır, bu risklidir.</li>
+        <li>Kayıt otomatik tutulur (tarayıcıda). <b>Yedek</b> menüsünden yedeğini de alabilirsin.</li>
+      </ul>
+
+      <div class="acts">
+        <button type="button" class="btn primary" data-act="yardim-kapat">Anladım</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4767,6 +4830,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         showMenu("home");
         render();
       }
+      return;
+    }
+    if (code === "yardim-ac") {
+      document.getElementById("yardim").hidden = false;
+      return;
+    }
+    if (code === "yardim-kapat") {
+      document.getElementById("yardim").hidden = true;
       return;
     }
     if (!S) return;
