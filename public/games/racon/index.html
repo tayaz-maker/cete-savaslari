@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="31">
+<meta name="racon-rev" content="32">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -1241,6 +1241,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           streetId: st.id, rel: 0, mods: [], favor: 0, bag: "", kilitli: false });
       }
     });
+    /* Yarım eski kayıtta kanon kişiler (berber/kahveci/kapıcı/çavuş/avukat) eksik olabilir:
+       eksik olanı tamamla, yoksa İyilik/Emniyet ekranı undefined kişiye çarpıyor. */
+    kanonPeople(out.streets).forEach(function (kp) {
+      if (kp.kind === "esnaf") return;
+      if (!out.people.filter(function (p) { return p.id === kp.id; })[0]) out.people.push(kp);
+    });
     if (!Array.isArray(raw.scout) || !raw.scout.length) {
       out.scout = kanonScout(out.men, out.rivals, out.streets);
     }
@@ -2043,7 +2049,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function playTick() {
     if (!UI.sahne || !UI.jobId) return;
     var j = jobBy(UI.jobId);
-    if (!j) return;
+    if (!j || j.phase === "done") return;
     var steps = jobSteps(j.kind);
     if (j.tickIndex >= steps.length) { finishJob(); return; }
     var step = steps[j.tickIndex];
@@ -2220,6 +2226,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function finishJob() {
     var j = jobBy(UI.jobId);
     if (!j) return;
+    /* Tek seferlik: bekleyen bir tick timer'ı ya da ikinci bir çağrı
+       aynı işi tekrar bitirip para/delil/heat yazmasın. */
+    if (j.phase === "done") return;
+    clearJobTimer();
     bagArttir(j);
     var cbugun = cenazeBugun();
     if (cbugun && j.tags.indexOf("cenaze") < 0) {
