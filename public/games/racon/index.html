@@ -1437,7 +1437,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
   function manName(m) { return m.lakap ? m.ad + ' "' + m.lakap + '"' : m.ad; }
   function delayedN() {
-    return S.calendar.filter(function (c) { return c.status === "ertelendi" || c.status === "kacirildi"; }).length;
+    var now = S.week * 7 + S.day;
+    return S.calendar.filter(function (c) {
+      if (c.status === "bitti" || c.status === "kacirildi") return false;
+      var when = (c.week || 0) * 7 + (c.day || 0);
+      return when > 0 && when < now;
+    }).length;
   }
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
   function fmtPara(n) {
