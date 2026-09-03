@@ -9,3 +9,7 @@
 - Sürümlü doğrulama, migration, yedek/recovery ve güvenli hata davranışı olan localStorage kaydı eklendi.
 - Çekirdek davranış testleri ve üç yıllık deterministik simülasyon eklendi.
 - Oyun TarikLab kataloğuna `/oyna/tc-sim` adresiyle bağlandı.
+
+## Yönetim arayüzü düzeni
+
+- Ana ekran; kompakt üst bilgi şeridi, pasif bölüm navigasyonu ve yoğun hayat dashboard'u olarak düzenlendi.

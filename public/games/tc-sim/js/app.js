@@ -63,15 +63,11 @@ function startScreen(loadResult) {
   });
 }
 
-function statCard(label, value, meter = null, className = "") {
-  return `<section class="card stat ${className}"><span class="stat-label">${label}</span><strong class="stat-value">${value}</strong>${meter === null ? "" : `<div class="meter ${label === "Stres" ? "stress" : ""}"><span style="width:${meter}%"></span></div>`}</section>`;
-}
-
 function renderPeople() {
   return state.people
     .map(
       (person) =>
-        `<div class="person"><p><strong>${escapeText(person.name)}</strong><br><small>${escapeText(person.relationType)} · ${person.memories.length} hatıra</small></p><span class="relation">${state.relationships[person.id]}</span></div>`,
+        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${state.relationships[person.id]}%"></span></i><b class="relation">${state.relationships[person.id]}</b></div></div>`,
     )
     .join("");
 }
@@ -94,6 +90,43 @@ function renderYearHistory() {
   return `<p class="open-case"><strong>${year.year}</strong><br>Başlangıç ${money(year.startingBalance)} · Bitiş ${money(year.endingBalance)}<br>${year.importantMemories.length} önemli kayıt</p>`;
 }
 
+function renderAgenda() {
+  const active = state.events.active ? getEventDefinition(state.events.active.eventId) : null;
+  const latestMemory = state.memories.at(-1);
+  if (active) {
+    return `<p class="agenda-title">${escapeText(active.title)}</p><p>${escapeText(active.text)}</p><span class="agenda-status">Kararın bekleniyor</span>`;
+  }
+  if (notice) {
+    return `<p class="agenda-title">Son gelişme</p><p>${escapeText(notice)}</p><span class="agenda-status">${state.time.year} · ${state.time.month}. ay · ${state.time.weekOfMonth}. hafta</span>`;
+  }
+  if (latestMemory) {
+    return `<p class="agenda-title">Hayat kaydı</p><p>${escapeText(latestMemory.text)}</p><span class="agenda-status">${latestMemory.year}</span>`;
+  }
+  return `<p class="agenda-title">Sakin başlangıç</p><p>Hayatın ilk kararlarını vermek için bu haftayı kullan.</p><span class="agenda-status">Gündem açık</span>`;
+}
+
+function renderNav() {
+  const items = [
+    ["ANA SAYFA", true],
+    ["BEN", false],
+    ["TAKVİM", false],
+    ["PARA", false],
+    ["İŞ", false],
+    ["KİŞİLER", false],
+    ["AİLE / İLİŞKİLER", false],
+    ["EV", false],
+    ["BEDEN", false],
+    ["GEÇMİŞ", false],
+    ["YIL DOSYASI", false],
+  ];
+  return items
+    .map(
+      ([label, active]) =>
+        `<button class="nav-item ${active ? "is-active" : ""}" ${active ? 'aria-current="page"' : 'disabled aria-disabled="true"'}><span class="nav-mark"></span><span>${label}</span></button>`,
+    )
+    .join("");
+}
+
 function renderEvent() {
   if (!state.events.active) return "";
   const definition = getEventDefinition(state.events.active.eventId);
@@ -105,38 +138,41 @@ function render() {
   if (!state) return startScreen(loadGame(localStorage));
   const remaining = WEEKLY_ACTIVITY_LIMIT - state.weekly.used;
   const activeCases = state.openCases.filter((item) => item.status !== "resolved");
+  const projectedBalance =
+    state.finances.balance + state.finances.monthlyIncome - state.finances.monthlyExpenses;
   app.innerHTML = `
-    <main class="shell">
-      <header class="topbar">
-        <div class="brand"><h1>TC Simülasyonu</h1><span>Çalışan çekirdek</span></div>
+    <main class="game-frame">
+      <header class="game-topbar">
+        <div class="game-brand"><strong>TC SİMÜLASYONU</strong><span>Yaşam Yönetimi</span></div>
+        <div class="top-meta"><span><b>${escapeText(state.player.name)}</b> · ${state.player.age}</span><span>${state.time.year} / ${state.time.month}. ay / H${state.time.weekOfMonth}</span><span class="top-money">${money(state.finances.balance)}</span></div>
         <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>
-      <section class="summary" aria-label="Karakter özeti">
-        <section class="card character"><span class="stat-label">Karakter</span><h2 class="character-name">${escapeText(state.player.name)}, ${state.player.age}</h2><p class="character-meta">${escapeText(state.player.profile)} · İstanbul · ${escapeText(state.household.housing)}<br>${escapeText(state.career.title)}</p></section>
-        ${statCard("Tarih", `${state.time.year} · Ay ${state.time.month}<br><small>Hafta ${state.time.weekOfMonth}</small>`)}
-        ${statCard("Para", money(state.finances.balance))}
-        ${statCard("Enerji", state.health.energy, state.health.energy)}
-        ${statCard("Stres", state.health.stress, state.health.stress)}
-        ${statCard("Sağlık", state.health.health, state.health.health)}
-      </section>
-      <div class="layout">
-        <div class="stack">
-          <section class="card">
-            <div class="section-title"><h2>Bu hafta</h2><span>${remaining} / ${WEEKLY_ACTIVITY_LIMIT} aktivite kaldı</span></div>
-            <div class="decisions">${DECISIONS.map((decision) => {
-              const check = canApplyDecision(state, decision.id);
-              return `<button class="button decision" data-decision="${decision.id}" ${check.ok ? "" : "disabled"} title="${escapeText(check.reason || "")}"><strong>${escapeText(decision.title)}</strong><small>${escapeText(decision.detail)}</small></button>`;
-            }).join("")}</div>
-            <p class="result" role="status">${escapeText(notice || "Bir veya iki karar ver, sonra haftayı ilerlet.")}</p>
-            <button class="button button-primary week-action" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button>
+      <div class="game-body">
+        <nav class="side-nav" aria-label="Oyun bölümleri">${renderNav()}</nav>
+        <section class="workspace">
+          <div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div><div class="week-control"><span>Karar <b>${state.weekly.used} / ${WEEKLY_ACTIVITY_LIMIT}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div></div>
+          <section class="overview-grid" aria-label="Hayat özeti">
+            <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(state.household.housing)}</dd></div><div><dt>İş</dt><dd>${escapeText(state.career.title)}</dd></div></dl></article>
+            <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(state.finances.monthlyIncome)} gelir · ${money(state.finances.monthlyExpenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
+            <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div></article>
           </section>
-          <section class="card"><div class="section-title"><h2>Hayat geçmişi</h2><span>${state.memories.length} kayıt</span></div><div class="history">${renderMemories()}</div></section>
-        </div>
-        <aside class="stack">
-          <section class="card"><div class="section-title"><h2>İnsanlar</h2><span>İlişki / 100</span></div><div class="people">${renderPeople()}</div></section>
-          <section class="card"><div class="section-title"><h2>Açık dosyalar</h2><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case">Mehmet'e verilen borç · ${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta</p>`).join("") : `<p class="empty">Bekleyen sonuç yok.</p>`}</section>
-          <section class="card"><div class="section-title"><h2>Yıl dosyası</h2><span>${state.yearlyHistory.length}</span></div>${renderYearHistory()}</section>
-        </aside>
+          <div class="dashboard-grid">
+            <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><div class="decisions">${DECISIONS.map(
+              (decision) => {
+                const check = canApplyDecision(state, decision.id);
+                return `<button class="button decision" data-decision="${decision.id}" ${check.ok ? "" : "disabled"} title="${escapeText(check.reason || "")}"><strong>${escapeText(decision.title)}</strong><small>${escapeText(decision.detail)}</small></button>`;
+              },
+            ).join(
+              "",
+            )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
+            <aside class="right-column">
+              <section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section>
+              <section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section>
+            </aside>
+            <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
+            <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>Mehmet'e verilen borç</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
+          </div>
+        </section>
       </div>
       ${renderEvent()}
     </main>`;
