@@ -1,0 +1,32 @@
+name: restore-racon
+on:
+  workflow_dispatch:
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: restore and patch delayedN
+        run: |
+          git checkout dd0879b173864ccdd37acc17e6db8f540b9b0721 -- public/games/racon/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('public/games/racon/index.html')
+          html = p.read_text()
+          old = '''  function delayedN() {\n    return S.calendar.filter(function (c) { return c.status === "ertelendi" || c.status === "kacirildi"; }).length;\n  }'''
+          new = '''  function delayedN() {\n    var now = S.week * 7 + S.day;\n    return S.calendar.filter(function (c) {\n      if (c.status === "bitti" || c.status === "kacirildi") return false;\n      var when = (c.week || 0) * 7 + (c.day || 0);\n      return when > 0 && when < now;\n    }).length;\n  }'''
+          if old not in html:
+              raise SystemExit('pattern missing')
+          html = html.replace(old, new, 1).replace('<meta name="racon-rev" content="31">', '<meta name="racon-rev" content="32">', 1)
+          p.write_text(html)
+          print('patched', len(html))
+          PY
+          git config user.name "tayaz-maker"
+          git config user.email "tayaz29@gmail.com"
+          git add public/games/racon/index.html
+          git commit -m "Racon rev 32: gecikmis sayaci yalniz acik gecikmeyi saysin"
+          git push
