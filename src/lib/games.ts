@@ -12,6 +12,7 @@ export const HTML5_SLUGS = [
   "peg-solitaire",
   "satranc",
   "racon",
+  "tc-sim",
 ] as const;
 
 export type Html5Slug = (typeof HTML5_SLUGS)[number];
@@ -41,6 +42,13 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Adamlar ölür. İsim kalır.",
     status: "live",
     href: "/oyna/racon",
+  },
+  {
+    slug: "tc-sim",
+    title: "TC Simülasyonu",
+    subtitle: "Bir hayat. Haftalık kararlar, yıllarca süren sonuçlar.",
+    status: "live",
+    href: "/oyna/tc-sim",
   },
   {
     slug: "bukucu",

@@ -6,7 +6,7 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 ## Mevcut aşama
 
-**Aşama 1 — Tasarım Kilidi.** Oyun kodu, route ve katalog kaydı henüz oluşturulmadı.
+**Aşama 2 — Çalışan Çekirdek tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
 ## Kilitli kararlar
 
@@ -23,10 +23,13 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 - Ana tasarım kaynak belgesi hedefli biçimde sadeleştirildi.
 - Master, sistem haritası/state taslağı, 6 aşamalı yol haritası ve bu devir notu oluşturuldu.
 - Save için sürüm, migration, doğrulama, sınırlı geçmiş ve recovery ilkeleri kilitlendi.
+- `public/games/tc-sim/` altında modüler Vanilla JS çekirdeği kuruldu.
+- Haftada iki farklı aktivite, 4 haftalık ay, 12 aylık yıl, koşullu event, NPC hafızası ve gecikmiş borç sonucu çalışıyor.
+- Site kataloğuna `/oyna/tc-sim` olarak eklendi; çekirdek testleri ve üç yıllık simülasyon hazırlandı.
 
 ## Sıradaki tek iş
 
-**Aşama 2 için çalışan çekirdek teknik planını hazırlayıp küçük oyun iskeletini kodlamak:** önce state + hafta ilerletme + koşullu karar/sonuç + güvenli save/load; içerik ve UI polish eklememek.
+**Aşama 3 — Hayatı Detaylandırma'nın ilk küçük dilimi:** mevcut motoru bozmadan 3 iş ve 3 konut seçeneğini gerçek karar zincirlerine bağlamak.
 
 ## Korunacak teknik ilkeler
 

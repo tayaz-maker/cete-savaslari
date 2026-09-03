@@ -2,6 +2,8 @@
 
 ## 1. Tasarım Kilidi
 
+**Durum:** Tamamlandı.
+
 **Amaç:** Küçük prototipin sınırlarını ve ortak dilini sabitlemek.
 
 **Ana işler:** Ana belgeleri oluşturmak; sistem ilişkilerini, state sınırlarını, save ilkelerini ve repository konumunu belirlemek; büyük tasarımdaki sonraya bırakılacak parçaları ayırmak.
@@ -9,6 +11,8 @@
 **Bitmiş sayılma şartı:** Dört temel belge çelişmiyor, kritik açık ürün kararı kalmıyor ve kodlama görevi tek anlamlı kapsamla yazılabiliyor.
 
 ## 2. Çalışan Çekirdek
+
+**Durum:** Tamamlandı. State, haftalık zaman, sınırlı karar, koşullu event, hafıza, açık dosya, yıl kaydı ve güvenli yerel kayıt çalışıyor.
 
 **Amaç:** İçeriği az fakat baştan sona işleyen bir simülasyon omurgası kurmak.
 
@@ -47,4 +51,3 @@
 **Ana işler:** Mobil/masaüstü kullanılabilirlik, erişilebilirlik, metin, performans, save recovery testi, hata durumları ve katalog/route entegrasyonu.
 
 **Bitmiş sayılma şartı:** Temel akış desteklenen ekranlarda çalışır; kritik konsol/save hatası yoktur; yayın kontrol listesi ve gerçek oynanış testi geçer.
-

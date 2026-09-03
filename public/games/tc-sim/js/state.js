@@ -1,0 +1,249 @@
+export const SAVE_VERSION = 1;
+export const WEEKS_PER_MONTH = 4;
+export const MONTHS_PER_YEAR = 12;
+export const WEEKLY_ACTIVITY_LIMIT = 2;
+
+const LIMITS = {
+  memories: 200,
+  npcMemories: 50,
+  eventHistory: 200,
+  yearlyHistory: 80,
+};
+
+export function clamp(value, min = 0, max = 100) {
+  return Math.min(max, Math.max(min, Number(value)));
+}
+
+export function appendCapped(list, item, limit) {
+  list.push(item);
+  if (list.length > limit) list.splice(0, list.length - limit);
+}
+
+function profileSettings(profile) {
+  const profiles = {
+    balanced: { label: "Dengeli başlangıç", balance: 5000, energy: 76, stress: 24 },
+    ambitious: { label: "Hırslı başlangıç", balance: 6500, energy: 68, stress: 34 },
+    social: { label: "Sosyal başlangıç", balance: 4000, energy: 80, stress: 20 },
+  };
+  return profiles[profile] || profiles.balanced;
+}
+
+export function createNewGame(options = {}) {
+  const profile = profileSettings(options.profile);
+  const now = options.now || new Date().toISOString();
+  const seed = Number.isInteger(options.seed) ? options.seed >>> 0 : 20270101;
+  const socialBonus = options.profile === "social" ? 6 : 0;
+
+  return {
+    meta: {
+      saveVersion: SAVE_VERSION,
+      gameId: options.gameId || `tc-${seed}-${String(options.name || "oyuncu").length}`,
+      createdAt: now,
+      updatedAt: now,
+      rngState: seed || 1,
+      yearStartBalance: profile.balance,
+      yearStartRelationships: {
+        anne: 70 + socialBonus,
+        baba: 64,
+        mehmet: 52 + socialBonus,
+        elif: 38,
+      },
+    },
+    player: {
+      name:
+        String(options.name || "Deniz")
+          .trim()
+          .slice(0, 40) || "Deniz",
+      gender: ["woman", "man", "unspecified"].includes(options.gender)
+        ? options.gender
+        : "unspecified",
+      profile: profile.label,
+      age: 18,
+      city: "İstanbul",
+    },
+    time: { year: 2027, month: 1, weekOfMonth: 1, absoluteWeek: 1 },
+    finances: {
+      balance: profile.balance,
+      monthlyIncome: 9000,
+      monthlyExpenses: 6500,
+      ledger: [],
+    },
+    career: { title: "Kafe servis elemanı", status: "employed" },
+    household: { housing: "Aile evi", livingWithFamily: true },
+    people: [
+      { id: "anne", name: "Aylin", relationType: "Anne", memories: [] },
+      { id: "baba", name: "Murat", relationType: "Baba", memories: [] },
+      { id: "mehmet", name: "Mehmet", relationType: "Arkadaş", memories: [] },
+      { id: "elif", name: "Elif", relationType: "Tanıdık", memories: [] },
+    ],
+    relationships: { anne: 70 + socialBonus, baba: 64, mehmet: 52 + socialBonus, elif: 38 },
+    health: { energy: profile.energy, stress: profile.stress, health: 82 },
+    memories: [],
+    flags: {},
+    openCases: [],
+    events: { active: null, queue: [], seen: [], cooldowns: {}, history: [] },
+    weekly: { used: 0, selectedIds: [] },
+    yearlyHistory: [],
+  };
+}
+
+export function nextRandom(state) {
+  let x = state.meta.rngState >>> 0;
+  x ^= x << 13;
+  x ^= x >>> 17;
+  x ^= x << 5;
+  state.meta.rngState = x >>> 0 || 1;
+  return state.meta.rngState / 4294967296;
+}
+
+export function transact(state, amount, reason, category = "other") {
+  if (!Number.isFinite(amount)) throw new Error("Geçersiz para işlemi");
+  const rounded = Math.round(amount);
+  state.finances.balance += rounded;
+  if (!Number.isFinite(state.finances.balance)) throw new Error("Kasa geçersiz duruma geldi");
+  appendCapped(
+    state.finances.ledger,
+    { week: state.time.absoluteWeek, amount: rounded, reason, category },
+    120,
+  );
+}
+
+export function adjustHealth(state, changes) {
+  for (const key of ["energy", "stress", "health"]) {
+    if (changes[key] !== undefined) state.health[key] = clamp(state.health[key] + changes[key]);
+  }
+}
+
+export function updateRelationship(state, personId, amount) {
+  if (!(personId in state.relationships) || !Number.isFinite(amount)) return false;
+  state.relationships[personId] = clamp(state.relationships[personId] + amount);
+  return true;
+}
+
+export function addMemory(state, text, importance = "normal") {
+  appendCapped(
+    state.memories,
+    {
+      id: `m-${state.time.absoluteWeek}-${state.memories.length + 1}`,
+      week: state.time.absoluteWeek,
+      year: state.time.year,
+      text,
+      importance,
+    },
+    LIMITS.memories,
+  );
+}
+
+export function addNpcMemory(state, personId, text) {
+  const person = state.people.find((candidate) => candidate.id === personId);
+  if (!person) return false;
+  appendCapped(
+    person.memories,
+    { week: state.time.absoluteWeek, year: state.time.year, text },
+    LIMITS.npcMemories,
+  );
+  return true;
+}
+
+export function addEventHistory(state, entry) {
+  appendCapped(state.events.history, entry, LIMITS.eventHistory);
+}
+
+export function addYearHistory(state, entry) {
+  appendCapped(state.yearlyHistory, entry, LIMITS.yearlyHistory);
+}
+
+export function validateState(state) {
+  const errors = [];
+  const finite = (value) => typeof value === "number" && Number.isFinite(value);
+  if (!state || typeof state !== "object" || Array.isArray(state))
+    return { ok: false, errors: ["State nesne değil"] };
+  if (state.meta?.saveVersion !== SAVE_VERSION) errors.push("Save sürümü geçersiz");
+  if (
+    !state.player ||
+    typeof state.player.name !== "string" ||
+    !Number.isInteger(state.player.age) ||
+    state.player.age < 0
+  )
+    errors.push("Oyuncu geçersiz");
+  const time = state.time;
+  if (
+    !time ||
+    !Number.isInteger(time.year) ||
+    !Number.isInteger(time.month) ||
+    time.month < 1 ||
+    time.month > MONTHS_PER_YEAR ||
+    !Number.isInteger(time.weekOfMonth) ||
+    time.weekOfMonth < 1 ||
+    time.weekOfMonth > WEEKS_PER_MONTH ||
+    !Number.isInteger(time.absoluteWeek) ||
+    time.absoluteWeek < 1
+  )
+    errors.push("Zaman geçersiz");
+  if (
+    !state.finances ||
+    !finite(state.finances.balance) ||
+    !finite(state.finances.monthlyIncome) ||
+    !finite(state.finances.monthlyExpenses) ||
+    !Array.isArray(state.finances.ledger)
+  )
+    errors.push("Finans geçersiz");
+  if (
+    !state.health ||
+    ["energy", "stress", "health"].some(
+      (key) => !finite(state.health[key]) || state.health[key] < 0 || state.health[key] > 100,
+    )
+  )
+    errors.push("Beden değerleri geçersiz");
+  if (
+    !Array.isArray(state.people) ||
+    new Set(state.people.map((person) => person?.id)).size !== state.people.length ||
+    state.people.some((person) => !person?.id || !Array.isArray(person.memories))
+  )
+    errors.push("NPC kayıtları geçersiz");
+  if (
+    !state.relationships ||
+    typeof state.relationships !== "object" ||
+    Object.values(state.relationships).some((value) => !finite(value) || value < 0 || value > 100)
+  )
+    errors.push("İlişkiler geçersiz");
+  if (
+    !state.weekly ||
+    !Number.isInteger(state.weekly.used) ||
+    state.weekly.used < 0 ||
+    state.weekly.used > WEEKLY_ACTIVITY_LIMIT ||
+    !Array.isArray(state.weekly.selectedIds) ||
+    new Set(state.weekly.selectedIds).size !== state.weekly.selectedIds.length
+  )
+    errors.push("Haftalık aktivite kaydı geçersiz");
+  if (
+    !Array.isArray(state.memories) ||
+    !Array.isArray(state.openCases) ||
+    !Array.isArray(state.yearlyHistory)
+  )
+    errors.push("Geçmiş kayıtları geçersiz");
+  if (
+    !state.events ||
+    !Array.isArray(state.events.queue) ||
+    !Array.isArray(state.events.seen) ||
+    !Array.isArray(state.events.history) ||
+    typeof state.events.cooldowns !== "object"
+  )
+    errors.push("Event kayıtları geçersiz");
+  if (
+    state.openCases?.some(
+      (item) =>
+        !item?.id ||
+        !Number.isInteger(item.dueWeek) ||
+        !["pending", "triggered", "resolved"].includes(item.status),
+    )
+  )
+    errors.push("Açık dosya geçersiz");
+  return { ok: errors.length === 0, errors };
+}
+
+export function assertValidState(state) {
+  const result = validateState(state);
+  if (!result.ok) throw new Error(result.errors.join("; "));
+  return state;
+}
