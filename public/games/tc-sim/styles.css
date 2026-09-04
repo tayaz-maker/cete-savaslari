@@ -100,6 +100,7 @@ select:focus-visible {
   background: var(--bg);
 }
 .game-topbar {
+  position: relative;
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -642,7 +643,7 @@ select {
 
 .detail-summary {
   display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1px;
   margin-bottom: 10px;
   padding: 0;
@@ -800,12 +801,14 @@ select {
 .social-metrics span {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
   border: 1px solid var(--line);
   padding: 8px;
   color: var(--muted);
   font-size: 0.74rem;
 }
 .social-metrics b {
+  margin-left: auto;
   color: var(--text);
 }
 .social-actions {
@@ -831,14 +834,11 @@ select {
 
 @media (max-width: 1060px) {
   :root {
-    --nav: 58px;
+    --nav: 176px;
   }
   .nav-item {
-    justify-content: center;
-    padding: 0;
-  }
-  .nav-item > span:last-child {
-    display: none;
+    justify-content: flex-start;
+    padding: 0 12px;
   }
   .nav-mark {
     width: 7px;
@@ -858,7 +858,7 @@ select {
     margin-left: 0;
   }
   .save-status {
-    display: none;
+    max-width: 150px;
   }
   .game-body {
     display: block;
@@ -872,7 +872,9 @@ select {
   }
   .nav-item {
     flex: 0 0 auto;
-    min-width: 46px;
+    min-width: 112px;
+    padding: 0 12px;
+    justify-content: flex-start;
     border-left: 0;
     border-bottom: 2px solid transparent;
   }
@@ -906,7 +908,7 @@ select {
 }
 @media (max-width: 540px) {
   .game-brand span,
-  .top-meta span:not(.top-money) {
+  .top-meta span:first-child {
     display: none;
   }
   .game-topbar {
@@ -914,6 +916,17 @@ select {
   }
   .top-money {
     font-size: 0.8rem;
+  }
+  .save-status {
+    position: absolute;
+    top: 48px;
+    right: 12px;
+    z-index: 2;
+    max-width: 190px;
+    padding: 4px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface-2);
   }
   .workspace-head {
     align-items: flex-start;
