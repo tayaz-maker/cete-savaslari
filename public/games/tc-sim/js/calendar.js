@@ -9,8 +9,24 @@
  */
 export const KNOWN_CASE_TYPES = ["social-obligation", "friend-loan"];
 
+/**
+ * Oyuncudan gizlenmesi gereken case türleri. Görünürlüğün tek kaynağı burasıdır;
+ * ayrı bir filtre yazmak yerine bu liste kullanılmalıdır.
+ */
+export const HIDDEN_CASE_TYPES = ["social-followup"];
+
 export function getKnownOpenCases(state) {
   return state.openCases.filter(
     (item) => item.status !== "resolved" && KNOWN_CASE_TYPES.includes(item.type),
+  );
+}
+
+/**
+ * Oyuncunun görebileceği bütün açık meseleler: kendi kararıyla oluşan işler
+ * (iş başlangıcı, söz, borç) evet; gecikmeli sürpriz sonuçlar hayır.
+ */
+export function getPlayerVisibleOpenCases(state) {
+  return state.openCases.filter(
+    (item) => item.status !== "resolved" && !HIDDEN_CASE_TYPES.includes(item.type),
   );
 }

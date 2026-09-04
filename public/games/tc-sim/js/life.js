@@ -1,4 +1,4 @@
-import { WEEKLY_ACTIVITY_LIMIT, addMemory, adjustHealth, transact } from "./state.js?v=5";
+import { addMemory, adjustHealth, getWeeklyActivityLimit, isCriticalHealth, transact } from "./state.js?v=5";
 import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=5";
 import {
   getEducationWeeklyLoad,
@@ -73,8 +73,13 @@ export function getMonthlySummary(state) {
 
 function canUseWeeklyAction(state, actionId) {
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
-  if (state.weekly.used >= WEEKLY_ACTIVITY_LIMIT)
-    return { ok: false, reason: "Bu haftanın aktivite hakkı bitti." };
+  if (state.weekly.used >= getWeeklyActivityLimit(state))
+    return {
+      ok: false,
+      reason: isCriticalHealth(state)
+        ? "Sağlığın kritik; bu hafta yalnız bir şeye gücün yetiyor."
+        : "Bu haftanın aktivite hakkı bitti.",
+    };
   if (state.weekly.selectedIds.includes(actionId))
     return { ok: false, reason: "Bu işlem bu hafta zaten yapıldı." };
   return { ok: true };

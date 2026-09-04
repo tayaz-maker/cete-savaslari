@@ -1,5 +1,10 @@
-import { WEEKLY_ACTIVITY_LIMIT, WEEKS_PER_MONTH, createNewGame } from "./state.js?v=5";
-import { getKnownOpenCases } from "./calendar.js?v=5";
+import {
+  WEEKS_PER_MONTH,
+  createNewGame,
+  getWeeklyActivityLimit,
+  isCriticalHealth,
+} from "./state.js?v=5";
+import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=5";
 import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=5";
 import { getChoiceEffectSummary, getEventDefinition, resolveEvent } from "./events.js?v=5";
 import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=5";
@@ -301,6 +306,8 @@ function lifeLabel(value) {
 }
 
 function bodyRiskText() {
+  if (isCriticalHealth(state))
+    return "Sağlığın kritik: bu hafta yalnız bir karar verebilirsin ve ek mesaiye kalkışamazsın. Dinlen ve toparlan.";
   if (state.health.energy <= 45 && getCommuteLoad(state.household.homeId, state.career.jobId) >= 2)
     return "Düşük enerji, yüksek ulaşım yüküyle birlikte yol yorgunluğu olayını açabilir.";
   if (state.health.stress >= 70) return "Yüksek stres yorgunluk uyarısı doğurabilir.";
@@ -310,8 +317,8 @@ function bodyRiskText() {
 }
 
 function renderDashboard() {
-  const remaining = WEEKLY_ACTIVITY_LIMIT - state.weekly.used;
-  const activeCases = state.openCases.filter((item) => item.status !== "resolved");
+  const remaining = Math.max(0, getWeeklyActivityLimit(state) - state.weekly.used);
+  const activeCases = getPlayerVisibleOpenCases(state);
   const job = getJobById(state.career.jobId);
   const home = getHomeById(state.household.homeId);
   const monthly = getMonthlySummary(state);
@@ -343,7 +350,7 @@ function renderDashboard() {
 }
 
 function renderWeekControl() {
-  return `<div class="week-control"><span>Karar <b>${state.weekly.used} / ${WEEKLY_ACTIVITY_LIMIT}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div>`;
+  return `<div class="week-control"><span>Karar <b>${state.weekly.used} / ${Math.max(getWeeklyActivityLimit(state), state.weekly.used)}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div>`;
 }
 
 function renderCareer() {
@@ -363,21 +370,21 @@ function renderCareer() {
           isCurrent ||
           !eligibility.ok ||
           state.career.pendingJob ||
-          state.weekly.used >= WEEKLY_ACTIVITY_LIMIT;
+          state.weekly.used >= getWeeklyActivityLimit(state);
         const blockReason = isCurrent
           ? "Zaten bu işte çalışıyorsun."
           : !eligibility.ok
             ? eligibility.reason
             : state.career.pendingJob
               ? "Önce bekleyen iş başlangıcı sonuçlanmalı."
-              : state.weekly.used >= WEEKLY_ACTIVITY_LIMIT
+              : state.weekly.used >= getWeeklyActivityLimit(state)
                 ? "Bu haftanın aktivite hakkı bitti."
                 : "";
         return `<article class="option-card ${isCurrent ? "is-current" : ""} ${eligibility.ok ? "" : "is-locked"}"><div><p class="panel-kicker">${isCurrent ? "AKTİF İŞ" : eligibility.ok ? "İŞ TEKLİFİ" : "KİLİTLİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>Alan</dt><dd>${escapeText(JOB_FAMILY_LABELS[job.family] || job.family)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy + commute.energy} · Stres +${job.stress + commute.stress}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div><div><dt>Gereksinim</dt><dd>${escapeText(describeJobRequirements(job))}</dd></div></dl>${eligibility.ok ? "" : `<p class="context-note">${escapeText(eligibility.reason)}</p>`}<button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""} title="${escapeText(blockReason)}">Teklifi kabul et</button></article>`;
       },
     ).join(
       "",
-    )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ? "disabled" : ""}>İşi bırak</button>` : ""}<p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
+    )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= getWeeklyActivityLimit(state) ? "disabled" : ""}>İşi bırak</button>` : ""}<p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
 }
 
 function experienceSummary() {
@@ -447,7 +454,7 @@ function renderHomes() {
         const disabled =
           current ||
           !affordable ||
-          state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ||
+          state.weekly.used >= getWeeklyActivityLimit(state) ||
           state.events.active;
         const commute = getCommuteExplanation(home.id, state.career.jobId);
         return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "MEVCUT EV" : "KONUT"}</p><h3>${escapeText(home.title)}</h3></div><dl><div><dt>Mahremiyet</dt><dd>${lifeLabel(home.privacy)}</dd></div><div><dt>Aylık maliyet</dt><dd>${money(home.monthlyCost)}</dd></div><div><dt>İşe ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık ulaşım</dt><dd>${escapeText(commute.detail)}</dd></div><div><dt>Taşınma</dt><dd>${money(cost)}</dd></div></dl><button class="button" data-move-home="${home.id}" ${disabled ? "disabled" : ""}>${current ? "Burada yaşıyorsun" : affordable ? "Taşın" : "Para yetersiz"}</button></article>`;

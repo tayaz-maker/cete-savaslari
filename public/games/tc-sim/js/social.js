@@ -1,9 +1,10 @@
 import {
-  WEEKLY_ACTIVITY_LIMIT,
   addMemory,
   addNpcMemory,
   adjustHealth,
   clamp,
+  getWeeklyActivityLimit,
+  isCriticalHealth,
   transact,
   updateRelationship,
 } from "./state.js?v=5";
@@ -176,8 +177,13 @@ export function canUseSocialAction(state, personId, actionId) {
   const action = ACTIONS[actionId];
   if (!person || !relationship || !action) return { ok: false, reason: "Sosyal işlem geçersiz." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
-  if (state.weekly.used >= WEEKLY_ACTIVITY_LIMIT)
-    return { ok: false, reason: "Bu haftanın aktivite hakkı bitti." };
+  if (state.weekly.used >= getWeeklyActivityLimit(state))
+    return {
+      ok: false,
+      reason: isCriticalHealth(state)
+        ? "Sağlığın kritik; bu hafta yalnız bir şeye gücün yetiyor."
+        : "Bu haftanın aktivite hakkı bitti.",
+    };
   const decisionId = `social:${personId}:${actionId}`;
   if (state.weekly.selectedIds.includes(decisionId))
     return { ok: false, reason: "Bu kişiyle aynı etkileşimi bu hafta yaptın." };

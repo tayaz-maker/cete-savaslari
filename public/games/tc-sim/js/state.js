@@ -5,7 +5,25 @@ import { isEducationLevel, isValidActiveEducation } from "./education.js?v=5";
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
+/** Haftalık karar hakkının üst sınırı. Doğrulama bu sabiti kullanır. */
 export const WEEKLY_ACTIVITY_LIMIT = 2;
+/** Bu eşiğin altında beden kendini taşıyamaz: haftalık karar hakkı düşer. */
+export const CRITICAL_HEALTH = 15;
+export const CRITICAL_HEALTH_ACTIVITY_LIMIT = 1;
+
+/**
+ * O haftaki gerçek karar hakkı. Kritik sağlıkta düşer; sağlık toparlanınca
+ * kendiliğinden geri gelir. Doğrulama sınırı (WEEKLY_ACTIVITY_LIMIT) hiç
+ * değişmez: hakkı zaten harcanmış bir hafta geçersiz duruma düşmez.
+ */
+export function getWeeklyActivityLimit(state) {
+  const health = state?.health?.health;
+  if (Number.isFinite(health) && health <= CRITICAL_HEALTH) return CRITICAL_HEALTH_ACTIVITY_LIMIT;
+  return WEEKLY_ACTIVITY_LIMIT;
+}
+
+export const isCriticalHealth = (state) =>
+  Number.isFinite(state?.health?.health) && state.health.health <= CRITICAL_HEALTH;
 
 const LIMITS = {
   memories: 200,

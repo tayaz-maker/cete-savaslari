@@ -1,5 +1,4 @@
 import {
-  WEEKLY_ACTIVITY_LIMIT,
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
   addMemory,
@@ -7,6 +6,8 @@ import {
   addYearHistory,
   adjustHealth,
   assertValidState,
+  getWeeklyActivityLimit,
+  isCriticalHealth,
   transact,
   updateRelationship,
 } from "./state.js?v=5";
@@ -14,15 +15,43 @@ import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=5";
 import { activateNextEvent, processDueOpenCases } from "./events.js?v=5";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=5";
 
+/** Ek mesai: ilk haftalar tam öder, aralıksız sürdükçe getirisi düşer ve yükü artar. */
+export const OVERTIME_BASE_PAY = 1250;
+export const OVERTIME_FREE_WEEKS = 2;
+const OVERTIME_MIN_PAY_RATIO = 0.5;
+const OVERTIME_BASE_STRESS = 12;
+const OVERTIME_MAX_STRESS = 20;
+
+/** `streak`, kesintisiz geçmiş mesai haftası sayısıdır (bu hafta dahil değil). */
+export function getOvertimePay(streak = 0) {
+  const extra = Math.max(0, streak - (OVERTIME_FREE_WEEKS - 1));
+  const ratio = Math.max(OVERTIME_MIN_PAY_RATIO, 1 - extra * 0.2);
+  return Math.round(OVERTIME_BASE_PAY * ratio);
+}
+
+export function getOvertimeStress(streak = 0) {
+  const extra = Math.max(0, streak - (OVERTIME_FREE_WEEKS - 1));
+  return Math.min(OVERTIME_MAX_STRESS, OVERTIME_BASE_STRESS + extra * 2);
+}
+
+/** Dinlenme: yüksek stres altında toparlanma zayıflar. Stresin ayrı bir işi olur. */
+export const REST_BASE_ENERGY = 22;
+export function getRestEnergyGain(stress) {
+  if (stress >= 80) return 10;
+  if (stress >= 60) return 15;
+  return REST_BASE_ENERGY;
+}
+
 export const DECISIONS = [
   {
     id: "overtime",
     title: "Ek mesai yap",
-    detail: "+₺1.250 · enerji −16 · stres +12",
+    detail: "+₺1.250 · enerji −16 · stres +12 · aralıksız sürerse azalır",
     apply(state) {
-      transact(state, 1250, "Ek mesai", "work");
-      adjustHealth(state, { energy: -16, stress: 12 });
-      state.flags.overtimeStreak = (state.flags.overtimeStreak || 0) + 1;
+      const streak = state.flags.overtimeStreak || 0;
+      transact(state, getOvertimePay(streak), "Ek mesai", "work");
+      adjustHealth(state, { energy: -16, stress: getOvertimeStress(streak) });
+      state.flags.overtimeStreak = streak + 1;
       state.flags.overtimeLastWeek = state.time.absoluteWeek;
     },
   },
@@ -30,6 +59,7 @@ export const DECISIONS = [
     id: "family",
     title: "Aileyle vakit geçir",
     detail: "anne ilişkisi +8 · stres −6",
+    contextual: (state) => state.relationships.anne < 96,
     apply(state) {
       updateRelationship(state, "anne", 8);
       applyRelationshipDelta(state, "anne", { trust: 2, tension: -3 });
@@ -43,6 +73,7 @@ export const DECISIONS = [
     id: "friend",
     title: "Mehmet'le buluş",
     detail: "₺250 · ilişki +7 · enerji −8",
+    contextual: (state) => state.relationships.mehmet < 96 && state.finances.balance >= 250,
     apply(state) {
       transact(state, -250, "Arkadaş buluşması", "social");
       updateRelationship(state, "mehmet", 7);
@@ -55,9 +86,9 @@ export const DECISIONS = [
   {
     id: "rest",
     title: "Dinlen",
-    detail: "enerji +22 · stres −12",
+    detail: "enerji +22 · stres −12 · stres yüksekken daha az toparlar",
     apply(state) {
-      adjustHealth(state, { energy: 22, stress: -12 });
+      adjustHealth(state, { energy: getRestEnergyGain(state.health.stress), stress: -12 });
     },
   },
   {
@@ -74,6 +105,7 @@ export const DECISIONS = [
     title: "Mehmet'in başvurusuna yardım et",
     detail: "geçmişte hatırlanır · ilişki +6",
     onceFlag: "helpedFriend",
+    contextual: (state) => !state.flags.helpedFriend && state.relationships.mehmet >= 40,
     apply(state) {
       state.flags.helpedFriend = true;
       state.flags.helpedFriendWeek = state.time.absoluteWeek;
@@ -90,6 +122,10 @@ export const DECISIONS = [
     detail: "₺1.500 şimdi gider · 4 hafta sonra döner",
     onceFlag: "loanedToMehmet",
     minimumBalance: 1500,
+    contextual: (state) =>
+      !state.flags.loanedToMehmet &&
+      state.finances.balance >= 1500 &&
+      state.relationships.mehmet >= 45,
     apply(state) {
       transact(state, -1500, "Mehmet'e verilen borç", "social");
       state.flags.loanedToMehmet = true;
@@ -186,8 +222,15 @@ export function canApplyDecision(state, decisionId) {
   const decision = DECISIONS.find((item) => item.id === decisionId);
   if (!decision) return { ok: false, reason: "Karar bulunamadı." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
-  if (state.weekly.used >= WEEKLY_ACTIVITY_LIMIT)
-    return { ok: false, reason: "Bu haftanın aktivite hakkı bitti." };
+  if (state.weekly.used >= getWeeklyActivityLimit(state))
+    return {
+      ok: false,
+      reason: isCriticalHealth(state)
+        ? "Sağlığın kritik; bu hafta yalnız bir şeye gücün yetiyor."
+        : "Bu haftanın aktivite hakkı bitti.",
+    };
+  if (decisionId === "overtime" && isCriticalHealth(state))
+    return { ok: false, reason: "Sağlığın kritik seviyede; bu hafta ek mesaiye kalkışamazsın." };
   if (state.weekly.selectedIds.includes(decisionId))
     return { ok: false, reason: "Aynı aktivite bir haftada iki kez seçilemez." };
   if (decision.onceFlag && state.flags[decision.onceFlag])
