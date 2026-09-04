@@ -1,7 +1,10 @@
 # TC SIM — Aşama 3B Uygulama Sonrası Devir Notu
 
-Cowork'un bu görevde okuyacağı **ilk ve tek zorunlu** belge budur.
 3B runtime olarak uygulanmıştır; yeniden audit veya yeniden tasarım gerekmez.
+
+> **Sonraki tur:** 3B sonrası sürüm sertleştirmesi tamamlandı —
+> `TC_SIM_HARDENING_REPORT.md`. Doğrulama komutları, exploit/migration matrisi, uzun koşu ve
+> fuzz sonuçları oradadır ve bu belgedekilerin yerine geçer. Önce onu oku.
 
 ## CHECKPOINT
 
@@ -66,7 +69,7 @@ Cowork'un bu görevde okuyacağı **ilk ve tek zorunlu** belge budur.
 ## TESTS
 
 ```
-node --test 'scripts/tc-sim-*.test.mjs'     # 68/68 PASS (34 mevcut + 34 yeni)
+node --test 'scripts/tc-sim-*.test.mjs'     # 3B turunda 68/68; sertleştirme sonrası 83/83
 npm run lint                                # PASS
 npm run typecheck                           # PASS
 npm run build                               # PASS
@@ -101,9 +104,9 @@ gerekçesi ("Lisans mezunu olman gerekiyor.") gösteriliyor, mevcut ekranlar boz
 - `finances.ledger` 120 kayıtla sınırlı olduğu için uzun oyunda eski eğitim ücreti satırları
   pencereden düşer. Bu mevcut bounded-history disiplinidir, hata değildir; simülasyon bu yüzden
   sayaç yerine "aynı haftada çift tahsilat" kontrolü yapar.
-- Aynı ay içinde pahalı programı bırakıp ucuz programa geçen oyuncu o ayın borcunu ucuz olanın
-  tutarına indirebilir. Kâr etmez (ilerleme kaybı + yeni kayıt ücreti bunu aşar), bu yüzden
-  ayrı bir önlem eklenmedi.
+- ~~Aynı ay içinde pahalı programı bırakıp ucuz programa geçen oyuncu o ayın borcunu
+  düşürebilir.~~ **Sertleştirme turunda düzeltildi:** o ayın eğitim borcu artık monotoniktir
+  (`TC_SIM_HARDENING_REPORT.md`, bulgu 1).
 - İki eğitim üst üste çok kısa aralıkla biterse tek bildirim event'i görünür; **ödüller yine de
   ikisi için de verilir** (ödül tick'te). Prototipte pratikte oluşmaz.
 - `onlisans` seviyesi rezerve; hiçbir yol onu vermiyor (tasarım gereği).

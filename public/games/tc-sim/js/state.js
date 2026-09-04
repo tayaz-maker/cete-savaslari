@@ -178,7 +178,15 @@ export function normalizeEducationCareer(state) {
       experience[familyId] = safeCount(weeks);
     }
   }
-  state.career = { ...career, jobFamilyExperience: experience };
+  // Kariyer nesnesi tamamen kayıpsa yalnız eksik anahtarlar güvenli varsayılana döner:
+  // olmayan iş uydurulmaz, karakter işsiz sayılır. Geçersiz (ama var olan) değerler
+  // doğrulamaya bırakılır; mevcut kurtarma sözleşmesi gevşetilmez.
+  state.career = {
+    ...career,
+    jobId: career.jobId === undefined ? null : career.jobId,
+    pendingJob: career.pendingJob === undefined ? null : career.pendingJob,
+    jobFamilyExperience: experience,
+  };
 
   const raw = state.education && typeof state.education === "object" ? state.education : {};
   const fields = [];

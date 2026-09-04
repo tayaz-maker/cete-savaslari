@@ -28,6 +28,7 @@ import {
   getFamilyExperience,
   getFieldLabel,
   getIntensityLabel,
+  getPathDurationWeeks,
   isEligibleForJob,
 } from "./education.js";
 import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
@@ -267,7 +268,7 @@ function renderEducation() {
       (path) => {
         const affordable = state.finances.balance >= path.enrollmentFee;
         const current = education.active?.pathId === path.id;
-        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "DEVAM EDİYOR" : "PROGRAM"}</p><h3>${escapeText(path.displayName)}</h3></div><p class="context-note">${escapeText(path.summary)}</p><dl><div><dt>Süre</dt><dd>Tam ${Math.ceil(path.targetPoints / 3)} hafta · Yarı ${Math.ceil(path.targetPoints / 2)} hafta</dd></div><div><dt>Kayıt ücreti</dt><dd>${money(path.enrollmentFee)}</dd></div><div><dt>Aylık ücret</dt><dd>${money(path.monthlyTuition)}</dd></div><div><dt>Haftalık yük</dt><dd>Tam: enerji ${path.load.full.energy} · stres +${path.load.full.stress}<br>Yarı: enerji ${path.load.part.energy} · stres +${path.load.part.stress}</dd></div><div><dt>Kazandırır</dt><dd>${path.grantsLevel ? `${escapeText(getEducationLevelLabel(path.grantsLevel))} · ` : ""}${escapeText(getFieldLabel(path.grantsField))} alanı</dd></div></dl><div class="edu-actions">${path.allowedIntensity
+        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "DEVAM EDİYOR" : "PROGRAM"}</p><h3>${escapeText(path.displayName)}</h3></div><p class="context-note">${escapeText(path.summary)}</p><dl><div><dt>Süre</dt><dd>Tam ${getPathDurationWeeks(path, "full")} hafta · Yarı ${getPathDurationWeeks(path, "part")} hafta</dd></div><div><dt>Kayıt ücreti</dt><dd>${money(path.enrollmentFee)}</dd></div><div><dt>Aylık ücret</dt><dd>${money(path.monthlyTuition)}</dd></div><div><dt>Haftalık yük</dt><dd>Tam: enerji ${path.load.full.energy} · stres +${path.load.full.stress}<br>Yarı: enerji ${path.load.part.energy} · stres +${path.load.part.stress}</dd></div><div><dt>Kazandırır</dt><dd>${path.grantsLevel ? `${escapeText(getEducationLevelLabel(path.grantsLevel))} · ` : ""}${escapeText(getFieldLabel(path.grantsField))} alanı</dd></div></dl><div class="edu-actions">${path.allowedIntensity
           .map((intensity) => {
             const disabled = blocked || !affordable;
             const reason = education.active

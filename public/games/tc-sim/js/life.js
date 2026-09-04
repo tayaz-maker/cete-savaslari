@@ -1,11 +1,11 @@
 import { WEEKLY_ACTIVITY_LIMIT, addMemory, adjustHealth, transact } from "./state.js";
 import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
 import {
-  eduRank,
   getEducationWeeklyLoad,
   getPathById,
   getWeeklyProgressGain,
   isEligibleForJob,
+  resolveCompletedLevel,
 } from "./education.js";
 
 export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
@@ -169,8 +169,7 @@ function creditWeeklyExperience(state) {
 /** Diploma ödülü tick içinde verilir; event yalnız bildirimdir. */
 function completeEducation(state, path) {
   const education = state.education;
-  if (path.grantsLevel && eduRank(path.grantsLevel) > eduRank(education.level))
-    education.level = path.grantsLevel;
+  education.level = resolveCompletedLevel(education.level, path.grantsLevel);
   if (path.grantsField && !education.fields.includes(path.grantsField))
     education.fields.push(path.grantsField);
   education.active = null;
@@ -187,7 +186,12 @@ function advanceEducationProgress(state) {
     return false;
   }
   active.progressPoints += getWeeklyProgressGain(active.intensity);
-  state.education.tuitionOwedThisMonth = path.monthlyTuition;
+  // O ay doğan borç ay içinde yalnız artabilir: pahalı programı bırakıp ucuza
+  // geçerek borcu düşürmek engellenir. Ay sonunda tahsil edilip sıfırlanır.
+  state.education.tuitionOwedThisMonth = Math.max(
+    state.education.tuitionOwedThisMonth,
+    path.monthlyTuition,
+  );
   if (active.progressPoints >= path.targetPoints) completeEducation(state, path);
   return true;
 }

@@ -6,8 +6,6 @@ export const EDUCATION_LEVEL_LABELS = {
   lisans: "Lisans mezunu",
 };
 
-export const EDUCATION_INTENSITIES = ["full", "part"];
-
 export const EDUCATION_INTENSITY_LABELS = { full: "Tam zamanlı", part: "Yarı zamanlı" };
 
 const INTENSITY_PROGRESS = { full: 3, part: 2 };
@@ -73,6 +71,21 @@ export const getEducationLevelLabel = (level) => EDUCATION_LEVEL_LABELS[level] |
 export const getIntensityLabel = (intensity) => EDUCATION_INTENSITY_LABELS[intensity] || intensity;
 
 export const getWeeklyProgressGain = (intensity) => INTENSITY_PROGRESS[intensity] || 0;
+
+/**
+ * Bir program tamamlandığında seviyenin ne olacağı. Seviye yalnız yukarı gider:
+ * daha düşük seviye veren bir program mevcut diplomayı düşüremez.
+ */
+export function resolveCompletedLevel(currentLevel, grantsLevel) {
+  if (!grantsLevel) return currentLevel;
+  return eduRank(grantsLevel) > eduRank(currentLevel) ? grantsLevel : currentLevel;
+}
+
+/** Bir programın o yoğunlukta kaç hafta süreceği. Arayüz süreyi burada hesaplatır. */
+export function getPathDurationWeeks(path, intensity) {
+  const gain = getWeeklyProgressGain(intensity);
+  return gain > 0 && path ? Math.ceil(path.targetPoints / gain) : 0;
+}
 
 export function getPathIntensityLoad(path, intensity) {
   return path?.load?.[intensity] || { energy: 0, stress: 0, load: 0 };
