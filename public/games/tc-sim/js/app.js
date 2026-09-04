@@ -44,7 +44,7 @@ function startScreen(loadResult) {
   app.innerHTML = `
     <main class="start-wrap">
       <section class="start-card" aria-labelledby="start-title">
-        <h1 id="start-title">TC Simülasyonu</h1>
+        <h1 id="start-title">TC SIM</h1>
         <p>18 yaşında, İstanbul'da aile evinde başlayan küçük bir hayat. Her hafta yalnız iki önemli karar verebilirsin.</p>
         ${loadResult.ok ? `<div class="continue-box"><strong>${escapeText(loadResult.state.player.name)} · ${loadResult.state.time.year}, ${loadResult.state.time.month}. ay</strong><button class="button button-primary" id="continue-game">Devam et</button></div>` : `<p class="result">${escapeText(loadResult.message)}</p>`}
         <form id="new-game-form" class="form-grid">
@@ -237,7 +237,7 @@ function render() {
   app.innerHTML = `
     <main class="game-frame">
       <header class="game-topbar">
-        <div class="game-brand"><strong>TC SİMÜLASYONU</strong><span>Yaşam Yönetimi</span></div>
+        <div class="game-brand"><strong>TC SIM</strong><span>Yaşam Yönetimi</span></div>
         <div class="top-meta"><span><b>${escapeText(state.player.name)}</b> · ${state.player.age}</span><span>${state.time.year} / ${state.time.month}. ay / H${state.time.weekOfMonth}</span><span class="top-money">${money(state.finances.balance)}</span></div>
         <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>

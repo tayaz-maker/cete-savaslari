@@ -1,4 +1,4 @@
-# TC Simülasyonu — Sistem Haritası
+# TC SIM — Sistem Haritası
 
 ## Ortak akış
 
@@ -63,4 +63,3 @@ Bu ayrım aynı olayın dört yerde tam kopyasını tutmayı önlemelidir. Kayı
 - Hafıza, event geçmişi ve yıl kayıtları sınırsız ham dizi olarak büyümez; özetleme/saklama sınırı baştan tanımlanır.
 - Kayıt hataları sessizce yutulmaz; kullanıcıya anlaşılır biçimde bildirilir.
 - Yerel kayıt ilk prototip için yeterlidir; hesap/bulut kaydı ayrı bir ürün kararıdır.
-

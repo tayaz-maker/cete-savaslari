@@ -45,7 +45,7 @@ export const GAMES: CatalogGame[] = [
   },
   {
     slug: "tc-sim",
-    title: "TC Simülasyonu",
+    title: "TC SIM",
     subtitle: "Bir hayat. Haftalık kararlar, yıllarca süren sonuçlar.",
     status: "live",
     href: "/oyna/tc-sim",

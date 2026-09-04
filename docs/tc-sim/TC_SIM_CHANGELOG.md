@@ -1,4 +1,4 @@
-# TC Simülasyonu — Değişiklik Kaydı
+# TC SIM — Değişiklik Kaydı
 
 ## Çalışan Çekirdek
 

@@ -1,4 +1,4 @@
-# TC Simülasyonu — Yol Haritası
+# TC SIM — Yol Haritası
 
 ## 1. Tasarım Kilidi
 

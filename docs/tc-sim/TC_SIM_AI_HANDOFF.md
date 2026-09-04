@@ -1,4 +1,4 @@
-# TC Simülasyonu — AI Devir Notu
+# TC SIM — AI Devir Notu
 
 ## Oyun
 

@@ -1,8 +1,8 @@
-# TC Simülasyonu — Ana Tasarım
+# TC SIM — Ana Tasarım
 
 ## Tanım ve hedef
 
-**TC Simülasyonu, tek bir insanın Türkiye'deki hayatını; haftalık kararlar, ayrıntılı kayıtlar ve uzun vadeli sonuçlarla yönettiğimiz bir yaşam simülasyonudur.**
+**TC SIM, tek bir insanın Türkiye'deki hayatını; haftalık kararlar, ayrıntılı kayıtlar ve uzun vadeli sonuçlarla yönettiğimiz bir yaşam simülasyonudur.**
 
 Hedef, TarikLab içinde düzgün çalışan, mantıklı, tekrar oynanabilir ve yeterince ayrıntılı bir oyun üretmektir. İlk prototipin cevaplayacağı soru: **“Bu sistemle hayat simülasyonu gerçekten eğlenceli mi?”**
 
@@ -54,4 +54,3 @@ Sayılar kesin kota değil, kapsam sınırıdır.
 4. **Uzun Hayat** — 18–35 ve sonrasında yaşlanma/kuşak yönünü genişlet.
 5. **Denge + İçerik** — motoru test et, sonra içerik çoğalt.
 6. **Son Temizlik** — kullanılabilirlik, erişilebilirlik, performans ve yayın kalitesi.
-
