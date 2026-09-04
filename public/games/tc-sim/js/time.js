@@ -33,6 +33,7 @@ export const DECISIONS = [
       updateRelationship(state, "anne", 8);
       adjustHealth(state, { energy: -5, stress: -6 });
       addMemory(state, "Ailenle sakin bir hafta geçirdin.");
+      addNpcMemory(state, "anne", "Bu hafta benimle vakit geçirdi.");
     },
   },
   {
@@ -43,6 +44,7 @@ export const DECISIONS = [
       transact(state, -250, "Arkadaş buluşması", "social");
       updateRelationship(state, "mehmet", 7);
       adjustHealth(state, { energy: -8, stress: -5 });
+      addNpcMemory(state, "mehmet", "Bu hafta birlikte vakit geçirdik.");
     },
   },
   {
@@ -133,6 +135,30 @@ export const DECISIONS = [
       adjustHealth(state, { stress: -3 });
       state.flags.searchedForWorkWeek = state.time.absoluteWeek;
       addMemory(state, "Yeni iş fırsatlarını araştırdın.");
+    },
+  },
+  {
+    id: "call-anne",
+    title: "Aylin'i ara",
+    detail: "anne ilişkisi +5 · stres −2",
+    contextual: (state) => state.relationships.anne <= 62,
+    apply(state) {
+      updateRelationship(state, "anne", 5);
+      adjustHealth(state, { stress: -2 });
+      addMemory(state, "Aylin'i arayıp aranızdaki mesafeyi azalttın.");
+      addNpcMemory(state, "anne", "Arayıp halimi hatırımı sordu.");
+    },
+  },
+  {
+    id: "reconnect-mehmet",
+    title: "Mehmet'e ulaş",
+    detail: "Mehmet ilişkisi +5 · enerji −3",
+    contextual: (state) => state.relationships.mehmet <= 45,
+    apply(state) {
+      updateRelationship(state, "mehmet", 5);
+      adjustHealth(state, { energy: -3, stress: -2 });
+      addMemory(state, "Mehmet'e ulaşıp aranızdaki sessizliği bozdun.");
+      addNpcMemory(state, "mehmet", "Uzun sessizliğin ardından bana ulaştı.");
     },
   },
 ];

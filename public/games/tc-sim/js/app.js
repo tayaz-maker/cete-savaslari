@@ -86,9 +86,16 @@ function renderPeople() {
   return state.people
     .map(
       (person) =>
-        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${state.relationships[person.id]}%"></span></i><b class="relation">${state.relationships[person.id]}</b></div></div>`,
+        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${relationshipLabel(state.relationships[person.id])} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${state.relationships[person.id]}%"></span></i><b class="relation">${state.relationships[person.id]}</b></div></div>`,
     )
     .join("");
+}
+
+function relationshipLabel(value) {
+  if (value >= 75) return "Yakın";
+  if (value >= 50) return "İyi";
+  if (value >= 30) return "Mesafeli";
+  return "Zayıf";
 }
 
 function renderMemories() {

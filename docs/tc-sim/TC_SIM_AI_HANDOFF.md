@@ -8,6 +8,8 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 **Aşama 3A — İş + Konut dikey dilimi tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
+Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: DEVLET, TarikLab içinde ayrı bir gelecek oyunudur; TC SIM bugün onun için generic engine'e dönüştürülmez.
+
 ## Kilitli kararlar
 
 - 18 yaş başlangıç; çocukluk yalnız başlangıç geçmişidir.
