@@ -28,6 +28,11 @@ import { getEventDefinition, resolveEvent } from "../public/games/tc-sim/js/even
 import { EDUCATION_PATHS, getPathById } from "../public/games/tc-sim/js/education.js";
 import { getEraById } from "../public/games/tc-sim/js/eras.js";
 import { loadGame, saveGame } from "../public/games/tc-sim/js/save.js";
+import {
+  applySocialAction,
+  getAvailableSocialActions,
+  getRelationship,
+} from "../public/games/tc-sim/js/social.js";
 
 class MemoryStorage {
   constructor() {
@@ -87,6 +92,14 @@ function run(weeks, seed) {
     if (rand() < 0.01 && state.education.active) stopEducation(state);
     if (rand() < 0.03) acceptJobOffer(state, pick(JOB_IDS));
     if (rand() < 0.02) moveHome(state, pick(HOME_IDS));
+    if (rand() < 0.28 && !state.events.active) {
+      const person = pick(state.people);
+      const actions = getAvailableSocialActions(state, person.id).filter(
+        (action) => action.availability.ok,
+      );
+      const action = pick(actions);
+      if (action) applySocialAction(state, person.id, action.id);
+    }
     const available = getAvailableDecisions(state);
     for (let slot = 0; slot < 2; slot += 1) {
       const decision = pick(available);
@@ -136,6 +149,31 @@ function run(weeks, seed) {
     check(Number.isFinite(state.finances.balance), "bakiye sayı değil");
     for (const value of Object.values(state.relationships))
       check(Number.isFinite(value) && value >= 0 && value <= 100, "ilişki aralık dışı");
+    for (const person of state.people) {
+      const relationship = getRelationship(state, person.id);
+      check(
+        Number.isFinite(relationship.trust) && relationship.trust >= 0 && relationship.trust <= 100,
+        "güven aralık dışı",
+      );
+      check(
+        Number.isFinite(relationship.tension) &&
+          relationship.tension >= 0 &&
+          relationship.tension <= 100,
+        "gerilim aralık dışı",
+      );
+      check(person.memories.length <= 50, "NPC hafızası sınırı aşıldı");
+      check(
+        person.roleId !== "family" || person.social.romanceStatus === "none",
+        "aile NPC romantik durumda",
+      );
+    }
+    const partners = state.people.filter((person) => person.social.romanceStatus === "partner");
+    check(partners.length <= 1, "birden fazla partner");
+    check(
+      (state.social.currentPartnerNpcId === null && partners.length === 0) ||
+        partners[0]?.id === state.social.currentPartnerNpcId,
+      "partner kimliği tutarsız",
+    );
     check(state.weekly.used <= 2, "haftalık karar hakkı aşıldı");
 
     // Sınırlı listeler taşmamalı.
@@ -164,6 +202,9 @@ function run(weeks, seed) {
       ledger: state.finances.ledger.length,
       eventHistory: state.events.history.length,
       openCases: state.openCases.length,
+      openSocialCases: state.openCases.filter(
+        (item) => item.type === "social-obligation" && item.status !== "resolved",
+      ).length,
       yearlyHistory: state.yearlyHistory.length,
       npcMemories: state.people.map((person) => person.memories.length),
       flags: Object.keys(state.flags).length,
@@ -176,6 +217,7 @@ function run(weeks, seed) {
       experience: state.career.jobFamilyExperience,
       balance: state.finances.balance,
       health: state.health,
+      currentPartnerNpcId: state.social.currentPartnerNpcId,
     },
   };
 }

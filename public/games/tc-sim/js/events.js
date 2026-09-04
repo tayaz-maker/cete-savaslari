@@ -8,6 +8,17 @@ import {
 } from "./state.js";
 import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js";
 import { getPathById, isEligibleForJob } from "./education.js";
+import {
+  applyRelationshipDelta,
+  becomePartner,
+  canBecomePartner,
+  createSocialObligation,
+  getOpenSocialCase,
+  getRelationship,
+  markMeaningfulContact,
+  resolveSocialObligation,
+  setRomanticInterest,
+} from "./social.js";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -20,6 +31,10 @@ function applyEffects(state, effects = {}) {
   if (effects.relationships) {
     for (const [personId, amount] of Object.entries(effects.relationships))
       updateRelationship(state, personId, amount);
+  }
+  if (effects.social) {
+    for (const [personId, delta] of Object.entries(effects.social))
+      applyRelationshipDelta(state, personId, delta);
   }
   if (effects.flags) Object.assign(state.flags, effects.flags);
   if (effects.memory) addMemory(state, effects.memory, effects.importance || "normal");
@@ -44,6 +59,123 @@ export const EVENT_DEFINITIONS = [
           memory: "Eğitim belgeni aldın.",
         },
       },
+    ],
+  },
+  {
+    id: "social_promise_due",
+    repeat: "repeatable",
+    title: "Verdiğin sözün süresi doldu",
+    text: "Yardım edeceğini söylemiştin; süre doldu ve karşındaki bunu fark etti.",
+    condition: () => false,
+    choices: [{ id: "acknowledge", label: "Sonucuyla yüzleş", effects: {} }],
+  },
+  {
+    id: "social_invitation",
+    repeat: "cooldown",
+    cooldownWeeks: 10,
+    title: "Mehmet'ten davet",
+    text: "Mehmet bu hafta görüşmek için seni aradı.",
+    condition: (state) =>
+      state.social.engaged &&
+      state.time.absoluteWeek >= 4 &&
+      state.time.absoluteWeek - getRelationship(state, "mehmet").lastMeaningfulContactWeek >= 3,
+    choices: [
+      {
+        id: "accept",
+        label: "Daveti kabul et",
+        effects: {
+          money: -250,
+          health: { energy: -5, stress: -4 },
+          relationships: { mehmet: 5 },
+          social: { mehmet: { trust: 3, tension: -2 } },
+          npcMemory: { personId: "mehmet", text: "Davetimi kabul etti." },
+          reason: "Sosyal buluşma",
+        },
+      },
+      {
+        id: "decline",
+        label: "Bu kez reddet",
+        effects: {
+          social: { mehmet: { trust: -2, tension: 3 } },
+          npcMemory: { personId: "mehmet", text: "Davetimi geri çevirdi." },
+        },
+      },
+    ],
+  },
+  {
+    id: "social_help_request",
+    repeat: "cooldown",
+    cooldownWeeks: 24,
+    title: "Mehmet yardım istiyor",
+    text: "Mehmet üç hafta içinde halletmesi gereken bir iş için senden destek istedi.",
+    condition: (state) =>
+      state.social.engaged &&
+      state.time.absoluteWeek >= 6 &&
+      getRelationship(state, "mehmet").trust >= 45 &&
+      !getOpenSocialCase(state, "mehmet"),
+    choices: [
+      { id: "promise", label: "Yardım sözü ver", effects: { social: { mehmet: { trust: 2 } } } },
+      {
+        id: "decline",
+        label: "Şimdi üstlenme",
+        effects: { social: { mehmet: { trust: -3, tension: 2 } } },
+      },
+    ],
+  },
+  {
+    id: "romantic_opportunity",
+    repeat: "once",
+    title: "Aranızdaki ihtimal",
+    text: "Elif'le kurduğun bağın arkadaşlıktan başka bir ihtimali olabileceğini hissediyorsun.",
+    condition: (state) => {
+      const relationship = getRelationship(state, "elif");
+      return (
+        state.social.engaged &&
+        relationship.romanceStatus === "none" &&
+        relationship.closeness >= 55 &&
+        relationship.trust >= 52 &&
+        relationship.tension <= 35
+      );
+    },
+    choices: [
+      { id: "interested", label: "İhtimali açıkça konuş", effects: {} },
+      {
+        id: "remain_friends",
+        label: "Arkadaş olarak kal",
+        effects: { social: { elif: { trust: 2 } }, flags: { declinedElifRomance: true } },
+      },
+    ],
+  },
+  {
+    id: "partner_transition",
+    repeat: "once",
+    title: "İlişkinin adı",
+    text: "Elif aranızdaki ilişkiyi daha açık biçimde tanımlamak istiyor.",
+    condition: (state) => state.social.engaged && canBecomePartner(state, "elif"),
+    choices: [
+      { id: "commit", label: "Sevgili olmayı kabul et", effects: {} },
+      {
+        id: "wait",
+        label: "Biraz daha zaman iste",
+        effects: { social: { elif: { trust: -2, tension: 3 } } },
+      },
+    ],
+  },
+  {
+    id: "relationship_tension",
+    repeat: "cooldown",
+    cooldownWeeks: 12,
+    title: "Aranızdaki gerilim",
+    text: "Biriken sürtüşme konuşulmadan geçecek gibi görünmüyor.",
+    condition: (state) =>
+      state.social.engaged && state.people.some((person) => person.social.tension >= 60),
+    choices: [
+      {
+        id: "talk",
+        label: "Sakin bir konuşma yap",
+        effects: { health: { stress: -3 }, flags: { addressedRelationshipTension: true } },
+      },
+      { id: "avoid", label: "Konuyu ertele", effects: { health: { stress: 4 } } },
     ],
   },
   {
@@ -501,6 +633,36 @@ export function resolveEvent(state, choiceId) {
   if (!definition || !choice) return { ok: false, message: "Geçersiz olay seçimi." };
 
   applyEffects(state, choice.effects);
+  if (definition.id === "social_invitation" && choiceId === "accept")
+    markMeaningfulContact(state, "mehmet");
+  if (definition.id === "social_help_request" && choiceId === "promise")
+    createSocialObligation(state, "mehmet");
+  if (definition.id === "romantic_opportunity" && choiceId === "interested")
+    setRomanticInterest(state, "elif");
+  if (definition.id === "partner_transition" && choiceId === "commit")
+    becomePartner(state, "elif");
+  if (definition.id === "relationship_tension") {
+    const person = [...state.people].sort((a, b) => b.social.tension - a.social.tension)[0];
+    if (person) {
+      applyRelationshipDelta(
+        state,
+        person.id,
+        choiceId === "talk" ? { trust: 3, tension: -16 } : { trust: -2, tension: 6 },
+      );
+      addNpcMemory(
+        state,
+        person.id,
+        choiceId === "talk" ? "Aramızdaki gerilimi konuştu." : "Aramızdaki gerilimi erteledi.",
+        choiceId === "talk" ? "tension_talk" : "tension_avoided",
+      );
+      if (choiceId === "talk") markMeaningfulContact(state, person.id);
+    }
+  }
+  if (definition.id === "social_promise_due" && active.sourceCaseId) {
+    const sourceCase = state.openCases.find((item) => item.id === active.sourceCaseId);
+    if (sourceCase?.payload?.personId)
+      resolveSocialObligation(state, sourceCase.payload.personId, false);
+  }
   if (definition.id === "job_start") completePendingJob(state, active.sourceCaseId);
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);
   if (definition.repeat === "cooldown")

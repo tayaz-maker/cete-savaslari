@@ -744,6 +744,90 @@ select {
 .action-footer {
   margin-top: 12px;
 }
+.social-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.7fr) minmax(0, 1.5fr);
+  gap: 12px;
+}
+.people-directory,
+.person-detail,
+.relationship-summary {
+  min-width: 0;
+}
+.person-select,
+.relationship-line {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  padding: 11px 4px;
+  text-align: left;
+}
+.person-select:first-of-type,
+.relationship-line:first-of-type {
+  margin-top: 8px;
+}
+.person-select:hover,
+.person-select.is-current,
+.relationship-line:hover {
+  color: var(--accent);
+}
+.person-select span,
+.relationship-line span {
+  display: grid;
+}
+.person-select small,
+.relationship-line small {
+  color: var(--muted);
+}
+.person-select b,
+.relationship-line b {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.social-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.social-metrics span {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  padding: 8px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+.social-metrics b {
+  color: var(--text);
+}
+.social-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.person-memories {
+  margin-top: 18px;
+}
+.person-memories > p:not(.panel-kicker) {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  margin: 0;
+  padding: 8px 0;
+  font-size: 0.78rem;
+}
+.person-memories span {
+  color: var(--muted);
+}
 
 @media (max-width: 1060px) {
   :root {
@@ -816,6 +900,9 @@ select {
   .option-grid {
     grid-template-columns: 1fr;
   }
+  .social-layout {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 540px) {
   .game-brand span,
@@ -849,6 +936,10 @@ select {
     padding: 12px;
   }
   .decisions {
+    grid-template-columns: 1fr;
+  }
+  .social-actions,
+  .social-metrics {
     grid-template-columns: 1fr;
   }
 }

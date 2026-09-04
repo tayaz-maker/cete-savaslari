@@ -2,7 +2,7 @@ import { getHomeById, getJobById } from "./catalog.js";
 import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 import { isEducationLevel, isValidActiveEducation } from "./education.js";
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
 export const WEEKLY_ACTIVITY_LIMIT = 2;
@@ -76,13 +76,9 @@ export function createNewGame(options = {}) {
     career: { jobId: "market", pendingJob: null, jobFamilyExperience: {} },
     education: { level: "lise", fields: [], active: null, tuitionOwedThisMonth: 0 },
     household: { homeId: "family", livingWithFamily: true },
-    people: [
-      { id: "anne", name: "Aylin", relationType: "Anne", memories: [] },
-      { id: "baba", name: "Murat", relationType: "Baba", memories: [] },
-      { id: "mehmet", name: "Mehmet", relationType: "Arkadaş", memories: [] },
-      { id: "elif", name: "Elif", relationType: "Tanıdık", memories: [] },
-    ],
+    people: createDefaultPeople(1),
     relationships: { anne: 70 + socialBonus, baba: 64, mehmet: 52 + socialBonus, elif: 38 },
+    social: { currentPartnerNpcId: null, lastMaintenanceWeek: 0, engaged: false },
     health: { energy: profile.energy, stress: profile.stress, health: 82 },
     memories: [],
     flags: {},
@@ -140,12 +136,19 @@ export function addMemory(state, text, importance = "normal") {
   );
 }
 
-export function addNpcMemory(state, personId, text) {
+export function addNpcMemory(state, personId, text, type = "general", metadata = null) {
   const person = state.people.find((candidate) => candidate.id === personId);
   if (!person) return false;
   appendCapped(
     person.memories,
-    { week: state.time.absoluteWeek, year: state.time.year, text },
+    {
+      id: `npc-${personId}-${state.time.absoluteWeek}-${person.memories.length + 1}`,
+      type,
+      week: state.time.absoluteWeek,
+      year: state.time.year,
+      text,
+      ...(metadata ? { metadata } : {}),
+    },
     LIMITS.npcMemories,
   );
   return true;
@@ -160,6 +163,127 @@ export function addYearHistory(state, entry) {
 }
 
 const safeCount = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
+
+const SOCIAL_DEFAULTS = {
+  anne: { roleId: "family", tags: ["family"], trust: 72, romanceStatus: "none" },
+  baba: { roleId: "family", tags: ["family"], trust: 64, romanceStatus: "none" },
+  mehmet: { roleId: "friend", tags: ["friend"], trust: 54, romanceStatus: "none" },
+  elif: {
+    roleId: "acquaintance",
+    tags: ["peer", "romance_available"],
+    trust: 42,
+    romanceStatus: "none",
+  },
+};
+
+function createDefaultPeople(startWeek = 1) {
+  return [
+    { id: "anne", name: "Aylin", relationType: "Anne", memories: [] },
+    { id: "baba", name: "Murat", relationType: "Baba", memories: [] },
+    { id: "mehmet", name: "Mehmet", relationType: "Arkadaş", memories: [] },
+    { id: "elif", name: "Elif", relationType: "Tanıdık", memories: [] },
+  ].map((person) => ({
+    ...person,
+    roleId: SOCIAL_DEFAULTS[person.id].roleId,
+    tags: [...SOCIAL_DEFAULTS[person.id].tags],
+    available: true,
+    social: {
+      trust: SOCIAL_DEFAULTS[person.id].trust,
+      tension: 0,
+      lastMeaningfulContactWeek: startWeek,
+      romanceStatus: SOCIAL_DEFAULTS[person.id].romanceStatus,
+    },
+  }));
+}
+
+const safeRelationshipValue = (value, fallback) => {
+  const numeric = typeof value === "number" ? value : Number.NaN;
+  return Number.isFinite(numeric) ? clamp(numeric) : fallback;
+};
+
+export function normalizeSocialState(state) {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return state;
+  const defaults = createDefaultPeople(state.time?.absoluteWeek || 1);
+  const rawPeople = Array.isArray(state.people) ? state.people : [];
+  const rawRelationships =
+    state.relationships && typeof state.relationships === "object" && !Array.isArray(state.relationships)
+      ? state.relationships
+      : {};
+  state.people = defaults.map((fallback) => {
+    const raw = rawPeople.find((person) => person?.id === fallback.id) || fallback;
+    const social = raw.social && typeof raw.social === "object" ? raw.social : {};
+    const memories = Array.isArray(raw.memories)
+      ? raw.memories
+          .slice(-LIMITS.npcMemories)
+          .filter((memory) => memory && typeof memory.text === "string")
+          .map((memory, index) => ({
+            ...memory,
+            id:
+              typeof memory.id === "string" && memory.id
+                ? memory.id
+                : `npc-${fallback.id}-${safeCount(memory.week) || 1}-${index + 1}`,
+            type: typeof memory.type === "string" && memory.type ? memory.type : "general",
+            week: safeCount(memory.week) || 1,
+            year: Number.isInteger(memory.year) ? memory.year : state.time?.year || 2027,
+          }))
+      : [];
+    return {
+      ...fallback,
+      ...raw,
+      id: fallback.id,
+      name: typeof raw.name === "string" && raw.name ? raw.name : fallback.name,
+      relationType:
+        typeof raw.relationType === "string" && raw.relationType
+          ? raw.relationType
+          : fallback.relationType,
+      roleId: fallback.roleId,
+      tags: [...fallback.tags],
+      available: raw.available !== false,
+      memories,
+      social: {
+        trust: safeRelationshipValue(social.trust, SOCIAL_DEFAULTS[fallback.id].trust),
+        tension: safeRelationshipValue(social.tension, 0),
+        lastMeaningfulContactWeek:
+          Number.isInteger(social.lastMeaningfulContactWeek) && social.lastMeaningfulContactWeek >= 1
+            ? Math.min(social.lastMeaningfulContactWeek, state.time?.absoluteWeek || 1)
+            : state.time?.absoluteWeek || 1,
+        romanceStatus:
+          fallback.roleId !== "family" && ["none", "interest", "partner"].includes(social.romanceStatus)
+            ? social.romanceStatus
+            : "none",
+      },
+    };
+  });
+  state.relationships = Object.fromEntries(
+    defaults.map((person) => [
+      person.id,
+      safeRelationshipValue(rawRelationships[person.id],
+        person.id === "anne" ? 70 : person.id === "baba" ? 64 : person.id === "mehmet" ? 52 : 38),
+    ]),
+  );
+  const rawSocial = state.social && typeof state.social === "object" ? state.social : {};
+  const partnerCandidates = state.people.filter((person) => person.social.romanceStatus === "partner");
+  const requestedPartner = state.people.find(
+    (person) =>
+      person.id === rawSocial.currentPartnerNpcId &&
+      person.roleId !== "family" &&
+      person.tags.includes("romance_available"),
+  );
+  const partner = requestedPartner || partnerCandidates[0] || null;
+  for (const person of state.people)
+    if (person.id !== partner?.id && person.social.romanceStatus === "partner")
+      person.social.romanceStatus = "interest";
+  if (partner) partner.social.romanceStatus = "partner";
+  state.social = {
+    currentPartnerNpcId: partner?.id || null,
+    engaged: rawSocial.engaged === true,
+    lastMaintenanceWeek:
+      Number.isInteger(rawSocial.lastMaintenanceWeek) && rawSocial.lastMaintenanceWeek >= 0
+        ? Math.min(rawSocial.lastMaintenanceWeek, state.time?.absoluteWeek || 1)
+        : 0,
+  };
+  return state;
+}
 
 /**
  * Eğitim ve kariyer alanlarını her migration dalından sonra güvenli hale getirir.
@@ -200,6 +324,7 @@ export function normalizeEducationCareer(state) {
     active: isValidActiveEducation(raw.active) ? raw.active : null,
     tuitionOwedThisMonth: safeCount(raw.tuitionOwedThisMonth),
   };
+  normalizeSocialState(state);
   return state;
 }
 
@@ -286,11 +411,46 @@ export function validateState(state) {
   )
     errors.push("NPC kayıtları geçersiz");
   if (
+    state.people?.some(
+      (person) =>
+        !["family", "friend", "acquaintance", "work_contact"].includes(person.roleId) ||
+        !Array.isArray(person.tags) ||
+        typeof person.available !== "boolean" ||
+        !person.social ||
+        !finite(person.social.trust) ||
+        person.social.trust < 0 ||
+        person.social.trust > 100 ||
+        !finite(person.social.tension) ||
+        person.social.tension < 0 ||
+        person.social.tension > 100 ||
+        !Number.isInteger(person.social.lastMeaningfulContactWeek) ||
+        person.social.lastMeaningfulContactWeek < 1 ||
+        person.social.lastMeaningfulContactWeek > state.time.absoluteWeek ||
+        !["none", "interest", "partner"].includes(person.social.romanceStatus) ||
+        (person.roleId === "family" && person.social.romanceStatus !== "none"),
+    )
+  )
+    errors.push("Sosyal NPC kaydı geçersiz");
+  if (
     !state.relationships ||
     typeof state.relationships !== "object" ||
     Object.values(state.relationships).some((value) => !finite(value) || value < 0 || value > 100)
   )
     errors.push("İlişkiler geçersiz");
+  const partnerId = state.social?.currentPartnerNpcId;
+  const partners = state.people?.filter((person) => person.social?.romanceStatus === "partner") || [];
+  if (
+    !state.social ||
+    typeof state.social.engaged !== "boolean" ||
+    !Number.isInteger(state.social.lastMaintenanceWeek) ||
+    state.social.lastMaintenanceWeek < 0 ||
+    state.social.lastMaintenanceWeek > state.time.absoluteWeek ||
+    (partnerId !== null && !state.people.some((person) => person.id === partnerId)) ||
+    partners.length > 1 ||
+    (partnerId === null && partners.length) ||
+    (partnerId !== null && partners[0]?.id !== partnerId)
+  )
+    errors.push("Sosyal durum geçersiz");
   if (
     !state.weekly ||
     !Number.isInteger(state.weekly.used) ||

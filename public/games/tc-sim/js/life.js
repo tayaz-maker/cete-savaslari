@@ -7,6 +7,7 @@ import {
   isEligibleForJob,
   resolveCompletedLevel,
 } from "./education.js";
+import { applySocialMaintenance } from "./social.js";
 
 export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
 
@@ -208,6 +209,7 @@ export function applyWeeklyLifeLoad(state) {
   state.flags.lastLifeLoadWeek = week;
   creditWeeklyExperience(state);
   advanceEducationProgress(state);
+  applySocialMaintenance(state);
   return true;
 }
 

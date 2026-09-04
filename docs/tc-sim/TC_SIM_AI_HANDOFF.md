@@ -6,7 +6,7 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 ## Mevcut aşama
 
-**Aşama 3A — İş + Konut dikey dilimi tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
+**Aşama 3C — Sosyal Çevre + İlişkiler temeli tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
 Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: DEVLET, TarikLab içinde ayrı bir gelecek oyunudur; TC SIM bugün onun için generic engine'e dönüştürülmez.
 
@@ -49,7 +49,17 @@ Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: D
 - `technician` ve `specialist` işleri eğitim/alan/deneyim ister; **mevcut üç giriş işi gereksinimsizdir** ve eski kayıtlar kilitlenmez.
 - `SAVE_VERSION = 4`. v3 kayıtlar `migrateV3()` ile taşınır ve her migration dalından sonra `normalizeEducationCareer()` çalışır. Bu zincir bozulursa tüm oyuncu kayıtları geçersiz sayılır.
 
-**Sıradaki iş:** Aşama 3'ün kalan dilimi — mevcut iş/konut/eğitim zincirini bozmadan aile ve kişiler tarafını derinleştirmek.
+3C ile gelen ve korunması gereken runtime durumu:
+
+- Eski `state.relationships` puanı yakınlık olarak korunur; güven, gerilim, son anlamlı temas ve romantik durum mevcut NPC kayıtlarındadır.
+- İlişki evresi merkezî helper ile türetilir; romantik ilgi ve sevgililik açık karar gerektirir. Aile romantik olamaz, aynı anda en fazla bir partner vardır.
+- Altı bağlamsal sosyal eylem haftalık iki karar ekonomisine bağlıdır; para/beden etkileri atomiktir.
+- Sosyal bakım haftada en fazla bir kez çalışır. NPC hafızaları 50 kayıtla sınırlıdır.
+- Yardım sözü mevcut openCase/event hattını kullanır; başarı veya deadline başarısızlığı yalnız bir kez sonuçlanır.
+- `SAVE_VERSION = 5`; `migrateV4()` Aylin/Mehmet, eski yakınlık, hafıza ve diğer bütün 3B state'ini korur.
+- KİŞİLER bireysel dosya/eylem ekranıdır; AİLE/İLİŞKİLER özet ve açık sosyal mesele görünümüdür.
+
+**Sıradaki iş:** 3D kapsamını kullanıcı playtest geri bildirimlerinden kilitle; otomatik yeni sistem başlatma.
 
 ## Korunacak teknik ilkeler
 

@@ -10,6 +10,7 @@ import {
   transact,
   updateRelationship,
 } from "./state.js";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js";
 import { activateNextEvent, processDueOpenCases } from "./events.js";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js";
 
@@ -31,6 +32,8 @@ export const DECISIONS = [
     detail: "anne ilişkisi +8 · stres −6",
     apply(state) {
       updateRelationship(state, "anne", 8);
+      applyRelationshipDelta(state, "anne", { trust: 2, tension: -3 });
+      markMeaningfulContact(state, "anne");
       adjustHealth(state, { energy: -5, stress: -6 });
       addMemory(state, "Ailenle sakin bir hafta geçirdin.");
       addNpcMemory(state, "anne", "Bu hafta benimle vakit geçirdi.");
@@ -43,6 +46,8 @@ export const DECISIONS = [
     apply(state) {
       transact(state, -250, "Arkadaş buluşması", "social");
       updateRelationship(state, "mehmet", 7);
+      applyRelationshipDelta(state, "mehmet", { trust: 2, tension: -2 });
+      markMeaningfulContact(state, "mehmet");
       adjustHealth(state, { energy: -8, stress: -5 });
       addNpcMemory(state, "mehmet", "Bu hafta birlikte vakit geçirdik.");
     },
@@ -73,6 +78,8 @@ export const DECISIONS = [
       state.flags.helpedFriend = true;
       state.flags.helpedFriendWeek = state.time.absoluteWeek;
       updateRelationship(state, "mehmet", 6);
+      applyRelationshipDelta(state, "mehmet", { trust: 6, tension: -2 });
+      markMeaningfulContact(state, "mehmet");
       addMemory(state, "Mehmet'in iş başvurusuna yardım ettin.", "important");
       addNpcMemory(state, "mehmet", "İş başvurumda bana yardım etti.");
     },
@@ -144,6 +151,8 @@ export const DECISIONS = [
     contextual: (state) => state.relationships.anne <= 62,
     apply(state) {
       updateRelationship(state, "anne", 5);
+      applyRelationshipDelta(state, "anne", { trust: 2, tension: -3 });
+      markMeaningfulContact(state, "anne");
       adjustHealth(state, { stress: -2 });
       addMemory(state, "Aylin'i arayıp aranızdaki mesafeyi azalttın.");
       addNpcMemory(state, "anne", "Arayıp halimi hatırımı sordu.");
@@ -156,6 +165,8 @@ export const DECISIONS = [
     contextual: (state) => state.relationships.mehmet <= 45,
     apply(state) {
       updateRelationship(state, "mehmet", 5);
+      applyRelationshipDelta(state, "mehmet", { trust: 2, tension: -3 });
+      markMeaningfulContact(state, "mehmet");
       adjustHealth(state, { energy: -3, stress: -2 });
       addMemory(state, "Mehmet'e ulaşıp aranızdaki sessizliği bozdun.");
       addNpcMemory(state, "mehmet", "Uzun sessizliğin ardından bana ulaştı.");

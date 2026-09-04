@@ -33,12 +33,23 @@ import {
 } from "./education.js";
 import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js";
+import {
+  RELATIONSHIP_STAGES,
+  SOCIAL_ROLE_LABELS,
+  applySocialAction,
+  getAvailableSocialActions,
+  getOpenSocialCase,
+  getPerson,
+  getRelationship,
+  getRelationshipStage,
+} from "./social.js";
 
 const app = document.querySelector("#app");
 let state = null;
 let notice = "";
 let saveStatus = "";
 let activeView = "dashboard";
+let selectedPersonId = "mehmet";
 
 const money = (value) =>
   new Intl.NumberFormat("tr-TR", {
@@ -101,16 +112,44 @@ function renderPeople() {
   return state.people
     .map(
       (person) =>
-        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${relationshipLabel(state.relationships[person.id])} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${state.relationships[person.id]}%"></span></i><b class="relation">${state.relationships[person.id]}</b></div></div>`,
+        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${state.relationships[person.id]}%"></span></i><b class="relation">${state.relationships[person.id]}</b></div></div>`,
     )
     .join("");
 }
 
-function relationshipLabel(value) {
-  if (value >= 75) return "Yakın";
-  if (value >= 50) return "İyi";
-  if (value >= 30) return "Mesafeli";
-  return "Zayıf";
+function weeksSinceContact(person) {
+  return Math.max(0, state.time.absoluteWeek - person.social.lastMeaningfulContactWeek);
+}
+
+function renderRelationshipMetrics(person) {
+  const relationship = getRelationship(state, person.id);
+  return `<div class="social-metrics"><span>Yakınlık <b>${relationship.closeness}</b></span><span>Güven <b>${relationship.trust}</b></span><span>Gerilim <b>${relationship.tension}</b></span></div>`;
+}
+
+function renderPeopleScreen() {
+  const selected = getPerson(state, selectedPersonId) || state.people[0];
+  selectedPersonId = selected.id;
+  const stage = RELATIONSHIP_STAGES[getRelationshipStage(state, selected.id)];
+  const openCase = getOpenSocialCase(state, selected.id);
+  const actions = getAvailableSocialActions(state, selected.id);
+  const memories = selected.memories.slice(-5).reverse();
+  return `<div class="workspace-head"><div><p class="eyebrow">KİŞİLER</p><h1>Sosyal çevre</h1></div>${renderWeekControl()}</div>
+    <div class="social-layout"><section class="panel people-directory"><div class="panel-head"><div><p class="eyebrow">ÇEVRE</p><h2>Önemli kişiler</h2></div><span>${state.people.length}</span></div>${state.people.map((person) => `<button class="person-select ${person.id === selected.id ? "is-current" : ""}" data-person="${person.id}"><span><strong>${escapeText(person.name)}</strong><small>${escapeText(SOCIAL_ROLE_LABELS[person.roleId])}</small></span><b>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</b></button>`).join("")}</section>
+    <section class="panel person-detail"><div class="panel-head"><div><p class="eyebrow">KİŞİ DOSYASI</p><h2>${escapeText(selected.name)}</h2></div><span>${escapeText(stage)}</span></div><p class="context-note">${escapeText(SOCIAL_ROLE_LABELS[selected.roleId])} · Son anlamlı temas ${weeksSinceContact(selected)} hafta önce${openCase ? ` · ${Math.max(0, openCase.dueWeek - state.time.absoluteWeek)} hafta içinde açık söz` : ""}</p>${renderRelationshipMetrics(selected)}<div class="social-actions">${actions.map((action) => `<button class="button decision" data-social-action="${action.id}" data-person-id="${selected.id}" ${action.availability.ok ? "" : "disabled"} title="${escapeText(action.availability.reason || "")}"><strong>${escapeText(action.title)}</strong><small>${escapeText(action.detail)}</small></button>`).join("")}</div><div class="person-memories"><p class="panel-kicker">SON ÖNEMLİ ANILAR</p>${memories.length ? memories.map((memory) => `<p><span>${memory.year}</span>${escapeText(memory.text)}</p>`).join("") : `<p class="empty">Henüz ortak bir anı yok.</p>`}</div><p class="result" role="status">${escapeText(notice || "Bir sosyal etkileşim haftalık karar hakkı kullanır.")}</p></section></div>`;
+}
+
+function renderRelationshipsOverview() {
+  const partner = state.social.currentPartnerNpcId
+    ? getPerson(state, state.social.currentPartnerNpcId)
+    : null;
+  const family = state.people.filter((person) => person.roleId === "family");
+  const attention = [...state.people].sort(
+    (a, b) => b.social.tension + weeksSinceContact(b) - (a.social.tension + weeksSinceContact(a)),
+  )[0];
+  const activeCases = state.openCases.filter(
+    (item) => item.type === "social-obligation" && item.status !== "resolved",
+  );
+  return `<div class="workspace-head"><div><p class="eyebrow">AİLE / İLİŞKİLER</p><h1>Bağların</h1></div>${renderWeekControl()}</div><section class="detail-summary panel"><div><span>Romantik durum</span><strong>${partner ? `${escapeText(partner.name)} · Sevgili` : "Sevgili yok"}</strong></div><div><span>İlgi isteyen ilişki</span><strong>${escapeText(attention.name)}</strong><small>${attention.social.tension >= 40 ? "Gerilim yükselmiş" : `${weeksSinceContact(attention)} haftadır anlamlı temas yok`}</small></div><div><span>Açık sosyal mesele</span><strong>${activeCases.length}</strong></div></section><div class="overview-grid">${family.map((person) => `<article class="panel relationship-summary"><p class="panel-kicker">AİLE</p><h2>${escapeText(person.name)}</h2><p>${escapeText(person.relationType)} · ${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</p>${renderRelationshipMetrics(person)}</article>`).join("")}<article class="panel relationship-summary"><p class="panel-kicker">ÖNEMLİ İLİŞKİLER</p>${state.people.filter((person) => person.roleId !== "family").map((person) => `<button class="relationship-line" data-open-person="${person.id}"><span><strong>${escapeText(person.name)}</strong><small>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</small></span><b>${state.relationships[person.id]} / ${person.social.trust} / ${person.social.tension}</b></button>`).join("")}</article></div>`;
 }
 
 function renderMemories() {
@@ -173,11 +212,14 @@ function renderDashboard() {
   const home = getHomeById(state.household.homeId);
   const monthly = getMonthlySummary(state);
   const projectedBalance = state.finances.balance + monthly.income - monthly.expenses;
+  const socialCases = activeCases.filter((item) => item.type === "social-obligation");
+  const partner = state.social.currentPartnerNpcId ? getPerson(state, state.social.currentPartnerNpcId) : null;
   return `<div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div>${renderWeekControl()}</div>
     <section class="overview-grid" aria-label="Hayat özeti">
       <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul · ${escapeText(getEraById(state.world.eraId).title)}</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(home.title)}</dd></div><div><dt>İş</dt><dd>${escapeText(job?.title || "İşsiz")}</dd></div><div><dt>Ulaşım yükü</dt><dd>${escapeText(getCommuteExplanation(home.id, job?.id || null).label)}</dd></div></dl></article>
       <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(monthly.income)} gelir · ${money(monthly.expenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
       <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div><small class="body-note">${escapeText(bodyRiskText())}</small></article>
+      <article class="metric-panel"><p>SOSYAL</p><strong>${partner ? escapeText(partner.name) : "Sevgili yok"}</strong><span>${socialCases.length} açık sosyal mesele</span><small>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, "mehmet")])}: Mehmet</small></article>
     </section>
     <div class="dashboard-grid">
       <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><p class="decision-context">Temel kararlar her hafta açık. Diğer seçenekler hayat durumuna göre değişir.</p><div class="decisions">${getAvailableDecisions(
@@ -192,7 +234,7 @@ function renderDashboard() {
         )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
       <aside class="right-column"><section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section><section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section></aside>
       <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
-      <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${item.type === "job-start" ? "İş başlangıcı" : "Mehmet'e verilen borç"}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
+      <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${item.type === "job-start" ? "İş başlangıcı" : item.type === "social-obligation" ? "Verilen yardım sözü" : "Mehmet'e verilen borç"}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
     </div>`;
 }
 
@@ -325,6 +367,10 @@ function render() {
       ? renderCareer()
       : activeView === "education"
         ? renderEducation()
+        : activeView === "people"
+          ? renderPeopleScreen()
+          : activeView === "relationships"
+            ? renderRelationshipsOverview()
         : activeView === "home"
           ? renderHomes()
           : renderDashboard();
@@ -356,6 +402,33 @@ function render() {
       if (!target) return;
       activeView = target;
       notice = "";
+      render();
+    }),
+  );
+  document.querySelectorAll("[data-person]").forEach((button) =>
+    button.addEventListener("click", () => {
+      selectedPersonId = button.dataset.person;
+      notice = "";
+      render();
+    }),
+  );
+  document.querySelectorAll("[data-open-person]").forEach((button) =>
+    button.addEventListener("click", () => {
+      selectedPersonId = button.dataset.openPerson;
+      activeView = "people";
+      notice = "";
+      render();
+    }),
+  );
+  document.querySelectorAll("[data-social-action]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const result = applySocialAction(
+        state,
+        button.dataset.personId,
+        button.dataset.socialAction,
+      );
+      notice = result.reason || result.message;
+      persist();
       render();
     }),
   );

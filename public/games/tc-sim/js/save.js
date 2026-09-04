@@ -16,7 +16,7 @@ function mergeLegacy(raw) {
   const merged = {
     ...base,
     ...raw,
-    meta: { ...base.meta, ...(raw.meta || {}), saveVersion: SAVE_VERSION },
+    meta: { ...base.meta, ...(raw.meta || {}), saveVersion: 2 },
     player: { ...base.player, ...(raw.player || {}) },
     time: { ...base.time, ...(raw.time || {}) },
     finances: {
@@ -65,7 +65,7 @@ function mergeLegacy(raw) {
 function migrateV2(raw) {
   return {
     ...raw,
-    meta: { ...raw.meta, saveVersion: SAVE_VERSION },
+    meta: { ...raw.meta, saveVersion: 3 },
     world: { eraId: getEraById(raw?.world?.eraId) ? raw.world.eraId : PRESENT_DAY_ERA_ID },
   };
 }
@@ -84,7 +84,11 @@ function normalizeCurrentEra(raw) {
 // yükseltilmezse mevcut bütün kayıtlar doğrulamadan geçemez ve bozuk sayılır.
 function migrateV3(raw) {
   const state = normalizeCurrentEra(raw);
-  return { ...state, meta: { ...(state.meta || {}), saveVersion: SAVE_VERSION } };
+  return { ...state, meta: { ...(state.meta || {}), saveVersion: 4 } };
+}
+
+function migrateV4(raw) {
+  return { ...raw, meta: { ...(raw.meta || {}), saveVersion: SAVE_VERSION } };
 }
 
 export function migrateState(raw) {
@@ -93,11 +97,11 @@ export function migrateState(raw) {
   const version = raw.meta?.saveVersion ?? 0;
   if (!Number.isInteger(version) || version < 0 || version > SAVE_VERSION)
     return { ok: false, error: "Desteklenmeyen kayıt sürümü." };
-  let state = raw;
-  if (version < 2) state = mergeLegacy(raw);
-  else if (version === 2) state = migrateV2(raw);
-  else if (version === 3) state = migrateV3(raw);
-  else state = normalizeCurrentEra(raw);
+  let state = version < 2 ? mergeLegacy(raw) : raw;
+  if (state.meta.saveVersion < 3) state = migrateV2(state);
+  if (state.meta.saveVersion < 4) state = migrateV3(state);
+  if (state.meta.saveVersion < 5) state = migrateV4(state);
+  state = normalizeCurrentEra(state);
   // mergeLegacy() career nesnesini baştan kurduğu için deneyim haritası burada geri eklenir.
   state = normalizeEducationCareer(state);
   const validation = validateState(state);

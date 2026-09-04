@@ -33,3 +33,13 @@
 - Tek merkezî uygunluk kontrolü teklif kabulünde, event koşullarında ve arayüzde ortak kullanılıyor.
 - Save sürümü 4'e çıkarıldı; v3 kayıtlar iş, para, konut, NPC, hafıza, açık dosya ve dönem korunarak taşınıyor, bozuk alanlar kaydı çöpe atmadan onarılıyor.
 - EĞİTİM ekranı ile İŞ ekranına deneyim/bant/gereksinim gösterimi eklendi; 34 yeni test ve üç deterministik 144 haftalık senaryo eklendi.
+
+## Aşama 3C — Sosyal Çevre + İlişkiler Temeli
+
+- Mevcut Aylin, Murat, Mehmet ve Elif kayıtları yakınlık, güven, gerilim, son temas, rol/tag ve sınırlı NPC hafızasıyla genişletildi.
+- Türetilen ilişki evreleri, altı bağlamsal sosyal eylem ve haftalık iki karar ekonomisine bağlı sosyal maliyetler eklendi.
+- Kontrollü ilişki bakımı, sosyal davet, yardım sözü/openCase, gerilim konuşması ve açık romantik ilgi → sevgili yolu eklendi.
+- Aile romantizmi ve birden fazla partner doğrulama seviyesinde engellendi.
+- KİŞİLER ve AİLE/İLİŞKİLER ekranları etkinleştirildi; dashboard'a küçük sosyal özet eklendi.
+- Save sürümü 5'e çıkarıldı; v4 kayıtları eski NPC puanları ve hafızaları korunarak taşınıyor.
+- 28 yeni davranış testi ile sosyal eylem içeren 144/520 haftalık ve 20 seed fuzz doğrulaması eklendi.
