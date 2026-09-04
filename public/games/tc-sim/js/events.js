@@ -25,6 +25,7 @@ import {
   scheduleSocialFollowup,
   setRomanticInterest,
 } from "./social.js?v=5";
+import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=5";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -1383,6 +1384,7 @@ export const EVENT_DEFINITIONS = [
       },
     ],
   },
+  ...ADULT_LIFE_EVENTS,
 ];
 
 export function getEventDefinition(eventId) {
@@ -1557,6 +1559,8 @@ export function resolveEvent(state, choiceId) {
       personId: "mehmet",
     });
   }
+  const adultFollowup = applyAdultLifeResolution(state, definition, choiceId);
+  if (adultFollowup) scheduleSocialFollowup(state, adultFollowup);
   if (definition.social3D) state.flags.lastSocial3DWeek = state.time.absoluteWeek;
   state.flags.lastEventResolvedWeek = state.time.absoluteWeek;
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);
