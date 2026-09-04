@@ -909,6 +909,9 @@ select {
   .detail-summary {
     grid-template-columns: repeat(2, 1fr);
   }
+  .detail-summary > div:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
   .option-grid {
     grid-template-columns: 1fr;
   }

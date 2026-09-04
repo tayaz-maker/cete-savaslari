@@ -1,5 +1,6 @@
 import { WEEKLY_ACTIVITY_LIMIT, WEEKS_PER_MONTH, createNewGame } from "./state.js?v=5";
 import { getKnownOpenCases } from "./calendar.js?v=5";
+import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=5";
 import { getChoiceEffectSummary, getEventDefinition, resolveEvent } from "./events.js?v=5";
 import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=5";
 import { clearSaves, loadGame, saveGame } from "./save.js?v=5";
@@ -52,6 +53,8 @@ let notice = "";
 let saveStatus = "";
 let activeView = "dashboard";
 let selectedPersonId = "mehmet";
+// Haftanın başındaki durum. Yalnız bu oturumda, bellekte tutulur; save'e yazılmaz.
+let weekStartSnapshot = null;
 
 const money = (value) =>
   new Intl.NumberFormat("tr-TR", {
@@ -75,6 +78,31 @@ function openCaseLabel(item) {
   }
   if (item.type === "social-followup") return "Bekleyen sosyal mesele";
   return "Bekleyen mesele";
+}
+
+const BODY_AXIS_LABELS = { energy: "Enerji", stress: "Stres", health: "Sağlık" };
+
+function describeWeeklyChange(change) {
+  if (change.kind === "money")
+    return `Para: ${change.amount >= 0 ? "+" : ""}${money(change.amount)}`;
+  if (change.kind === "body")
+    return `${BODY_AXIS_LABELS[change.axis]}: ${change.from} → ${change.to}`;
+  if (change.kind === "age") return `${change.age} yaşına girdin.`;
+  if (change.kind === "education")
+    return `Eğitim seviyen değişti: ${getEducationLevelLabel(change.level)}`;
+  if (change.kind === "relationship") {
+    const person = getPerson(state, change.personId);
+    const name = person ? person.name : "Biri";
+    if (change.axis === "closeness")
+      return `${name} ile yakınlığın ${change.direction === "up" ? "arttı" : "azaldı"}.`;
+    if (change.axis === "trust")
+      return `${name} sana daha ${change.direction === "up" ? "çok" : "az"} güveniyor.`;
+    return `${name} ile aranda gerilim ${change.direction === "up" ? "arttı" : "azaldı"}.`;
+  }
+  if (change.kind === "obligation") return `Yeni yükümlülük: ${openCaseLabel(change.case)}`;
+  if (change.kind === "housing")
+    return `Yaşam yerin değişti: ${getHomeById(change.homeId).title}`;
+  return "";
 }
 
 function weeksAgoLabel(week) {
@@ -124,6 +152,7 @@ function startScreen(loadResult) {
     state = loadResult.state;
     notice = loadResult.message;
     saveStatus = loadResult.source === "backup" ? "Yedekten devam ediliyor." : "Kayıt hazır.";
+    weekStartSnapshot = null;
     render();
   });
   document.querySelector("#new-game-form").addEventListener("submit", (event) => {
@@ -137,6 +166,7 @@ function startScreen(loadResult) {
       seed: Date.now() >>> 0,
     });
     notice = "Yeni hayat başladı.";
+    weekStartSnapshot = null;
     persist("İlk kayıt oluşturuldu.");
     render();
   });
@@ -176,14 +206,54 @@ function renderRelationshipsOverview() {
   const partner = state.social.currentPartnerNpcId
     ? getPerson(state, state.social.currentPartnerNpcId)
     : null;
-  const family = state.people.filter((person) => person.roleId === "family");
   const attention = [...state.people].sort(
     (a, b) => b.social.tension + weeksSinceContact(b) - (a.social.tension + weeksSinceContact(a)),
   )[0];
-  const activeCases = state.openCases.filter(
-    (item) => item.type === "social-obligation" && item.status !== "resolved",
-  );
-  return `<div class="workspace-head"><div><p class="eyebrow">AİLE / İLİŞKİLER</p><h1>Bağların</h1></div>${renderWeekControl()}</div><section class="detail-summary panel"><div><span>Romantik durum</span><strong>${partner ? `${escapeText(partner.name)} · Sevgili` : "Sevgili yok"}</strong></div><div><span>İlgi isteyen ilişki</span><strong>${escapeText(attention.name)}</strong><small>${attention.social.tension >= 40 ? "Gerilim yükselmiş" : `${weeksSinceContact(attention)} haftadır anlamlı temas yok`}</small></div><div><span>Açık sosyal mesele</span><strong>${activeCases.length}</strong></div></section><div class="overview-grid">${family.map((person) => `<article class="panel relationship-summary"><p class="panel-kicker">AİLE</p><h2>${escapeText(person.name)}</h2><p>${escapeText(person.relationType)} · ${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</p>${renderRelationshipMetrics(person)}</article>`).join("")}<article class="panel relationship-summary"><p class="panel-kicker">ÖNEMLİ İLİŞKİLER</p>${state.people.filter((person) => person.roleId !== "family").map((person) => `<button class="relationship-line" data-open-person="${person.id}"><span><strong>${escapeText(person.name)}</strong><small>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</small></span><b>${state.relationships[person.id]} / ${person.social.trust} / ${person.social.tension}</b></button>`).join("")}</article></div>`;
+  const knownCases = getKnownOpenCases(state);
+  const personalDebts = getAllPersonalDebts();
+  const obligationCount = knownCases.length + personalDebts.length;
+  const recentDevelopments = state.people
+    .flatMap((person) => person.memories.map((memory) => ({ person, memory })))
+    .sort((a, b) => b.memory.year - a.memory.year || b.memory.week - a.memory.week)
+    .slice(0, 6);
+
+  return `<div class="workspace-head"><div><p class="eyebrow">AİLE / İLİŞKİLER</p><h1>Bağların</h1></div>${renderWeekControl()}</div>
+    <section class="detail-summary panel">
+      <div><span>Romantik durum</span><strong>${partner ? `${escapeText(partner.name)} · Sevgili` : "Sevgili yok"}</strong></div>
+      <div><span>İlgi isteyen ilişki</span><strong>${escapeText(attention.name)}</strong><small>${attention.social.tension >= 40 ? "Gerilim yükselmiş" : `${weeksSinceContact(attention)} haftadır anlamlı temas yok`}</small></div>
+      <div><span>Açık sosyal mesele</span><strong>${obligationCount}</strong></div>
+    </section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ÖNEMLİ BAĞLAR</p><h2>Kişiler</h2></div></div><div class="overview-grid">${state.people
+      .map(
+        (person) =>
+          `<article class="panel relationship-summary"><p class="panel-kicker">${escapeText(SOCIAL_ROLE_LABELS[person.roleId])}</p><h2>${escapeText(person.name)}</h2><p>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, person.id)])}</p>${renderRelationshipMetrics(person)}<button class="button button-quiet" data-open-person="${person.id}">Kişi dosyasını aç</button></article>`,
+      )
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">SON GELİŞMELER</p><h2>Yakın zamanda olanlar</h2></div></div><div class="history">${
+      recentDevelopments.length
+        ? recentDevelopments
+            .map(
+              ({ person, memory }) =>
+                `<div class="memory"><strong>${escapeText(person.name)}</strong> · ${escapeText(memory.text)}</div>`,
+            )
+            .join("")
+        : `<p class="empty">Henüz kayda değer bir gelişme yok.</p>`
+    }</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Sözler ve borçlar</h2></div><span>${obligationCount}</span></div>${
+      obligationCount
+        ? `${knownCases
+            .map(
+              (item) =>
+                `<p class="open-case"><b>${escapeText(openCaseLabel(item))}</b><span>${escapeText(weeksAheadLabel(item.dueWeek))}</span></p>`,
+            )
+            .join("")}${personalDebts
+            .map(
+              ({ person, debt }) =>
+                `<p class="open-case"><b>${escapeText(person.name)}: ${money(debt.payload.amount)} borçlu</b><span>Bekleniyor</span></p>`,
+            )
+            .join("")}`
+        : `<p class="empty">Şu anda açık bir sosyal mesele yok.</p>`
+    }</section>`;
 }
 
 function renderMemories() {
@@ -572,6 +642,7 @@ const VIEW_RENDERERS = {
 
 function render() {
   if (!state) return startScreen(loadGame(localStorage));
+  if (!weekStartSnapshot) weekStartSnapshot = snapshotWeekState(state);
   const workspace = (VIEW_RENDERERS[activeView] || renderDashboard)();
   app.innerHTML = `
     <main class="game-frame">
@@ -677,8 +748,17 @@ function render() {
     }),
   );
   document.querySelector("#advance-week")?.addEventListener("click", () => {
+    const before = weekStartSnapshot || snapshotWeekState(state);
     const result = advanceWeek(state);
-    notice = result.messages.join(" ");
+    if (result.ok) {
+      const changes = summarizeWeek(before, state);
+      notice = changes.length
+        ? changes.map((change) => describeWeeklyChange(change)).join(" · ")
+        : "Sakin bir hafta geçti.";
+      weekStartSnapshot = null;
+    } else {
+      notice = result.messages.join(" ");
+    }
     persist();
     render();
   });
@@ -692,6 +772,7 @@ function render() {
     state = null;
     notice = "";
     saveStatus = "";
+    weekStartSnapshot = null;
     render();
   });
 }
