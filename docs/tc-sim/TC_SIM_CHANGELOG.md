@@ -51,3 +51,14 @@
 - Gerçek 3C motora göre 24 olay + 5 gecikmeli zincir seçildi.
 - Cowork uygulama köprüsü: `TC_SIM_3D_IMPLEMENTATION.md`, `TC_SIM_3D_COWORK_START.md`, `TC_SIM_3D_TEST_PLAN.md`.
 - Runtime, save v5 ve 111 test bu kayıtta değişmedi.
+
+## Aşama 3D — Sosyal İçerik + Hafıza + Gecikmeli Sonuçlar (runtime)
+
+- Seçilmiş 24 bağımsız sosyal event (arkadaşlık, romantik/Elif, aile, para, görünürlük, yetişkin hayat 4'er) `events.js`'e eklendi.
+- 5 gecikmeli üç adımlı zincir eklendi: CHN-01 (kişisel borç → görünürlük → yüzleşme), CHN-03 (referans sözü → sonuç → karşılık, sade), CHN-08 (yetişkin ilişki → ertesi gün → sonlu korku çözümü), CHN-09 (düğün altını → ay sonu → karşılık), CHN-10 (saklanan gece → sır sorgusu → sızma).
+- Üç motor eklentisi: `scheduleSocialFollowup` (mevcut openCases mimarisini sarar), `personal-debt` openCase türü (kişiye özel, mevcut sabit 1500 TL `loan_repayment` davranışından ayrı), `hasNpcMemory(state, personId, type)`.
+- Görünürlük/yetişkin bağlamı yalnız mevcut `flags` mimarisiyle temsil edildi; yeni NPC, rol, tag veya kişilik state'i eklenmedi.
+- Organik aramada haftada en fazla bir yeni 3D olay aktifleşecek şekilde yoğunluk siperi güçlendirildi (`flags.lastSocial3DWeek` + `flags.lastEventResolvedWeek`).
+- Dashboard "AÇIK MESELELER" panelinin sabit etiket eşlemesi yeni case türlerini (`personal-debt`, `social-followup`) tanıyacak şekilde genişletildi; başka arayüz değişikliği yapılmadı.
+- Save sürümü değişmedi (**hâlâ 5**); `migrateV4()`'e dokunulmadı, v6 yok.
+- 24 yeni davranış/bütünleşik senaryo testiyle (`scripts/tc-sim-3d.test.mjs`) toplam 135 test yeşil; 144/520 hafta ve 20 seed × 260 hafta fuzz koşuları ile gerçek tarayıcı smoke testi geçti. Ayrıntı: `TC_SIM_3D_POST_IMPLEMENTATION.md`.

@@ -236,6 +236,84 @@ export function applySocialAction(state, personId, actionId) {
   return { ok: true, message: `${person.name}: ${check.action.title} tamamlandı.` };
 }
 
+/** 3D: bir NPC hafızasında verilen tipte en az bir kayıt var mı. Uygunluk/zincir koşulları için. */
+export function hasNpcMemory(state, personId, type) {
+  const person = getPerson(state, personId);
+  if (!person || !type) return false;
+  return person.memories.some((memory) => memory.type === type);
+}
+
+/** 3D: kişiye özel, tutarı korunan borç. Mevcut sabit 1500 TL `friend-loan`/`loan_repayment`
+ * mekanizmasından tamamen ayrıdır ve onu değiştirmez. */
+export function getPersonalDebt(state, personId) {
+  return (
+    state.openCases.find(
+      (item) =>
+        item.type === "personal-debt" &&
+        item.status !== "resolved" &&
+        item.payload?.personId === personId,
+    ) || null
+  );
+}
+
+export function createPersonalDebt(
+  state,
+  personId,
+  amount,
+  dueInWeeks = 4,
+  memoryType = "lent_money",
+) {
+  const person = getPerson(state, personId);
+  if (!person || !Number.isFinite(amount) || amount <= 0 || getPersonalDebt(state, personId))
+    return false;
+  state.openCases.push({
+    id: `personal-debt-${personId}-${state.time.absoluteWeek}`,
+    type: "personal-debt",
+    createdWeek: state.time.absoluteWeek,
+    dueWeek: state.time.absoluteWeek + dueInWeeks,
+    eventId: null,
+    status: "pending",
+    payload: { personId, amount, memoryType },
+  });
+  addNpcMemory(state, personId, `${amount.toLocaleString("tr-TR")} TL borç aldı.`, memoryType);
+  return true;
+}
+
+export function resolvePersonalDebt(state, personId, { collected }) {
+  const item = getPersonalDebt(state, personId);
+  if (!item || item.resolutionApplied) return false;
+  item.status = "resolved";
+  item.resolutionApplied = true;
+  const person = getPerson(state, personId);
+  if (collected) {
+    transact(state, item.payload.amount, `${person.name}: borç tahsilatı`, "social");
+    applyRelationshipDelta(state, personId, { tension: 4 });
+    addNpcMemory(state, personId, "Borcunu geri ödedi.", "debt_collected");
+  } else {
+    applyRelationshipDelta(state, personId, { trust: 6, tension: -4 });
+    addNpcMemory(state, personId, "Borcunu bağışladın.", "debt_forgiven");
+  }
+  return true;
+}
+
+/** 3D: gecikmeli sosyal sonuç. Mevcut openCases mimarisini sarar; ikinci bir motor değildir.
+ * `dueWeek` gelmeden tetiklenmez (processDueOpenCases), tam bir kez çözülür, save/load'da kalıcıdır. */
+export function scheduleSocialFollowup(state, { id, eventId, dueWeek, personId, ...payload } = {}) {
+  if (!eventId || !Number.isInteger(dueWeek)) return false;
+  const caseId = id || `social-followup-${eventId}-${state.time.absoluteWeek}`;
+  if (state.openCases.some((item) => item.id === caseId)) return false;
+  state.openCases.push({
+    id: caseId,
+    type: "social-followup",
+    createdWeek: state.time.absoluteWeek,
+    dueWeek,
+    eventId,
+    status: "pending",
+    payload: { personId, ...payload },
+  });
+  return true;
+}
+
 export function applySocialMaintenance(state) {
   const week = state.time.absoluteWeek;
   if (state.social.lastMaintenanceWeek === week) return false;

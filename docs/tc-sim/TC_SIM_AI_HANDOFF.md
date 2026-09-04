@@ -6,9 +6,7 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 ## Mevcut aşama
 
-**Aşama 3C — Sosyal Çevre + İlişkiler temeli tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
-
-**Aşama 3D — içerik paketi belgelendi, runtime uygulanmadı.** Cowork: `TC_SIM_3D_COWORK_START.md`.
+**Aşama 3D — Sosyal içerik + hafıza + gecikmeli sonuçlar tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
 Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: DEVLET, TarikLab içinde ayrı bir gelecek oyunudur; TC SIM bugün onun için generic engine'e dönüştürülmez.
 
@@ -24,18 +22,14 @@ Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: D
 
 ## Son yapılanlar
 
-- 3A/3B/3C runtime main'de.
-- 3D için araştırma + motora map + 24+5 dilim + test planı yazıldı. Save hâlâ v5.
+- 3A/3B/3C/3D runtime main'de (bu dalda: `cowork/tc-sim-3d`).
+- 3D: 24 bağımsız sosyal event + 5 gecikmeli üç adımlı zincir (CHN-01/03/08/09/10), `scheduleSocialFollowup`/`personal-debt`/`hasNpcMemory` motor eklentileri. Save hâlâ v5. Ayrıntı: `TC_SIM_3D_POST_IMPLEMENTATION.md`.
 
 ## Sıradaki tek iş
 
-**3D runtime uygulaması (ayrı iş).** Bu belge dalında kod yok.
+**Manuel 3D playtest.** 3E (evlilik, çocuk, otonom NPC, tam gossip grafiği, save v6) bu playtest tamamlanmadan başlatılmaz.
 
-Başla: `docs/tc-sim/TC_SIM_3D_COWORK_START.md`.
-Sözleşme: `TC_SIM_3D_IMPLEMENTATION.md`.
-Test: `TC_SIM_3D_TEST_PLAN.md`.
-
-3C ile gelen ve korunması gereken runtime durumu:
+3D ile gelen ve korunması gereken runtime durumu:
 
 - Eski `state.relationships` puanı yakınlık olarak korunur; güven, gerilim, son anlamlı temas ve romantik durum mevcut NPC kayıtlarındadır.
 - İlişki evresi merkezî helper ile türetilir; romantik ilgi ve sevgililik açık karar gerektirir. Aile romantik olamaz, aynı anda en fazla bir partner vardır.
@@ -44,15 +38,18 @@ Test: `TC_SIM_3D_TEST_PLAN.md`.
 - Yardım sözü mevcut openCase/event hattını kullanır; başarı veya deadline başarısızlığı yalnız bir kez sonuçlanır.
 - `SAVE_VERSION = 5`; `migrateV4()` Aylin/Mehmet, eski yakınlık, hafıza ve diğer bütün 3B state'ini korur.
 - KİŞİLER bireysel dosya/eylem ekranıdır; AİLE/İLİŞKİLER özet ve açık sosyal mesele görünümüdür.
-- `normalizeSocialState` role/tag kilidini korur; 3D kişilik motoru eklemez.
+- `normalizeSocialState` role/tag kilidini korur; 3D kişilik motoru eklemedi, beşinci NPC/rol yok.
+- `personal-debt` (openCase, kişiye özel) ve `social-followup` (openCase, `scheduleSocialFollowup` ile) mevcut `openCases` şemasına ek tür olarak oturur; eski sabit 1500 TL `friend-loan`/`loan_repayment` davranışı değişmedi.
+- `hasNpcMemory(state, personId, type)` merkezî sorgu helper'ı event uygunluğu ve gecikmeli geri çağrılarda kullanılır.
+- Organik aramada haftada en fazla bir yeni 3D olay aktifleşir (`flags.lastSocial3DWeek` + `flags.lastEventResolvedWeek`); zincir halkaları due-case ile geldiği için siperden muaftır.
 
-3B özeti: `TC_SIM_3B_POST_IMPLEMENTATION.md`. Eğitim/kariyer invariantları durur.
+3B özeti: `TC_SIM_3B_POST_IMPLEMENTATION.md`. 3D özeti: `TC_SIM_3D_POST_IMPLEMENTATION.md`. Eğitim/kariyer invariantları durur.
 
 ## Korunacak teknik ilkeler
 
-- Motor önce, içerik sonra — 3D içerik mevcut motora oturur, motora oturmayan sistem yazılmaz.
+- Motor önce, içerik sonra — 3D içerik mevcut motora oturur, motora oturmayan sistem yazılmadı.
 - State tek doğruluk kaynağı.
 - Hafıza, flag, açık dosya ve ham event geçmişi karışmaz.
 - Eventler durum ve geçmişten doğar.
 - Save yüklenmeden doğrulanır; v6 yok.
-- Evlilik, çocuk, otonom NPC, sosyal grafik 3D dışı.
+- Evlilik, çocuk, otonom NPC, sosyal grafik 3D'de de eklenmedi; 3E'ye kadar dışarıda.

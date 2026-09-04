@@ -182,6 +182,23 @@ function run(weeks, seed) {
     check(state.events.history.length <= 200, "event geçmişi sınırı aşıldı");
     check(state.yearlyHistory.length <= 80, "yıl dosyası sınırı aşıldı");
 
+    // 3D: openCases patlamaz, borç tutarları sınırlı ve negatif olmaz, tekrar yok.
+    check(state.openCases.length <= 50, "openCases sınırsız büyüyor");
+    const caseIds = new Set();
+    for (const item of state.openCases) {
+      check(!caseIds.has(item.id), `tekrar eden openCase id: ${item.id}`);
+      caseIds.add(item.id);
+      if (item.type === "personal-debt")
+        check(
+          Number.isFinite(item.payload?.amount) && item.payload.amount > 0,
+          "kişisel borç tutarı geçersiz/negatif",
+        );
+    }
+    const unresolvedDebts = state.openCases.filter(
+      (item) => item.type === "personal-debt" && item.status !== "resolved",
+    );
+    check(unresolvedDebts.length <= 1, "birden fazla bekleyen kişisel borç");
+
     if ((step + 1) % 12 === 0) {
       const saved = saveGame(storage, state);
       check(saved.ok, `save başarısız: ${saved.message}`);

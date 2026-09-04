@@ -63,6 +63,18 @@ const escapeText = (value) =>
     (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char],
   );
 
+function openCaseLabel(item) {
+  if (item.type === "job-start") return "İş başlangıcı";
+  if (item.type === "social-obligation") return "Verilen yardım sözü";
+  if (item.type === "friend-loan") return "Mehmet'e verilen borç";
+  if (item.type === "personal-debt") {
+    const person = getPerson(state, item.payload?.personId);
+    return `${person ? person.name : "Bir arkadaşa"} verilen borç`;
+  }
+  if (item.type === "social-followup") return "Bekleyen sosyal mesele";
+  return "Bekleyen mesele";
+}
+
 function persist(message = "Otomatik kaydedildi.") {
   const result = saveGame(localStorage, state);
   saveStatus = result.ok ? `${message} (${Math.ceil(result.bytes / 1024)} KB)` : result.message;
@@ -234,7 +246,7 @@ function renderDashboard() {
         )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
       <aside class="right-column"><section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section><section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section></aside>
       <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
-      <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${item.type === "job-start" ? "İş başlangıcı" : item.type === "social-obligation" ? "Verilen yardım sözü" : "Mehmet'e verilen borç"}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
+      <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${escapeText(openCaseLabel(item))}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
     </div>`;
 }
 
