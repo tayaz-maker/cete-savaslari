@@ -1,7 +1,7 @@
-import { WEEKLY_ACTIVITY_LIMIT, createNewGame } from "./state.js";
-import { getEventDefinition, resolveEvent } from "./events.js";
-import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js";
-import { clearSaves, loadGame, saveGame } from "./save.js";
+import { WEEKLY_ACTIVITY_LIMIT, createNewGame } from "./state.js?v=5";
+import { getEventDefinition, resolveEvent } from "./events.js?v=5";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=5";
+import { clearSaves, loadGame, saveGame } from "./save.js?v=5";
 import {
   HOMES,
   JOBS,
@@ -17,7 +17,7 @@ import {
   quitJob,
   stopEducation,
   PRIVACY_CONTEXT,
-} from "./life.js";
+} from "./life.js?v=5";
 import {
   EDUCATION_PATHS,
   JOB_FAMILY_LABELS,
@@ -30,9 +30,9 @@ import {
   getIntensityLabel,
   getPathDurationWeeks,
   isEligibleForJob,
-} from "./education.js";
-import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
-import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js";
+} from "./education.js?v=5";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=5";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=5";
 import {
   RELATIONSHIP_STAGES,
   SOCIAL_ROLE_LABELS,
@@ -42,7 +42,7 @@ import {
   getPerson,
   getRelationship,
   getRelationshipStage,
-} from "./social.js";
+} from "./social.js?v=5";
 
 const app = document.querySelector("#app");
 let state = null;

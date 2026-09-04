@@ -6,7 +6,7 @@ import {
   clamp,
   transact,
   updateRelationship,
-} from "./state.js";
+} from "./state.js?v=5";
 
 export const RELATIONSHIP_STAGES = {
   acquaintance: "Tanışık",

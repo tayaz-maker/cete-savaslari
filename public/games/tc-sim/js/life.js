@@ -1,15 +1,15 @@
-import { WEEKLY_ACTIVITY_LIMIT, addMemory, adjustHealth, transact } from "./state.js";
-import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
+import { WEEKLY_ACTIVITY_LIMIT, addMemory, adjustHealth, transact } from "./state.js?v=5";
+import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=5";
 import {
   getEducationWeeklyLoad,
   getPathById,
   getWeeklyProgressGain,
   isEligibleForJob,
   resolveCompletedLevel,
-} from "./education.js";
-import { applySocialMaintenance } from "./social.js";
+} from "./education.js?v=5";
+import { applySocialMaintenance } from "./social.js?v=5";
 
-export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
+export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=5";
 
 export function getWeeklyLifeLoad(state) {
   const job = getJobById(state.career.jobId);

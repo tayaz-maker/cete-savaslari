@@ -5,9 +5,9 @@ import {
   adjustHealth,
   transact,
   updateRelationship,
-} from "./state.js";
-import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js";
-import { getPathById, isEligibleForJob } from "./education.js";
+} from "./state.js?v=5";
+import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js?v=5";
+import { getPathById, isEligibleForJob } from "./education.js?v=5";
 import {
   applyRelationshipDelta,
   becomePartner,
@@ -18,7 +18,7 @@ import {
   markMeaningfulContact,
   resolveSocialObligation,
   setRomanticInterest,
-} from "./social.js";
+} from "./social.js?v=5";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&

@@ -9,10 +9,10 @@ import {
   assertValidState,
   transact,
   updateRelationship,
-} from "./state.js";
-import { applyRelationshipDelta, markMeaningfulContact } from "./social.js";
-import { activateNextEvent, processDueOpenCases } from "./events.js";
-import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js";
+} from "./state.js?v=5";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=5";
+import { activateNextEvent, processDueOpenCases } from "./events.js?v=5";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=5";
 
 export const DECISIONS = [
   {

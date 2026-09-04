@@ -1,6 +1,6 @@
-import { getHomeById, getJobById } from "./catalog.js";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
-import { isEducationLevel, isValidActiveEducation } from "./education.js";
+import { getHomeById, getJobById } from "./catalog.js?v=5";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=5";
+import { isEducationLevel, isValidActiveEducation } from "./education.js?v=5";
 
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;

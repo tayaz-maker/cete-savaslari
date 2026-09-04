@@ -8,6 +8,7 @@
 - Haftalık kontrollü ilişki bakımı; davet, yardım sözü, romantik fırsat ve gerilim olayları.
 - Yardım sözü için deadline taşıyan openCase; başarı ve başarısızlıkta tek seferlik sonuç/hafıza.
 - KİŞİLER dosyası, AİLE/İLİŞKİLER özeti ve dashboard sosyal özeti.
+- Vanilla JS modülleri v5 cache anahtarıyla yüklenir; deploy sonrası eski state modülüyle yeni arayüzün karışması engellenir.
 
 ## State ve Migration
 

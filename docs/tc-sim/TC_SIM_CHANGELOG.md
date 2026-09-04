@@ -42,4 +42,5 @@
 - Aile romantizmi ve birden fazla partner doğrulama seviyesinde engellendi.
 - KİŞİLER ve AİLE/İLİŞKİLER ekranları etkinleştirildi; dashboard'a küçük sosyal özet eklendi.
 - Save sürümü 5'e çıkarıldı; v4 kayıtları eski NPC puanları ve hafızaları korunarak taşınıyor.
+- Deploy sırasında eski/yeni modül karışmasını önlemek için runtime importlarına v5 cache anahtarı eklendi.
 - 28 yeni davranış testi ile sosyal eylem içeren 144/520 haftalık ve 20 seed fuzz doğrulaması eklendi.
