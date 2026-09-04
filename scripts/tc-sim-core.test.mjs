@@ -192,6 +192,6 @@ test("15. eski ve eksik save migration ile güvenle tamamlanır", () => {
   const migrated = migrateState(legacy);
   assert.equal(migrated.ok, true);
   assert.equal(migrated.migrated, true);
-  assert.equal(migrated.state.meta.saveVersion, 2);
+  assert.equal(migrated.state.meta.saveVersion, 3);
   assert.equal(migrated.state.finances.balance, 3200);
 });

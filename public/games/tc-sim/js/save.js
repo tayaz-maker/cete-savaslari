@@ -1,5 +1,6 @@
 import { SAVE_VERSION, createNewGame, validateState } from "./state.js";
 import { getHomeById, getJobById } from "./life.js";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 
 export const SAVE_KEY = "tc-sim-save";
 export const BACKUP_KEY = "tc-sim-save-backup";
@@ -48,6 +49,7 @@ function mergeLegacy(raw) {
         ? raw.household.homeId === "family"
         : raw?.household?.livingWithFamily !== false,
     },
+    world: { eraId: PRESENT_DAY_ERA_ID },
     health: { ...base.health, ...(raw.health || {}) },
     events: { ...base.events, ...(raw.events || {}) },
     weekly: { ...base.weekly, ...(raw.weekly || {}) },
@@ -60,6 +62,24 @@ function mergeLegacy(raw) {
   return merged;
 }
 
+function migrateV2(raw) {
+  return {
+    ...raw,
+    meta: { ...raw.meta, saveVersion: SAVE_VERSION },
+    world: { eraId: getEraById(raw?.world?.eraId) ? raw.world.eraId : PRESENT_DAY_ERA_ID },
+  };
+}
+
+function normalizeCurrentEra(raw) {
+  return {
+    ...raw,
+    world: {
+      ...(raw.world || {}),
+      eraId: getEraById(raw?.world?.eraId) ? raw.world.eraId : PRESENT_DAY_ERA_ID,
+    },
+  };
+}
+
 export function migrateState(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     return { ok: false, error: "Kayıt nesne değil." };
@@ -67,7 +87,9 @@ export function migrateState(raw) {
   if (!Number.isInteger(version) || version < 0 || version > SAVE_VERSION)
     return { ok: false, error: "Desteklenmeyen kayıt sürümü." };
   let state = raw;
-  if (version < SAVE_VERSION) state = mergeLegacy(raw);
+  if (version < 2) state = mergeLegacy(raw);
+  else if (version === 2) state = migrateV2(raw);
+  else state = normalizeCurrentEra(raw);
   const validation = validateState(state);
   return validation.ok
     ? { ok: true, state, migrated: version !== SAVE_VERSION }

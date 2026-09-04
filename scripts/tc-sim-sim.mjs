@@ -1,11 +1,12 @@
 import { createNewGame, validateState } from "../public/games/tc-sim/js/state.js";
 import { getHomeById, getJobById } from "../public/games/tc-sim/js/life.js";
+import { getEraById } from "../public/games/tc-sim/js/eras.js";
 import { getEventDefinition, resolveEvent } from "../public/games/tc-sim/js/events.js";
 import {
-  DECISIONS,
   advanceWeek,
   applyDecision,
   canApplyDecision,
+  getAvailableDecisions,
 } from "../public/games/tc-sim/js/time.js";
 import { loadGame, saveGame } from "../public/games/tc-sim/js/save.js";
 
@@ -41,8 +42,10 @@ for (let step = 0; step < 144; step += 1) {
     if (!resolveEvent(state, preferred).ok) throw new Error("Event çözülemedi");
     eventCount += 1;
   }
-  const first = DECISIONS[(step * 2) % DECISIONS.length];
-  const second = DECISIONS[(step * 2 + 1) % DECISIONS.length];
+  const available = getAvailableDecisions(state);
+  if (!available.length) throw new Error("Karar havuzu boş kaldı");
+  const first = available[(step * 2) % available.length];
+  const second = available[(step * 2 + 1) % available.length];
   for (const decision of [first, second])
     if (canApplyDecision(state, decision.id).ok) applyDecision(state, decision.id);
   if (state.events.active) {
@@ -59,9 +62,10 @@ for (let step = 0; step < 144; step += 1) {
   if (!validation.ok) throw new Error(validation.errors.join("; "));
   if (
     (state.career.jobId !== null && !getJobById(state.career.jobId)) ||
-    !getHomeById(state.household.homeId)
+    !getHomeById(state.household.homeId) ||
+    !getEraById(state.world.eraId)
   )
-    throw new Error("İş/konut invariantı bozuldu");
+    throw new Error("İş/konut/dönem invariantı bozuldu");
   const numericValues = [
     state.finances.balance,
     state.health.energy,
@@ -106,6 +110,7 @@ const result = {
   valid: validateState(state).ok,
   jobId: state.career.jobId,
   homeId: state.household.homeId,
+  eraId: state.world.eraId,
 };
 
 if (

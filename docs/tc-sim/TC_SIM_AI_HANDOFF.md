@@ -28,7 +28,8 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 - Site kataloğuna `/oyna/tc-sim` olarak eklendi; çekirdek testleri ve üç yıllık simülasyon hazırlandı.
 - Üç iş ve üç konut; ev × iş ulaşımı, haftalık beden yükü ve aylık finansla bağlandı.
 - İş teklifleri bir haftalık açık dosyayla başlıyor; taşınma doğrulanan tek seferlik maliyet kullanıyor.
-- Save v2 migration eski para, beden, NPC, hafıza ve açık dosya kayıtlarını koruyor.
+- Save migration eski para, beden, NPC, hafıza ve açık dosya kayıtlarını koruyor.
+- Dönem persistent state'in parçasıdır; şu an yalnız `present_day` / Günümüz oynanabilir, eski kayıtlar buna migrate edilir.
 
 ## Sıradaki tek iş
 

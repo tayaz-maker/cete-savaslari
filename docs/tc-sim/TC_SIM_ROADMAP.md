@@ -26,6 +26,8 @@
 
 **Ana işler:** 3 iş, 3 konut, aile, yaklaşık 5 NPC, 1 partner ihtimali, para, temel beden, NPC ilerlemesi, 20–30 koşullu event, yaklaşık 5 açık dosya ve yıl sonu raporu.
 
+**Dönem ilkesi:** Gelecekte farklı başlangıç dönemleri desteklenecek; mevcut oynanabilir kapsam yalnız Günümüz'dür ve dönem kimliği save state'te korunur.
+
 **Bitmiş sayılma şartı:** Oyuncu para–zaman–insan–beden arasında gerçek tercihler yapar; bir yıllık geçmiş anlamlı görünür; içerik kotası motor eksiklerini gizlemek için büyütülmemiştir.
 
 ## 4. Uzun Hayat

@@ -1,6 +1,7 @@
 import { getHomeById, getJobById } from "./catalog.js";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
 export const WEEKLY_ACTIVITY_LIMIT = 2;
@@ -63,6 +64,7 @@ export function createNewGame(options = {}) {
       age: 18,
       city: "İstanbul",
     },
+    world: { eraId: getEraById(options.eraId)?.id || PRESENT_DAY_ERA_ID },
     time: { year: 2027, month: 1, weekOfMonth: 1, absoluteWeek: 1 },
     finances: {
       balance: profile.balance,
@@ -201,6 +203,7 @@ export function validateState(state) {
   )
     errors.push("Bekleyen iş kaydı geçersiz");
   if (!state.household || !getHomeById(state.household.homeId)) errors.push("Konut kaydı geçersiz");
+  if (!state.world || !getEraById(state.world.eraId)) errors.push("Dönem kaydı geçersiz");
   if (
     !state.health ||
     ["energy", "stress", "health"].some(

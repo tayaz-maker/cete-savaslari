@@ -31,6 +31,7 @@ Bu bir şema veya kod sözleşmesi değildir; kodlama öncesi ana sınırları g
 gameState
 ├─ meta            sürüm, oyun kimliği, oluşturma/güncelleme bilgisi
 ├─ time            hafta, ay, yıl, yaş ve takvim
+├─ world           persistent dönem kimliği; eski kayıtlar Günümüz'e migrate edilir
 ├─ player          kimlik, geçmiş, eğitim, kişilik, zaman/enerji
 ├─ finances        bakiye, gelirler, giderler, borçlar
 ├─ career          iş, sözleşme ve performans

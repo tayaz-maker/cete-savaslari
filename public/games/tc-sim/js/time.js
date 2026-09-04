@@ -95,7 +95,55 @@ export const DECISIONS = [
       addMemory(state, "Mehmet'e ₺1.500 borç verdin.", "important");
     },
   },
+  {
+    id: "quiet-evening",
+    title: "Sakin bir akşam geçir",
+    detail: "enerji +10 · stres −4",
+    contextual: (state) => state.health.energy <= 50,
+    apply(state) {
+      adjustHealth(state, { energy: 10, stress: -4 });
+    },
+  },
+  {
+    id: "reset-routine",
+    title: "Temponu düzenle",
+    detail: "enerji +4 · stres −10",
+    contextual: (state) => state.health.stress >= 50,
+    apply(state) {
+      adjustHealth(state, { energy: 4, stress: -10 });
+    },
+  },
+  {
+    id: "budget-check",
+    title: "Bütçeyi gözden geçir",
+    detail: "stres −5 · harcama planı kaydı",
+    contextual: (state) => state.finances.balance < 3500,
+    apply(state) {
+      adjustHealth(state, { stress: -5 });
+      state.flags.reviewedBudget = state.time.absoluteWeek;
+      addMemory(state, "Bütçeni gözden geçirip harcama planı yaptın.");
+    },
+  },
+  {
+    id: "job-search",
+    title: "İş fırsatlarını araştır",
+    detail: "stres −3 · iş arama kaydı",
+    contextual: (state) => state.career.jobId === null && !state.career.pendingJob,
+    apply(state) {
+      adjustHealth(state, { stress: -3 });
+      state.flags.searchedForWorkWeek = state.time.absoluteWeek;
+      addMemory(state, "Yeni iş fırsatlarını araştırdın.");
+    },
+  },
 ];
+
+const CORE_DECISION_IDS = new Set(["overtime", "rest", "exercise"]);
+
+export function getAvailableDecisions(state) {
+  return DECISIONS.filter(
+    (decision) => CORE_DECISION_IDS.has(decision.id) || decision.contextual?.(state),
+  );
+}
 
 export function canApplyDecision(state, decisionId) {
   const decision = DECISIONS.find((item) => item.id === decisionId);

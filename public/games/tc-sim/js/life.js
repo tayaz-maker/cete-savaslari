@@ -14,6 +14,31 @@ export function getWeeklyLifeLoad(state) {
   };
 }
 
+export function getCommuteExplanation(homeId, jobId) {
+  if (jobId === null)
+    return {
+      label: "İşsiz — ulaşım yükü yok",
+      detail: "Aktif iş olmadığı için haftalık ulaşım etkisi yok.",
+      energy: 0,
+      stress: 0,
+    };
+  const load = getCommuteLoad(homeId, jobId);
+  const labels = ["Çok düşük", "Düşük", "Orta", "Yüksek"];
+  const label = labels[Math.min(load, labels.length - 1)];
+  return {
+    label,
+    detail:
+      load === 0
+        ? "Ev ve iş yakın; haftalık ek ulaşım yükü yok."
+        : `Haftalık etki: ${-load * 2} enerji · +${load * 2} stres`,
+    energy: -load * 2,
+    stress: load * 2,
+  };
+}
+
+export const PRIVACY_CONTEXT =
+  "Mahremiyet şu an doğrudan stat değiştirmez; ileride aile, partner ve sosyal olaylarda bağlam sağlar.";
+
 export const getMonthlyEmploymentIncome = (state) => getJobById(state.career.jobId)?.salary || 0;
 export const getMonthlyHousingCost = (state) =>
   getHomeById(state.household.homeId)?.monthlyCost || 0;

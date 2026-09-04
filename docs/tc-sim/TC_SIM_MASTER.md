@@ -20,6 +20,7 @@ Hedef, TarikLab içinde düzgün çalışan, mantıklı, tekrar oynanabilir ve y
 
 - Başlangıç yaşı: **18**. 0–17 yaş oynanmaz; geçmiş, başlangıç koşullarını belirler.
 - İlk şehir: **İstanbul**. İlk sürümde başka şehir simüle edilmez.
+- TC SIM gelecekte farklı başlangıç dönemlerini destekleyecektir; güncel geliştirme odağı yalnız **Günümüz** dönemidir.
 - Ana zaman birimi: **1 hafta**. Ay sonunda düzenli finans, yıl sonunda hayat dosyası işlenir.
 - İlk prototip: 18 yaşta başlar ve yaklaşık birkaç oyun yılını kapsar. Sonraki hedef 18–35'tir.
 - Dünya: yaklaşık beş önemli NPC'den oluşan oyuncu merkezli model.

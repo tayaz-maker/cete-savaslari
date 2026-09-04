@@ -1,20 +1,23 @@
 import { WEEKLY_ACTIVITY_LIMIT, createNewGame } from "./state.js";
 import { getEventDefinition, resolveEvent } from "./events.js";
-import { DECISIONS, advanceWeek, applyDecision, canApplyDecision } from "./time.js";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js";
 import { clearSaves, loadGame, saveGame } from "./save.js";
 import {
   HOMES,
   JOBS,
   acceptJobOffer,
   getCommuteLoad,
+  getCommuteExplanation,
   getHomeById,
   getJobById,
   getMonthlySummary,
   getMoveCost,
-  getWeeklyLifeLoad,
   moveHome,
   quitJob,
+  PRIVACY_CONTEXT,
 } from "./life.js";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js";
 
 const app = document.querySelector("#app");
 let state = null;
@@ -51,6 +54,7 @@ function startScreen(loadResult) {
           <label>İsim<input name="name" maxlength="40" value="Deniz" required /></label>
           <label>Kimlik<select name="gender"><option value="unspecified">Belirtmek istemiyorum</option><option value="woman">Kadın</option><option value="man">Erkek</option></select></label>
           <label>Başlangıç profili<select name="profile"><option value="balanced">Dengeli</option><option value="ambitious">Hırslı</option><option value="social">Sosyal</option></select></label>
+          <label>Başlangıç dönemi<select name="eraId" disabled>${ERAS.map((era) => `<option value="${era.id}" ${era.id === PRESENT_DAY_ERA_ID ? "selected" : ""}>${escapeText(era.title)} · aktif</option>`).join("")}</select><small>Diğer dönemler daha sonra eklenecek.</small></label>
           <button class="button button-primary" type="submit">Yeni hayat başlat</button>
         </form>
       </section>
@@ -69,6 +73,7 @@ function startScreen(loadResult) {
       name: data.get("name"),
       gender: data.get("gender"),
       profile: data.get("profile"),
+      eraId: PRESENT_DAY_ERA_ID,
       seed: Date.now() >>> 0,
     });
     notice = "Yeni hayat başladı.";
@@ -120,29 +125,23 @@ function renderAgenda() {
 }
 
 function renderNav() {
-  const items = [
-    ["ANA SAYFA", "dashboard"],
-    ["BEN", null],
-    ["TAKVİM", null],
-    ["PARA", null],
-    ["İŞ", "career"],
-    ["KİŞİLER", null],
-    ["AİLE / İLİŞKİLER", null],
-    ["EV", "home"],
-    ["BEDEN", null],
-    ["GEÇMİŞ", null],
-    ["YIL DOSYASI", null],
-  ];
-  return items
-    .map(
-      ([label, view]) =>
-        `<button class="nav-item ${view === activeView ? "is-active" : ""}" ${view ? `data-view="${view}"${view === activeView ? ' aria-current="page"' : ""}` : 'disabled aria-disabled="true"'}><span class="nav-mark"></span><span>${label}</span></button>`,
-    )
-    .join("");
+  return NAVIGATION_ITEMS.map(
+    ({ label, view }) =>
+      `<button type="button" class="nav-item ${view === activeView ? "is-active" : ""}" ${view ? `data-view="${view}"${view === activeView ? ' aria-current="page"' : ""}` : 'disabled aria-disabled="true"'}><span class="nav-mark"></span><span>${label}</span></button>`,
+  ).join("");
 }
 
 function lifeLabel(value) {
-  return ["Yok", "Düşük", "Orta", "Yüksek", "Çok yüksek"][Math.min(4, value)] || "Düşük";
+  return ["Çok düşük", "Düşük", "Orta", "Yüksek", "Çok yüksek"][Math.min(4, value)] || "Düşük";
+}
+
+function bodyRiskText() {
+  if (state.health.energy <= 45 && getCommuteLoad(state.household.homeId, state.career.jobId) >= 2)
+    return "Düşük enerji, yüksek ulaşım yüküyle birlikte yol yorgunluğu olayını açabilir.";
+  if (state.health.stress >= 70) return "Yüksek stres yorgunluk uyarısı doğurabilir.";
+  if (state.health.stress >= 65 && getJobById(state.career.jobId)?.load >= 3)
+    return "Yoğun iş ve stres birlikte iş baskısı olayı doğurabilir.";
+  return "Enerji ve stres; haftalık kararlar, iş yükü ve ulaşım tarafından etkilenir.";
 }
 
 function renderDashboard() {
@@ -154,19 +153,21 @@ function renderDashboard() {
   const projectedBalance = state.finances.balance + monthly.income - monthly.expenses;
   return `<div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div>${renderWeekControl()}</div>
     <section class="overview-grid" aria-label="Hayat özeti">
-      <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(home.title)}</dd></div><div><dt>İş</dt><dd>${escapeText(job?.title || "İşsiz")}</dd></div><div><dt>Ulaşım yükü</dt><dd>${lifeLabel(getCommuteLoad(home.id, job?.id || null))}</dd></div></dl></article>
+      <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul · ${escapeText(getEraById(state.world.eraId).title)}</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(home.title)}</dd></div><div><dt>İş</dt><dd>${escapeText(job?.title || "İşsiz")}</dd></div><div><dt>Ulaşım yükü</dt><dd>${escapeText(getCommuteExplanation(home.id, job?.id || null).label)}</dd></div></dl></article>
       <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(monthly.income)} gelir · ${money(monthly.expenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
-      <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div></article>
+      <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div><small class="body-note">${escapeText(bodyRiskText())}</small></article>
     </section>
     <div class="dashboard-grid">
-      <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><div class="decisions">${DECISIONS.map(
-        (decision) => {
+      <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><p class="decision-context">Temel kararlar her hafta açık. Diğer seçenekler hayat durumuna göre değişir.</p><div class="decisions">${getAvailableDecisions(
+        state,
+      )
+        .map((decision) => {
           const check = canApplyDecision(state, decision.id);
           return `<button class="button decision" data-decision="${decision.id}" ${check.ok ? "" : "disabled"} title="${escapeText(check.reason || "")}"><strong>${escapeText(decision.title)}</strong><small>${escapeText(decision.detail)}</small></button>`;
-        },
-      ).join(
-        "",
-      )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
+        })
+        .join(
+          "",
+        )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
       <aside class="right-column"><section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section><section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section></aside>
       <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
       <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${item.type === "job-start" ? "İş başlangıcı" : "Mehmet'e verilen borç"}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
@@ -180,18 +181,17 @@ function renderWeekControl() {
 function renderCareer() {
   const active = getJobById(state.career.jobId);
   const home = getHomeById(state.household.homeId);
-  const load = getWeeklyLifeLoad(state);
   return `<div class="workspace-head"><div><p class="eyebrow">İŞ</p><h1>Çalışma hayatı</h1></div>${renderWeekControl()}</div>
-    <section class="detail-summary panel"><div><span>Çalışma durumu</span><strong>${active ? escapeText(active.title) : "İşsiz"}</strong></div><div><span>Aylık maaş</span><strong>${money(active?.salary || 0)}</strong></div><div><span>İş yükü</span><strong>${lifeLabel(active?.load || 0)}</strong></div><div><span>Güvence</span><strong>${active?.security || "—"}</strong></div><div><span>${escapeText(home.title)} ulaşımı</span><strong>${lifeLabel(load.commute)}</strong></div></section>
+    <section class="detail-summary panel"><div><span>Çalışma durumu</span><strong>${active ? escapeText(active.title) : "İşsiz"}</strong></div><div><span>Aylık maaş</span><strong>${money(active?.salary || 0)}</strong></div><div><span>İş yükü</span><strong>${lifeLabel(active?.load || 0)}</strong></div><div><span>Güvence</span><strong>${active?.security || "—"}</strong></div><div><span>${escapeText(home.title)} ulaşımı</span><strong>${escapeText(getCommuteExplanation(home.id, active?.id || null).label)}</strong><small>${escapeText(getCommuteExplanation(home.id, active?.id || null).detail)}</small></div></section>
     ${state.career.pendingJob ? `<p class="result">${escapeText(getJobById(state.career.pendingJob.jobId).title)} başlangıcı ${Math.max(0, state.career.pendingJob.startWeek - state.time.absoluteWeek)} hafta sonra.</p>` : ""}
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">FIRSATLAR</p><h2>İş teklifleri</h2></div></div><div class="option-grid">${JOBS.map(
       (job) => {
-        const commute = getCommuteLoad(home.id, job.id);
+        const commute = getCommuteExplanation(home.id, job.id);
         const disabled =
           state.career.jobId === job.id ||
           state.career.pendingJob ||
           state.weekly.used >= WEEKLY_ACTIVITY_LIMIT;
-        return `<article class="option-card ${state.career.jobId === job.id ? "is-current" : ""}"><div><p class="panel-kicker">${state.career.jobId === job.id ? "AKTİF İŞ" : "İŞ TEKLİFİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${lifeLabel(commute)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy - commute * 2} · Stres +${job.stress + commute * 2}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div></dl><button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""}>Teklifi kabul et</button></article>`;
+        return `<article class="option-card ${state.career.jobId === job.id ? "is-current" : ""}"><div><p class="panel-kicker">${state.career.jobId === job.id ? "AKTİF İŞ" : "İŞ TEKLİFİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy + commute.energy} · Stres +${job.stress + commute.stress}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div></dl><button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""}>Teklifi kabul et</button></article>`;
       },
     ).join(
       "",
@@ -200,8 +200,10 @@ function renderCareer() {
 
 function renderHomes() {
   const activeJob = getJobById(state.career.jobId);
+  const activeCommute = getCommuteExplanation(state.household.homeId, state.career.jobId);
   return `<div class="workspace-head"><div><p class="eyebrow">EV</p><h1>Konut yönetimi</h1></div>${renderWeekControl()}</div>
-    <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(getHomeById(state.household.homeId).monthlyCost)}</strong></div><div><span>Çalışma yeri</span><strong>${escapeText(activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${lifeLabel(getCommuteLoad(state.household.homeId, state.career.jobId))}</strong></div></section>
+    <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(getHomeById(state.household.homeId).monthlyCost)}</strong></div><div><span>Çalışma yeri</span><strong>${escapeText(activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${escapeText(activeCommute.label)}</strong><small>${escapeText(activeCommute.detail)}</small></div></section>
+    <p class="context-note">${escapeText(PRIVACY_CONTEXT)}</p>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">SEÇENEKLER</p><h2>Konut alternatifleri</h2></div></div><div class="option-grid">${HOMES.map(
       (home) => {
         const cost = getMoveCost(home.id);
@@ -212,7 +214,8 @@ function renderHomes() {
           !affordable ||
           state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ||
           state.events.active;
-        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "MEVCUT EV" : "KONUT"}</p><h3>${escapeText(home.title)}</h3></div><dl><div><dt>Aylık maliyet</dt><dd>${money(home.monthlyCost)}</dd></div><div><dt>Mahremiyet</dt><dd>${lifeLabel(home.privacy)}</dd></div><div><dt>İşe ulaşım</dt><dd>${lifeLabel(getCommuteLoad(home.id, state.career.jobId))}</dd></div><div><dt>Taşınma</dt><dd>${money(cost)}</dd></div></dl><button class="button" data-move-home="${home.id}" ${disabled ? "disabled" : ""}>${current ? "Burada yaşıyorsun" : affordable ? "Taşın" : "Para yetersiz"}</button></article>`;
+        const commute = getCommuteExplanation(home.id, state.career.jobId);
+        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "MEVCUT EV" : "KONUT"}</p><h3>${escapeText(home.title)}</h3></div><dl><div><dt>Mahremiyet</dt><dd>${lifeLabel(home.privacy)}</dd></div><div><dt>Aylık maliyet</dt><dd>${money(home.monthlyCost)}</dd></div><div><dt>İşe ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık ulaşım</dt><dd>${escapeText(commute.detail)}</dd></div><div><dt>Taşınma</dt><dd>${money(cost)}</dd></div></dl><button class="button" data-move-home="${home.id}" ${disabled ? "disabled" : ""}>${current ? "Burada yaşıyorsun" : affordable ? "Taşın" : "Para yetersiz"}</button></article>`;
       },
     ).join(
       "",
@@ -258,7 +261,9 @@ function render() {
   );
   document.querySelectorAll("[data-view]").forEach((button) =>
     button.addEventListener("click", () => {
-      activeView = button.dataset.view;
+      const target = getNavigationTarget(button.dataset.view);
+      if (!target) return;
+      activeView = target;
       notice = "";
       render();
     }),

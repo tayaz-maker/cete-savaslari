@@ -358,6 +358,27 @@ select:focus-visible {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+.body-note,
+.detail-summary small,
+.decision-context,
+.context-note {
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.42;
+}
+.body-note {
+  display: block;
+  margin-top: 1px;
+}
+.decision-context {
+  margin: -2px 0 10px;
+}
+.context-note {
+  margin: 0 0 10px;
+  border-left: 2px solid var(--line);
+  padding: 8px 10px;
+  background: var(--surface-2);
+}
 
 .dashboard-grid {
   display: grid;
