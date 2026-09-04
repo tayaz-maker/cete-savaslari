@@ -8,6 +8,14 @@ Bu belge, TarikLab için geliştirilecek **TC SIM: DEVLET** oyununun mevcut büt
 
 Bu belge mevcut proje kararları olarak kabul edilmelidir.
 
+> **Uygulamaya başlayacaksan bu belgeyi baştan sona okuma.** Bu, ürün vizyonudur ve
+> prototip kapsamı değildir; buradaki sistemlerin çoğu bilinçli olarak sonraki aşamalara
+> ertelenmiştir. Uygulama için sırasıyla: **`TC_SIM_DEVLET_COWORK_START.md`** (hızlı başlangıç),
+> `TC_SIM_DEVLET_ARCHITECTURE.md` (state/motor/save kilidi), `TC_SIM_DEVLET_PROTOTYPE.md`
+> (ilk dilim kapsamı ve içerik bütçesi), `TC_SIM_DEVLET_TEST_PLAN.md`.
+> Prototip dönem **`restructuring_2002`** olarak kilitlenmiştir; §62'deki "1980–1983 veya
+> 2002–2005" seçeneği artık açık değildir (gerekçe: `TC_SIM_DEVLET_PROTOTYPE.md §1`).
+
 Benden geçmişi yeniden anlatmamı isteme.
 
 Eksik küçük teknik/tasarım kararlarını kendin en tutarlı şekilde tamamla. Yalnızca ürünün yönünü kökten değiştirecek kritik kararlarda kullanıcıya danış.
