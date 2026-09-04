@@ -19,6 +19,7 @@ import {
   getHomeById,
   getJobById,
   getMonthlySummary,
+  getMonthlyHousingBreakdown,
   getMoveCost,
   moveHome,
   quitJob,
@@ -443,8 +444,9 @@ function renderEducation() {
 function renderHomes() {
   const activeJob = getJobById(state.career.jobId);
   const activeCommute = getCommuteExplanation(state.household.homeId, state.career.jobId);
+  const housing = getMonthlyHousingBreakdown(state);
   return `<div class="workspace-head"><div><p class="eyebrow">EV</p><h1>Konut yönetimi</h1></div>${renderWeekControl()}</div>
-    <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(getHomeById(state.household.homeId).monthlyCost)}</strong></div><div><span>Çalışma yeri</span><strong>${escapeText(activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${escapeText(activeCommute.label)}</strong><small>${escapeText(activeCommute.detail)}</small></div></section>
+    <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(housing.total)}</strong>${housing.familyContribution ? `<small>Konut ${money(housing.base)} · Aile katkısı ${money(housing.familyContribution)}</small>` : ""}</div><div><span>Çalışma yeri</span><strong>${escapeText(activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${escapeText(activeCommute.label)}</strong><small>${escapeText(activeCommute.detail)}</small></div></section>
     <p class="context-note">${escapeText(PRIVACY_CONTEXT)}</p>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">SEÇENEKLER</p><h2>Konut alternatifleri</h2></div></div><div class="option-grid">${HOMES.map(
       (home) => {
@@ -487,7 +489,7 @@ function renderFinance() {
     <section class="detail-summary panel">
       <div><span>Bakiye</span><strong>${money(state.finances.balance)}</strong></div>
       <div><span>Aylık gelir</span><strong>${money(monthly.income)}</strong><small>Maaş ${money(monthly.salary)}${monthly.otherIncome ? ` · Diğer ${money(monthly.otherIncome)}` : ""}</small></div>
-      <div><span>Aylık gider</span><strong>${money(monthly.expenses)}</strong><small>Konut ${money(monthly.housing)}${monthly.tuition ? ` · Eğitim ${money(monthly.tuition)}` : ""} · Diğer ${money(monthly.otherExpenses)}</small></div>
+      <div><span>Aylık gider</span><strong>${money(monthly.expenses)}</strong><small>Konut ${money(monthly.housing)}${monthly.housingBreakdown.familyContribution ? ` (aile katkısı dahil)` : ""}${monthly.tuition ? ` · Eğitim ${money(monthly.tuition)}` : ""} · Diğer ${money(monthly.otherExpenses)}</small></div>
       <div><span>Ay sonu tahmini</span><strong>${money(projectedBalance)}</strong></div>
     </section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">ALACAKLAR</p><h2>Sana borçlu olanlar</h2></div><span>${owedToPlayer.length}</span></div>${

@@ -22,10 +22,10 @@
 
 ### UI-010 — Uzun oyunda para bolluğu
 - Ekran/menu: Genel oynanış döngüsü
-- Sorun: Çekirdek takaslar güçlendi (mesai azalan getirili, kritik sağlık karar hakkını kısıyor) ama düzenli giderler sabit kaldığı için 2–3 oyun yılından sonra para yine baskı olmaktan çıkıyor. Ölçüm: 156 haftada dengeli oyun ~₺209k, aralıklı mesai ~₺222k; aylık gider 6.500 sabit.
+- Sorun: Çekirdek takaslar güçlendi (mesai azalan getirili, kritik sağlık karar hakkını kısıyor) ama düzenli giderler sabit kaldığı için 2–3 oyun yılından sonra para yine baskı olmaktan çıkıyordu. Aile yanında gelir yükseldikçe aile katkısı, bağımsız konutlarda da daha yüksek aylık konut yükü eklendi.
 - Tekrarlama: `node scripts/tc-sim-stakes.mjs` çıktısında 156 haftalık satırları karşılaştır.
 - Beklenen: Orta/uzun oyunda paranın alıcı gücü ya da hedefleri, birikimle birlikte anlam kazanmaya devam eder.
-- Mevcut: Bu sprint kısa/orta vadeli takasları düzeltti; uzun vadeli para eğrisi ayrı bir denge işi olarak bırakıldı.
+- Mevcut: Kısmen iyileştirildi. Konut seçimi ve ileri gelir artık daha görünür aylık taahhüt yaratıyor; daha geniş içerik hedefleri gelmeden nihai uzun oyun eğrisi kapanmış sayılmaz.
 - Olası dosya/sistem: `public/games/tc-sim/js/catalog.js`, `life.js` (gider/konut kademeleri)
 - 3D tarafından getirildi mi: Hayır.
 
@@ -48,4 +48,3 @@
 - Mevcut: Düzeltme onlarca event tanımına dokunmayı gerektireceğinden bu sprintin kapsamı dışında bırakıldı.
 - Olası dosya/sistem: `public/games/tc-sim/js/events.js`
 - 3D tarafından getirildi mi: Hayır.
-

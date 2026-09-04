@@ -11,7 +11,10 @@ import {
   acceptJobOffer,
   applyWeeklyLifeLoad,
   getCommuteLoad,
+  getMonthlyHousingBreakdown,
   getMonthlySummary,
+  hasIndependentHousing,
+  hasSavings,
   moveHome,
   quitJob,
 } from "../public/games/tc-sim/js/life.js";
@@ -93,11 +96,27 @@ test("3A.5 işsiz maaş almaz ama konut gideri öder", () => {
     settle(state);
     advanceWeek(state);
   }
-  assert.equal(state.finances.balance, start - 6500);
+  assert.equal(state.finances.balance, start - getMonthlySummary(state).expenses);
   assert.equal(
     state.finances.ledger.some((x) => x.reason === "Aylık maaş"),
     false,
   );
+});
+
+test("3A.12 konut maliyeti bağımsız yaşamı ve aile katkısını mevcut state'ten türetir", () => {
+  const state = fresh();
+  assert.equal(hasIndependentHousing(state), false);
+  assert.equal(hasSavings(state, 5000), true);
+  state.career.jobId = "specialist";
+  const family = getMonthlyHousingBreakdown(state);
+  assert.equal(family.base, 1500);
+  assert.equal(family.familyContribution, 1800);
+  assert.equal(family.total, 3300);
+  state.household.homeId = "studio";
+  assert.equal(hasIndependentHousing(state), true);
+  const studio = getMonthlyHousingBreakdown(state);
+  assert.equal(studio.total, 7600);
+  assert.equal(studio.familyContribution, 0);
 });
 
 test("3A.6 teklif gecikmeli başlar, pending save/load ile korunur ve hopping engellenir", () => {

@@ -50,19 +50,32 @@ export const PRIVACY_CONTEXT =
   "Mahremiyet şu an doğrudan stat değiştirmez; ileride aile, partner ve sosyal olaylarda bağlam sağlar.";
 
 export const getMonthlyEmploymentIncome = (state) => getJobById(state.career.jobId)?.salary || 0;
-export const getMonthlyHousingCost = (state) =>
-  getHomeById(state.household.homeId)?.monthlyCost || 0;
+export function getMonthlyHousingBreakdown(state) {
+  const home = getHomeById(state.household.homeId);
+  const base = home?.monthlyCost || 0;
+  const salary = getMonthlyEmploymentIncome(state);
+  // Aile yanında yaşamak düşük maliyetli kalır; gelir yükseldikçe ev katkısı da yükselir.
+  const familyContribution = home?.id === "family" && salary > 10000 ? Math.round((salary - 10000) * 0.2) : 0;
+  return { base, familyContribution, total: base + familyContribution };
+}
+
+export const getMonthlyHousingCost = (state) => getMonthlyHousingBreakdown(state).total;
+export const hasIndependentHousing = (state) => getHomeById(state.household.homeId)?.id !== "family";
+export const hasSavings = (state, amount) =>
+  Number.isFinite(amount) && Number.isFinite(state.finances?.balance) && state.finances.balance >= amount;
 export const getMoveCost = (homeId) => getHomeById(homeId)?.moveCost ?? Infinity;
 
 export function getMonthlySummary(state) {
   const salary = getMonthlyEmploymentIncome(state);
   const housing = getMonthlyHousingCost(state);
+  const housingBreakdown = getMonthlyHousingBreakdown(state);
   const otherIncome = state.finances.otherMonthlyIncome;
   const otherExpenses = state.finances.otherMonthlyExpenses;
   const tuition = state.education?.tuitionOwedThisMonth || 0;
   return {
     salary,
     housing,
+    housingBreakdown,
     otherIncome,
     otherExpenses,
     tuition,

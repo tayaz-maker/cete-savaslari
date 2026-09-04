@@ -62,11 +62,11 @@ export const JOBS = [
 
 export const HOMES = [
   { id: "family", title: "Aile Yanında", monthlyCost: 1500, privacy: 1, zone: 1, moveCost: 600 },
-  { id: "shared", title: "Paylaşımlı Ev", monthlyCost: 3600, privacy: 2, zone: 2, moveCost: 2400 },
+  { id: "shared", title: "Paylaşımlı Ev", monthlyCost: 4200, privacy: 2, zone: 2, moveCost: 2400 },
   {
     id: "studio",
     title: "Tek Başına Stüdyo",
-    monthlyCost: 6200,
+    monthlyCost: 7600,
     privacy: 3,
     zone: 3,
     moveCost: 5200,
