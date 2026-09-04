@@ -1,16 +1,25 @@
 import { WEEKLY_ACTIVITY_LIMIT, addMemory, adjustHealth, transact } from "./state.js";
 import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
+import {
+  eduRank,
+  getEducationWeeklyLoad,
+  getPathById,
+  getWeeklyProgressGain,
+  isEligibleForJob,
+} from "./education.js";
 
 export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js";
 
 export function getWeeklyLifeLoad(state) {
   const job = getJobById(state.career.jobId);
   const commute = getCommuteLoad(state.household.homeId, state.career.jobId);
+  const education = getEducationWeeklyLoad(state);
   return {
     commute,
-    load: (job?.load || 0) + commute,
-    energy: (job?.energy || 0) - commute * 2,
-    stress: (job?.stress || 0) + commute * 2,
+    education,
+    load: (job?.load || 0) + commute + education.load,
+    energy: (job?.energy || 0) - commute * 2 + education.energy,
+    stress: (job?.stress || 0) + commute * 2 + education.stress,
   };
 }
 
@@ -49,13 +58,15 @@ export function getMonthlySummary(state) {
   const housing = getMonthlyHousingCost(state);
   const otherIncome = state.finances.otherMonthlyIncome;
   const otherExpenses = state.finances.otherMonthlyExpenses;
+  const tuition = state.education?.tuitionOwedThisMonth || 0;
   return {
     salary,
     housing,
     otherIncome,
     otherExpenses,
+    tuition,
     income: salary + otherIncome,
-    expenses: housing + otherExpenses,
+    expenses: housing + otherExpenses + tuition,
   };
 }
 
@@ -79,6 +90,8 @@ export function acceptJobOffer(state, jobId) {
   if (state.career.jobId === jobId) return { ok: false, reason: "Zaten bu işte çalışıyorsun." };
   if (state.career.pendingJob)
     return { ok: false, reason: "Önce bekleyen iş başlangıcı sonuçlanmalı." };
+  const eligibility = isEligibleForJob(state, job);
+  if (!eligibility.ok) return { ok: false, reason: eligibility.reason };
   const actionId = `job-offer:${jobId}`;
   const check = canUseWeeklyAction(state, actionId);
   if (!check.ok) return check;
@@ -142,6 +155,43 @@ export function moveHome(state, homeId) {
   return { ok: true, message: `${home.title} konutuna taşındın; taşınma maliyeti bir kez ödendi.` };
 }
 
+/** Biten haftanın deneyimi. Aktif iş yoksa kredi yok; bir hafta tek aileye yazar. */
+function creditWeeklyExperience(state) {
+  const job = getJobById(state.career.jobId);
+  if (!job?.family) return false;
+  // Doğrulanmış her state'te bu harita vardır; tick'in çökmesindense kendini onarır.
+  if (!state.career.jobFamilyExperience) state.career.jobFamilyExperience = {};
+  const experience = state.career.jobFamilyExperience;
+  experience[job.family] = (experience[job.family] || 0) + 1;
+  return true;
+}
+
+/** Diploma ödülü tick içinde verilir; event yalnız bildirimdir. */
+function completeEducation(state, path) {
+  const education = state.education;
+  if (path.grantsLevel && eduRank(path.grantsLevel) > eduRank(education.level))
+    education.level = path.grantsLevel;
+  if (path.grantsField && !education.fields.includes(path.grantsField))
+    education.fields.push(path.grantsField);
+  education.active = null;
+  state.flags.educationCompletedPending = path.id;
+  addMemory(state, `${path.displayName} eğitimini tamamladın.`, "important");
+}
+
+function advanceEducationProgress(state) {
+  const active = state.education.active;
+  if (!active) return false;
+  const path = getPathById(active.pathId);
+  if (!path) {
+    state.education.active = null;
+    return false;
+  }
+  active.progressPoints += getWeeklyProgressGain(active.intensity);
+  state.education.tuitionOwedThisMonth = path.monthlyTuition;
+  if (active.progressPoints >= path.targetPoints) completeEducation(state, path);
+  return true;
+}
+
 export function applyWeeklyLifeLoad(state) {
   const week = state.time.absoluteWeek;
   if (state.flags.lastLifeLoadWeek === week) return false;
@@ -152,5 +202,41 @@ export function applyWeeklyLifeLoad(state) {
     health: effects.load >= 6 && state.health.stress >= 75 ? -1 : 0,
   });
   state.flags.lastLifeLoadWeek = week;
+  creditWeeklyExperience(state);
+  advanceEducationProgress(state);
   return true;
+}
+
+export function enrollEducation(state, pathId, intensity) {
+  if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
+  if (state.education.active) return { ok: false, reason: "Zaten devam eden bir eğitimin var." };
+  const path = getPathById(pathId);
+  if (!path) return { ok: false, reason: "Eğitim seçeneği geçersiz." };
+  if (!path.allowedIntensity.includes(intensity))
+    return { ok: false, reason: "Bu yoğunluk bu program için geçerli değil." };
+  if (state.finances.balance < path.enrollmentFee)
+    return {
+      ok: false,
+      reason: `Kayıt için ₺${path.enrollmentFee.toLocaleString("tr-TR")} gerekiyor.`,
+    };
+  transact(state, -path.enrollmentFee, `${path.displayName} kayıt ücreti`, "education");
+  state.education.active = { pathId: path.id, intensity, progressPoints: 0 };
+  addMemory(state, `${path.displayName} programına kaydoldun.`, "important");
+  return {
+    ok: true,
+    message: `${path.displayName} programına kaydoldun; ilerleme gelecek hafta başlar.`,
+  };
+}
+
+export function stopEducation(state) {
+  if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
+  const active = state.education.active;
+  if (!active) return { ok: false, reason: "Devam eden bir eğitim yok." };
+  const path = getPathById(active.pathId);
+  state.education.active = null;
+  addMemory(state, `${path?.displayName || "Eğitim"} programını bıraktın.`, "important");
+  return {
+    ok: true,
+    message: "Eğitimi bıraktın. Biriken ilerleme silindi, ödenen ücret iade edilmez.",
+  };
 }

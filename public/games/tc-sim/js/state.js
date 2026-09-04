@@ -1,7 +1,8 @@
 import { getHomeById, getJobById } from "./catalog.js";
 import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
+import { isEducationLevel, isValidActiveEducation } from "./education.js";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
 export const WEEKLY_ACTIVITY_LIMIT = 2;
@@ -72,7 +73,8 @@ export function createNewGame(options = {}) {
       otherMonthlyExpenses: 5000,
       ledger: [],
     },
-    career: { jobId: "market", pendingJob: null },
+    career: { jobId: "market", pendingJob: null, jobFamilyExperience: {} },
+    education: { level: "lise", fields: [], active: null, tuitionOwedThisMonth: 0 },
     household: { homeId: "family", livingWithFamily: true },
     people: [
       { id: "anne", name: "Aylin", relationType: "Anne", memories: [] },
@@ -157,6 +159,42 @@ export function addYearHistory(state, entry) {
   appendCapped(state.yearlyHistory, entry, LIMITS.yearlyHistory);
 }
 
+const safeCount = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
+
+/**
+ * Eğitim ve kariyer alanlarını her migration dalından sonra güvenli hale getirir.
+ * Bozuk tek bir alan yüzünden kaydın tamamı çöpe atılmaz; alan güvenli varsayılana döner.
+ * Geçmişe dönük deneyim tahmini yapılmaz.
+ */
+export function normalizeEducationCareer(state) {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return state;
+
+  const career = state.career && typeof state.career === "object" ? state.career : {};
+  const rawExperience = career.jobFamilyExperience;
+  const experience = {};
+  if (rawExperience && typeof rawExperience === "object" && !Array.isArray(rawExperience)) {
+    for (const [familyId, weeks] of Object.entries(rawExperience)) {
+      if (typeof familyId !== "string" || !familyId) continue;
+      experience[familyId] = safeCount(weeks);
+    }
+  }
+  state.career = { ...career, jobFamilyExperience: experience };
+
+  const raw = state.education && typeof state.education === "object" ? state.education : {};
+  const fields = [];
+  if (Array.isArray(raw.fields)) {
+    for (const field of raw.fields)
+      if (typeof field === "string" && field && !fields.includes(field)) fields.push(field);
+  }
+  state.education = {
+    level: isEducationLevel(raw.level) ? raw.level : "lise",
+    fields,
+    active: isValidActiveEducation(raw.active) ? raw.active : null,
+    tuitionOwedThisMonth: safeCount(raw.tuitionOwedThisMonth),
+  };
+  return state;
+}
+
 export function validateState(state) {
   const errors = [];
   const finite = (value) => typeof value === "number" && Number.isFinite(value);
@@ -202,6 +240,28 @@ export function validateState(state) {
       typeof state.career.pendingJob.caseId !== "string")
   )
     errors.push("Bekleyen iş kaydı geçersiz");
+  const experience = state.career?.jobFamilyExperience;
+  if (
+    !experience ||
+    typeof experience !== "object" ||
+    Array.isArray(experience) ||
+    Object.values(experience).some((weeks) => !Number.isInteger(weeks) || weeks < 0)
+  )
+    errors.push("Deneyim kaydı geçersiz");
+  const education = state.education;
+  if (
+    !education ||
+    typeof education !== "object" ||
+    Array.isArray(education) ||
+    !isEducationLevel(education.level) ||
+    !Array.isArray(education.fields) ||
+    education.fields.some((field) => typeof field !== "string" || !field) ||
+    new Set(education.fields).size !== education.fields.length ||
+    !Number.isInteger(education.tuitionOwedThisMonth) ||
+    education.tuitionOwedThisMonth < 0 ||
+    (education.active !== null && !isValidActiveEducation(education.active))
+  )
+    errors.push("Eğitim kaydı geçersiz");
   if (!state.household || !getHomeById(state.household.homeId)) errors.push("Konut kaydı geçersiz");
   if (!state.world || !getEraById(state.world.eraId)) errors.push("Dönem kaydı geçersiz");
   if (

@@ -28,7 +28,7 @@
 
 **Dönem ilkesi:** Gelecekte farklı başlangıç dönemleri desteklenecek; mevcut oynanabilir kapsam yalnız Günümüz'dür ve dönem kimliği save state'te korunur.
 
-**Dilimler:** 3A (iş + konut) tamamlandı. **3B (eğitim + kariyer temeli) tasarımı tamamlandı ve uygulamaya hazırdır; runtime kodu henüz yazılmadı.** Uygulama planı `TC_SIM_3B_IMPLEMENTATION.md`, test planı `TC_SIM_3B_TEST_PLAN.md` belgelerindedir.
+**Dilimler:** 3A (iş + konut) tamamlandı. **3B (eğitim + kariyer temeli) tamamlandı ve uygulandı:** eğitim yolları, tam sayı ilerleme, iş ailesi deneyimi, kariyer bandı, merkezî uygunluk kontrolü, iki yeni kariyer işi, save sürümü 4 ve EĞİTİM ekranı çalışıyor. Uygulama planı `TC_SIM_3B_IMPLEMENTATION.md`, test planı `TC_SIM_3B_TEST_PLAN.md`, uygulama sonrası devir notu `TC_SIM_3B_POST_IMPLEMENTATION.md`.
 
 **Bitmiş sayılma şartı:** Oyuncu para–zaman–insan–beden arasında gerçek tercihler yapar; bir yıllık geçmiş anlamlı görünür; içerik kotası motor eksiklerini gizlemek için büyütülmemiştir.
 

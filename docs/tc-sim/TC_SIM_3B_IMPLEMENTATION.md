@@ -1,9 +1,23 @@
 # TC SIM — Aşama 3B: Eğitim + Kariyer Temeli (Uygulama Planı)
 
-**Durum:** Tasarım tamamlandı, uygulama hazır. **Runtime kodu henüz yazılmadı.**
+**Durum: IMPLEMENTED.** Runtime, migration, arayüz, eventler, testler ve simülasyon senaryoları
+uygulandı ve geçiyor. Uygulama sonrası özet ve doğrulama listesi:
+`TC_SIM_3B_POST_IMPLEMENTATION.md`.
 
-Bu belge Cowork'un 3B'yi yeniden mimari/tasarım oturumu yapmadan uygulayabilmesi için hazırlandı.
-Test senaryoları ayrı belgede: `TC_SIM_3B_TEST_PLAN.md`.
+Bu belge planın kendisidir ve tarihsel kayıt olarak korunur; aşağıdaki kararlar uygulanan hâliyle
+geçerlidir. Test senaryoları ayrı belgede: `TC_SIM_3B_TEST_PLAN.md`.
+
+### Plandan sapmalar (uygulama sırasında)
+
+- `education.js` içindeki yol yükü, yoğunluk başına ayrı `{ energy, stress, load }` olarak tutuldu;
+  böylece tam/yarı zamanlı yük kesirli çarpan gerektirmeden tam sayı kaldı.
+- `eduRank()` bilinmeyen seviye için `1` yerine `0` döner; seviye zaten doğrulandığı için
+  karşılaştırmalarda daha güvenli davranış verir.
+- `stopEducation()` da `enrollEducation()` gibi açık event varken engellenir (simetri).
+- Simülasyondaki eğitim ücreti kontrolü sayaç yerine "aynı haftada çift tahsilat" kontrolüdür;
+  `finances.ledger` 120 kayıtla sınırlı olduğu için sayaç güvenilir değil.
+- `scripts/tc-sim-core.test.mjs` içindeki sabit `3` beklentisi `SAVE_VERSION` ile değiştirildi
+  (sürüm yükseldiği için; invariant zayıflatılmadı).
 
 ---
 

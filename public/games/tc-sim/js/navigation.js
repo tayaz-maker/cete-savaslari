@@ -4,6 +4,7 @@ export const NAVIGATION_ITEMS = [
   { label: "TAKVİM", view: null },
   { label: "PARA", view: null },
   { label: "İŞ", view: "career" },
+  { label: "EĞİTİM", view: "education" },
   { label: "KİŞİLER", view: null },
   { label: "AİLE / İLİŞKİLER", view: null },
   { label: "EV", view: "home" },
