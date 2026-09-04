@@ -2,11 +2,25 @@ import { WEEKLY_ACTIVITY_LIMIT, createNewGame } from "./state.js";
 import { getEventDefinition, resolveEvent } from "./events.js";
 import { DECISIONS, advanceWeek, applyDecision, canApplyDecision } from "./time.js";
 import { clearSaves, loadGame, saveGame } from "./save.js";
+import {
+  HOMES,
+  JOBS,
+  acceptJobOffer,
+  getCommuteLoad,
+  getHomeById,
+  getJobById,
+  getMonthlySummary,
+  getMoveCost,
+  getWeeklyLifeLoad,
+  moveHome,
+  quitJob,
+} from "./life.js";
 
 const app = document.querySelector("#app");
 let state = null;
 let notice = "";
 let saveStatus = "";
+let activeView = "dashboard";
 
 const money = (value) =>
   new Intl.NumberFormat("tr-TR", {
@@ -107,24 +121,102 @@ function renderAgenda() {
 
 function renderNav() {
   const items = [
-    ["ANA SAYFA", true],
-    ["BEN", false],
-    ["TAKVİM", false],
-    ["PARA", false],
-    ["İŞ", false],
-    ["KİŞİLER", false],
-    ["AİLE / İLİŞKİLER", false],
-    ["EV", false],
-    ["BEDEN", false],
-    ["GEÇMİŞ", false],
-    ["YIL DOSYASI", false],
+    ["ANA SAYFA", "dashboard"],
+    ["BEN", null],
+    ["TAKVİM", null],
+    ["PARA", null],
+    ["İŞ", "career"],
+    ["KİŞİLER", null],
+    ["AİLE / İLİŞKİLER", null],
+    ["EV", "home"],
+    ["BEDEN", null],
+    ["GEÇMİŞ", null],
+    ["YIL DOSYASI", null],
   ];
   return items
     .map(
-      ([label, active]) =>
-        `<button class="nav-item ${active ? "is-active" : ""}" ${active ? 'aria-current="page"' : 'disabled aria-disabled="true"'}><span class="nav-mark"></span><span>${label}</span></button>`,
+      ([label, view]) =>
+        `<button class="nav-item ${view === activeView ? "is-active" : ""}" ${view ? `data-view="${view}"${view === activeView ? ' aria-current="page"' : ""}` : 'disabled aria-disabled="true"'}><span class="nav-mark"></span><span>${label}</span></button>`,
     )
     .join("");
+}
+
+function lifeLabel(value) {
+  return ["Yok", "Düşük", "Orta", "Yüksek", "Çok yüksek"][Math.min(4, value)] || "Düşük";
+}
+
+function renderDashboard() {
+  const remaining = WEEKLY_ACTIVITY_LIMIT - state.weekly.used;
+  const activeCases = state.openCases.filter((item) => item.status !== "resolved");
+  const job = getJobById(state.career.jobId);
+  const home = getHomeById(state.household.homeId);
+  const monthly = getMonthlySummary(state);
+  const projectedBalance = state.finances.balance + monthly.income - monthly.expenses;
+  return `<div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div>${renderWeekControl()}</div>
+    <section class="overview-grid" aria-label="Hayat özeti">
+      <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(home.title)}</dd></div><div><dt>İş</dt><dd>${escapeText(job?.title || "İşsiz")}</dd></div><div><dt>Ulaşım yükü</dt><dd>${lifeLabel(getCommuteLoad(home.id, job?.id || null))}</dd></div></dl></article>
+      <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(monthly.income)} gelir · ${money(monthly.expenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
+      <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div></article>
+    </section>
+    <div class="dashboard-grid">
+      <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><div class="decisions">${DECISIONS.map(
+        (decision) => {
+          const check = canApplyDecision(state, decision.id);
+          return `<button class="button decision" data-decision="${decision.id}" ${check.ok ? "" : "disabled"} title="${escapeText(check.reason || "")}"><strong>${escapeText(decision.title)}</strong><small>${escapeText(decision.detail)}</small></button>`;
+        },
+      ).join(
+        "",
+      )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
+      <aside class="right-column"><section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section><section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section></aside>
+      <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
+      <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>${item.type === "job-start" ? "İş başlangıcı" : "Mehmet'e verilen borç"}</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
+    </div>`;
+}
+
+function renderWeekControl() {
+  return `<div class="week-control"><span>Karar <b>${state.weekly.used} / ${WEEKLY_ACTIVITY_LIMIT}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div>`;
+}
+
+function renderCareer() {
+  const active = getJobById(state.career.jobId);
+  const home = getHomeById(state.household.homeId);
+  const load = getWeeklyLifeLoad(state);
+  return `<div class="workspace-head"><div><p class="eyebrow">İŞ</p><h1>Çalışma hayatı</h1></div>${renderWeekControl()}</div>
+    <section class="detail-summary panel"><div><span>Çalışma durumu</span><strong>${active ? escapeText(active.title) : "İşsiz"}</strong></div><div><span>Aylık maaş</span><strong>${money(active?.salary || 0)}</strong></div><div><span>İş yükü</span><strong>${lifeLabel(active?.load || 0)}</strong></div><div><span>Güvence</span><strong>${active?.security || "—"}</strong></div><div><span>${escapeText(home.title)} ulaşımı</span><strong>${lifeLabel(load.commute)}</strong></div></section>
+    ${state.career.pendingJob ? `<p class="result">${escapeText(getJobById(state.career.pendingJob.jobId).title)} başlangıcı ${Math.max(0, state.career.pendingJob.startWeek - state.time.absoluteWeek)} hafta sonra.</p>` : ""}
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">FIRSATLAR</p><h2>İş teklifleri</h2></div></div><div class="option-grid">${JOBS.map(
+      (job) => {
+        const commute = getCommuteLoad(home.id, job.id);
+        const disabled =
+          state.career.jobId === job.id ||
+          state.career.pendingJob ||
+          state.weekly.used >= WEEKLY_ACTIVITY_LIMIT;
+        return `<article class="option-card ${state.career.jobId === job.id ? "is-current" : ""}"><div><p class="panel-kicker">${state.career.jobId === job.id ? "AKTİF İŞ" : "İŞ TEKLİFİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${lifeLabel(commute)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy - commute * 2} · Stres +${job.stress + commute * 2}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div></dl><button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""}>Teklifi kabul et</button></article>`;
+      },
+    ).join(
+      "",
+    )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ? "disabled" : ""}>İşi bırak</button>` : ""}<p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
+}
+
+function renderHomes() {
+  const activeJob = getJobById(state.career.jobId);
+  return `<div class="workspace-head"><div><p class="eyebrow">EV</p><h1>Konut yönetimi</h1></div>${renderWeekControl()}</div>
+    <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(getHomeById(state.household.homeId).monthlyCost)}</strong></div><div><span>Çalışma yeri</span><strong>${escapeText(activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${lifeLabel(getCommuteLoad(state.household.homeId, state.career.jobId))}</strong></div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">SEÇENEKLER</p><h2>Konut alternatifleri</h2></div></div><div class="option-grid">${HOMES.map(
+      (home) => {
+        const cost = getMoveCost(home.id);
+        const current = state.household.homeId === home.id;
+        const affordable = state.finances.balance >= cost;
+        const disabled =
+          current ||
+          !affordable ||
+          state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ||
+          state.events.active;
+        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "MEVCUT EV" : "KONUT"}</p><h3>${escapeText(home.title)}</h3></div><dl><div><dt>Aylık maliyet</dt><dd>${money(home.monthlyCost)}</dd></div><div><dt>Mahremiyet</dt><dd>${lifeLabel(home.privacy)}</dd></div><div><dt>İşe ulaşım</dt><dd>${lifeLabel(getCommuteLoad(home.id, state.career.jobId))}</dd></div><div><dt>Taşınma</dt><dd>${money(cost)}</dd></div></dl><button class="button" data-move-home="${home.id}" ${disabled ? "disabled" : ""}>${current ? "Burada yaşıyorsun" : affordable ? "Taşın" : "Para yetersiz"}</button></article>`;
+      },
+    ).join(
+      "",
+    )}</div><p class="result" role="status">${escapeText(notice || "Taşınma bir karar hakkı ve tek seferlik taşınma maliyeti kullanır.")}</p></section>`;
 }
 
 function renderEvent() {
@@ -136,10 +228,12 @@ function renderEvent() {
 
 function render() {
   if (!state) return startScreen(loadGame(localStorage));
-  const remaining = WEEKLY_ACTIVITY_LIMIT - state.weekly.used;
-  const activeCases = state.openCases.filter((item) => item.status !== "resolved");
-  const projectedBalance =
-    state.finances.balance + state.finances.monthlyIncome - state.finances.monthlyExpenses;
+  const workspace =
+    activeView === "career"
+      ? renderCareer()
+      : activeView === "home"
+        ? renderHomes()
+        : renderDashboard();
   app.innerHTML = `
     <main class="game-frame">
       <header class="game-topbar">
@@ -149,30 +243,7 @@ function render() {
       </header>
       <div class="game-body">
         <nav class="side-nav" aria-label="Oyun bölümleri">${renderNav()}</nav>
-        <section class="workspace">
-          <div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div><div class="week-control"><span>Karar <b>${state.weekly.used} / ${WEEKLY_ACTIVITY_LIMIT}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div></div>
-          <section class="overview-grid" aria-label="Hayat özeti">
-            <article class="profile-panel"><p class="panel-kicker">KARAKTER</p><h2>${escapeText(state.player.name)}</h2><p>${escapeText(state.player.profile)} · İstanbul</p><dl><div><dt>Yaşam yeri</dt><dd>${escapeText(state.household.housing)}</dd></div><div><dt>İş</dt><dd>${escapeText(state.career.title)}</dd></div></dl></article>
-            <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(state.finances.monthlyIncome)} gelir · ${money(state.finances.monthlyExpenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
-            <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div></article>
-          </section>
-          <div class="dashboard-grid">
-            <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><div class="decisions">${DECISIONS.map(
-              (decision) => {
-                const check = canApplyDecision(state, decision.id);
-                return `<button class="button decision" data-decision="${decision.id}" ${check.ok ? "" : "disabled"} title="${escapeText(check.reason || "")}"><strong>${escapeText(decision.title)}</strong><small>${escapeText(decision.detail)}</small></button>`;
-              },
-            ).join(
-              "",
-            )}</div><p class="result" role="status">${escapeText(notice || "Bu haftanın kararlarını ver veya zamanı ilerlet.")}</p></section>
-            <aside class="right-column">
-              <section class="panel agenda-panel"><div class="panel-head"><div><p class="eyebrow">GÜNDEM</p><h2>Gelen kutusu</h2></div></div>${renderAgenda()}</section>
-              <section class="panel people-panel"><div class="panel-head"><div><p class="eyebrow">İLİŞKİLER</p><h2>Önemli kişiler</h2></div><span>/ 100</span></div><div class="people">${renderPeople()}</div></section>
-            </aside>
-            <section class="panel history-panel"><div class="panel-head"><div><p class="eyebrow">GEÇMİŞ</p><h2>Son hayat kayıtları</h2></div><span>${state.memories.length}</span></div><div class="history">${renderMemories()}</div></section>
-            <section class="panel cases-panel"><div class="panel-head"><div><p class="eyebrow">AÇIK MESELELER</p><h2>Bekleyen sonuçlar</h2></div><span>${activeCases.length}</span></div>${activeCases.length ? activeCases.map((item) => `<p class="open-case"><b>Mehmet'e verilen borç</b><span>${Math.max(0, item.dueWeek - state.time.absoluteWeek)} hafta kaldı</span></p>`).join("") : `<p class="empty">Şu anda açık dosya yok.</p>`}<div class="year-file"><span>Yıl dosyası</span>${renderYearHistory()}</div></section>
-          </div>
-        </section>
+        <section class="workspace">${workspace}</section>
       </div>
       ${renderEvent()}
     </main>`;
@@ -180,6 +251,35 @@ function render() {
   document.querySelectorAll("[data-decision]").forEach((button) =>
     button.addEventListener("click", () => {
       const result = applyDecision(state, button.dataset.decision);
+      notice = result.reason || result.message;
+      persist();
+      render();
+    }),
+  );
+  document.querySelectorAll("[data-view]").forEach((button) =>
+    button.addEventListener("click", () => {
+      activeView = button.dataset.view;
+      notice = "";
+      render();
+    }),
+  );
+  document.querySelectorAll("[data-job-offer]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const result = acceptJobOffer(state, button.dataset.jobOffer);
+      notice = result.reason || result.message;
+      persist();
+      render();
+    }),
+  );
+  document.querySelector("#quit-job")?.addEventListener("click", () => {
+    const result = quitJob(state);
+    notice = result.reason || result.message;
+    persist();
+    render();
+  });
+  document.querySelectorAll("[data-move-home]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const result = moveHome(state, button.dataset.moveHome);
       notice = result.reason || result.message;
       persist();
       render();
@@ -193,7 +293,7 @@ function render() {
       render();
     }),
   );
-  document.querySelector("#advance-week").addEventListener("click", () => {
+  document.querySelector("#advance-week")?.addEventListener("click", () => {
     const result = advanceWeek(state);
     notice = result.messages.join(" ");
     persist();

@@ -11,6 +11,7 @@ import {
   updateRelationship,
 } from "./state.js";
 import { activateNextEvent, processDueOpenCases } from "./events.js";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js";
 
 export const DECISIONS = [
   {
@@ -124,9 +125,13 @@ export function applyDecision(state, decisionId) {
 }
 
 function processMonthEnd(state) {
-  transact(state, state.finances.monthlyIncome, "Aylık gelir", "income");
-  transact(state, -state.finances.monthlyExpenses, "Aylık düzenli gider", "expense");
-  return `Ay sonu: ₺${state.finances.monthlyIncome.toLocaleString("tr-TR")} gelir, ₺${state.finances.monthlyExpenses.toLocaleString("tr-TR")} gider işlendi.`;
+  const summary = getMonthlySummary(state);
+  if (summary.salary) transact(state, summary.salary, "Aylık maaş", "income");
+  if (summary.otherIncome) transact(state, summary.otherIncome, "Diğer düzenli gelir", "income");
+  transact(state, -summary.housing, "Aylık konut gideri", "housing");
+  if (summary.otherExpenses)
+    transact(state, -summary.otherExpenses, "Diğer düzenli gider", "expense");
+  return `Ay sonu: ₺${summary.income.toLocaleString("tr-TR")} gelir, ₺${summary.expenses.toLocaleString("tr-TR")} gider işlendi.`;
 }
 
 function closeYear(state, endedYear) {
@@ -157,6 +162,8 @@ export function advanceWeek(state) {
   const messages = [];
   const previousYear = state.time.year;
   const workedOvertime = state.flags.overtimeLastWeek === state.time.absoluteWeek;
+
+  applyWeeklyLifeLoad(state);
 
   state.time.absoluteWeek += 1;
   state.time.weekOfMonth += 1;

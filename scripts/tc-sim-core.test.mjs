@@ -6,7 +6,11 @@ import {
   adjustHealth,
   validateState,
 } from "../public/games/tc-sim/js/state.js";
-import { activateNextEvent, resolveEvent } from "../public/games/tc-sim/js/events.js";
+import {
+  activateNextEvent,
+  getEventDefinition,
+  resolveEvent,
+} from "../public/games/tc-sim/js/events.js";
 import { advanceWeek, applyDecision } from "../public/games/tc-sim/js/time.js";
 import {
   BACKUP_KEY,
@@ -35,13 +39,11 @@ class MemoryStorage {
 const fresh = () => createNewGame({ name: "Test", seed: 42, now: "2027-01-01T00:00:00.000Z" });
 const settleEvent = (state, preferred = null) => {
   if (!state.events.active) return;
-  const choice = preferred || (state.events.active.eventId === "loan_repayment" ? "collect" : null);
-  const definitionChoice = choice || "steady";
-  const result = resolveEvent(state, definitionChoice);
-  if (!result.ok) {
-    const fallbacks = ["accept", "slow", "celebrate", "clinic", "collect"];
-    for (const id of fallbacks) if (resolveEvent(state, id).ok) break;
-  }
+  const definition = getEventDefinition(state.events.active.eventId);
+  const choice =
+    preferred ||
+    (state.events.active.eventId === "loan_repayment" ? "collect" : definition.choices[0].id);
+  resolveEvent(state, choice);
 };
 
 test("1. yeni oyun geçerli state oluşturur", () => assert.equal(validateState(fresh()).ok, true));
@@ -190,6 +192,6 @@ test("15. eski ve eksik save migration ile güvenle tamamlanır", () => {
   const migrated = migrateState(legacy);
   assert.equal(migrated.ok, true);
   assert.equal(migrated.migrated, true);
-  assert.equal(migrated.state.meta.saveVersion, 1);
+  assert.equal(migrated.state.meta.saveVersion, 2);
   assert.equal(migrated.state.finances.balance, 3200);
 });

@@ -1,4 +1,5 @@
 import { createNewGame, validateState } from "../public/games/tc-sim/js/state.js";
+import { getHomeById, getJobById } from "../public/games/tc-sim/js/life.js";
 import { getEventDefinition, resolveEvent } from "../public/games/tc-sim/js/events.js";
 import {
   DECISIONS,
@@ -56,6 +57,18 @@ for (let step = 0; step < 144; step += 1) {
   if (!advanced.ok) throw new Error(advanced.messages.join(" "));
   const validation = validateState(state);
   if (!validation.ok) throw new Error(validation.errors.join("; "));
+  if (
+    (state.career.jobId !== null && !getJobById(state.career.jobId)) ||
+    !getHomeById(state.household.homeId)
+  )
+    throw new Error("İş/konut invariantı bozuldu");
+  const numericValues = [
+    state.finances.balance,
+    state.health.energy,
+    state.health.stress,
+    state.health.health,
+  ];
+  if (!numericValues.every(Number.isFinite)) throw new Error("Sayısal invariant bozuldu");
   if ((step + 1) % 12 === 0) {
     const saved = saveGame(storage, state);
     if (!saved.ok) throw new Error(saved.message);
@@ -91,6 +104,8 @@ const result = {
   overdueCases: overdueCases.length,
   saveBytes: Buffer.byteLength(serialized),
   valid: validateState(state).ok,
+  jobId: state.career.jobId,
+  homeId: state.household.homeId,
 };
 
 if (

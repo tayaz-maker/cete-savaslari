@@ -6,7 +6,7 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 ## Mevcut aşama
 
-**Aşama 2 — Çalışan Çekirdek tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
+**Aşama 3A — İş + Konut dikey dilimi tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
 ## Kilitli kararlar
 
@@ -26,10 +26,13 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 - `public/games/tc-sim/` altında modüler Vanilla JS çekirdeği kuruldu.
 - Haftada iki farklı aktivite, 4 haftalık ay, 12 aylık yıl, koşullu event, NPC hafızası ve gecikmiş borç sonucu çalışıyor.
 - Site kataloğuna `/oyna/tc-sim` olarak eklendi; çekirdek testleri ve üç yıllık simülasyon hazırlandı.
+- Üç iş ve üç konut; ev × iş ulaşımı, haftalık beden yükü ve aylık finansla bağlandı.
+- İş teklifleri bir haftalık açık dosyayla başlıyor; taşınma doğrulanan tek seferlik maliyet kullanıyor.
+- Save v2 migration eski para, beden, NPC, hafıza ve açık dosya kayıtlarını koruyor.
 
 ## Sıradaki tek iş
 
-**Aşama 3 — Hayatı Detaylandırma'nın ilk küçük dilimi:** mevcut motoru bozmadan 3 iş ve 3 konut seçeneğini gerçek karar zincirlerine bağlamak.
+**Aşama 3'ün sonraki kontrollü dilimi:** mevcut iş/konut zincirini bozmadan aile ve kişiler tarafını derinleştirmek.
 
 ## Korunacak teknik ilkeler
 

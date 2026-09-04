@@ -619,6 +619,79 @@ select {
   margin-top: 15px;
 }
 
+.detail-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 1px;
+  margin-bottom: 10px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--line);
+}
+.detail-summary > div {
+  min-height: 82px;
+  padding: 13px;
+  background: var(--surface);
+}
+.detail-summary span,
+.detail-summary strong {
+  display: block;
+}
+.detail-summary span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.detail-summary strong {
+  margin-top: 7px;
+  font-size: 0.92rem;
+}
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.option-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 13px;
+  background: var(--surface-2);
+}
+.option-card.is-current {
+  border-color: var(--accent);
+}
+.option-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.option-card dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+.option-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+  font-size: 0.75rem;
+}
+.option-card dt {
+  color: var(--muted);
+}
+.option-card dd {
+  margin: 0;
+  text-align: right;
+}
+.option-card .button {
+  align-self: end;
+}
+.action-footer {
+  margin-top: 12px;
+}
+
 @media (max-width: 1060px) {
   :root {
     --nav: 58px;
@@ -683,6 +756,12 @@ select {
   .history-panel,
   .cases-panel {
     grid-area: auto;
+  }
+  .detail-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .option-grid {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 540px) {

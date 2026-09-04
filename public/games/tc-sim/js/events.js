@@ -6,6 +6,7 @@ import {
   transact,
   updateRelationship,
 } from "./state.js";
+import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js";
 
 function applyEffects(state, effects = {}) {
   if (effects.money) transact(state, effects.money, effects.reason || "Event sonucu", "event");
@@ -25,7 +26,7 @@ export const EVENT_DEFINITIONS = [
     repeat: "once",
     title: "Evde para konuşması",
     text: "Paran azalınca annen masrafları nasıl yöneteceğini sordu.",
-    condition: (state) => state.finances.balance < 2500 && state.household.livingWithFamily,
+    condition: (state) => state.finances.balance < 2500 && state.household.homeId === "family",
     choices: [
       {
         id: "accept",
@@ -131,7 +132,7 @@ export const EVENT_DEFINITIONS = [
     repeat: "once",
     title: "İlk iş değerlendirmesi",
     text: "Yöneticin ilk aylarını değerlendirmek için seni çağırdı.",
-    condition: (state) => state.time.absoluteWeek >= 9,
+    condition: (state) => state.time.absoluteWeek >= 9 && state.career.jobId !== null,
     choices: [
       {
         id: "steady",
@@ -150,6 +151,154 @@ export const EVENT_DEFINITIONS = [
         },
       },
     ],
+  },
+  {
+    id: "job_pressure",
+    repeat: "cooldown",
+    cooldownWeeks: 20,
+    title: "İş baskısı yükseldi",
+    text: "Yoğun çalışma düzeni ve biriken stres aynı haftada üst üste geldi.",
+    condition: (state) =>
+      (getJobById(state.career.jobId)?.load || 0) >= 3 && state.health.stress >= 65,
+    choices: [
+      {
+        id: "boundary",
+        label: "Sınır koy",
+        effects: {
+          health: { stress: -10, energy: 5 },
+          flags: { setWorkBoundary: true },
+          memory: "İş yüküne karşı sınır koydun.",
+        },
+      },
+      {
+        id: "endure",
+        label: "Tempoya dayan",
+        effects: {
+          money: 600,
+          health: { energy: -8, stress: 8, health: -3 },
+          reason: "Yoğun iş primi",
+          memory: "Yoğun iş temposunu sürdürdün.",
+        },
+      },
+    ],
+  },
+  {
+    id: "housing_squeeze",
+    repeat: "cooldown",
+    cooldownWeeks: 16,
+    title: "Konut bütçesi sıkıştı",
+    text: "Konut gideri nakit durumuna göre ağırlaşmaya başladı.",
+    condition: (state) =>
+      state.finances.balance < getMonthlyHousingCost(state) && getMonthlyHousingCost(state) >= 3600,
+    choices: [
+      {
+        id: "cut",
+        label: "Harcamaları kıs",
+        effects: {
+          health: { stress: 4 },
+          flags: { housingBudgetCut: true },
+          memory: "Konut giderini karşılamak için harcamalarını kıstın.",
+        },
+      },
+      {
+        id: "ask",
+        label: "Aileden destek iste",
+        effects: {
+          money: 1000,
+          relationships: { anne: -4 },
+          reason: "Konut desteği",
+          memory: "Konut gideri için ailenden destek istedin.",
+        },
+      },
+    ],
+  },
+  {
+    id: "family_privacy",
+    repeat: "once",
+    title: "Evde sınırlar",
+    text: "Aile evinde mahremiyet ve ortak yaşam kuralları üzerine gerilim çıktı.",
+    condition: (state) =>
+      state.household.homeId === "family" &&
+      state.relationships.anne <= 72 &&
+      state.time.absoluteWeek >= 5,
+    choices: [
+      {
+        id: "talk",
+        label: "Sakin konuş",
+        effects: {
+          relationships: { anne: 5 },
+          health: { stress: -3 },
+          memory: "Aile evindeki sınırları sakin biçimde konuştun.",
+        },
+      },
+      {
+        id: "withdraw",
+        label: "Konuyu kapat",
+        effects: {
+          relationships: { anne: -5 },
+          health: { stress: 7 },
+          flags: { familyPrivacyTension: true },
+        },
+      },
+    ],
+  },
+  {
+    id: "commute_fatigue",
+    repeat: "cooldown",
+    cooldownWeeks: 12,
+    title: "Yol yorgunluğu",
+    text: "Ev ile iş arasındaki yük enerjini tüketti; işe yetişmek zorlaştı.",
+    condition: (state) =>
+      getCommuteLoad(state.household.homeId, state.career.jobId) >= 2 && state.health.energy <= 45,
+    choices: [
+      {
+        id: "early",
+        label: "Daha erken çık",
+        effects: {
+          health: { energy: -3, stress: -6 },
+          flags: { adjustedCommute: true },
+          memory: "Yol yükünü azaltmak için düzenini değiştirdin.",
+        },
+      },
+      {
+        id: "late",
+        label: "Gecikmeyi göze al",
+        effects: { health: { stress: 8 }, memory: "Uzun yol yüzünden işe geç kaldın." },
+      },
+    ],
+  },
+  {
+    id: "unemployed_pressure",
+    repeat: "cooldown",
+    cooldownWeeks: 8,
+    title: "İş arama baskısı",
+    text: "Gelir olmadan para azalırken çevrenden iş arama baskısı geliyor.",
+    condition: (state) =>
+      state.career.jobId === null && !state.career.pendingJob && state.finances.balance < 3500,
+    choices: [
+      {
+        id: "search",
+        label: "Fırsatları incele",
+        effects: {
+          health: { stress: -3 },
+          flags: { activelySeekingWork: true },
+          memory: "Yeni iş fırsatlarını araştırmaya başladın.",
+        },
+      },
+      {
+        id: "pause",
+        label: "Bir hafta daha bekle",
+        effects: { health: { stress: 7 }, relationships: { anne: -2 } },
+      },
+    ],
+  },
+  {
+    id: "job_start",
+    repeat: "repeatable",
+    title: "Yeni işin başlıyor",
+    text: "Kabul ettiğin iş teklifinin başlangıç günü geldi.",
+    condition: () => false,
+    choices: [{ id: "start", label: "İşe başla", effects: { flags: { startedNewJob: true } } }],
   },
   {
     id: "loan_repayment",
@@ -228,6 +377,7 @@ export function resolveEvent(state, choiceId) {
   if (!definition || !choice) return { ok: false, message: "Geçersiz olay seçimi." };
 
   applyEffects(state, choice.effects);
+  if (definition.id === "job_start") completePendingJob(state, active.sourceCaseId);
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);
   if (definition.repeat === "cooldown")
     state.events.cooldowns[definition.id] = state.time.absoluteWeek + definition.cooldownWeeks;

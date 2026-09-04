@@ -13,3 +13,10 @@
 ## Yönetim arayüzü düzeni
 
 - Ana ekran; kompakt üst bilgi şeridi, pasif bölüm navigasyonu ve yoğun hayat dashboard'u olarak düzenlendi.
+
+## Aşama 3A — İş + Konut
+
+- Üç prototip iş ve konut; türetilmiş ulaşım/haftalık hayat yükü ve aylık finans zincirine bağlandı.
+- Gecikmeli iş başlangıcı, maliyetli atomik taşınma, işten ayrılma ve beş koşullu iş/konut olayı eklendi.
+- Save sürümü 2'ye çıkarıldı; eski çekirdek kayıtları para ve geçmiş korunarak migrate ediliyor.
+- İŞ ve EV yönetim ekranları ile 3A davranış/regression testleri eklendi.

@@ -1,4 +1,6 @@
-export const SAVE_VERSION = 1;
+import { getHomeById, getJobById } from "./catalog.js";
+
+export const SAVE_VERSION = 2;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
 export const WEEKLY_ACTIVITY_LIMIT = 2;
@@ -64,12 +66,12 @@ export function createNewGame(options = {}) {
     time: { year: 2027, month: 1, weekOfMonth: 1, absoluteWeek: 1 },
     finances: {
       balance: profile.balance,
-      monthlyIncome: 9000,
-      monthlyExpenses: 6500,
+      otherMonthlyIncome: 0,
+      otherMonthlyExpenses: 5000,
       ledger: [],
     },
-    career: { title: "Kafe servis elemanı", status: "employed" },
-    household: { housing: "Aile evi", livingWithFamily: true },
+    career: { jobId: "market", pendingJob: null },
+    household: { homeId: "family", livingWithFamily: true },
     people: [
       { id: "anne", name: "Aylin", relationType: "Anne", memories: [] },
       { id: "baba", name: "Murat", relationType: "Baba", memories: [] },
@@ -183,11 +185,22 @@ export function validateState(state) {
   if (
     !state.finances ||
     !finite(state.finances.balance) ||
-    !finite(state.finances.monthlyIncome) ||
-    !finite(state.finances.monthlyExpenses) ||
+    !finite(state.finances.otherMonthlyIncome) ||
+    !finite(state.finances.otherMonthlyExpenses) ||
     !Array.isArray(state.finances.ledger)
   )
     errors.push("Finans geçersiz");
+  if (!state.career || (state.career.jobId !== null && !getJobById(state.career.jobId)))
+    errors.push("İş kaydı geçersiz");
+  if (
+    state.career?.pendingJob !== null &&
+    (!state.career?.pendingJob ||
+      !getJobById(state.career.pendingJob.jobId) ||
+      !Number.isInteger(state.career.pendingJob.startWeek) ||
+      typeof state.career.pendingJob.caseId !== "string")
+  )
+    errors.push("Bekleyen iş kaydı geçersiz");
+  if (!state.household || !getHomeById(state.household.homeId)) errors.push("Konut kaydı geçersiz");
   if (
     !state.health ||
     ["energy", "stress", "health"].some(

@@ -1,4 +1,5 @@
 import { SAVE_VERSION, createNewGame, validateState } from "./state.js";
+import { getHomeById, getJobById } from "./life.js";
 
 export const SAVE_KEY = "tc-sim-save";
 export const BACKUP_KEY = "tc-sim-save-backup";
@@ -19,11 +20,34 @@ function mergeLegacy(raw) {
     time: { ...base.time, ...(raw.time || {}) },
     finances: {
       ...base.finances,
-      ...(raw.finances || {}),
+      balance: Number.isFinite(raw?.finances?.balance)
+        ? raw.finances.balance
+        : base.finances.balance,
+      otherMonthlyIncome: Math.max(
+        0,
+        (Number.isFinite(raw?.finances?.monthlyIncome) ? raw.finances.monthlyIncome : 9000) - 9000,
+      ),
+      otherMonthlyExpenses: Math.max(
+        0,
+        (Number.isFinite(raw?.finances?.monthlyExpenses) ? raw.finances.monthlyExpenses : 6500) -
+          1500,
+      ),
       ledger: Array.isArray(raw?.finances?.ledger) ? raw.finances.ledger : [],
     },
-    career: { ...base.career, ...(raw.career || {}) },
-    household: { ...base.household, ...(raw.household || {}) },
+    career: {
+      jobId: getJobById(raw?.career?.jobId)
+        ? raw.career.jobId
+        : raw?.career?.status === "unemployed"
+          ? null
+          : "market",
+      pendingJob: null,
+    },
+    household: {
+      homeId: getHomeById(raw?.household?.homeId) ? raw.household.homeId : "family",
+      livingWithFamily: getHomeById(raw?.household?.homeId)
+        ? raw.household.homeId === "family"
+        : raw?.household?.livingWithFamily !== false,
+    },
     health: { ...base.health, ...(raw.health || {}) },
     events: { ...base.events, ...(raw.events || {}) },
     weekly: { ...base.weekly, ...(raw.weekly || {}) },
@@ -43,7 +67,7 @@ export function migrateState(raw) {
   if (!Number.isInteger(version) || version < 0 || version > SAVE_VERSION)
     return { ok: false, error: "Desteklenmeyen kayıt sürümü." };
   let state = raw;
-  if (version === 0) state = mergeLegacy(raw);
+  if (version < SAVE_VERSION) state = mergeLegacy(raw);
   const validation = validateState(state);
   return validation.ok
     ? { ok: true, state, migrated: version !== SAVE_VERSION }
