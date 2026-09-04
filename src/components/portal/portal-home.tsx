@@ -1,85 +1,23 @@
 import { Link } from "@tanstack/react-router";
-import { GAMES } from "@/lib/games";
-import { cn } from "@/lib/utils";
+import { GAMES, type CatalogGame } from "@/lib/games";
+import { GameIcon } from "./game-icons";
+
+function GameCard({ game, featured = false }: { game: CatalogGame; featured?: boolean }) {
+  const content = <><GameIcon name={game.icon} /><div className="min-w-0 flex-1"><h3 className={featured ? "text-2xl font-semibold" : "text-lg font-semibold"}>{game.title}</h3><p className="mt-1 text-sm text-muted">{game.subtitle}</p></div><span className="text-xl text-subtle transition-transform group-hover:translate-x-1" aria-hidden="true">→</span></>;
+  const classes = `group flex min-h-24 items-center gap-4 rounded-lg border border-border bg-surface/80 p-5 text-left transition-colors hover:border-danger/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger ${featured ? "min-h-56 flex-col items-start justify-between border-danger/50 bg-elevated sm:row-span-2" : ""}`;
+  if (game.status !== "live" || !game.href) return <article aria-disabled="true" className={`${classes} cursor-default opacity-60 hover:border-border`}>{content}<span className="text-[0.65rem] uppercase tracking-[0.2em] text-subtle">Yakında</span></article>;
+  if (game.slug === "cete-savaslari") return <Link to="/cete-savaslari" aria-label={`${game.title} oyununu aç`} className={classes}>{content}{featured && <span className="rounded border border-danger/50 px-3 py-1 text-xs uppercase tracking-widest text-danger">Oyna</span>}</Link>;
+  if (game.href.startsWith("/games/")) return <a href={game.href} aria-label={`${game.title} oyununu aç`} className={classes}>{content}</a>;
+  return <Link to="/oyna/$slug" params={{ slug: game.slug }} aria-label={`${game.title} oyununu aç`} className={classes}>{content}</Link>;
+}
 
 export function PortalHome() {
-  return (
-    <main className="mx-auto min-h-dvh w-full max-w-2xl px-5 py-10">
-      <h1 className="font-display text-4xl font-semibold tracking-tight">
-        TARIKLAB
-      </h1>
-      <p className="mt-2 text-[0.7rem] font-medium tracking-[0.28em] text-muted uppercase">
-        Oyunlar
-      </p>
-
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        {GAMES.map((g) => {
-          const inner = (
-            <>
-              <div className="flex items-start justify-between gap-2">
-                <div className="font-display text-xl font-semibold">{g.title}</div>
-                {g.status === "soon" ? (
-                  <span className="text-[0.65rem] tracking-wide text-muted uppercase">
-                    Yakında
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-1 text-sm text-muted">{g.subtitle}</p>
-            </>
-          );
-          const card =
-            "rounded-xl bg-surface p-4 text-left shadow-[0_0_0_1px_rgba(239,232,222,0.08)]";
-          if (g.status === "live" && g.href) {
-            if (g.slug === "cete-savaslari") {
-              return (
-                <Link
-                  key={g.slug}
-                  to="/cete-savaslari"
-                  className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
-                >
-                  {inner}
-                </Link>
-              );
-            }
-            if (g.href.startsWith("/games/")) {
-              return (
-                <a
-                  key={g.slug}
-                  href={g.href}
-                  className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
-                >
-                  {inner}
-                </a>
-              );
-            }
-            return (
-              <Link
-                key={g.slug}
-                to="/oyna/$slug"
-                params={{ slug: g.slug }}
-                className={cn(card, "block hover:shadow-[0_0_0_1px_var(--color-accent)]")}
-              >
-                {inner}
-              </Link>
-            );
-          }
-          return (
-            <div
-              key={g.slug}
-              aria-disabled="true"
-              className={cn(card, "pointer-events-none opacity-55")}
-            >
-              {inner}
-            </div>
-          );
-        })}
-      </div>
-
-      <p className="mt-10 text-center text-[0.65rem] tracking-wide text-subtle">
-        <a href="/credits.html" className="hover:text-fg">
-          Kaynaklar
-        </a>
-      </p>
-    </main>
-  );
+  const active = GAMES.filter((g) => g.status === "live");
+  const soon = GAMES.filter((g) => g.status !== "live");
+  return <main className="mx-auto min-h-dvh w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
+    <header className="mb-12 border-b border-border pb-6"><p className="text-3xl font-semibold tracking-tight sm:text-5xl">TARIKLAB</p><p className="mt-2 text-[0.65rem] font-medium tracking-[0.35em] text-muted uppercase">Oyun Laboratuvarı</p></header>
+    <section aria-labelledby="active-games"><div className="mb-5 flex items-end justify-between"><h1 id="active-games" className="text-sm font-medium uppercase tracking-[0.25em] text-muted">Oyunlar</h1><span className="text-xs text-subtle">{active.length} oynanabilir</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{active.map((game, i) => <GameCard key={game.slug} game={game} featured={i === 0} />)}</div></section>
+    {soon.length > 0 && <section aria-labelledby="coming-soon" className="mt-14"><h2 id="coming-soon" className="mb-5 text-sm font-medium uppercase tracking-[0.25em] text-muted">Yakında</h2><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{soon.map((game) => <GameCard key={game.slug} game={game} />)}</div></section>}
+    <footer className="mt-14 text-center text-xs text-subtle"><a href="/credits.html" className="hover:text-fg focus-visible:outline-2 focus-visible:outline-danger">Kaynaklar</a></footer>
+  </main>;
 }

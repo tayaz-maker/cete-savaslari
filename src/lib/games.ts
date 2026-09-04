@@ -4,6 +4,7 @@ export type CatalogGame = {
   subtitle: string;
   status: "live" | "soon";
   href: string | null;
+  icon: string;
 };
 
 export const HTML5_SLUGS = [
@@ -28,6 +29,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Racon, semt, nakit TL.",
     status: "live",
     href: "/cete-savaslari",
+    icon: "cete",
   },
   {
     slug: "hanedan",
@@ -35,6 +37,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Adamlar ölür. Hanedan kalır.",
     status: "live",
     href: "/oyna/hanedan",
+    icon: "hanedan",
   },
   {
     slug: "racon",
@@ -42,6 +45,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Adamlar ölür. İsim kalır.",
     status: "live",
     href: "/oyna/racon",
+    icon: "racon",
   },
   {
     slug: "tc-sim",
@@ -49,6 +53,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Bir hayat. Haftalık kararlar, yıllarca süren sonuçlar.",
     status: "live",
     href: "/oyna/tc-sim",
+    icon: "tc-sim",
   },
   {
     slug: "bukucu",
@@ -56,6 +61,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "İstanbul tapusu. Semti tutan büker. Para TL.",
     status: "live",
     href: "/games/bukucu/",
+    icon: "bukucu",
   },
   {
     slug: "labirent",
@@ -63,6 +69,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Kapalı yollar, tek çıkış.",
     status: "live",
     href: "/oyna/labirent",
+    icon: "labirent",
   },
   {
     slug: "peg-solitaire",
@@ -70,6 +77,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Atla, bir tane bırak.",
     status: "live",
     href: "/oyna/peg-solitaire",
+    icon: "tek-tas",
   },
   {
     slug: "satranc",
@@ -77,5 +85,7 @@ export const GAMES: CatalogGame[] = [
     subtitle: "Tahta, hamle, şah mat.",
     status: "live",
     href: "/oyna/satranc",
+    icon: "satranc",
   },
+  { slug: "tc-sim-devlet", title: "TC SIM: DEVLET", subtitle: "4000 Yıllık Devlet Aklı", status: "soon", href: null, icon: "devlet" },
 ];
