@@ -1,4 +1,4 @@
-import { SAVE_VERSION, createNewGame, validateState } from "./state.js";
+import { SAVE_VERSION, createNewGame, normalizeEducationCareer, validateState } from "./state.js";
 import { getHomeById, getJobById } from "./life.js";
 import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 
@@ -80,6 +80,13 @@ function normalizeCurrentEra(raw) {
   };
 }
 
+// v3 kayıtlar eğitim/kariyer alanlarını tanımıyordu. Sürüm damgası burada
+// yükseltilmezse mevcut bütün kayıtlar doğrulamadan geçemez ve bozuk sayılır.
+function migrateV3(raw) {
+  const state = normalizeCurrentEra(raw);
+  return { ...state, meta: { ...(state.meta || {}), saveVersion: SAVE_VERSION } };
+}
+
 export function migrateState(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     return { ok: false, error: "Kayıt nesne değil." };
@@ -89,7 +96,10 @@ export function migrateState(raw) {
   let state = raw;
   if (version < 2) state = mergeLegacy(raw);
   else if (version === 2) state = migrateV2(raw);
+  else if (version === 3) state = migrateV3(raw);
   else state = normalizeCurrentEra(raw);
+  // mergeLegacy() career nesnesini baştan kurduğu için deneyim haritası burada geri eklenir.
+  state = normalizeEducationCareer(state);
   const validation = validateState(state);
   return validation.ok
     ? { ok: true, state, migrated: version !== SAVE_VERSION }

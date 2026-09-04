@@ -205,6 +205,12 @@ function processMonthEnd(state) {
   transact(state, -summary.housing, "Aylık konut gideri", "housing");
   if (summary.otherExpenses)
     transact(state, -summary.otherExpenses, "Diğer düzenli gider", "expense");
+  // Ay içinde tek hafta bile ilerleme olduysa tam aylık ücret alınır; eğitimi
+  // bırakmak o ayın borcunu silmez. Ay başına tam bir kez.
+  if (summary.tuition) {
+    transact(state, -summary.tuition, "Eğitim ücreti", "education");
+    state.education.tuitionOwedThisMonth = 0;
+  }
   return `Ay sonu: ₺${summary.income.toLocaleString("tr-TR")} gelir, ₺${summary.expenses.toLocaleString("tr-TR")} gider işlendi.`;
 }
 

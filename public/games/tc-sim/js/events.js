@@ -7,6 +7,12 @@ import {
   updateRelationship,
 } from "./state.js";
 import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js";
+import { getPathById, isEligibleForJob } from "./education.js";
+
+const canTakeJob = (state, jobId) =>
+  state.career.jobId !== jobId &&
+  !state.career.pendingJob &&
+  isEligibleForJob(state, getJobById(jobId)).ok;
 
 function applyEffects(state, effects = {}) {
   if (effects.money) transact(state, effects.money, effects.reason || "Event sonucu", "event");
@@ -21,6 +27,25 @@ function applyEffects(state, effects = {}) {
 }
 
 export const EVENT_DEFINITIONS = [
+  {
+    // Diploma ödülü haftalık tick'te verilir; bu tanım yalnız bildirimdir.
+    id: "education_completed",
+    repeat: "repeatable",
+    title: "Eğitimin tamamlandı",
+    text: "Kayıtlı olduğun programı bitirdin; belgen artık iş başvurularında geçerli.",
+    condition: (state) => Boolean(state.flags.educationCompletedPending),
+    choices: [
+      {
+        id: "acknowledge",
+        label: "Kaydını al",
+        effects: {
+          health: { stress: -5 },
+          flags: { educationCompletedPending: null },
+          memory: "Eğitim belgeni aldın.",
+        },
+      },
+    ],
+  },
   {
     id: "family_budget_talk",
     repeat: "once",
@@ -148,6 +173,105 @@ export const EVENT_DEFINITIONS = [
           flags: { soughtResponsibility: true },
           memory: "İşinde daha fazla sorumluluk istedin.",
           reason: "İş primi",
+        },
+      },
+    ],
+  },
+  {
+    id: "education_opportunity",
+    repeat: "once",
+    title: "Diploman kapı açtı",
+    text: "Lisans belgen sayesinde kurumsal bir pozisyon artık sana açık.",
+    condition: (state) => canTakeJob(state, "specialist"),
+    choices: [
+      {
+        id: "review",
+        label: "Fırsatı incele",
+        effects: {
+          health: { stress: -3 },
+          flags: { sawEducationOpportunity: true },
+          memory: "Lisans diploman yeni bir iş fırsatının kapısını açtı.",
+          importance: "important",
+        },
+      },
+    ],
+  },
+  {
+    id: "experience_opportunity",
+    repeat: "once",
+    title: "Tecrüben fark edildi",
+    text: "Sahadaki deneyimin ve teknik eğitimin birleşti; daha iyi bir pozisyon konuşuluyor.",
+    condition: (state) => canTakeJob(state, "technician"),
+    choices: [
+      {
+        id: "review",
+        label: "Fırsatı incele",
+        effects: {
+          health: { stress: -3 },
+          flags: { sawExperienceOpportunity: true },
+          memory: "Deneyimin sayesinde daha iyi bir iş fırsatı doğdu.",
+          importance: "important",
+        },
+      },
+    ],
+  },
+  {
+    id: "study_workload_pressure",
+    repeat: "cooldown",
+    cooldownWeeks: 8,
+    title: "Okul ve iş aynı haftaya sığmıyor",
+    text: "Çalışma düzeni ile ders yükü üst üste bindi; beden bunu hissettiriyor.",
+    condition: (state) =>
+      Boolean(state.education.active) &&
+      state.career.jobId !== null &&
+      (state.health.energy <= 40 || state.health.stress >= 65),
+    choices: [
+      {
+        id: "slow",
+        label: "Tempoyu düşür",
+        effects: {
+          health: { energy: 8, stress: -10 },
+          memory: "Ders ve iş yükü arasında tempoyu düşürdün.",
+        },
+      },
+      {
+        id: "push",
+        label: "İkisini de sürdür",
+        effects: {
+          health: { energy: -6, stress: 6, health: -2 },
+          flags: { pushedThroughStudy: true },
+        },
+      },
+    ],
+  },
+  {
+    id: "tuition_pressure",
+    repeat: "cooldown",
+    cooldownWeeks: 4,
+    title: "Eğitim ücreti sıkıştırdı",
+    text: "Yaklaşan eğitim ödemesi için kasadaki para yeterli görünmüyor.",
+    condition: (state) => {
+      const path = state.education.active ? getPathById(state.education.active.pathId) : null;
+      return Boolean(path) && state.finances.balance < path.monthlyTuition * 2;
+    },
+    choices: [
+      {
+        id: "ask",
+        label: "Aileden destek iste",
+        effects: {
+          money: 1500,
+          relationships: { anne: -4 },
+          reason: "Eğitim desteği",
+          memory: "Eğitim ücreti için ailenden destek istedin.",
+        },
+      },
+      {
+        id: "cut",
+        label: "Harcamaları kıs",
+        effects: {
+          health: { stress: 6 },
+          flags: { cutForTuition: true },
+          memory: "Eğitim ücretini karşılamak için harcamalarını kıstın.",
         },
       },
     ],

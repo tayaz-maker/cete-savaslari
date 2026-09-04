@@ -35,7 +35,21 @@ Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: D
 
 ## Sıradaki tek iş
 
-**Aşama 3'ün sonraki kontrollü dilimi:** mevcut iş/konut zincirini bozmadan aile ve kişiler tarafını derinleştirmek.
+**Aşama 3B — Eğitim + Kariyer temeli tamamlandı ve uygulandı.** Devir notu: `TC_SIM_3B_POST_IMPLEMENTATION.md` (önce bunu oku), plan `TC_SIM_3B_IMPLEMENTATION.md`, testler `TC_SIM_3B_TEST_PLAN.md`.
+
+3B ile gelen ve korunması gereken runtime durumu:
+
+- `education` (`level` / `fields` / `active` / `tuitionOwedThisMonth`) ve `career.jobFamilyExperience` state'in parçasıdır; deneyim birimi **hafta**, kariyer bandı saklanmaz, türetilir.
+- İki eğitim yolu (mesleki kurs, üniversite), iki alan (`technical`, `business`), tam sayı puan ilerlemesi (tam +3, yarı +2/hafta). Float kullanılmaz.
+- Eğitim kaydı/bırakması **karar hakkı tüketmez**; haftada iki karar invariantı korunur.
+- Haftalık deneyim ve eğitim ilerlemesi `applyWeeklyLifeLoad()` guard'ının içindedir; save/load sonrası tekrar işlenmez.
+- Diploma ödülü haftalık tick'te verilir, event yalnız bildirimdir; tamamlanma tam bir kezdir.
+- Aylık eğitim ücreti ay sonunda tam bir kez alınır; eğitimi bırakmak o ayın borcunu silmez.
+- İş uygunluğu tek merkezî `isEligibleForJob()` üzerindendir; teklif kabulü, event koşulları ve arayüz aynı fonksiyonu kullanır.
+- `technician` ve `specialist` işleri eğitim/alan/deneyim ister; **mevcut üç giriş işi gereksinimsizdir** ve eski kayıtlar kilitlenmez.
+- `SAVE_VERSION = 4`. v3 kayıtlar `migrateV3()` ile taşınır ve her migration dalından sonra `normalizeEducationCareer()` çalışır. Bu zincir bozulursa tüm oyuncu kayıtları geçersiz sayılır.
+
+**Sıradaki iş:** Aşama 3'ün kalan dilimi — mevcut iş/konut/eğitim zincirini bozmadan aile ve kişiler tarafını derinleştirmek.
 
 ## Korunacak teknik ilkeler
 

@@ -6,6 +6,7 @@ import {
   HOMES,
   JOBS,
   acceptJobOffer,
+  enrollEducation,
   getCommuteLoad,
   getCommuteExplanation,
   getHomeById,
@@ -14,8 +15,22 @@ import {
   getMoveCost,
   moveHome,
   quitJob,
+  stopEducation,
   PRIVACY_CONTEXT,
 } from "./life.js";
+import {
+  EDUCATION_PATHS,
+  JOB_FAMILY_LABELS,
+  describeJobRequirements,
+  getCareerBand,
+  getEducationLevelLabel,
+  getEducationProgress,
+  getFamilyExperience,
+  getFieldLabel,
+  getIntensityLabel,
+  getPathDurationWeeks,
+  isEligibleForJob,
+} from "./education.js";
 import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js";
 import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js";
 
@@ -188,21 +203,88 @@ function renderWeekControl() {
 function renderCareer() {
   const active = getJobById(state.career.jobId);
   const home = getHomeById(state.household.homeId);
+  const experience = experienceSummary();
   return `<div class="workspace-head"><div><p class="eyebrow">İŞ</p><h1>Çalışma hayatı</h1></div>${renderWeekControl()}</div>
     <section class="detail-summary panel"><div><span>Çalışma durumu</span><strong>${active ? escapeText(active.title) : "İşsiz"}</strong></div><div><span>Aylık maaş</span><strong>${money(active?.salary || 0)}</strong></div><div><span>İş yükü</span><strong>${lifeLabel(active?.load || 0)}</strong></div><div><span>Güvence</span><strong>${active?.security || "—"}</strong></div><div><span>${escapeText(home.title)} ulaşımı</span><strong>${escapeText(getCommuteExplanation(home.id, active?.id || null).label)}</strong><small>${escapeText(getCommuteExplanation(home.id, active?.id || null).detail)}</small></div></section>
+    <section class="detail-summary panel"><div><span>İş alanı</span><strong>${escapeText(experience.familyLabel)}</strong></div><div><span>Alan deneyimi</span><strong>${experience.weeks} hafta</strong><small>${experience.months} ay</small></div><div><span>Kariyer bandı</span><strong>${escapeText(experience.band.label)}</strong></div><div><span>Eğitim seviyesi</span><strong>${escapeText(getEducationLevelLabel(state.education.level))}</strong><small>${state.education.fields.length ? escapeText(state.education.fields.map((field) => getFieldLabel(field)).join(" · ")) : "Alan yok"}</small></div></section>
     ${state.career.pendingJob ? `<p class="result">${escapeText(getJobById(state.career.pendingJob.jobId).title)} başlangıcı ${Math.max(0, state.career.pendingJob.startWeek - state.time.absoluteWeek)} hafta sonra.</p>` : ""}
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">FIRSATLAR</p><h2>İş teklifleri</h2></div></div><div class="option-grid">${JOBS.map(
       (job) => {
         const commute = getCommuteExplanation(home.id, job.id);
+        const isCurrent = state.career.jobId === job.id;
+        const eligibility = isEligibleForJob(state, job);
         const disabled =
-          state.career.jobId === job.id ||
+          isCurrent ||
+          !eligibility.ok ||
           state.career.pendingJob ||
           state.weekly.used >= WEEKLY_ACTIVITY_LIMIT;
-        return `<article class="option-card ${state.career.jobId === job.id ? "is-current" : ""}"><div><p class="panel-kicker">${state.career.jobId === job.id ? "AKTİF İŞ" : "İŞ TEKLİFİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy + commute.energy} · Stres +${job.stress + commute.stress}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div></dl><button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""}>Teklifi kabul et</button></article>`;
+        const blockReason = isCurrent
+          ? "Zaten bu işte çalışıyorsun."
+          : !eligibility.ok
+            ? eligibility.reason
+            : state.career.pendingJob
+              ? "Önce bekleyen iş başlangıcı sonuçlanmalı."
+              : state.weekly.used >= WEEKLY_ACTIVITY_LIMIT
+                ? "Bu haftanın aktivite hakkı bitti."
+                : "";
+        return `<article class="option-card ${isCurrent ? "is-current" : ""} ${eligibility.ok ? "" : "is-locked"}"><div><p class="panel-kicker">${isCurrent ? "AKTİF İŞ" : eligibility.ok ? "İŞ TEKLİFİ" : "KİLİTLİ"}</p><h3>${escapeText(job.title)}</h3></div><dl><div><dt>Maaş</dt><dd>${money(job.salary)}</dd></div><div><dt>Alan</dt><dd>${escapeText(JOB_FAMILY_LABELS[job.family] || job.family)}</dd></div><div><dt>İş yükü</dt><dd>${lifeLabel(job.load)}</dd></div><div><dt>Ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık etki</dt><dd>Enerji ${job.energy + commute.energy} · Stres +${job.stress + commute.stress}</dd></div><div><dt>Güvence</dt><dd>${job.security}</dd></div><div><dt>Gereksinim</dt><dd>${escapeText(describeJobRequirements(job))}</dd></div></dl>${eligibility.ok ? "" : `<p class="context-note">${escapeText(eligibility.reason)}</p>`}<button class="button" data-job-offer="${job.id}" ${disabled ? "disabled" : ""} title="${escapeText(blockReason)}">Teklifi kabul et</button></article>`;
       },
     ).join(
       "",
     )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= WEEKLY_ACTIVITY_LIMIT ? "disabled" : ""}>İşi bırak</button>` : ""}<p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
+}
+
+function experienceSummary() {
+  const job = getJobById(state.career.jobId);
+  const familyId = job?.family || null;
+  const weeks = familyId ? getFamilyExperience(state, familyId) : 0;
+  return {
+    familyLabel: familyId ? JOB_FAMILY_LABELS[familyId] || familyId : "—",
+    weeks,
+    months: Math.floor(weeks / 4),
+    band: getCareerBand(weeks),
+  };
+}
+
+function renderEducation() {
+  const education = state.education;
+  const progress = getEducationProgress(state);
+  const fields = education.fields.length
+    ? education.fields.map((field) => escapeText(getFieldLabel(field))).join(" · ")
+    : "Henüz alan yok";
+  const blocked = Boolean(education.active) || Boolean(state.events.active);
+
+  return `<div class="workspace-head"><div><p class="eyebrow">EĞİTİM</p><h1>Eğitim ve yeterlilik</h1></div>${renderWeekControl()}</div>
+    <section class="detail-summary panel"><div><span>Eğitim seviyesi</span><strong>${escapeText(getEducationLevelLabel(education.level))}</strong></div><div><span>Alanlar</span><strong>${fields}</strong></div><div><span>Aktif program</span><strong>${progress ? escapeText(progress.path.displayName) : "Yok"}</strong>${progress ? `<small>${escapeText(getIntensityLabel(progress.intensity))}</small>` : "<small>Şu an bir programa kayıtlı değilsin.</small>"}</div><div><span>Bu ay eğitim gideri</span><strong>${money(education.tuitionOwedThisMonth)}</strong><small>Ay sonunda tahsil edilir.</small></div></section>
+    ${
+      progress
+        ? `<section class="panel"><div class="panel-head"><div><p class="eyebrow">DEVAM EDEN</p><h2>${escapeText(progress.path.displayName)}</h2></div><span>%${progress.percent}</span></div>
+      <div class="body-row"><span>İlerleme</span><i><b style="width:${progress.percent}%"></b></i><strong>${progress.points}/${progress.targetPoints}</strong></div>
+      <dl class="edu-facts"><div><dt>Yoğunluk</dt><dd>${escapeText(getIntensityLabel(progress.intensity))}</dd></div><div><dt>Kalan süre</dt><dd>${progress.remainingWeeks} hafta</dd></div><div><dt>Aylık ücret</dt><dd>${money(progress.path.monthlyTuition)}</dd></div><div><dt>Haftalık yük</dt><dd>Enerji ${progress.weeklyLoad.energy} · Stres +${progress.weeklyLoad.stress}</dd></div></dl>
+      <button class="button button-danger action-footer" id="stop-education">Eğitimi bırak</button><p class="context-note">Bırakırsan biriken ilerleme silinir, ödenen ücret iade edilmez ve bu ayın eğitim gideri yine tahsil edilir.</p></section>`
+        : ""
+    }
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">PROGRAMLAR</p><h2>Eğitim yolları</h2></div></div><div class="option-grid">${EDUCATION_PATHS.map(
+      (path) => {
+        const affordable = state.finances.balance >= path.enrollmentFee;
+        const current = education.active?.pathId === path.id;
+        return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "DEVAM EDİYOR" : "PROGRAM"}</p><h3>${escapeText(path.displayName)}</h3></div><p class="context-note">${escapeText(path.summary)}</p><dl><div><dt>Süre</dt><dd>Tam ${getPathDurationWeeks(path, "full")} hafta · Yarı ${getPathDurationWeeks(path, "part")} hafta</dd></div><div><dt>Kayıt ücreti</dt><dd>${money(path.enrollmentFee)}</dd></div><div><dt>Aylık ücret</dt><dd>${money(path.monthlyTuition)}</dd></div><div><dt>Haftalık yük</dt><dd>Tam: enerji ${path.load.full.energy} · stres +${path.load.full.stress}<br>Yarı: enerji ${path.load.part.energy} · stres +${path.load.part.stress}</dd></div><div><dt>Kazandırır</dt><dd>${path.grantsLevel ? `${escapeText(getEducationLevelLabel(path.grantsLevel))} · ` : ""}${escapeText(getFieldLabel(path.grantsField))} alanı</dd></div></dl><div class="edu-actions">${path.allowedIntensity
+          .map((intensity) => {
+            const disabled = blocked || !affordable;
+            const reason = education.active
+              ? "Zaten devam eden bir eğitimin var."
+              : state.events.active
+                ? "Önce açık olayı sonuçlandır."
+                : !affordable
+                  ? `Kayıt için ${money(path.enrollmentFee)} gerekiyor.`
+                  : "";
+            return `<button class="button" data-enroll="${path.id}" data-intensity="${intensity}" ${disabled ? "disabled" : ""} title="${escapeText(reason)}">${escapeText(getIntensityLabel(intensity))} başla</button>`;
+          })
+          .join("")}</div></article>`;
+      },
+    ).join(
+      "",
+    )}</div><p class="result" role="status">${escapeText(notice || "Eğitime kaydolmak haftalık karar hakkı kullanmaz; haftalık enerji ve stres yükü getirir.")}</p></section>`;
 }
 
 function renderHomes() {
@@ -241,9 +323,11 @@ function render() {
   const workspace =
     activeView === "career"
       ? renderCareer()
-      : activeView === "home"
-        ? renderHomes()
-        : renderDashboard();
+      : activeView === "education"
+        ? renderEducation()
+        : activeView === "home"
+          ? renderHomes()
+          : renderDashboard();
   app.innerHTML = `
     <main class="game-frame">
       <header class="game-topbar">
@@ -283,6 +367,21 @@ function render() {
       render();
     }),
   );
+  document.querySelectorAll("[data-enroll]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const result = enrollEducation(state, button.dataset.enroll, button.dataset.intensity);
+      notice = result.reason || result.message;
+      persist();
+      render();
+    }),
+  );
+  document.querySelector("#stop-education")?.addEventListener("click", () => {
+    if (!window.confirm("Eğitimi bırakırsan biriken ilerleme silinir. Devam edilsin mi?")) return;
+    const result = stopEducation(state);
+    notice = result.reason || result.message;
+    persist();
+    render();
+  });
   document.querySelector("#quit-job")?.addEventListener("click", () => {
     const result = quitJob(state);
     notice = result.reason || result.message;
