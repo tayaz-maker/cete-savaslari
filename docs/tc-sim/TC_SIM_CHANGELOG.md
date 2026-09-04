@@ -7,7 +7,7 @@
 - Para, beden, ilişkiler, NPC hafızası, flag, koşullu event ve gecikmiş sonuç akışları çalıştırıldı.
 - Ay sonu finansı, yaş artışı ve temel yıl dosyası eklendi.
 - Sürümlü doğrulama, migration, yedek/recovery ve güvenli hata davranışı olan localStorage kaydı eklendi.
-- Çekirdek davranış testleri ve üç yıllık deterministik simülasyon eklendi.
+- Çekirdek davranış testleri ve üç yıllık deterministik simulasyon eklendi.
 - Oyun TarikLab kataloğuna `/oyna/tc-sim` adresiyle bağlandı.
 
 ## Yönetim arayüzü düzeni
@@ -44,3 +44,10 @@
 - Save sürümü 5'e çıkarıldı; v4 kayıtları eski NPC puanları ve hafızaları korunarak taşınıyor.
 - Deploy sırasında eski/yeni modül karışmasını önlemek için runtime importlarına v5 cache anahtarı eklendi.
 - 28 yeni davranış testi ile sosyal eylem içeren 144/520 haftalık ve 20 seed fuzz doğrulaması eklendi.
+
+## Aşama 3D — İçerik temeli (yalnız belge)
+
+- Sosyal hayat araştırma paketi `docs/tc-sim/` altına kondu (kütüphane, zincir, dil, araştırma notu).
+- Gerçek 3C motora göre 24 olay + 5 gecikmeli zincir seçildi.
+- Cowork uygulama köprüsü: `TC_SIM_3D_IMPLEMENTATION.md`, `TC_SIM_3D_COWORK_START.md`, `TC_SIM_3D_TEST_PLAN.md`.
+- Runtime, save v5 ve 111 test bu kayıtta değişmedi.

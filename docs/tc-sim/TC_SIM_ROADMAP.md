@@ -30,6 +30,8 @@
 
 **Dilimler:** 3A (iş + konut) ve 3B (eğitim + kariyer temeli) tamamlandı. **3C (sosyal çevre + ilişkiler temeli) tamamlandı:** yakınlık/güven/gerilim, ilişki evreleri, haftalık sosyal eylemler, kontrollü ihmal, NPC hafızası, sosyal yükümlülükler, romantik ilgi → sevgili yolu, KİŞİLER ve AİLE/İLİŞKİLER ekranları çalışıyor. Save sürümü 5'tir. Ayrıntı: `TC_SIM_3C_POST_IMPLEMENTATION.md`.
 
+**3D (içerik, planlandı):** 24 sosyal olay + 5 gecikmeli zincir, mevcut 3C motora. Runtime henüz yok. `TC_SIM_3D_COWORK_START.md`. Evlilik/çocuk/grafik yok.
+
 **Bitmiş sayılma şartı:** Oyuncu para–zaman–insan–beden arasında gerçek tercihler yapar; bir yıllık geçmiş anlamlı görünür; içerik kotası motor eksiklerini gizlemek için büyütülmemiştir.
 
 ## 4. Uzun Hayat

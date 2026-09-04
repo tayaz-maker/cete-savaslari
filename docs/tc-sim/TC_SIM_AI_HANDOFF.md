@@ -8,6 +8,8 @@ Türkiye'de geçen, tek bir insanın hayatını haftalık kararlarla yöneten ya
 
 **Aşama 3C — Sosyal Çevre + İlişkiler temeli tamamlandı.** Oyun katalogdan açılıyor; içerik kapsamı hâlâ bilinçli olarak küçük.
 
+**Aşama 3D — içerik paketi belgelendi, runtime uygulanmadı.** Cowork: `TC_SIM_3D_COWORK_START.md`.
+
 Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: DEVLET, TarikLab içinde ayrı bir gelecek oyunudur; TC SIM bugün onun için generic engine'e dönüştürülmez.
 
 ## Kilitli kararlar
@@ -18,36 +20,20 @@ Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: D
 - İlk prototip yalnız birkaç oyun yılıdır: 1 oyuncu, 1 aile, ~5 NPC, 3 iş, 3 ev, 1 partner ihtimali, 20–30 event ve ~5 gecikmiş sonuç.
 - Çekirdek: Zaman + Para + İnsanlar + Beden + Geçmiş + Sonuçlar.
 - Basit HTML/CSS/JavaScript; aşırı tek dosya veya aşırı parçalı mimari yok.
-- Belgeler `docs/tc-sim/`; ileride oyun `public/games/tc-sim/` altında olacak ve mevcut katalog/iframe route'una bağlanacak.
+- Belgeler `docs/tc-sim/`; oyun `public/games/tc-sim/` altında, katalog/iframe route.
 
 ## Son yapılanlar
 
-- Ana tasarım kaynak belgesi hedefli biçimde sadeleştirildi.
-- Master, sistem haritası/state taslağı, 6 aşamalı yol haritası ve bu devir notu oluşturuldu.
-- Save için sürüm, migration, doğrulama, sınırlı geçmiş ve recovery ilkeleri kilitlendi.
-- `public/games/tc-sim/` altında modüler Vanilla JS çekirdeği kuruldu.
-- Haftada iki farklı aktivite, 4 haftalık ay, 12 aylık yıl, koşullu event, NPC hafızası ve gecikmiş borç sonucu çalışıyor.
-- Site kataloğuna `/oyna/tc-sim` olarak eklendi; çekirdek testleri ve üç yıllık simülasyon hazırlandı.
-- Üç iş ve üç konut; ev × iş ulaşımı, haftalık beden yükü ve aylık finansla bağlandı.
-- İş teklifleri bir haftalık açık dosyayla başlıyor; taşınma doğrulanan tek seferlik maliyet kullanıyor.
-- Save migration eski para, beden, NPC, hafıza ve açık dosya kayıtlarını koruyor.
-- Dönem persistent state'in parçasıdır; şu an yalnız `present_day` / Günümüz oynanabilir, eski kayıtlar buna migrate edilir.
+- 3A/3B/3C runtime main'de.
+- 3D için araştırma + motora map + 24+5 dilim + test planı yazıldı. Save hâlâ v5.
 
 ## Sıradaki tek iş
 
-**Aşama 3B — Eğitim + Kariyer temeli tamamlandı ve uygulandı.** Devir notu: `TC_SIM_3B_POST_IMPLEMENTATION.md` (önce bunu oku), plan `TC_SIM_3B_IMPLEMENTATION.md`, testler `TC_SIM_3B_TEST_PLAN.md`.
+**3D runtime uygulaması (ayrı iş).** Bu belge dalında kod yok.
 
-3B ile gelen ve korunması gereken runtime durumu:
-
-- `education` (`level` / `fields` / `active` / `tuitionOwedThisMonth`) ve `career.jobFamilyExperience` state'in parçasıdır; deneyim birimi **hafta**, kariyer bandı saklanmaz, türetilir.
-- İki eğitim yolu (mesleki kurs, üniversite), iki alan (`technical`, `business`), tam sayı puan ilerlemesi (tam +3, yarı +2/hafta). Float kullanılmaz.
-- Eğitim kaydı/bırakması **karar hakkı tüketmez**; haftada iki karar invariantı korunur.
-- Haftalık deneyim ve eğitim ilerlemesi `applyWeeklyLifeLoad()` guard'ının içindedir; save/load sonrası tekrar işlenmez.
-- Diploma ödülü haftalık tick'te verilir, event yalnız bildirimdir; tamamlanma tam bir kezdir.
-- Aylık eğitim ücreti ay sonunda tam bir kez alınır; eğitimi bırakmak o ayın borcunu silmez.
-- İş uygunluğu tek merkezî `isEligibleForJob()` üzerindendir; teklif kabulü, event koşulları ve arayüz aynı fonksiyonu kullanır.
-- `technician` ve `specialist` işleri eğitim/alan/deneyim ister; **mevcut üç giriş işi gereksinimsizdir** ve eski kayıtlar kilitlenmez.
-- `SAVE_VERSION = 4`. v3 kayıtlar `migrateV3()` ile taşınır ve her migration dalından sonra `normalizeEducationCareer()` çalışır. Bu zincir bozulursa tüm oyuncu kayıtları geçersiz sayılır.
+Başla: `docs/tc-sim/TC_SIM_3D_COWORK_START.md`.
+Sözleşme: `TC_SIM_3D_IMPLEMENTATION.md`.
+Test: `TC_SIM_3D_TEST_PLAN.md`.
 
 3C ile gelen ve korunması gereken runtime durumu:
 
@@ -58,14 +44,15 @@ Ana aktif geliştirme projesi **TC SIM — Günümüz** sürümüdür. TC SIM: D
 - Yardım sözü mevcut openCase/event hattını kullanır; başarı veya deadline başarısızlığı yalnız bir kez sonuçlanır.
 - `SAVE_VERSION = 5`; `migrateV4()` Aylin/Mehmet, eski yakınlık, hafıza ve diğer bütün 3B state'ini korur.
 - KİŞİLER bireysel dosya/eylem ekranıdır; AİLE/İLİŞKİLER özet ve açık sosyal mesele görünümüdür.
+- `normalizeSocialState` role/tag kilidini korur; 3D kişilik motoru eklemez.
 
-**Sıradaki iş:** 3D kapsamını kullanıcı playtest geri bildirimlerinden kilitle; otomatik yeni sistem başlatma.
+3B özeti: `TC_SIM_3B_POST_IMPLEMENTATION.md`. Eğitim/kariyer invariantları durur.
 
 ## Korunacak teknik ilkeler
 
-- Motor önce, içerik sonra.
-- State tek doğruluk kaynağı olmalı; sistemler kontrollü işlemlerle state'i değiştirmeli.
-- Hafıza, flag, açık dosya ve ham event geçmişi birbirine karıştırılmamalı.
-- Eventler mevcut durum ve geçmişten doğmalı; sonuçların nedeni oyuncuya açıklanabilmeli.
-- Save yüklenmeden önce doğrulanmalı; hata sessizce yutulmamalı.
-- Ürün yönünü değiştiren kararlar dışında kullanıcı küçük teknik tercihlerle durdurulmamalı.
+- Motor önce, içerik sonra — 3D içerik mevcut motora oturur, motora oturmayan sistem yazılmaz.
+- State tek doğruluk kaynağı.
+- Hafıza, flag, açık dosya ve ham event geçmişi karışmaz.
+- Eventler durum ve geçmişten doğar.
+- Save yüklenmeden doğrulanır; v6 yok.
+- Evlilik, çocuk, otonom NPC, sosyal grafik 3D dışı.
