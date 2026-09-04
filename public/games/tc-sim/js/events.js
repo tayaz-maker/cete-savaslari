@@ -70,6 +70,38 @@ function applyEffects(state, effects = {}) {
     );
 }
 
+const formatEffectAmount = (value) => {
+  const amount = Math.abs(Number(value));
+  return Number.isInteger(amount) ? String(amount) : amount.toFixed(1);
+};
+
+const effectDelta = (label, value) => `${label} ${Number(value) > 0 ? "+" : "−"}${formatEffectAmount(value)}`;
+
+/** Short, player-facing summary of only the choice's immediate known effects. */
+export function getChoiceEffectSummary(choice) {
+  const effects = choice?.effects || {};
+  const summary = [];
+  const money = Number(effects.money);
+  if (Number.isFinite(money) && money !== 0) summary.push(`₺${formatEffectAmount(money)} ${money > 0 ? "al" : "öde"}`);
+  for (const [key, label] of [["energy", "Enerji"], ["stress", "Stres"], ["health", "Sağlık"]]) {
+    const value = Number(effects.health?.[key]);
+    if (Number.isFinite(value) && value !== 0) summary.push(effectDelta(label, value));
+  }
+  for (const [, delta] of Object.entries(effects.social || {})) {
+    for (const [key, label] of [["closeness", "Yakınlık"], ["trust", "Güven"], ["tension", "Gerilim"]]) {
+      const value = Number(delta?.[key]);
+      if (Number.isFinite(value) && value !== 0) summary.push(effectDelta(label, value));
+    }
+  }
+  for (const value of Object.values(effects.relationships || {})) {
+    if (Number.isFinite(Number(value)) && Number(value) !== 0) summary.push(effectDelta("İlişki", value));
+  }
+  if (effects.debt?.amount) summary.push(`₺${formatEffectAmount(effects.debt.amount)} borç oluşur`);
+  if (summary.length) return summary.slice(0, 4).join(" · ");
+  if (effects.flags || effects.npcMemory || effects.memory) return "Bağlam değişir";
+  return "Sonucu belirsiz";
+}
+
 export const EVENT_DEFINITIONS = [
   {
     // Diploma ödülü haftalık tick'te verilir; bu tanım yalnız bildirimdir.

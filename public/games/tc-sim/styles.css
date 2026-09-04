@@ -640,6 +640,16 @@ select {
   gap: 8px;
   margin-top: 15px;
 }
+.event-choice {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+.event-choice small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
 
 .detail-summary {
   display: grid;

@@ -1,5 +1,5 @@
 import { WEEKLY_ACTIVITY_LIMIT, createNewGame } from "./state.js?v=5";
-import { getEventDefinition, resolveEvent } from "./events.js?v=5";
+import { getChoiceEffectSummary, getEventDefinition, resolveEvent } from "./events.js?v=5";
 import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=5";
 import { clearSaves, loadGame, saveGame } from "./save.js?v=5";
 import {
@@ -369,7 +369,7 @@ function renderEvent() {
   if (!state.events.active) return "";
   const definition = getEventDefinition(state.events.active.eventId);
   if (!definition) return "";
-  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(definition.title)}</h2><p>${escapeText(definition.text)}</p><div class="event-choices">${definition.choices.map((choice) => `<button class="button" data-event-choice="${choice.id}">${escapeText(choice.label)}</button>`).join("")}</div></section></div>`;
+  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(definition.title)}</h2><p>${escapeText(definition.text)}</p><div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}"><strong>${escapeText(choice.label)}</strong><small>${escapeText(getChoiceEffectSummary(choice))}</small></button>`).join("")}</div></section></div>`;
 }
 
 function render() {
