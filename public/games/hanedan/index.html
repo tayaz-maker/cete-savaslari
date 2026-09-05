@@ -313,7 +313,7 @@ svg.face { display:block; flex:0 0 auto; }
     if(k==="scout"){if(S.prep.scout)return "Keşif alındı";if(!currentSquadMen().length)return "Hazır ekip seç";if(S.malzeme<4)return "4 malzeme gerekli";}
     if(k==="up"){if((S.bld[p[1]]||0)>=5)return "En yüksek düzey";if(S.kasa<50000*((S.bld[p[1]]||0)+1))return "Kasa yetmez";}
     if(k==="hire"){if(S.men.length>=24)return "Kadro dolu";m=S.market.find(function(x){return x.id===p[1];});if(!m)return "Aday ayrıldı";if(S.kasa<m.yevmiye*4)return "Kasa yetmez";}
-    if(k==="squadtog"){m=manById(p[1]);if(!m||m.hp<=0||m.jail>0||m.sozlesme<=0)return "Hapis veya sözleşme engeli";}
+    if(k==="squadtog"){if(S.prep.squad.indexOf(p[1])<0&&S.prep.squad.length>=squadSize())return "Önce ekipten birini çıkar";m=manById(p[1]);if(!m||m.hp<=0||m.jail>0||m.sozlesme<=0)return "Hapis veya sözleşme engeli";}
     if(k==="soz"&&p[1]==="pay"){m=manById(p[2]);if(!m||m.sozlesme>0)return "Sözleşme sürüyor";if(S.kasa<m.yevmiye*6)return "Kasa yetmez";}
     if(k==="staff"&&!S.staff[p[1]]&&S.kasa<30000)return "30.000 ₺ gerekli";
     if(k==="bail"){m=manById(p[1]);if(!m||m.jail<=0)return "Hapiste değil";if(S.kasa<40000+S.heat*200)return "Kefalet yetmez";}
@@ -1060,6 +1060,7 @@ svg.face { display:block; flex:0 0 auto; }
       if (gambit === "ilkates" && r === 0) power += 5;
       if (gambit === "kacis") power += 1;
       if (gambit === "ganimet") power -= 1;
+      if (gambit === "esir") power -= 2;
       if (kit === "fener" && cond[0] === "elektrik") power += 3;
       if (kit === "arac" && gambit === "kacis") power += 2;
       if (syn.indexOf("Pencere Çifti") !== -1) power += 3;
@@ -1149,6 +1150,7 @@ svg.face { display:block; flex:0 0 auto; }
     else if (marginLast(rooms) > 8) result = "ezici";
     else if (marginLast(rooms) < 0) result = "berbat";
     heat += gambit === "polis" ? -4 : 0;
+    if(gambit==="esir" && living){loot+=4000;heat-=2;}
     heat += gambit === "ganimet" ? 4 : 0;
     if (cond[0] === "karakol") heat += 5;
     if (kit === "zarf") heat -= 3;
@@ -1231,9 +1233,12 @@ svg.face { display:block; flex:0 0 auto; }
         sip + "Sonuç: " + raid.result + ". Kasa " + (raid.loot > 0 ? "şişti" : "kımıldamadı") + "."
       );
     }
+    raid.retreated = !!retreated;
+    raid.awardedLoot = retreated ? Math.round(raid.loot * 0.2) : raid.loot;
+    if (retreated) raid.result = "geri çekildi";
     S.archive.unshift(raid);
     if (S.archive.length > 24) S.archive.pop();
-    haber(raid.result, raid.opp + " — " + raid.cond + " — " + fmtTL(raid.loot));
+    haber(raid.result, raid.opp + " — " + raid.cond + " — " + fmtTL(raid.awardedLoot));
     if (S.kasa < 0) S.kasa = 0;
     if (S.mode === "demir" && (!S.koruyucu.ok || S.bld.kahvehane <= 0)) {
       S.over = true;
@@ -1431,7 +1436,7 @@ svg.face { display:block; flex:0 0 auto; }
     if(reader.raid.crewIds){
       reached.forEach(function(room){(room.crew || []).forEach(function(snapshot){var m=manById(snapshot.id);if(m) Object.assign(m,snapshot);});});
       reader.raid.rooms = reached;
-      if(retreated) reader.raid.loot = reached.length ? reached[reached.length-1].loot : 0;
+      if(retreated) reader.raid.loot = Math.max(0,(reached.length ? reached[reached.length-1].loot : 0)+(reader.raid.choiceLootDelta || 0));
     }
     applyRaid(reader.raid, retreated);
     simLeague();
@@ -1727,9 +1732,8 @@ svg.face { display:block; flex:0 0 auto; }
     if (k === "rback") { readerGeri(); return; }
     if (k === "silent") {
       if(!reader || S.prep.silent || !reader.raid.rooms[reader.idx].silent)return;
-      S.prep.silent = a;
       var changes={borclu:[6000,2],ihbarci:[-3000,-3],telsiz:[0,-2],kasa:[9000,5],soyleme:[0,1]}[a];
-      if(!changes)return;reader.raid.loot=Math.max(0,reader.raid.loot+changes[0]);reader.raid.heat=clamp(reader.raid.heat+changes[1],1,20);
+      if(!changes)return;S.prep.silent=a;reader.raid.choiceLootDelta=(reader.raid.choiceLootDelta || 0)+changes[0];reader.raid.loot=Math.max(0,reader.raid.loot+changes[0]);reader.raid.heat=clamp(reader.raid.heat+changes[1],1,20);
       var label = a;
       for (var s = 0; s < SILENT.length; s++) if (SILENT[s][0] === a) label = SILENT[s][1];
       kronik("Sessiz oda: " + label + ".");
@@ -2147,7 +2151,7 @@ svg.face { display:block; flex:0 0 auto; }
     }
     var opp = currentOpp();
     add(main, el("p", { cls: "kicker", text: "Brifing" }));
-    add(main, el("p", { cls: "serif", text: opp.name + (opp.r === S.home.r && opp.d === S.home.d ? " — derbi." : ".") + " Fikstür atlanamaz." }));
+    add(main, el("p", { cls: "serif", text: opp.name + (opp.r === S.home.r && opp.d === S.home.d ? " — derbi." : ".") + " Baskına çık veya puandan vazgeçip dinlen." }));
     if (S.week === 1) add(main, el("p", { cls: "warn", text: "İlk saat: derbi, ölüm masada, bir sözleşme bitmek üzere." }));
     add(main, el("button", { text: S.prep.scout ? "Keşif alındı" : "Keşif (−4 malzeme)", "data-act": "scout" }));
     if (S.prep.scout) {
@@ -2167,6 +2171,7 @@ svg.face { display:block; flex:0 0 auto; }
       add(gg, el("button", { cls: S.prep.gambit === GAMBITS[i][0] ? "gold" : "", text: GAMBITS[i][1], "data-act": "gambit:" + GAMBITS[i][0] }));
     }
     if (S.prep.gambit === "koru") {
+      a=currentSquadMen();
       add(main, el("p", { cls: "small", text: "Koru kimi?" }));
       for (i = 0; i < a.length; i++) {
         add(main, el("button", { cls: S.prep.koru === a[i].id ? "gold" : "ghost", text: a[i].ad, "data-act": "koru:" + a[i].id }));

@@ -6,7 +6,7 @@
 <main><iframe id="game" title="Hanedan / Bükücü" src="hanedan/index.html" width="390" height="844"></iframe></main><output id="result" aria-live="polite">Oyun normal kayıt alanını kullanır. Boyut değişimi kaydı veya oyun durumunu değiştirmez. Bu kontrol dokunmatik cihaz taklidi değildir; gerçek oyun belgesini seçilen genişlikte çizer.</output>
 <script>
 const game=document.getElementById('game'),size=document.getElementById('size'),result=document.getElementById('result');
-document.getElementById('gameChoice').addEventListener('change',e=>{game.src=e.target.value;});
+document.getElementById('gameChoice').addEventListener('change',e=>{game.src=e.target.value;document.querySelector('a').href=e.target.value;});
 size.addEventListener('change',()=>{const [w,h]=size.value.split('×');game.width=w;game.height=h;});
 document.getElementById('reload').addEventListener('click',()=>{game.src=document.getElementById('gameChoice').value;});
 document.getElementById('measure').addEventListener('click',()=>{

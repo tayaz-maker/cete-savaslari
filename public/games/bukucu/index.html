@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="11">
+<meta name="smb-rev" content="12">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -1459,7 +1459,7 @@ button:disabled { opacity: .35; }
     var cols = add(body, el("div", { cls: "cols" }));
     var L = add(cols, el("div", { cls: "col" }));
     var R = add(cols, el("div", { cls: "col" }));
-    add(L, el("h3", { text: "Sen" }));
+    add(L, el("h3", { text: who(t.from) }));
     add(R, el("h3", { text: who(t.to) }));
     ownedList(t.from).forEach(function (i) {
       paintTradeRow(L, i, inArr(t.give, i) >= 0, "tgg:" + i, S.bld[i] > 0 || groupHasBld(i));
@@ -1468,12 +1468,12 @@ button:disabled { opacity: .35; }
       paintTradeRow(R, i, inArr(t.take, i) >= 0, "ttk:" + i, S.bld[i] > 0 || groupHasBld(i));
     });
     var c1 = add(body, el("div", { cls: "cashrow" }));
-    add(c1, el("span", { text: "Ben veriyorum" }));
+    add(c1, el("span", { text: who(t.from) + " veriyor" }));
     add(c1, btn("−50", "tgc:-"));
     add(c1, el("b", { text: tl(t.giveCash) }));
     add(c1, btn("+50", "tgc:+"));
     var c2 = add(body, el("div", { cls: "cashrow" }));
-    add(c2, el("span", { text: "O veriyor" }));
+    add(c2, el("span", { text: who(t.to) + " veriyor" }));
     add(c2, btn("−50", "ttc:-"));
     add(c2, el("b", { text: tl(t.takeCash) }));
     add(c2, btn("+50", "ttc:+"));
@@ -1481,7 +1481,7 @@ button:disabled { opacity: .35; }
     var sh = document.getElementById("sheet");
     var bar = add(sh, el("div", { cls: "footbar" }));
     var even = Math.abs(face.give - face.take) <= 50;
-    add(bar, el("p", { cls: even ? "bal ok" : "bal bad", text: "Sen " + tl(face.give) + " veriyorsun, " + tl(face.take) + " alıyorsun" }));
+    add(bar, el("p", { cls: even ? "bal ok" : "bal bad", text: who(t.from) + " " + tl(face.give) + " veriyor; " + who(t.to) + " " + tl(face.take) + " veriyor" }));
     var ops = add(bar, el("div", { cls: "ops" }));
     var off = add(ops, btn("Teklif et", "toffer", true));
     if (!tradeOk(t)) { off.disabled = true; off.setAttribute("aria-disabled", "true"); }
@@ -1515,7 +1515,7 @@ button:disabled { opacity: .35; }
     add(body, el("p", { cls: "sum", text: tradeLine(t) }));
     add(body, el("p", { cls: "why", text: t.ctr ? "Naci Bey karşı teklif verdi." : (who(t.from) + " teklif etti. " + who(t.to) + " karar verir.") }));
     var face = tradeFace(t);
-    add(body, el("p", { cls: Math.abs(face.give - face.take) <= 50 ? "bal ok" : "bal bad", text: "Sen " + tl(face.give) + " veriyorsun, " + tl(face.take) + " alıyorsun" }));
+    add(body, el("p", { cls: Math.abs(face.give - face.take) <= 50 ? "bal ok" : "bal bad", text: who(t.from) + " " + tl(face.give) + " veriyor; " + who(t.to) + " " + tl(face.take) + " veriyor" }));
     var ops = add(body, el("div", { cls: "ops" }));
     add(ops, btn("Kabul", "tyes", true));
     add(ops, btn("Ret", "tno"));
@@ -1860,8 +1860,8 @@ button:disabled { opacity: .35; }
     if (code === "tno") { rejectTrade(); return; }
     if (code === "tyes") { acceptTrade(); return; }
     if (code === "toffer") { submitTrade(); return; }
-    if (code === "aup") { if (S.wait === "auc" && S.auc) aucRaise(S.auc.turn); return; }
-    if (code === "aun") { if (S.wait === "auc" && S.auc) aucFold(S.auc.turn); return; }
+    if (code === "aup") { if (S.wait === "auc" && S.auc && !isAi(S.auc.turn)) aucRaise(S.auc.turn); return; }
+    if (code === "aun") { if (S.wait === "auc" && S.auc && !isAi(S.auc.turn)) aucFold(S.auc.turn); return; }
     if (code.indexOf("tsel:") === 0) {
       if (S.trade) { S.trade.to = +code.slice(5); S.trade.take = []; persist(); renderTrade(); }
       return;
