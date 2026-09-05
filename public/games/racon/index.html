@@ -2,9 +2,9 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1a1714">
-<meta name="racon-rev" content="34">
+<meta name="racon-rev" content="35">
 <title>Racon Manager</title>
 <style>
 :root{
@@ -353,6 +353,77 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   .log{min-height:100px;max-height:32vh}
   #vig{display:none}
 }
+
+/* Dar ekranlar: yerel kaydırma, okunur etiketler ve erişilebilir eylemler. */
+html,body{font-size:14px}
+#app{height:100dvh;max-height:100dvh;min-width:0}
+.top{--top:52px;gap:8px;min-width:0}
+.top .meta{overflow-x:auto}
+.btn,.chk,.plan select,.strip{min-height:44px}
+.btn{white-space:normal;overflow-wrap:anywhere;padding:8px 12px}
+.btn[disabled]{opacity:.65}
+.action-reason{display:block;font-size:11px;font-weight:400;letter-spacing:normal;line-height:1.35;margin-top:3px;color:inherit}
+.navbtn:disabled .action-reason{display:none}
+.card,.row,.st,.led,.qrow,.sheet,.list,.plan,.grow{min-width:0;overflow-wrap:anywhere}
+.row:not(button){cursor:default}
+.cols,.split2col,.shop-grid,.map{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card h3,.barrow .lbl{font-size:12px;letter-spacing:.06em}
+.barrow .lbl{gap:8px;flex-wrap:wrap}
+.led{align-items:flex-start;padding:9px 0;flex-wrap:wrap}
+.led .amt{margin-left:auto}
+.kasa-big{font-size:clamp(22px,4vw,28px);overflow-wrap:anywhere}
+.modal-back,.yardim-back{padding:12px;overflow:auto}
+.modal-back .card{max-height:calc(100dvh - 24px);overflow:auto;width:min(440px,100%)}
+.yardim-back .card{margin:0;max-height:calc(100dvh - 24px);overflow:auto}
+.menu-card{max-height:calc(100dvh - 24px)}
+.scene .acts{position:static;padding-bottom:12px}
+#feedback{flex:none;padding:6px 12px;border-bottom:1px solid var(--line);color:var(--accent);font-size:12px;overflow-wrap:anywhere}
+#save-status{font-size:11px;color:var(--ink-dim);white-space:nowrap}
+.side-close{display:none}
+@media(max-width:1100px) and (min-width:901px){#app{--side:210px}.stage{padding:12px}.split{flex-direction:column}.split .list{flex-basis:auto;max-height:34vh}}
+@media(max-width:900px){
+  .top{height:auto;min-height:52px;flex-basis:auto;flex-wrap:wrap;padding:6px 8px}
+  .top .brand,.top .spacer{display:none}
+  .top .meta{flex:1 1 100%;font-size:12px}
+  .top .meta span:first-child{display:inline}
+  .top .btn.primary{margin-left:auto;min-height:44px;min-width:100px}
+  #save-status{margin-right:auto}
+  .body{flex-direction:column}
+  #app .nav{order:3;display:flex;flex:0 0 auto;width:100%;min-height:62px;overflow-x:auto;overflow-y:hidden;border-right:0;border-top:1px solid var(--line);padding:3px 4px calc(3px + var(--safe-b));scrollbar-width:thin;touch-action:pan-x}
+  #app .navbtn{width:auto;min-width:84px;flex:0 0 auto;height:54px;flex-direction:column;justify-content:center;gap:4px;padding:5px 8px;font-size:12px;letter-spacing:0;border-left:0;border-top:2px solid transparent}
+  #app .navbtn span{display:block!important;line-height:1.15}
+  #app .navbtn[aria-current="page"]{border-top-color:var(--accent)}
+  #app .navtog{display:none}
+  .navbtn .dot{position:absolute;top:5px;right:5px;margin:0}
+  .navbtn{position:relative}
+  .side{top:0;left:auto;right:0;bottom:0;width:min(340px,94%);height:auto;padding:12px;transform:translateX(100%);visibility:hidden;pointer-events:none;z-index:6}
+  .side.open{transform:none;visibility:visible;pointer-events:auto}
+  .side-close{display:block;margin:0 0 12px auto}
+  .stage{padding:12px;overscroll-behavior:contain}
+  .split{flex-direction:column;min-height:0}
+  .split .list{flex:0 0 auto;min-width:0;max-height:34vh}
+  .cal{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cal .hd{display:none}
+  .cal .cell:before{content:attr(data-day);color:var(--accent);font-weight:600}
+  .cal .cell{min-height:90px;padding:8px}
+  .plan select{max-width:100%;width:100%}
+  .plan{align-items:stretch}
+  .qrow{flex-wrap:wrap;padding:8px 0}
+  .qrow .grow{flex:1 1 100%}
+  #vig{display:none}
+}
+@media(max-width:540px){
+  .cols,.split2col,.shop-grid,.map,.cal{grid-template-columns:minmax(0,1fr)}
+  .stage{padding:10px}
+  .acts>.btn{flex:1 1 140px}
+  .btn.emir{width:100%}
+  .menu-card input,.menu-card textarea,.plan select{font-size:16px}
+  .ince2{flex-wrap:wrap;font-size:12px}
+  .st{min-height:112px}
+}
+@media(max-height:520px){.top .btn,.btn,.strip{min-height:44px}.menu-layer{align-items:flex-start}.log{max-height:none}.scene{min-height:0}}
+@media(prefers-reduced-motion:reduce){.side{transition:none}}
+
 </style>
 </head>
 <body>
@@ -365,12 +436,15 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     <div class="brand">Racon Manager</div>
     <div class="meta" id="top-meta"></div>
     <div class="spacer"></div>
+    <button type="button" class="btn ghost" data-act="save">Kaydet</button>
+    <span id="save-status" role="status"></span>
     <button type="button" class="btn ghost help-toggle" data-act="yardim-ac" aria-label="Nasıl oynanır">?</button>
     <button type="button" class="btn ghost side-toggle" data-act="side" aria-label="Panel">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/><path d="M16 4v16"/></svg>
     </button>
     <button type="button" class="btn primary" id="btn-ilerlet" data-act="ilerlet">İLERLET</button>
   </header>
+  <div id="feedback" role="status" aria-live="polite" hidden></div>
   <div class="body">
     <nav class="nav" id="nav"></nav>
     <main class="stage" id="stage"></main>
@@ -444,7 +518,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
       <h3>Ana döngü: İLERLET</h3>
       <p>Sağ üstteki <b>İLERLET</b> butonuna her bastığında bir gün geçer. Yevmiye ödenir, işler ilerler, mahallede yeni kâğıtlar (haberler) düşer. Oyun bunun etrafında dönüyor: plan yap, İlerlet'e bas, sonucu gör.</p>
 
-      <h3>Sol menüdeki 8 ekran</h3>
+      <h3>Menüdeki ekranlar</h3>
       <ul>
         <li><b>Olaylar</b> — gelen kutun. Sana gelen her "kâğıt" (haber, teklif, tehdit) burada. Kâğıda tıkla, ne yapacağını seç.</li>
         <li><b>Takvim</b> — haftanın günleri. Randevu, borç, taziye gibi <b>yükümlülüklerin</b> hangi gün olduğunu gösterir.</li>
@@ -587,7 +661,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
     { id: "w103", kind: "silah", ad: "Kama", fiyat: 2200, atk: 14, def: 2, nam: 0, desc: "Belde durur. Kahve masasında görünmez." },
     { id: "w104", kind: "silah", ad: "14'lük Browning", fiyat: 8500, atk: 28, def: 4, nam: 1, desc: "Numarasız. Tetikte tutukluk ayrı mesele." },
     { id: "w105", kind: "silah", ad: "Pompalı", fiyat: 14000, atk: 40, def: 6, nam: 2, desc: "Kapı arkasında konuşur." },
-    { id: "w106", kind: "silah", ad: "Bel holster", fiyat: 28000, atk: 55, def: 10, nam: 3, desc: "Makam silahı. Masa durur." },
+    { id: "w106", kind: "silah", ad: "İşlemeli tabanca", fiyat: 28000, atk: 55, def: 10, nam: 3, desc: "Makam silahı. Masa durur." },
     { id: "w107", kind: "silah", ad: "Mauser 1910", fiyat: 42000, atk: 62, def: 8, nam: 4, desc: "Cep tabancası. Eski, temiz, sessiz." },
     { id: "a101", kind: "ust", ad: "Kasket ve pardösü", fiyat: 3500, atk: 1, def: 8, nam: 1, desc: "Sokak üniforması. Yağmurda da durur." },
     { id: "a102", kind: "ust", ad: "Kalın palto", fiyat: 9000, atk: 2, def: 16, nam: 2, desc: "Kış, rüzgar, duruş." },
@@ -730,6 +804,125 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   var saveTimer = 0;
 
   function num(v, d) { return typeof v === "number" && isFinite(v) ? v : d; }
+  function today() { return (S.week - 1) * 7 + S.day; }
+  function cashNormalize(s) {
+    s.kasa = Math.max(0, Math.round(num(s.kasa, 0)));
+    s.cleanKasa = clamp(Math.round(num(s.cleanKasa, 0)), 0, s.kasa);
+    s.dirtyKasa = s.kasa - s.cleanKasa;
+  }
+  function cashChange(delta, clean) {
+    cashNormalize(S);
+    delta = Math.round(num(delta, 0));
+    if (delta < 0) {
+      var spend = Math.min(S.kasa, -delta), dirty = Math.min(S.dirtyKasa, spend);
+      S.dirtyKasa -= dirty;
+      S.cleanKasa -= spend - dirty;
+      S.kasa -= spend;
+      return -spend;
+    }
+    S.kasa += delta;
+    if (clean) S.cleanKasa += delta; else S.dirtyKasa += delta;
+    return delta;
+  }
+  function filePressure(amount, reason) {
+    S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome,
+      week: S.week, weight: amount, reason: reason });
+    recalcDosya();
+  }
+  function availableMan(m, jobId) {
+    return !!m && m.durum === "hazir" && num(m.lastWorkDay, 0) !== today() &&
+      !S.jobs.some(function (j) { return j.id !== jobId && j.phase !== "done" && j.assigned.indexOf(m.id) >= 0; });
+  }
+  function jobReason(j) {
+    if (!j || j.phase === "done") return "İş kapanmış.";
+    if (j.phase === "running") return "İş zaten sürüyor.";
+    if (j.prepLeft > 0) return "Hazırlık henüz bitmedi.";
+    var crew = crewOf(j);
+    if (!crew.length || crew.some(function (m) { return !availableMan(m, j.id); })) return "Ekip hazır değil; bekle veya planı iptal et.";
+    if (["bakkal_soygunu", "kuyum", "kacak_mal"].indexOf(j.kind) >= 0 && crew.length < 3) return "Bu iş için üç hazır adam gerekli.";
+    return "";
+  }
+  var PERSONAL = ["hayat", "okey", "at", "hediye", "randevu", "kucuk-kasa", "muhtar-korkut", "muhtar-destek", "iyilik-sozle", "iyilik-ihbar", "iyilik-kesif"];
+  function actionReason(code, p) {
+    p = p || {};
+    if (!S) return code === "ilerlet" || code === "save" ? "Önce bir hayat başlat." : "";
+    if (S.flags.oyunSonu && ["menu", "copy", "load", "silok", "yardim-ac", "yardim-kapat", "save", "nav", "navdetay", "side", "new-confirm", "new-cancel"].indexOf(code) < 0) return "Bu hayatın defteri kapandı.";
+    if(S.flags.oyunSonu&&code==="nav")return "Bu hayat sona erdi; sonuç ve menü açık.";
+    if (UI.sahne && ["job-emir", "job-tamam", "rnd-karar", "save", "yardim-ac", "yardim-kapat", "side"].indexOf(code) < 0) return "Önce açık sahneyi tamamla.";
+    if (p.id && !["inbox", "nav", "cal", "man", "street"].includes(code)) {
+      var paper = inboxBy(p.id);
+      if (paper && paper.kapali) return "Bu kâğıt zaten kapandı.";
+    }
+    if (PERSONAL.indexOf(code) >= 0) {
+      if (S.flags.personalDay === today() && num(S.flags.personalUsed, 0) >= 2) return "Bugünün iki kişisel işi tamam. Yarın devam et.";
+      if (S.flags.personalDay === today() && (S.flags.personalKeys || []).indexOf(code + ":" + (code === "hayat" ? p.id : "")) >= 0) return "Bugün bunu yaptın. Yarın yeniden açılır.";
+    }
+    var cost = { okey:250, at:1000, randevu:600, "kucuk-kasa":500, "muhtar-destek":3000,
+      "adam-ara":800, "avukat-tut":6000, "kan-ode":8000, zarf:2500, pazarlik:5000,
+      tedavi:1200, "tanik-uzaklastir":1500, "tanik-satinal":3000, tut:4500 }[code];
+    var item = code === "buy" ? itemBy(p.id) : code === "estate" ? emlakBy(p.id) :
+      code === "hayat" ? HAYAT.find(function(x){return x.id===p.id;}) : null;
+    if (item) cost = item.fiyat;
+    if (code === "hediye") { var woman=KADIN.find(function(x){return x.id===p.id;}); if(woman) cost=woman.hediye; }
+    if (code === "kose" && KOSE[num(S.kose,0)]) cost=KOSE[num(S.kose,0)].fiyat;
+    if (code === "kom-zarf") { var kp=inboxBy(p.id); cost=kp ? num(kp.ucret,5000) : 0; if(S.men.some(function(m){return m.uzman==="agiz"&&m.durum!=="olu";})) cost=Math.round(cost*0.8); }
+    if (code === "hire") { var h=HIRE.find(function(x){return x.id===p.id;}); if(h) cost=h.hire; if(liveN()>=7) return "Ekip sınırı yedi kişi."; }
+    if (code === "aday-al") { var ap=inboxBy(p.id), a=ap&&adayBy(ap.aday); if(a) cost=a.pesin; if(liveN()>=7) return "Ekip sınırı yedi kişi."; }
+    if (code === "mkt") {
+      if(p.id==="altin-al") cost=S.market.altin;
+      if(p.id==="dolar-al") cost=Math.round(S.market.dolar*10);
+      if(p.id==="altin-sat"&&S.hold.altin<1 || p.id==="dolar-sat"&&S.hold.dolar<10) return "Satılacak miktar yok.";
+    }
+    if (cost && S.kasa < cost) return "Kasada ₺" + cost.toLocaleString("tr-TR") + " gerekli.";
+    if (code === "tanik-satinal" && S.dirtyKasa < 3000) return "Kirli kasada ₺3.000 gerekli.";
+    if (code === "avukat-tut" && S.flags.avukatTutuldu) return "Avukat zaten çalışıyor.";
+    if (code === "tut") { var st=streetBy(p.id); if(!st||st.sahip!=="bos") return "Sokak boş değil."; if(num(S.flags.touchJobs[st.id],0)<2) return "Önce bu sokakta iki işi sonuçlandır."; }
+    if (code === "hayat" && p.id === "cami" && S.day !== 5) return "Cuma günü açılır.";
+    if (code === "buy" && S.inventory.indexOf(p.id)>=0) return "Zaten sende.";
+    if (code === "estate" && S.estates.indexOf(p.id)>=0) return "Zaten sende.";
+    if (code === "hire" && manBy(p.id)) return "Bu adam zaten kayıtta.";
+    if (code === "hire" && num(S.flags.amcaKonusulmuyor,0)>0) return "Amca yeniden yüz verene kadar kapı kapalı.";
+    if (code === "tedavi") {var patient=manBy(p.id);if(!patient||["yarali","yorgun"].indexOf(patient.durum)<0) return "Tedavi veya dinlenme gerekmiyor.";}
+    if (code === "front-sec") {if(muhtarKilit()) return "Önce muhtarın desteği gerekli.";if(S.flags.aklamaFront===p.id) return "Bu paravan zaten açık.";if(!AKLAMA_FRONT[p.id]||S.kasa<AKLAMA_FRONT[p.id].masraf) return "İlk haftanın masrafı kasada bulunmalı.";}
+    if (code === "kahve-turu" && S.flags.kahveHafta===S.week) return "Bu haftanın turu tamam.";
+    if (code === "gozdagi" && S.flags.lastGozdagi===S.week) return "Bu hafta gözdağı verildi.";
+    if (code === "adam-ara" && S.flags.aramaHafta===S.week) return "Bu hafta aradın; haftaya yenilenir.";
+    if (code === "zarf" && !S.evidence.length) return "Dosyada çıkarılacak delil yok.";
+    if (code === "soz" && (S.flags.soz||!S.rel||S.rel.id!==p.id||S.rel.yakin<70)) return "Söz için mevcut ilişkide yakınlık 70 olmalı; yalnız bir kez verilir.";
+    var favorId={"iyilik-tanistir":"p_kapici","iyilik-sozle":"p_berber","iyilik-ihbar":"p_kapici","iyilik-kesif":"p_kahveci"}[code];
+    if(favorId){var fp=personBy(favorId);if(!fp||fp.favor<1) return "Önce bu kişiden bir iyilik hakkı kazan.";}
+    if(code==="iyilik-tanistir"&&S.flags.cavusTanisik) return "Zaten tanışıyorsunuz.";
+    if (code === "sahne") return jobReason(jobBy(p.id));
+    if (["siparis","paper-kabul","pusu"].indexOf(code)>=0 && !S.men.some(function(m){return availableMan(m);})) return "Müsait adam yok; yaralı veya görevli ekip bekleniyor.";
+    if (code === "planla") {
+      var pst=streetBy(UI.planStreet||S.streetHome);if(pst&&num(pst.muhurLeft,0)>0)return "Bu sokak mühürlü; açılmasını bekle.";
+      var ids=UI.planMen || S.men.filter(function(m){return availableMan(m);}).map(function(m){return m.id;});
+      if (!ids.length || ids.some(function(id){return !availableMan(manBy(id));})) return "En az bir müsait adam seç.";
+      if (["bakkal_soygunu","kuyum","kacak_mal"].indexOf(UI.planKind)>=0 && ids.length<3) return "Üç müsait adam seç.";
+    }
+    if (["randevu-git","randevu-ertele","randevu-gitme","duty-go"].indexOf(code)>=0) {
+      var c=S.calendar.find(function(x){return x.id===p.id;});
+      if(!c||c.status!=="bekler") return "Bu takvim kaydı kapandı.";
+      if(c.week!==S.week||c.day!==S.day) return "Tarihi gelince açılır: H"+c.week+" · "+DAYS[c.day-1]+".";
+      if(code==="randevu-ertele"&&c.postponed) return "Bir kez ertelendi; yeniden ertelenemez.";
+      if(code==="randevu-git"&&!randevuKadro().length) return "Randevu için hazır ekip yok.";
+      if(code==="duty-go"&&c.ref&&c.ref.kind==="borc"&&S.kasa<S.debt) return "Borcun tamamı için para yetersiz.";
+    }
+    return "";
+  }
+  function feedback(text) {
+    UI.feedback = text;
+    if(UI.mode!=="play"){var err=document.getElementById("menu-err");if(err){err.textContent=text;err.hidden=false;}}
+    var el=document.getElementById("feedback");
+    if(el){el.textContent=text;el.hidden=!text;}
+  }
+  function decorateActions() {
+    document.querySelectorAll("button[data-act]").forEach(function(el){
+      var reason=actionReason(el.dataset.act,el.dataset);
+      if(reason){el.disabled=true;el.title=reason;
+        var note=document.createElement("small");note.className="action-reason";note.textContent=reason;el.appendChild(note);}
+    });
+  }
   function str(v, d) { return typeof v === "string" ? v : d; }
   function arr(v, d) { return Array.isArray(v) ? v : d; }
 
@@ -913,22 +1106,22 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   };
   function kasaAklaHaftalik() {
     if (S.flags.avukatTutuldu) {
-      if (S.kasa >= 6000) { S.kasa -= 6000; defter("avukat · " + fmtPara(-6000)); }
+      if (S.kasa >= 6000) { cashChange(-(6000)); defter("avukat · " + fmtPara(-6000)); }
       else { S.flags.avukatTutuldu = false; pushInbox("Avukat bıraktı.", "Ücret ödenmedi, Ferit çekildi."); }
     }
     if (S.flags.aklamaFront) {
       var frontDef = AKLAMA_FRONT[S.flags.aklamaFront];
       if (S.kasa >= frontDef.masraf) {
-        S.kasa -= frontDef.masraf;
+        cashChange(-(frontDef.masraf));
         defter(frontDef.ad + " · " + fmtPara(-frontDef.masraf));
         if (rng() < frontDef.skandalSans) {
           S.rep.nam = clamp(S.rep.nam + 15, 0, 100);
-          S.dosya = clamp(S.dosya + 20, 0, 100);
+          filePressure(20, "Olay sonucu");
           S.flags.aklamaFront = null;
-          pushInbox("Skandal: " + frontDef.ad + ".", "Front patladı. Herkes konuşuyor, dosya şişti.");
+          pushInbox("Skandal: " + frontDef.ad + ".", "Paravan açığa çıktı. Herkes konuşuyor, dosya şişti.");
         }
       } else {
-        pushInbox(frontDef.ad + " kapandı.", "Masraf ödenmedi, front düştü.");
+        pushInbox(frontDef.ad + " kapandı.", "Masraf ödenmedi, paravan kapandı.");
         S.flags.aklamaFront = null;
       }
     }
@@ -940,7 +1133,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     var tavan = 3 * yevmiyeToplami();
     if (tavan > 0 && S.dirtyKasa > tavan) {
-      S.dosya = clamp(S.dosya + 2, 0, 100);
+      filePressure(2, "Olay sonucu");
       if (rng() < 0.25) {
         S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome, week: S.week, weight: 2 });
         pushInbox("Nakit sokakta.", "Kirli kasa şişti. Biri bu kadar parayı sordu.");
@@ -1093,6 +1286,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       hapisLeft: num(m.hapisLeft, 0),
       iyilesme: num(m.iyilesme, 0),
       izinLeft: num(m.izinLeft, 0),
+      lastWorkDay: num(m.lastWorkDay, 0),
       askerLeft: num(m.askerLeft, 0),
       form: num(m.form, 55),
       hidden: migrateHidden(str(m.id, "m"), m.hidden),
@@ -1125,6 +1319,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       tags: arr(j.tags, []),
       phase: str(j.phase, "idle"),
       tickIndex: num(j.tickIndex, 0),
+      sonHafta: num(j.sonHafta, 0),
+      sonGun: num(j.sonGun, 0),
+      orders: arr(j.orders, []),
+      startSeed: num(j.startSeed, 0),
+      completedSeq: num(j.completedSeq,0),
+      dustu: num(j.dustu,0),
+      okulBekliyor: !!j.okulBekliyor, okulGoruldu: !!j.okulGoruldu, okulCekildi: !!j.okulCekildi,
       bonus: num(j.bonus, 0),
       siparis: j.siparis ? String(j.siparis) : "",
       hazirlikSecim: j.hazirlikSecim ? String(j.hazirlikSecim) : undefined,
@@ -1323,6 +1524,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var h = num(r0.husumet, 0);
       r0.band = h >= 90 ? "kan" : h >= 85 ? "belali" : h >= 70 ? "hasim" : h >= 40 ? "surtusme" : h >= 15 ? "goz" : "yok";
     }
+    cashNormalize(out);
+    out.week = Math.max(1, Math.floor(out.week));
+    Object.keys(out.rep).forEach(function(k){out.rep[k]=clamp(out.rep[k],0,100);});
+    out.flags.toz = clamp(num(out.flags.toz,0),0,20);
+    if (!AKLAMA_FRONT[out.flags.aklamaFront]) out.flags.aklamaFront=null;
+    out.scene = raw.scene || null;
+    out.jobs.forEach(function(j){if(j.phase==="running"&&!out.scene) j.phase="idle";});
     return out;
   }
   function blank(lakap) {
@@ -1352,7 +1560,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var o = ORIGIN[id] || ORIGIN.koy;
     blank(UI.pendingLakap || "Adsız");
     S.origin = id;
-    S.kasa = o.kasa;
+    S.kasa = o.kasa; S.cleanKasa=0; cashNormalize(S);
     S.rep.korku = o.korku;
     S.rep.saygi = o.saygi;
     S.rep.nam = o.nam;
@@ -1412,9 +1620,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
 
   function dumpSave() {
+    compactState();
     var o = {};
     Object.keys(S).forEach(function (k) { if (k !== "busy") o[k] = S[k]; });
     o.kind = "racon_v1";
+    o.scene = UI.sahne ? { jobId:UI.jobId, jobLog:UI.jobLog||[], jobQueue:UI.jobQueue||[],
+      jobOrders:UI.jobOrders||[], jobWait:!!UI.jobWait, jobDone:!!UI.jobDone,
+      jobSummary:UI.jobSummary||null, rnd:UI.rnd||null } : null;
     o.savedAt = Date.now();
     return o;
   }
@@ -1422,20 +1634,69 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (!S) return;
     try {
       var cur = localStorage.getItem(KEY);
-      if (cur) {
-        try { JSON.parse(cur); localStorage.setItem(BAK, cur); } catch (e) {}
-      }
+      if (cur && parseSave(cur)) { try { localStorage.setItem(BAK, cur); } catch (e) {} }
       localStorage.setItem(KEY, JSON.stringify(dumpSave()));
-    } catch (e) {}
+      var status=document.getElementById("save-status"); if(status) status.textContent="Kaydedildi";
+      return true;
+    } catch (e) { feedback("Kayıt yazılamadı. Yedek ekranından metni kopyalayıp sakla; bu sayfayı kapatma."); return false; }
   }
   function persist() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(writeSave, 200);
+    writeSave();
+  }
+  function compactState() {
+    if(!S) return;
+    cashNormalize(S);
+    S.flags.completedJobs=Math.max(num(S.flags.completedJobs,0),S.jobs.filter(function(j){return j.phase==="done"&&!j.dustu;}).length);
+    var done=S.jobs.filter(function(j){return j.phase==="done";}).sort(function(a,b){return num(a.completedSeq,0)-num(b.completedSeq,0);}).slice(-40);
+    S.jobs=S.jobs.filter(function(j){return j.phase!=="done";}).concat(done);
+    S.defter=S.defter.slice(-240);
+    S.inbox.forEach(function(x){if(!x.kapali&&S.week-x.week>=8){x.kapali=true;x.read=true;}});
+    var notes=0;
+    S.inbox=S.inbox.filter(function(x){if(x.kapali)return false;if(x.kind||x.siparis||x.calId||x.aday||x.manId)return true;return ++notes<=60;}).concat(S.inbox.filter(function(x){return x.kapali;}).slice(0,80));
+    S.calendar=S.calendar.filter(function(c){return c.week>=S.week-2;});
+    S.evidence=S.evidence.filter(function(e){return S.week-e.week<16;});
+    S.senet=S.senet.filter(function(x){return x.status==="bekler";}).concat(S.senet.filter(function(x){return x.status!=="bekler";}).slice(-40));
+    S.lig.gecmis=S.lig.gecmis.slice(-24);
+    S.blood=S.blood.filter(function(x){return x.status==="acik";}).concat(S.blood.filter(function(x){return x.status!=="acik";}).slice(-24));
+    S.adaylar=S.adaylar.filter(function(a){return S.inbox.some(function(p){return !p.kapali&&p.aday===a.id;});}).slice(-14);
+    S.people.forEach(function(p){
+      var mods=(p.mods||[]).filter(modAktif), permanent=mods.filter(function(m){return !m.expireWeek;});
+      if(permanent.length>24){var ids=permanent.map(function(m){return m.id;});mods=mods.filter(function(m){return ids.indexOf(m.id)<0;});mods.unshift({id:"birikim",delta:permanent.reduce(function(n,m){return n+m.delta;},0),reason:"Geçmiş ilişkiler",expireWeek:0});}
+      p.mods=mods;
+    });
+  }
+  function validSave(o) {
+    if(!o||typeof o!=="object"||Array.isArray(o)||!Number.isFinite(o.week)||!Array.isArray(o.men)) return false;
+    if(o.kind && o.kind!=="racon_v1") return false;
+    function safe(v,depth){
+      if(depth>15) return false;
+      if(typeof v==="number") return Number.isFinite(v);
+      if(!v||typeof v!=="object") return typeof v!=="string"||v.length<20000;
+      if(Array.isArray(v)&&v.length>50000) return false;
+      return Object.keys(v).every(function(k){return ["__proto__","prototype","constructor"].indexOf(k)<0&&safe(v[k],depth+1);});
+    }
+    if(!safe(o,0)) return false;
+    function objects(a){return Array.isArray(a)&&a.every(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});}
+    if((o.people||[]).some(function(p){return p&&p.mods!==undefined&&!objects(p.mods);})) return false;
+    if(o.men.some(function(m){return m&&m.baglar!==undefined&&!objects(m.baglar);})) return false;
+    if(o.lig&&["ekipler","fikstur","hedefler","gecmis"].some(function(k){return o.lig[k]!==undefined&&!objects(o.lig[k]);})) return false;
+    if(o.flags&&["lastTouch","touchJobs"].some(function(k){return o.flags[k]!==undefined&&(!o.flags[k]||typeof o.flags[k]!=="object"||Array.isArray(o.flags[k]));})) return false;
+    if((o.jobs||[]).some(function(j){return !j||!Array.isArray(j.assigned)||!j.assigned.every(function(id){return typeof id==="string";});})) return false;
+    if(o.scene){var sc=o.scene;if(typeof sc!=="object"||!["jobLog","jobQueue","jobOrders"].every(function(k){return Array.isArray(sc[k]);})) return false;
+      if(sc.jobId&&!(o.jobs||[]).some(function(j){return j.id===sc.jobId;})) return false;
+      if(!sc.jobId&&!sc.rnd) return false;
+      if(sc.jobDone&&(!sc.jobSummary||!Array.isArray(sc.jobSummary.rows))) return false;
+    }
+    return ["men","streets","rivals","jobs","people","evidence","calendar","inbox","senet","blood","scout","adaylar","plateBook","kefiller"].every(function(k){
+      if(o[k]===undefined) return true;
+      return Array.isArray(o[k])&&o[k].every(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
+    }) && o.men.every(function(m){return typeof m.id==="string"&&(!m.stats||typeof m.stats==="object");});
   }
   function parseSave(txt) {
     try {
       var o = JSON.parse(txt);
-      if (!o || typeof o !== "object") return null;
+      if (!validSave(o)) return null;
       return migrate(o);
     } catch (e) { return null; }
   }
@@ -1450,7 +1711,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (bak) {
       var b = parseSave(bak);
-      if (b) return b;
+      if (b) { UI.loadErr="Ana kayıt açılamadı; sağlam yedek geri yüklendi."; return b; }
     }
     if (raw || bak) UI.loadErr = "Kayıt okunamadı, yedek de bozuk.";
     return null;
@@ -1466,6 +1727,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (lines[0] !== "RACON/1") throw new Error("Biçim uymuyor.");
     var json = fromB64(lines.slice(1).join(""));
     var o = JSON.parse(json);
+    if(!validSave(o)) throw new Error("Kayıt alanları bozuk.");
     S = migrate(o);
   }
 
@@ -1655,8 +1917,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (S.week < num(S.flags.virtuSoguma[lead.id], 0)) return;
     S.flags.virtuSoguma[lead.id] = S.week + 4;
     if (rng() < 0.5) {
-      S.kasa += 3000;
-      S.dirtyKasa = num(S.dirtyKasa, 0) + 3000;
+      cashChange(3000);
+
       addRep("nam", 3);
       pushInbox(manName(lead) + " kendi kararını verdi.", "Virtü. " + manName(lead) + " inisiyatif aldı, iş büyüdü. +₺3.000, nam arttı.");
     } else {
@@ -2097,6 +2359,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
   function startJob(id) {
     var j = jobBy(id);
+    var reason=jobReason(j);
+    if(reason){feedback(reason);return;}
     if (!j || j.phase === "done") return;
     if (j.prepLeft > 0) return;
     if ((j.kind === "bakkal_soygunu" || j.kind === "kuyum" || j.kind === "kacak_mal") && crewOf(j).length < 3) return;
@@ -2108,7 +2372,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     UI.jobId = id;
     UI.jobLog = [];
     UI.jobWait = false;
-    UI.jobOrders = [];
+    UI.jobOrders = (j.orders || []).slice();
     UI.jobDone = false;
     UI.jobSummary = null;
     S.screen = "isler";
@@ -2218,6 +2482,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (code === "cekil") {
         j.okulBekliyor = false;
         j.okulCekildi = true;
+        (j.assigned||[]).forEach(function(id){var m=manBy(id);if(m)m.lastWorkDay=today();});
+        S.flags.completedJobs=doneJobN()+1; j.completedSeq=S.flags.completedJobs;
         addRep("saygi", 1);
         j.phase = "done";
         UI.jobDone = true;
@@ -2297,6 +2563,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     /* Tek seferlik: bekleyen bir tick timer'ı ya da ikinci bir çağrı
        aynı işi tekrar bitirip para/delil/heat yazmasın. */
     if (j.phase === "done") return;
+    crewOf(j).forEach(function(m){m.lastWorkDay=today();});
     clearJobTimer();
     bagArttir(j);
     var cbugun = cenazeBugun();
@@ -2445,8 +2712,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       tanik += 1;
     }
 
-    S.kasa += para;
-    if (para > 0) S.dirtyKasa = num(S.dirtyKasa, 0) + para;
+    cashChange(para);
+
     if (para) defter((JOB_TR[j.kind] || j.kind) + " · " + fmtPara(para));
     if (st) st.heat = clamp(st.heat + heatD, 0, 100);
 
@@ -2497,6 +2764,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
       if (num(st.terorMahalle, 0) >= 60 && rng() < 0.15) tanik = Math.max(tanik, 1);
     }
+    if (j.kind === "tahsilat" || j.kind === "kepenk") {
+      esnafTepki(j.streetId, orders);
+      if (esnafDusman(j.streetId)) tanik = Math.max(tanik, 1);
+    }
     if (tanik > 0) {
       S.evidence.push({ id: nid("ev"), kind: "tanik", streetId: j.streetId, week: S.week, weight: tanik });
     }
@@ -2521,10 +2792,6 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
     });
 
-    if (j.kind === "tahsilat" || j.kind === "kepenk") {
-      esnafTepki(j.streetId, orders);
-      if (esnafDusman(j.streetId)) tanik = Math.max(tanik, 1);
-    }
     if (orders.length && orders.every(function (o) { return o === "sessiz"; })) {
       favorEkle("p_kapici", 1);
       S.flags.sessizIsSayisi = num(S.flags.sessizIsSayisi, 0) + 1;
@@ -2558,6 +2825,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       pushInbox("Senet düştü.", sn.ad + " gelecek hafta ödeyecek.");
     }
     recalcDosya();
+    S.flags.completedJobs=doneJobN()+1; j.completedSeq=S.flags.completedJobs;
     j.phase = "done";
     stageGate();
     UI.jobDone = true;
@@ -2620,7 +2888,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) + 8, 0, 100);
       defter("tehdit ertelendi · husumet +8");
     } else {
-      S.dosya = clamp(S.dosya + 6, 0, 100);
+      filePressure(6, "Olay sonucu");
       defter("tehdit ertelendi · dosya +6");
     }
     syncBand();
@@ -2689,7 +2957,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (c.ref && (c.ref.kind === "yevmiye" || c.ref.kind === "donus")) return;
       if (c.ref && c.ref.kind === "borc") {
         if (S.kasa >= S.debt && S.debt > 0) {
-          S.kasa -= S.debt;
+          cashChange(-(S.debt));
           defter("borç · " + fmtPara(-S.debt));
           S.debt = 0;
           c.status = "bitti";
@@ -2727,7 +2995,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (S.day !== 7) return;
     var pas = weeklyPassive();
     if (pas) {
-      S.kasa += pas;
+      cashChange(pas, true);
       defter("kira ve köşe · " + fmtPara(pas));
     }
     var eksik = false;
@@ -2737,7 +3005,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (m.durum === "olu") return;
       var yev = m.yevmiye * tahtCarp;
       if (S.kasa >= yev) {
-        S.kasa -= yev;
+        cashChange(-(yev));
         defter("yevmiye · " + manName(m) + " · " + fmtPara(-yev));
       } else {
         m.gonul = clamp(m.gonul - 15, 0, 100);
@@ -2758,7 +3026,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (sn.week !== S.week || sn.day !== S.day) return;
       if (sn.kind === "alacak") {
         if (rng() < 0.72) {
-          S.kasa += sn.tutar;
+          cashChange(sn.tutar);
           sn.status = "bitti";
           defter("senet · " + sn.ad + " · " + fmtPara(sn.tutar));
           pushInbox("Senet geldi.", sn.ad + " ₺" + sn.tutar.toLocaleString("tr-TR") + " bıraktı.");
@@ -2777,7 +3045,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     });
     S.men.forEach(function (m) {
       if (m.durum === "olu" || m.durum === "hapis") return;
-      if (working[m.id]) {
+      if (working[m.id] || num(m.lastWorkDay,0)===today()) {
         m.yorgunluk = clamp(m.yorgunluk + 12, 0, 100);
         m.form = clamp(num(m.form, 55) - 6, 0, 100);
       } else {
@@ -2991,7 +3259,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (rng() >= sansi) return;
       if (rng() < 0.5 && S.kasa > 0) {
         var steal = Math.min(S.kasa, 1800 + ri(0, 2200));
-        S.kasa -= steal;
+        cashChange(-(steal));
         defter("ihanet · " + manName(m) + " · " + fmtPara(-steal));
         pushInbox(manName(m) + " kaçtı.", "Kasa eksildi. Adam yok.");
         m.durum = "olu";
@@ -3014,7 +3282,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     pushInbox("Artık öyle demiyorlar.", "Unvan soluklaştı. Bazı kapılar kapandı. İki sessiz işle toparlanır.");
   }
   function doneJobN() {
-    return S.jobs.filter(function (j) { return j.phase === "done"; }).length;
+    return Math.max(num(S.flags.completedJobs,0), S.jobs.filter(function (j) { return j.phase === "done" && !j.dustu; }).length);
   }
   function liveN() {
     return S.men.filter(function (m) { return m.durum !== "olu"; }).length;
@@ -3119,7 +3387,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   var TARZ_UI = ["masa", "pusu", "kapi", "bolusme"];
   function ligKur(sezon) {
     var ek = LIG_EKIP.map(function (e) {
-      return { id: e.id, ad: e.ad, guc: e.guc + ri(-6, 6) + (sezon - 1) * 9, sokak: ri(0, 2), nam: ri(8, 26), korku: ri(6, 24) };
+      return { id: e.id, ad: e.ad, guc: e.guc + ri(-6, 6) + Math.min(36, (sezon - 1) * 6), sokak: ri(0, 2), nam: ri(8, 26), korku: ri(6, 24) };
     });
     /* Randevu sırası kolaydan zora: ilk tur güce göre sıralı, sonra dönüyor. */
     var sirali = ek.slice().sort(function (a, b) { return a.guc - b.guc; });
@@ -3133,7 +3401,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
   function hedefKur(sezon) {
     var h = [];
-    h.push({ id: "sokak", ad: "Sokak tut", tip: "sokak", hedef: Math.max(1, ownN() + 1), sonuc: "" });
+    h.push({ id: "sokak", ad: "Sokak tut", tip: "sokak", hedef: Math.min(S.streets.length, Math.max(1, ownN() + 1)), sonuc: "" });
     h.push({ id: "dosya", ad: "Dosyayı temiz tut", tip: "dosyaAlt", hedef: 60, sonuc: "" });
     h.push({ id: "sira", ad: "Sıralamada yüksel", tip: "siraUst", hedef: sezon === 1 ? 4 : 3, sonuc: "" });
     return h;
@@ -3302,7 +3570,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     return (S.adaylar || []).filter(function (a) { return a.id === id; })[0];
   }
   function adayAl(a) {
-    S.kasa -= a.pesin;
+    cashChange(-(a.pesin));
     var m = migrateMan({
       id: a.id, ad: a.ad, lakap: a.lakap, rol: a.rol, stats: a.stats,
       gonul: a.gonul, yevmiye: a.yevmiye, durum: "hazir", yorgunluk: 0,
@@ -3319,14 +3587,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var kef = (S.kefiller || []).filter(function (x) { return x.manId === m.id; })[0];
     if (!kef) return;
     if (kef.kefilId === "sen") {
-      S.kasa = Math.max(0, S.kasa - kef.tutar);
+      cashChange(-(kef.tutar));
       defter("kefil faturası · " + fmtPara(-kef.tutar));
     } else {
       var kefMan = manBy(kef.kefilId);
       if (kefMan) {
         kefMan.gonul = clamp(kefMan.gonul - 10, 0, 100);
         var kefTutar = Math.round(kef.tutar / 2);
-        S.kasa = Math.max(0, S.kasa - kefTutar);
+        cashChange(-(kefTutar));
         defter("kefil faturası (" + manName(kefMan) + ") · " + fmtPara(-kefTutar));
       }
     }
@@ -3401,7 +3669,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       isim.push(manName(m));
     }
     var elKoy = Math.round(S.kasa * (S.dosya >= 90 ? 0.3 : 0.15));
-    S.kasa = Math.max(0, S.kasa - elKoy);
+    cashChange(-(elKoy));
     S.evidence.push({ id: nid("ev"), kind: "ihbar", streetId: S.streetHome, week: S.week, weight: 3 });
     addRep("korku", -3);
     addRep("saygi", -2);
@@ -3420,7 +3688,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     S.flags.iddianame = S.week;
     S.flags.iddianameSay = num(S.flags.iddianameSay, 0) + 1;
     var kayip = Math.round(S.kasa * 0.35);
-    S.kasa = Math.max(0, S.kasa - kayip);
+    cashChange(-(kayip));
     S.evidence = [];
     S.flags.toz = 0;
     S.flags.haftaGurultu = 0;
@@ -3478,6 +3746,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   /* ---- RANDEVU SAHNESİ (haftanın doruk noktası) ---- */
   var RND_ADIM = ["Buluşma", "Bakışma", "Söz", "Karar", "Dağılma"];
   function randevuSahneBaslat(calId, tarz) {
+    var reason=actionReason("randevu-git",{id:calId,tarz:tarz});
+    if(reason){feedback(reason);return;}
     var c = S.calendar.filter(function (x) { return x.id === calId; })[0];
     if (!c || c.status !== "bekler") return;
     var f = S.lig.fikstur.filter(function (x) { return x.calId === calId; })[0];
@@ -3605,7 +3875,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       " · yaralanma %" + Math.round(t.yara * 100);
   }
   function randevuKadro() {
-    var hazir = S.men.filter(function (m) { return m.durum === "hazir"; });
+    var hazir = S.men.filter(function (m) { return availableMan(m); });
     if (!UI.randevuMen) return hazir;
     var sec = hazir.filter(function (m) { return UI.randevuMen.indexOf(m.id) >= 0; });
     return sec.length ? sec : hazir;
@@ -3662,10 +3932,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function randevuCoz(calId, tarzId, karar) {
     var c = S.calendar.filter(function (x) { return x.id === calId; })[0];
     if (!c || c.status !== "bekler") return;
+    if(c.week!==S.week||c.day!==S.day) return;
     var f = S.lig.fikstur.filter(function (x) { return x.calId === calId; })[0];
     var e = f ? ekipBy(f.rakipId) : (c.ref && c.ref.rakipId ? ekipBy(c.ref.rakipId) : null);
     var t = TARZ[tarzId] || TARZ.kapi;
     var ekip = randevuKadro();
+    if(!ekip.length) return;
+    ekip.forEach(function(m){m.lastWorkDay=today();});
     var bizim = kadroGucu(ekip, tarzId) * t.guc;
     if (karar === "bas") { bizim *= 1.12; S.flags.haftaGurultu = num(S.flags.haftaGurultu, 0) + 4; }
     else if (karar === "konus") { bizim *= 0.95; addRep("racon", 2); addRep("saygi", 1); }
@@ -3701,7 +3974,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         }
       }
       var kap = ri(4000, 12000);
-      S.kasa += kap;
+      cashChange(kap);
       defter("randevu · " + fmtPara(kap));
       satir.push("Kasaya " + fmtPara(kap) + ".");
       satir.push((e ? e.ad : "Karşı taraf") + " geri çekildi.");
@@ -3820,6 +4093,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   }
 
   function doAdvance() {
+    if(!S||S.flags.oyunSonu||UI.sahne) return;
     /* Blok 7 sırası: 1 yükümlülük · 2 iş tick · 3 yevmiye · 4 yorgunluk/form
        5 dosya · 6 relmod/scout/aklama · 7 rakip · 8 terör · 9 olay · 10 kan
        11 gün+1 · 12 kademe · 13 kaydet */
@@ -3859,7 +4133,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (S.day > 7) {
       S.day = 1;
       S.week += 1;
-      S.flags.toz = num(S.flags.toz, 0) + 1;
+      S.flags.toz = Math.min(20, num(S.flags.toz, 0) + 1);
       S.flags.haftaGurultu = 0;
       S.flags.koseKesildi = 0;
       S.flags.haftaIsTip = null;
@@ -3958,7 +4232,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     rivalGuvence();
     UI.mode = "play";
     UI.sahne = false;
-    S.screen = "olaylar";
+    if(!NAV.some(function(n){return n.id===S.screen;})) S.screen="olaylar";
     S.busy = false;
     UI.inboxId = (S.inbox[0] && S.inbox[0].id) || null;
     UI.manId = (S.men[0] && S.men[0].id) || null;
@@ -3966,13 +4240,21 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     UI.streetId = null;
     UI.calId = null;
     if (S && !S.flags.bugun) writeBugun();
+    if(S.scene){
+      var scene=S.scene; UI.sahne=true;
+      Object.keys(scene).forEach(function(k){if(["jobId","jobLog","jobQueue","jobOrders","jobWait","jobDone","jobSummary","rnd"].indexOf(k)>=0) UI[k]=scene[k];});
+      S.scene=null;
+      S.screen=UI.rnd?"olaylar":"isler";
+      if(UI.rnd&&!UI.rnd.bekle) UI.rndTimer=setTimeout(rndTick,120);
+      else if(!UI.rnd&&!UI.jobDone&&!UI.jobWait) UI.jobTimer=setTimeout(UI.jobQueue.length?drainLines:playTick,120);
+    }
   }
 
   function navMode() {
     var f = num(S && S.flags ? S.flags.navDetay : 0, 0);
     if (f === 1) return "detay";
     if (f === 2) return "kisa";
-    return window.innerWidth >= 1100 ? "detay" : "kisa";
+    return "detay";
   }
   function applyNavMode() {
     var app = document.getElementById("app");
@@ -4000,7 +4282,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       (kisa ? "Menüyü aç" : "Menüyü daralt") + '">' + ico(kisa ? "detay" : "kisa") +
       "<span>" + up(kisa ? "Detay" : "Kısa") + "</span></button>";
     applyNavMode();
-    document.getElementById("nav").innerHTML = tog + main + '<div class="navhr"></div>' + lock;
+    document.getElementById("nav").innerHTML = tog + main;
     var navEl = document.getElementById("nav");
     navEl.classList.toggle("more",
       navEl.scrollHeight > navEl.clientHeight + 4 || navEl.scrollWidth > navEl.clientWidth + 4);
@@ -4047,6 +4329,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return it ? it.ad : "—";
     }).join(" · ");
     el.innerHTML =
+      '<button type="button" class="btn side-close" data-act="side">Paneli kapat</button>' +
       (bosTahtMi()
         ? '<p class="unvan dim">' + up("TAHT BOŞ · " + Math.max(0, 3 - num(S.throne.weeksEmpty, 0)) + " HAFTA") + "</p>"
         : '<p class="unvan' + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " dim" : "") + '">' + up((STAGE_TR[S.stage] || S.stage) + " · Fatih") + (num(S.flags.amcaKonusulmuyor, 0) > 0 ? " · soluk" : "") + "</p>") +
@@ -4195,7 +4478,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         var k = c.strip === "tehdit" ? "teh" : c.strip === "yukumluluk" ? "yuk" : c.strip === "randevu" ? "ran" : "";
         return '<button type="button" class="strip ' + k + '" data-act="cal" data-id="' + c.id + '">' + esc(c.title) + "</button>";
       }).join("");
-      return '<div class="' + cls + '">' + strips + "</div>";
+      return '<div class="' + cls + '" data-day="' + DAYS[i] + '">' + strips + "</div>";
     }).join("");
     var paper = "";
     if (UI.calId) {
@@ -4373,7 +4656,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
 
   function drawIsler() {
     if (UI.sahne) return drawSahne();
-    var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; });
+    var live = S.men.filter(function (m) { return availableMan(m); });
     var checks = live.map(function (m) {
       var on = !UI.planMen || UI.planMen.indexOf(m.id) >= 0;
       return '<label class="chk"><input type="checkbox" data-man="' + m.id + '"' + (on ? " checked" : "") + "> " + esc(manName(m)) + "</label>";
@@ -4394,7 +4677,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
               ({ cay: "Çay", laf: "Laf", kesif: "Keşif" }[t]) + "</button>";
           }).join("") + "</div>"
         : "";
-      return '<div class="qrow"><div class="grow">' + esc(JOB_TR[j.kind] || j.kind) + " · " + esc(st ? st.ad : "") + " · " + (ready ? "hazır" : "hazırlık") + "</div>" + right + hazirlikSec + "</div>";
+      return '<div class="qrow"><div class="grow">' + esc(JOB_TR[j.kind] || j.kind) + " · " + esc(st ? st.ad : "") + " · " + (ready ? "hazır" : "hazırlık") + "</div>" + right + hazirlikSec + '<button class="btn ghost" data-act="job-cancel" data-id="'+j.id+'">Planı iptal et</button></div>';
     }).join("");
     if (!q) q = '<p class="dim">Kuyruk boş.</p>';
     var kind = UI.planKind || "tahsilat";
@@ -4495,7 +4778,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
             : '<div class="card"><h3>Karakol</h3><p class="dim">Henüz isim yok. Dosya 35\'i geçince biri sorar.</p></div>') +
       '<div class="card"><h3>Baskın riski</h3>' + barrow("Risk", Math.min(100, Math.round(baskinRiski() * 4)), 100, baskinRiski() > 6 ? "red" : "heat") +
       '<p class="dim">' + (baskinRiski() <= 0 ? "Şimdilik kapı çalmaz." : "Dosya yükseldi. Kapı çalabilir.") + "</p></div>" +
-      '<button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Savcı — kilitli") + " (Ağabey)</button>";
+      '<p class="dim">Ayrıntılı savcılık sistemi bu sürümün kapsamında değil.</p>';
   }
 
   function drawHusumet() {
@@ -4523,7 +4806,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       '<button type="button" class="btn" data-act="gozdagi"' + (S.flags.lastGozdagi === S.week ? " disabled" : "") + ">Gözdağı</button>" +
       '<button type="button" class="btn" data-act="pazarlik"' + (S.kasa < 5000 ? " disabled" : "") + ">Pazarlık · ₺5.000</button>" +
       '<button type="button" class="btn danger" data-act="pusu">Pusu planla</button></div>' +
-      '<div class="hr"></div><button type="button" class="btn" disabled>' + ico("kilit") + " " + up("Masa — kilitli") + " (Baba)</button></div>" +
+      '<div class="hr"></div><p class="dim">Şehirler arası masa siyaseti bu sürümün kapsamında değil.</p></div>' +
       (S.rivals || []).slice(1).map(function (r2) {
         var b2 = scoutBand("rival", r2.id);
         return '<div class="card"><p class="ttl">' + (b2 >= 1 ? esc(up(r2.ad)) : "BİRİ DAHA VAR") + "</p>" +
@@ -4641,7 +4924,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var at = ATLAR.map(function (a) {
       return '<button type="button" class="btn" data-act="at" data-id="' + a.id + '"' + (S.kasa < 1000 ? " disabled" : "") + ">" + esc(a.ad) + " · " + a.oran + "</button>";
     }).join("");
-    var vel = '<div class="card"><h3>Veliefendi</h3><p class="dim">Bilet ₺1.000. Üç at, biri gelir.</p><div class="acts">' + at + "</div></div>";
+    var vel = '<div class="card"><h3>Veliefendi</h3><p class="dim">Bilet ₺1.000. Üç bahis seçeneği; diğer koşucular da kazanabilir. Günlük bir bilet.</p><div class="acts">' + at + "</div></div>";
     var relId = S.rel && S.rel.id;
     var kad = KADIN.map(function (k) {
       var on = relId === k.id;
@@ -4652,7 +4935,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         (on && yakin >= 70 && !S.flags.soz ? '<button type="button" class="btn primary" data-act="soz" data-id="' + k.id + '">Söz</button>' : "") +
         "</div></div>";
     }).join("");
-    return '<div class="card"><h3>Hayat</h3><p class="dim">Kahve, sofra, pavyon. Gönül ve racon burada incelir.</p>' + rows + "</div>" + okey + vel + '<div class="card"><h3>Kadın</h3><p class="dim">Mahalle görür. Söz ağırlaşır.</p></div><div class="shop-grid">' + kad + "</div>";
+    return '<div class="card"><h3>Hayat</h3><p class="dim">Günde iki kişisel iş. Aynı eylem ertesi gün yenilenir; cuma namazı yalnız cuma günü. Gönül ve racon burada incelir.</p>' + rows + "</div>" + okey + vel + '<div class="card"><h3>Kadın</h3><p class="dim">Mahalle görür. Söz ağırlaşır.</p></div><div class="shop-grid">' + kad + "</div>";
   }
 
   function drawSiralama() {
@@ -4715,7 +4998,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (S.flags && S.flags.oyunSonu) {
       document.getElementById("stage").innerHTML =
         '<div class="card gate"><p class="ttl">Mahalle elden gitti</p>' +
-        "<p>Amca iki sezon üst üste yüz çevirdi. Kademe durdu. Yeni oyun aç.</p>" +
+        "<p>" + (S.flags.oyunSonu === "hanedan" ? "Taht üç hafta boş kaldı. Ekibi sürdürecek bir halef seçilmedi." : "Amca iki dönem üst üste yüz çevirdi. Mahalledeki düzenin sona erdi.") + "</p>" +
+        "<p>"+esc(S.lakap)+" · "+S.week+" hafta · "+doneJobN()+" tamamlanan iş</p>"+
+        "<p>Son kasa: ₺"+S.kasa.toLocaleString("tr-TR")+" · "+ownN()+" sokak</p>" +
         '<div class="acts"><button type="button" class="btn primary" data-act="menu" data-go="home">Menü</button></div></div>';
       return;
     }
@@ -4765,10 +5050,30 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     drawSide();
     drawStage();
     drawModal();
+    decorateActions();
+    if(S&&UI.mode==="play") writeSave();
   }
 
   function act(code, payload) {
+    payload=payload||{};
+    var reason=actionReason(code,payload);
+    if(reason){feedback(reason);return;}
+    if(S&&PERSONAL.indexOf(code)>=0){
+      if(S.flags.personalDay!==today()){S.flags.personalDay=today();S.flags.personalUsed=0;S.flags.personalKeys=[];}
+      S.flags.personalUsed++; S.flags.personalKeys.push(code+":"+(code==="hayat"?payload.id:""));
+    }
+    if(code==="save"){if(writeSave()) feedback("Kayıt güncel · H"+S.week+" "+DAYS[S.day-1]);return;}
+    if(code==="job-cancel"){
+      var cancel=jobBy(payload.id);
+      if(cancel&&cancel.phase!=="running"&&cancel.phase!=="done"){
+        S.jobs=S.jobs.filter(function(j){return j.id!==cancel.id;});UI.planMen=null;
+        pushInbox("Plan iptal edildi.","Ekip serbest; hazırlık ilerlemesi silindi.");persist();render();
+      }return;
+    }
+    if(code==="new-cancel"){closeModal();render();return;}
+    if(code==="new-confirm"){closeModal();UI.mode="menu";showMenu("nick");render();return;}
     if (code === "menu") {
+      if(payload.go==="nick"&&S){openModal("Yeni oyun mevcut kaydın yerine geçer. Önce Yedek ekranından kopya alabilirsin. Yeni bir hayat başlatılsın mı?",[{label:"Vazgeç",act:"new-cancel",ghost:true},{label:"Yeni hayat",act:"new-confirm",danger:true}]);render();return;}
       if (payload.go === "play") {
         if (!S) return;
         enterPlay();
@@ -4816,7 +5121,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       return;
     }
     if (code === "copy") {
-      try { navigator.clipboard.writeText(document.getElementById("yedek-txt").value); } catch (e) {}
+      try { Promise.resolve(navigator.clipboard.writeText(document.getElementById("yedek-txt").value)).then(function(){feedback("Yedek kopyalandı.");},function(){feedback("Kopyalanamadı. Metni seçip elle kopyala.");}); } catch (e) { feedback("Kopyalanamadı. Metni seçip elle kopyala."); }
       return;
     }
     if (code === "load") {
@@ -4890,7 +5195,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           var uc = num(kp.ucret, 5000);
           if (S.men.some(function (m) { return m.uzman === "agiz" && m.durum !== "olu"; })) uc = Math.round(uc * 0.8);
           if (S.kasa >= uc) {
-            S.kasa -= uc;
+            cashChange(-(uc));
             kk.baglilik = clamp(kk.baglilik + 18, 0, 100);
             kk.risk = clamp(kk.risk - 4, 0, 100);
             S.evidence = S.evidence.slice(0, Math.max(0, S.evidence.length - 2));
@@ -4916,7 +5221,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var tp = inboxBy(payload.id);
       S.flags.kepenkHafta = S.week;
       var zarar = Math.round(2000 + S.kasa * 0.02);
-      S.kasa = Math.max(0, S.kasa - zarar);
+      cashChange(-(zarar));
       defter("kepenk indi · " + fmtPara(-zarar));
       if (tp) { tp.read = true; tp.kapali = true; UI.inboxId = ""; }
       pushInbox("Kepenk indi.", "İş durdu, " + fmtPara(-zarar) + " gitti. Baskın gelirse eli boş döner.");
@@ -4963,7 +5268,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (liveN() >= 7) {
         pushInbox("Ekip kalabalık.", "Daha fazlasını beslemek zor.");
       } else {
-        S.kasa -= 800;
+        cashChange(-(800));
         S.flags.aramaHafta = S.week;
         defter("adam arandı · " + fmtPara(-800));
         adayKagit(adayUret(), "Kahveciye sordun.");
@@ -4988,7 +5293,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "avukat-tut") {
       if (S.kasa >= 6000) {
-        S.kasa -= 6000;
+        cashChange(-(6000));
         S.flags.avukatTutuldu = true;
         defter("avukat · " + fmtPara(-6000));
         pushInbox("Avukat tutuldu.", "Ferit dosyaya bakacak.");
@@ -5007,11 +5312,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           addRep("racon", -2);
         } else if (code === "tanik-satinal") {
           if (num(S.dirtyKasa, 0) < 3000) { persist(); render(); return; }
-          S.dirtyKasa -= 3000;
+          cashChange(-3000);
           defter("tanık satın al · " + fmtPara(-3000));
         } else {
           if (S.kasa < 1500) { persist(); render(); return; }
-          S.kasa -= 1500;
+          cashChange(-(1500));
           defter("tanık uzaklaştır · " + fmtPara(-1500));
           var stU = streetBy(tev.streetId);
           if (stU) stU.heat = clamp(stU.heat + 3, 0, 100);
@@ -5025,7 +5330,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "kan-ode") {
       var acikB = (S.blood || []).filter(function (b) { return b.status === "acik"; })[0];
       if (acikB && S.kasa >= 8000) {
-        S.kasa -= 8000;
+        cashChange(-(8000));
         defter("kan davası · " + fmtPara(-8000));
         acikB.status = "odendi";
         addRep("saygi", 3);
@@ -5035,11 +5340,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "muhtar-destek") {
       if (S.kasa >= 3000) {
-        S.kasa -= 3000;
+        cashChange(-(3000));
         defter("muhtar · " + fmtPara(-3000));
         S.flags.muhtarDestek = true;
         S.flags.muhtarDue = S.week;
-        S.dosya = clamp(S.dosya + 3, 0, 100);
+        filePressure(3, "Olay sonucu");
         addRep("saygi", 2);
         pushInbox("Muhtar destekte.", "Fikret memnun. Tapu, dernek işleri açık.");
       }
@@ -5048,7 +5353,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "muhtar-korkut") {
       S.flags.muhtarDestek = true;
       S.flags.muhtarDue = S.week;
-      S.dosya = clamp(S.dosya + 3, 0, 100);
+      filePressure(3, "Olay sonucu");
       addRep("korku", 4);
       addRep("saygi", -1);
       pushInbox("Muhtarı korkuttun.", "Fikret sesini kesti. Tapu, dernek işleri açık, ama kin tuttu.");
@@ -5246,7 +5551,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "randevu-ertele") {
       var rc = S.calendar.filter(function (x) { return x.id === payload.id; })[0];
       if (rc && rc.status === "bekler") {
-        var ny = addDays(3);
+        var when=(rc.week-1)*7+rc.day+3;
+        var ny={week:Math.floor((when-1)/7)+1,day:(when-1)%7+1};
+        rc.postponed=true;
         rc.week = ny.week; rc.day = ny.day;
         var rf = S.lig.fikstur.filter(function (x) { return x.calId === rc.id; })[0];
         if (rf) { rf.week = ny.week; rf.day = ny.day; }
@@ -5348,7 +5655,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         var cal = S.calendar.filter(function (x) { return x.id === pk.calId; })[0];
         if (cal) cal.status = "kabul";
         var sid = cal && cal.ref && cal.ref.streetId ? cal.ref.streetId : S.streetHome;
-        var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+        var live = S.men.filter(function (m) { return availableMan(m); }).map(function (m) { return m.id; });
         var job = {
           id: nid("j"), kind: "tahsilat", streetId: sid, prepLeft: 0,
           assigned: live.slice(0, 3), tags: [], phase: "idle", tickIndex: 0
@@ -5411,7 +5718,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var it = itemBy(payload.id);
       if (!it || S.inventory.indexOf(it.id) >= 0) return;
       if (S.kasa < it.fiyat) return;
-      S.kasa -= it.fiyat;
+      cashChange(-(it.fiyat));
       S.inventory.push(it.id);
       if (it.nam) addRep("nam", Math.min(2, it.nam));
       if (it.fiyat) defter("pazar · " + it.ad + " · " + fmtPara(-it.fiyat));
@@ -5427,7 +5734,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.inventory.splice(ix, 1);
       if (S.equipped[sl.kind] === sl.id) S.equipped[sl.kind] = sl.kind === "silah" && S.inventory.indexOf("w101") >= 0 ? "w101" : "";
       var ref = Math.round(sl.fiyat * SELL_RATE);
-      S.kasa += ref;
+      cashChange(ref);
       defter("satış · " + sl.ad + " · " + fmtPara(ref));
       persist();
       render();
@@ -5447,7 +5754,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (!em || S.estates.indexOf(em.id) >= 0) return;
       if (S.kasa < em.fiyat) return;
       if (muhtarKilit()) return;
-      S.kasa -= em.fiyat;
+      cashChange(-(em.fiyat));
       S.estates.push(em.id);
       if (em.tur === "konut") addRep("nam", 2);
       defter("emlak · " + em.ad + " · " + fmtPara(-em.fiyat));
@@ -5460,7 +5767,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (num(S.flags.amcaKonusulmuyor, 0) > 0) return;
       var hv = HIRE.filter(function (h) { return h.id === payload.id; })[0];
       if (!hv || S.kasa < hv.hire) return;
-      S.kasa -= hv.hire;
+      cashChange(-(hv.hire));
       var nm = migrateMan({
         id: hv.id, ad: hv.ad, lakap: hv.lakap, rol: hv.rol,
         stats: rollStats(), gonul: ri(55, 72), yevmiye: hv.yevmiye,
@@ -5477,7 +5784,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var tm = manBy(payload.id);
       if (!tm || (tm.durum !== "yarali" && tm.durum !== "yorgun")) return;
       if (S.kasa < 1200) return;
-      S.kasa -= 1200;
+      cashChange(-(1200));
       tm.durum = "hazir";
       tm.yorgunluk = 20;
       kapatDonusKagidi(tm);
@@ -5489,7 +5796,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "hayat") {
       var hy = HAYAT.filter(function (h) { return h.id === payload.id; })[0];
       if (!hy || S.kasa < hy.fiyat) return;
-      S.kasa -= hy.fiyat;
+      cashChange(-(hy.fiyat));
       S.men.forEach(function (m) {
         if (m.durum !== "olu") m.gonul = clamp(m.gonul + (hy.gonul || 0), 0, 100);
       });
@@ -5503,9 +5810,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "okey") {
       if (S.kasa < 250) return;
-      S.kasa -= 250;
+      cashChange(-(250));
       if (rng() < 0.46) {
-        S.kasa += 500;
+        cashChange(500);
         defter("okey · " + fmtPara(250));
         pushInbox("Okey tuttu.", "Arka oda. El senin.");
       } else {
@@ -5519,11 +5826,12 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "at") {
       var at = ATLAR.filter(function (a) { return a.id === payload.id; })[0];
       if (!at || S.kasa < 1000) return;
-      S.kasa -= 1000;
-      var win = ATLAR[ri(0, ATLAR.length - 1)];
+      cashChange(-(1000));
+      var pick=rng(), win={id:"diger",ad:"Diğer koşuculardan biri"};
+      for(var ai=0;ai<ATLAR.length;ai++){pick-=0.9/ATLAR[ai].oran;if(pick<0){win=ATLAR[ai];break;}}
       if (win.id === at.id) {
         var gain = Math.round(1000 * at.oran);
-        S.kasa += gain;
+        cashChange(gain);
         defter("Veliefendi · " + at.ad + " · " + fmtPara(gain - 1000));
         pushInbox("Veliefendi tuttu.", at.ad + " geldi. Bilet konuştu.");
       } else {
@@ -5537,7 +5845,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "hediye") {
       var kd = KADIN.filter(function (k) { return k.id === payload.id; })[0];
       if (!kd || S.kasa < kd.hediye) return;
-      S.kasa -= kd.hediye;
+      cashChange(-(kd.hediye));
       if (!S.rel) S.rel = { id: "", yakin: 0 };
       if (S.rel.id && S.rel.id !== kd.id) {
         addRep("racon", -2);
@@ -5554,7 +5862,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "randevu") {
       var kr = KADIN.filter(function (k) { return k.id === payload.id; })[0];
       if (!kr || S.kasa < 600) return;
-      S.kasa -= 600;
+      cashChange(-(600));
       if (!S.rel) S.rel = { id: "", yakin: 0 };
       S.rel.id = kr.id;
       S.rel.yakin = clamp(num(S.rel.yakin, 0) + 12, 0, 100);
@@ -5587,7 +5895,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       UI.inboxId = "";
       var sp = SIPARIS.filter(function (x) { return x.id === paper.siparis; })[0];
       if (!sp) return;
-      var live = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+      var live = S.men.filter(function (m) { return availableMan(m); }).map(function (m) { return m.id; });
       S.jobs.push({
         id: nid("j"), kind: sp.kind, streetId: S.streetHome, prepLeft: PREP_OF(sp.kind),
         assigned: live.slice(0, 3), tags: [], phase: PREP_OF(sp.kind) > 0 ? "prep" : "idle",
@@ -5610,7 +5918,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var ts = streetBy(payload.id);
       if (!ts || ts.sahip !== "bos") return;
       if (S.kasa < 4500) return;
-      S.kasa -= 4500;
+      cashChange(-(4500));
       ts.sahip = "sen";
       addRep("korku", 2);
       addRep("nam", 1);
@@ -5630,7 +5938,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "kucuk-kasa") {
       if (S.kasa >= 500) {
-        S.kasa -= 500;
+        cashChange(-(500));
         defter("küçük kasa · " + fmtPara(-500));
         favorEkle("p_berber", 1);
         pushInbox("Küçük kasa.", "Necati'ye bir zarf bıraktın.");
@@ -5669,7 +5977,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "zarf") {
       if (S.kasa < 2500 || !S.evidence.length) return;
-      S.kasa -= 2500;
+      cashChange(-(2500));
       S.evidence.sort(function (a, b) { return b.weight - a.weight; });
       var gone = S.evidence.shift();
       defter("zarf · " + fmtPara(-2500));
@@ -5695,7 +6003,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if (code === "pazarlik") {
       if (S.kasa < 5000 || !S.rivals[0]) return;
-      S.kasa -= 5000;
+      cashChange(-(5000));
       S.rivals[0].husumet = clamp(num(S.rivals[0].husumet, 0) - 14, 0, 100);
       syncBand();
       defter("pazarlık · " + fmtPara(-5000));
@@ -5707,7 +6015,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "pusu") {
       var rivalSt = S.streets.filter(function (s) { return s.sahip === "rakip"; })[0] || streetBy("st_macar");
       if (!rivalSt) return;
-      var crewP = S.men.filter(function (m) { return m.durum !== "olu" && m.durum !== "hapis"; }).map(function (m) { return m.id; });
+      var crewP = S.men.filter(function (m) { return availableMan(m); }).map(function (m) { return m.id; });
       S.jobs.push({
         id: nid("j"), kind: "kepenk", streetId: rivalSt.id, prepLeft: 1,
         assigned: crewP.slice(0, 3), tags: [], phase: "prep", tickIndex: 0, bonus: 2000
@@ -5723,7 +6031,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (code === "kose") {
       var nxt = KOSE[num(S.kose, 0)];
       if (!nxt || S.kasa < nxt.fiyat) return;
-      S.kasa -= nxt.fiyat;
+      cashChange(-(nxt.fiyat));
       S.kose = num(S.kose, 0) + 1;
       defter("köşe · " + nxt.ad + " · " + fmtPara(-nxt.fiyat));
       persist();
@@ -5734,25 +6042,25 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var mid = payload.id;
       if (mid === "altin-al") {
         if (S.kasa < S.market.altin) return;
-        S.kasa -= S.market.altin;
+        cashChange(-(S.market.altin));
         S.hold.altin = num(S.hold.altin, 0) + 1;
         defter("altın al · " + fmtPara(-S.market.altin));
       } else if (mid === "altin-sat") {
         if (num(S.hold.altin, 0) < 1) return;
         S.hold.altin -= 1;
-        S.kasa += S.market.altin;
+        cashChange(S.market.altin);
         defter("altın sat · " + fmtPara(S.market.altin));
       } else if (mid === "dolar-al") {
         var cost = Math.round(S.market.dolar * 10);
         if (S.kasa < cost) return;
-        S.kasa -= cost;
+        cashChange(-(cost));
         S.hold.dolar = num(S.hold.dolar, 0) + 10;
         defter("dolar al · " + fmtPara(-cost));
       } else if (mid === "dolar-sat") {
         if (num(S.hold.dolar, 0) < 10) return;
         S.hold.dolar -= 10;
         var gain = Math.round(S.market.dolar * 10);
-        S.kasa += gain;
+        cashChange(gain);
         defter("dolar sat · " + fmtPara(gain));
       }
       persist();
@@ -5764,7 +6072,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       if (duty && duty.status === "bekler") {
         if (duty.ref && duty.ref.kind === "borc") {
           if (S.debt > 0 && S.kasa >= S.debt) {
-            S.kasa -= S.debt;
+            cashChange(-(S.debt));
             defter("borç · " + fmtPara(-S.debt));
             S.debt = 0;
             duty.status = "bitti";
@@ -5786,7 +6094,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           pushInbox("Kahve turu.", "İsmail'in ocağına uğradın. Laf döndü.");
         } else if (duty.ref && duty.ref.kind === "dugun") {
           var dm = Math.min(1000, S.kasa);
-          S.kasa -= dm;
+          cashChange(-(dm));
           if (dm) defter("düğün · " + fmtPara(-dm));
           duty.status = "bitti";
           var rv3 = S.rivals[0];
@@ -5795,7 +6103,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           pushInbox("Düğüne katıldın.", "Masa denk geçti. Husumet bir tık indi.");
         } else {
           var masraf = Math.min(2000, S.kasa);
-          S.kasa -= masraf;
+          cashChange(-(masraf));
           duty.status = "bitti";
           if (masraf) defter(duty.title.toLocaleLowerCase("tr-TR") + " · " + fmtPara(-masraf));
           pushInbox(duty.title + " görüldü.", "Gittin. Mahalle gördü.");
@@ -5821,13 +6129,15 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var streetId = selS ? selS.value : S.streetHome;
       var kind = selK ? selK.value : "tahsilat";
       var muhurSt = streetBy(streetId);
-      if (muhurSt && num(muhurSt.muhurLeft, 0) > 0) return;
+      if (!muhurSt || !JOB_TR[kind]){feedback("Geçerli sokak ve iş türü seç.");return;}
+      if (num(muhurSt.muhurLeft, 0) > 0){feedback("Bu sokak mühürlü; açılmasını bekle.");return;}
       UI.planStreet = streetId;
       UI.planKind = kind;
       var assigned = [];
       document.querySelectorAll('input[data-man]:checked').forEach(function (el) { assigned.push(el.getAttribute("data-man")); });
-      if (!assigned.length) return;
-      if ((kind === "bakkal_soygunu" || kind === "kuyum" || kind === "kacak_mal") && assigned.length < 3) return;
+      if (!assigned.length){feedback("İş için en az bir adam seç.");return;}
+      if(assigned.some(function(id){return !availableMan(manBy(id));})){feedback("Seçilen ekip müsait değil.");return;}
+      if ((kind === "bakkal_soygunu" || kind === "kuyum" || kind === "kacak_mal") && assigned.length < 3){feedback("Bu iş için üç müsait adam seç.");return;}
       UI.planMen = assigned.slice();
       var tags = [];
       var prep = PREP_OF(kind);
@@ -5841,6 +6151,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         phase: prep > 0 ? "prep" : "idle",
         tickIndex: 0
       });
+      UI.planMen=null;
       persist();
       render();
       return;
@@ -5988,8 +6299,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       };
       S.jobs.push(job);
       planned.push(job.id);
+      runJobInstant(job.id,["sessiz","sessiz"]);
+      doAdvance();
     }
-    planned.forEach(function (id) { runJobInstant(id, ["sessiz", "sessiz"]); });
     var goz = S.calendar.filter(function (c) { return c.title === "Göz"; });
     if (!goz.length) fail("rakip sokağında 2 iş sonrası Göz tehdidi düşmedi");
 
@@ -5997,8 +6309,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     UI.fastJob = true;
     S.busy = false;
 
-    // 1) keşif kör ateş
+    // 1) keşif kör ateş — bağımsız birim bağlamı; gerçek takvim akışı dış testlerde.
     (function () {
+      S.men.forEach(function(m){if(m.durum!=="olu"){m.durum="hazir";m.lastWorkDay=0;}});
       var st = streetBy("st_carsamba");
       scoutYukselt("street", st.id, 0);
       var inboxOnce = S.inbox.length;
@@ -6085,6 +6398,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     S.busy = false;
     UI.sahne = false;
     UI.modal = null;
+    cashChange(20000); // Yevmiye birim testi: kesilebilecek bakiye.
     var wageOk = false;
     var delayOk = false;
     for (var t = 0; t < 14; t++) {

@@ -28,9 +28,10 @@ export function loadGame(file = "public/games/racon/index.html") {
     };
     return el;
   };
+  const elements = new Map();
   const document = {
     body: mkEl(), documentElement: mkEl(), activeElement: null,
-    getElementById: () => mkEl(), querySelector: () => mkEl(), querySelectorAll: () => [],
+    getElementById: (id) => { if (!elements.has(id)) elements.set(id, mkEl()); return elements.get(id); }, querySelector: () => mkEl(), querySelectorAll: () => [],
     createElement: () => mkEl(), addEventListener() {}, removeEventListener() {}
   };
   const win = {
