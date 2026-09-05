@@ -1,8 +1,7 @@
 # TC SIM — Sürüm Sertleştirme Raporu (3B sonrası)
 
-## COWORK FINAL VERIFY
+## FINAL VERIFY
 
-- Branch: `claude/grok-game-screen-design-8fa30d`
 - Bu turun başlangıcı: `d4c15de` (3B uygulaması) · sertleştirme commit'i: bu belgeyi içeren commit
 - Üç komut:
 
@@ -22,7 +21,7 @@ node scripts/tc-sim-sim.mjs full             # 144 hafta senaryosu, problems: []
   `public/games/satranc`, `public/games/bukucu` ve `scripts/racon-*` dosyalarındadır.
 - **Yeniden denetlenmesi gerekmeyenler:** save/migration matrisi, uzun koşu davranışı, fuzz,
   tarayıcı arayüz turu, event spam sayımları — hepsi aşağıda kayıtlı ve tekrarlanabilir komutlara
-  bağlı. Cowork'un bug avı, migration denetimi veya test tasarımı yapmasına gerek yok.
+ bağlı. Bu rapor yalnızca tamamlanan doğrulama sonuçlarını özetler.
 
 ---
 

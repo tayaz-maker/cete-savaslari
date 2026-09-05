@@ -8,7 +8,6 @@
 
 ## CHECKPOINT
 
-- Branch: `claude/grok-game-screen-design-8fa30d`
 - Accelerator (tasarım) commit: `f7f1a19`
 - Uygulama bu commit'in doğrudan devamındadır; force push veya history rewrite yapılmadı.
 
@@ -113,7 +112,7 @@ gerekçesi ("Lisans mezunu olman gerekiyor.") gösteriliyor, mevcut ekranlar boz
 - Simülasyon botu iş teklifi kabul etmediği için açılan işe **geçiş** senaryosu birim testlerle
   kapsanır (test 24, 30, 31), 144 haftalık koşuda değil.
 
-## COWORK FINAL VERIFICATION
+## FINAL VERIFICATION
 
 1. `git log -1` ile branch ve commit'i doğrula.
 2. `node --test 'scripts/tc-sim-*.test.mjs'` → 68/68 bekleniyor.

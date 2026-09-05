@@ -16,7 +16,7 @@ function mergeLegacy(raw) {
   const merged = {
     ...base,
     ...raw,
-    meta: { ...base.meta, ...(raw.meta || {}), saveVersion: 2 },
+    meta: { ...base.meta, ...(raw.meta || {}), yearStartHealth: raw.meta?.yearStartHealth || null, saveVersion: 2 },
     player: { ...base.player, ...(raw.player || {}) },
     time: { ...base.time, ...(raw.time || {}) },
     finances: {

@@ -1,0 +1,12 @@
+PROJECT:
+TC SIM
+
+CANONICAL IDENTITY:
+Use the Git commit and tree containing this file.
+Exact transfer hashes are generated AFTER committing, in the accompanying
+TC_SIM_CURRENT_CANONICAL_HANDOFF_FINAL.txt and bundle manifest.
+
+WARNING:
+Older textual handoffs are historical records, not current source identity.
+Verify the bundle head and tree directly with Git before implementation.
+Remote publication status is recorded separately in the final transfer manifest.

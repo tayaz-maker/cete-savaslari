@@ -1,9 +1,11 @@
 import {
-  WEEKLY_ACTIVITY_LIMIT,
   addMemory,
   addNpcMemory,
   adjustHealth,
+  adjustTendency,
   clamp,
+  getWeeklyActivityLimit,
+  isCriticalHealth,
   transact,
   updateRelationship,
 } from "./state.js?v=5";
@@ -42,7 +44,7 @@ export function getRelationship(state, personId) {
   const person = getPerson(state, personId);
   if (!person) return null;
   return {
-    closeness: state.relationships[personId],
+    closeness: Number.isFinite(state.relationships[personId]) ? state.relationships[personId] : 44,
     trust: person.social.trust,
     tension: person.social.tension,
     lastMeaningfulContactWeek: person.social.lastMeaningfulContactWeek,
@@ -67,7 +69,7 @@ export function getRelationshipStage(state, personId) {
 
 export function applyRelationshipDelta(state, personId, delta = {}) {
   const person = getPerson(state, personId);
-  if (!person) return false;
+  if (!person || person.deceased || state.lifetime?.death) return false;
   if (Number.isFinite(delta.closeness)) updateRelationship(state, personId, delta.closeness);
   if (Number.isFinite(delta.trust)) person.social.trust = clamp(person.social.trust + delta.trust);
   if (Number.isFinite(delta.tension))
@@ -139,6 +141,7 @@ export function setRomanticInterest(state, personId) {
   if (!person || person.roleId === "family" || !person.tags.includes("romance_available"))
     return false;
   if (person.social.romanceStatus !== "none") return false;
+  if (state.household.history?.some((entry) => entry.kind === "divorce" && entry.personId === personId && state.time.absoluteWeek - entry.week < 24)) return false;
   person.social.romanceStatus = "interest";
   addNpcMemory(state, personId, "Aramızdaki romantik ihtimali açıkça konuştuk.", "romance_started");
   addMemory(state, `${person.name} ile aranda romantik bir ilgi oluştu.`, "important");
@@ -171,13 +174,19 @@ export function becomePartner(state, personId) {
 }
 
 export function canUseSocialAction(state, personId, actionId) {
+  if (state.lifetime?.death || state.people.find(p => p.id === personId)?.deceased) return { ok: false, reason: "Bu kişiyle artık yeni bir eylem yapılamaz." };
   const person = getPerson(state, personId);
   const relationship = getRelationship(state, personId);
   const action = ACTIONS[actionId];
   if (!person || !relationship || !action) return { ok: false, reason: "Sosyal işlem geçersiz." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
-  if (state.weekly.used >= WEEKLY_ACTIVITY_LIMIT)
-    return { ok: false, reason: "Bu haftanın aktivite hakkı bitti." };
+  if (state.weekly.used >= getWeeklyActivityLimit(state))
+    return {
+      ok: false,
+      reason: isCriticalHealth(state)
+        ? "Sağlığın kritik; bu hafta yalnız bir şeye gücün yetiyor."
+        : "Bu haftanın aktivite hakkı bitti.",
+    };
   const decisionId = `social:${personId}:${actionId}`;
   if (state.weekly.selectedIds.includes(decisionId))
     return { ok: false, reason: "Bu kişiyle aynı etkileşimi bu hafta yaptın." };
@@ -230,16 +239,98 @@ export function applySocialAction(state, personId, actionId) {
     becomePartner(state, personId);
   }
   if (actionId !== "fulfill_promise") markMeaningfulContact(state, personId);
+  if (["meet", "confide", "help", "repair"].includes(actionId)) adjustTendency(state, "sociability", 1);
+  if (actionId === "help" || actionId === "fulfill_promise") adjustTendency(state, "discipline", 1);
+  if (actionId === "meet") adjustTendency(state, "frugality", -1);
   state.weekly.used += 1;
   state.weekly.selectedIds.push(check.decisionId);
   state.social.engaged = true;
   return { ok: true, message: `${person.name}: ${check.action.title} tamamlandı.` };
 }
 
+/** 3D: bir NPC hafızasında verilen tipte en az bir kayıt var mı. Uygunluk/zincir koşulları için. */
+export function hasNpcMemory(state, personId, type) {
+  const person = getPerson(state, personId);
+  if (!person || !type) return false;
+  return person.memories.some((memory) => memory.type === type);
+}
+
+/** 3D: kişiye özel, tutarı korunan borç. Mevcut sabit 1500 TL `friend-loan`/`loan_repayment`
+ * mekanizmasından tamamen ayrıdır ve onu değiştirmez. */
+export function getPersonalDebt(state, personId) {
+  return (
+    state.openCases.find(
+      (item) =>
+        item.type === "personal-debt" &&
+        item.status !== "resolved" &&
+        item.payload?.personId === personId,
+    ) || null
+  );
+}
+
+export function createPersonalDebt(
+  state,
+  personId,
+  amount,
+  dueInWeeks = 4,
+  memoryType = "lent_money",
+) {
+  const person = getPerson(state, personId);
+  if (!person || !Number.isFinite(amount) || amount <= 0 || getPersonalDebt(state, personId))
+    return false;
+  state.openCases.push({
+    id: `personal-debt-${personId}-${state.time.absoluteWeek}`,
+    type: "personal-debt",
+    createdWeek: state.time.absoluteWeek,
+    dueWeek: state.time.absoluteWeek + dueInWeeks,
+    eventId: null,
+    status: "pending",
+    payload: { personId, amount, memoryType },
+  });
+  addNpcMemory(state, personId, `${amount.toLocaleString("tr-TR")} TL borç aldı.`, memoryType);
+  return true;
+}
+
+export function resolvePersonalDebt(state, personId, { collected }) {
+  const item = getPersonalDebt(state, personId);
+  if (!item || item.resolutionApplied) return false;
+  item.status = "resolved";
+  item.resolutionApplied = true;
+  const person = getPerson(state, personId);
+  if (collected) {
+    transact(state, item.payload.amount, `${person.name}: borç tahsilatı`, "social");
+    applyRelationshipDelta(state, personId, { tension: 4 });
+    addNpcMemory(state, personId, "Borcunu geri ödedi.", "debt_collected");
+  } else {
+    applyRelationshipDelta(state, personId, { trust: 6, tension: -4 });
+    addNpcMemory(state, personId, "Borcunu bağışladın.", "debt_forgiven");
+  }
+  return true;
+}
+
+/** 3D: gecikmeli sosyal sonuç. Mevcut openCases mimarisini sarar; ikinci bir motor değildir.
+ * `dueWeek` gelmeden tetiklenmez (processDueOpenCases), tam bir kez çözülür, save/load'da kalıcıdır. */
+export function scheduleSocialFollowup(state, { id, eventId, dueWeek, personId, ...payload } = {}) {
+  if (!eventId || !Number.isInteger(dueWeek)) return false;
+  const caseId = id || `social-followup-${eventId}-${state.time.absoluteWeek}`;
+  if (state.openCases.some((item) => item.id === caseId)) return false;
+  state.openCases.push({
+    id: caseId,
+    type: "social-followup",
+    createdWeek: state.time.absoluteWeek,
+    dueWeek,
+    eventId,
+    status: "pending",
+    payload: { personId, ...payload },
+  });
+  return true;
+}
+
 export function applySocialMaintenance(state) {
   const week = state.time.absoluteWeek;
   if (state.social.lastMaintenanceWeek === week) return false;
   for (const person of state.people) {
+    if (person.deceased) continue;
     const relationship = getRelationship(state, person.id);
     const gap = week - relationship.lastMeaningfulContactWeek;
     const stage = getRelationshipStage(state, person.id);

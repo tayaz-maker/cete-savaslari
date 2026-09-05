@@ -1,3 +1,7 @@
+import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=5";
+import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=5";
+import { normalizeHousehold, HOUSEHOLD_HISTORY_LIMIT, neutralUnion, FAMILY_INTENTS } from "./household.js?v=5";
+import { ensureBodyState } from "./body-systems.js?v=5";
 import { getHomeById, getJobById } from "./catalog.js?v=5";
 import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=5";
 import { isEducationLevel, isValidActiveEducation } from "./education.js?v=5";
@@ -5,14 +9,95 @@ import { isEducationLevel, isValidActiveEducation } from "./education.js?v=5";
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
+/** Haftalık karar hakkının üst sınırı. Doğrulama bu sabiti kullanır. */
 export const WEEKLY_ACTIVITY_LIMIT = 2;
+/** Bu eşiğin altında beden kendini taşıyamaz: haftalık karar hakkı düşer. */
+export const CRITICAL_HEALTH = 15;
+export const CRITICAL_HEALTH_ACTIVITY_LIMIT = 1;
+
+/**
+ * O haftaki gerçek karar hakkı. Kritik sağlıkta düşer; sağlık toparlanınca
+ * kendiliğinden geri gelir. Doğrulama sınırı (WEEKLY_ACTIVITY_LIMIT) hiç
+ * değişmez: hakkı zaten harcanmış bir hafta geçersiz duruma düşmez.
+ */
+export function getWeeklyActivityLimit(state) {
+  const health = state?.health?.health;
+  if (Number.isFinite(health) && health <= CRITICAL_HEALTH) return CRITICAL_HEALTH_ACTIVITY_LIMIT;
+  return WEEKLY_ACTIVITY_LIMIT;
+}
+
+export const isCriticalHealth = (state) =>
+  Number.isFinite(state?.health?.health) && state.health.health <= CRITICAL_HEALTH;
 
 const LIMITS = {
   memories: 200,
   npcMemories: 50,
   eventHistory: 200,
   yearlyHistory: 80,
+  careerHistory: 40,
+  secrets: 30,
+  comparisonMilestones: 24,
+  favors: 30,
+  reputationEvidence: 60,
 };
+
+export const BACKGROUND_OPTIONS = {
+  family: {
+    supportive: "Destekleyici aile",
+    demanding: "Beklentisi yüksek aile",
+    strained: "Maddi olarak zorlanan aile",
+  },
+  economic: { tight: "Sıkışık başlangıç", modest: "Mütevazı başlangıç", stable: "Dengeli birikim" },
+  education: { general: "Genel lise", vocational: "Meslek lisesi", unfinished: "Yarım kalmış eğitim" },
+  social: { close: "Yakın çevre", broad: "Geniş çevre", family: "Aile merkezli" },
+};
+
+const DEFAULT_TENDENCIES = { risk: 50, discipline: 50, sociability: 50, frugality: 50 };
+
+export function adjustTendency(state, key, amount) {
+  if (!state?.player?.tendencies || !(key in DEFAULT_TENDENCIES) || !Number.isFinite(amount)) return false;
+  state.player.tendencies[key] = clamp(state.player.tendencies[key] + amount);
+  return true;
+}
+
+export function getTendencyLabel(key, value) {
+  const labels = {
+    risk: ["Temkinli", "Dengeli", "Atılgan"],
+    discipline: ["Dağınık", "Dengeli", "Disiplinli"],
+    sociability: ["İçe dönük", "Dengeli", "Sosyal"],
+    frugality: ["Harcamacı", "Dengeli", "Tutumlu"],
+  };
+  const scale = labels[key] || labels.discipline;
+  return scale[value < 34 ? 0 : value < 67 ? 1 : 2];
+}
+
+export const PRIORITY_OPTIONS = {
+  career: "Kariyer",
+  education: "Eğitim",
+  money: "Para ve borç",
+  health: "Sağlık",
+  relationship: "İlişki",
+  independence: "Bağımsızlık",
+};
+
+export function setYearlyPriorities(state, priorities) {
+  if (!state?.yearlyPlan || !Array.isArray(priorities)) return false;
+  state.yearlyPlan.priorities = priorities
+    .filter((id) => Object.hasOwn(PRIORITY_OPTIONS, id))
+    .filter((id, index, list) => list.indexOf(id) === index)
+    .slice(0, 2);
+  return true;
+}
+
+export function recordComparisonMilestone(state, entry) {
+  if (!state?.comparisonCircle) return false;
+  appendCapped(state.comparisonCircle.milestones, {
+    week: state.time.absoluteWeek,
+    year: state.time.year,
+    ...entry,
+  }, LIMITS.comparisonMilestones);
+  return true;
+}
 
 export function clamp(value, min = 0, max = 100) {
   return Math.min(max, Math.max(min, Number(value)));
@@ -21,6 +106,14 @@ export function clamp(value, min = 0, max = 100) {
 export function appendCapped(list, item, limit) {
   list.push(item);
   if (list.length > limit) list.splice(0, list.length - limit);
+}
+
+/** Kayıtta görünen etiketten başlangıç profilini güvenle türetir. */
+export function getStartingProfileId(state) {
+  const profile = state?.player?.profile;
+  if (profile === "Hırslı başlangıç") return "ambitious";
+  if (profile === "Sosyal başlangıç") return "social";
+  return "balanced";
 }
 
 function profileSettings(profile) {
@@ -37,6 +130,24 @@ export function createNewGame(options = {}) {
   const now = options.now || new Date().toISOString();
   const seed = Number.isInteger(options.seed) ? options.seed >>> 0 : 20270101;
   const socialBonus = options.profile === "social" ? 6 : 0;
+  const background = {
+    family: Object.hasOwn(BACKGROUND_OPTIONS.family, options.familyBackground) ? options.familyBackground : "supportive",
+    economic: Object.hasOwn(BACKGROUND_OPTIONS.economic, options.economicBackground) ? options.economicBackground : "modest",
+    education: Object.hasOwn(BACKGROUND_OPTIONS.education, options.educationBackground) ? options.educationBackground : "general",
+    social: Object.hasOwn(BACKGROUND_OPTIONS.social, options.socialBackground) ? options.socialBackground : "close",
+  };
+  const economicBalance = { tight: -1000, modest: 0, stable: 1000 }[background.economic];
+  const familyRelationship = { supportive: 0, demanding: -4, strained: -8 }[background.family];
+  const socialRelationship = { close: 0, broad: 3, family: -2 }[background.social];
+  const educationFields = background.education === "vocational" ? ["technical"] : [];
+  const tendencies = {
+    ...DEFAULT_TENDENCIES,
+    risk: options.profile === "ambitious" ? 56 : 50,
+    sociability: options.profile === "social" ? 58 : 50,
+    frugality: background.economic === "tight" ? 56 : 50,
+    discipline: background.education === "vocational" ? 54 : 50,
+  };
+  const militaryApplicable = options.militaryApplicable === true;
 
   return {
     meta: {
@@ -45,12 +156,16 @@ export function createNewGame(options = {}) {
       createdAt: now,
       updatedAt: now,
       rngState: seed || 1,
-      yearStartBalance: profile.balance,
+      yearStartBalance: profile.balance + economicBalance,
+      yearStartHealth: { energy: profile.energy, stress: profile.stress, health: 82 },
       yearStartRelationships: {
-        anne: 70 + socialBonus,
+        anne: Math.max(0, Math.min(100, 70 + socialBonus + familyRelationship)),
         baba: 64,
-        mehmet: 52 + socialBonus,
+        mehmet: Math.max(0, Math.min(100, 52 + socialBonus + socialRelationship)),
         elif: 38,
+        selin: 44,
+        emre: 44,
+        burak: 48,
       },
     },
     player: {
@@ -62,30 +177,74 @@ export function createNewGame(options = {}) {
         ? options.gender
         : "unspecified",
       profile: profile.label,
+      background,
+      tendencies,
       age: 18,
       city: "İstanbul",
     },
     world: { eraId: getEraById(options.eraId)?.id || PRESENT_DAY_ERA_ID },
     time: { year: 2027, month: 1, weekOfMonth: 1, absoluteWeek: 1 },
     finances: {
-      balance: profile.balance,
+      balance: profile.balance + economicBalance,
       otherMonthlyIncome: 0,
       otherMonthlyExpenses: 5000,
       ledger: [],
     },
-    career: { jobId: "market", pendingJob: null, jobFamilyExperience: {} },
-    education: { level: "lise", fields: [], active: null, tuitionOwedThisMonth: 0 },
-    household: { homeId: "family", livingWithFamily: true },
+    career: {
+      jobId: "market",
+      pendingJob: null,
+      jobFamilyExperience: {},
+      performance: 50,
+      weeksInRole: 0,
+      history: [],
+      retirement: {
+        status: "working",
+        plannedWeek: null,
+        deferredUntil: null,
+        retiredWeek: null,
+        monthlyIncome: 0,
+        lastJobId: null,
+      },
+    },
+    education: { level: "lise", fields: educationFields, active: null, tuitionOwedThisMonth: 0 },
+    parenthood: neutralParenthood(),
+    household: { homeId: "family", livingWithFamily: true, union: neutralUnion(), history: [] },
     people: createDefaultPeople(1),
-    relationships: { anne: 70 + socialBonus, baba: 64, mehmet: 52 + socialBonus, elif: 38 },
+    relationships: {
+      anne: Math.max(0, Math.min(100, 70 + socialBonus + familyRelationship)),
+      baba: 64,
+      mehmet: Math.max(0, Math.min(100, 52 + socialBonus + socialRelationship)),
+      elif: 38,
+      selin: 44,
+      emre: 44,
+      burak: 48,
+    },
     social: { currentPartnerNpcId: null, lastMaintenanceWeek: 0, engaged: false },
     health: { energy: profile.energy, stress: profile.stress, health: 82 },
+    body: { exposures: { overwork: 0, underRecovery: 0, inactivity: 0 }, conditions: [] },
     memories: [],
     flags: {},
     openCases: [],
     events: { active: null, queue: [], seen: [], cooldowns: {}, history: [] },
     weekly: { used: 0, selectedIds: [] },
     yearlyHistory: [],
+    yearlyPlan: { year: 2027, priorities: [], progress: {} },
+    secrets: [],
+    favors: [],
+    reputation: { evidence: [] },
+    perception: { circles: {} },
+    comparisonCircle: {
+      peers: [
+        { id: "comparison-cousin", name: "Selin", relation: "Kuzen", status: "Yeni bir iş arıyor" },
+        { id: "comparison-classmate", name: "Emre", relation: "Eski sınıf arkadaşı", status: "Eğitimine devam ediyor" },
+      ],
+      milestones: [],
+    },
+    military: {
+      applicable: militaryApplicable,
+      status: militaryApplicable ? "pending" : "not_applicable",
+      dueWeek: militaryApplicable ? 96 : null,
+    },
   };
 }
 
@@ -99,6 +258,7 @@ export function nextRandom(state) {
 }
 
 export function transact(state, amount, reason, category = "other") {
+  if (state.lifetime?.death) return;
   if (!Number.isFinite(amount)) throw new Error("Geçersiz para işlemi");
   const rounded = Math.round(amount);
   state.finances.balance += rounded;
@@ -117,6 +277,7 @@ export function adjustHealth(state, changes) {
 }
 
 export function updateRelationship(state, personId, amount) {
+  if (state.people.find(p => p.id === personId)?.deceased) return false;
   if (!(personId in state.relationships) || !Number.isFinite(amount)) return false;
   state.relationships[personId] = clamp(state.relationships[personId] + amount);
   return true;
@@ -162,6 +323,16 @@ export function addYearHistory(state, entry) {
   appendCapped(state.yearlyHistory, entry, LIMITS.yearlyHistory);
 }
 
+export function addCareerHistory(state, entry) {
+  if (!state?.career) return;
+  if (!Array.isArray(state.career.history)) state.career.history = [];
+  appendCapped(state.career.history, {
+    week: state.time.absoluteWeek,
+    year: state.time.year,
+    ...entry,
+  }, LIMITS.careerHistory);
+}
+
 const safeCount = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
 
 const SOCIAL_DEFAULTS = {
@@ -174,6 +345,9 @@ const SOCIAL_DEFAULTS = {
     trust: 42,
     romanceStatus: "none",
   },
+  selin: { roleId: "acquaintance", tags: ["peer", "weak_tie"], trust: 44, romanceStatus: "none", relationType: "Kuzen", circles: ["family", "acquaintances"], contactCategory: "weak" },
+  emre: { roleId: "acquaintance", tags: ["peer", "weak_tie"], trust: 44, romanceStatus: "none", relationType: "Eski sınıf arkadaşı", circles: ["friends", "acquaintances"], contactCategory: "weak" },
+  burak: { roleId: "work_contact", tags: ["professional", "weak_tie"], trust: 48, romanceStatus: "none", relationType: "Eski iş bağlantısı", circles: ["professional", "acquaintances"], contactCategory: "former" },
 };
 
 function createDefaultPeople(startWeek = 1) {
@@ -182,10 +356,19 @@ function createDefaultPeople(startWeek = 1) {
     { id: "baba", name: "Murat", relationType: "Baba", memories: [] },
     { id: "mehmet", name: "Mehmet", relationType: "Arkadaş", memories: [] },
     { id: "elif", name: "Elif", relationType: "Tanıdık", memories: [] },
+    { id: "selin", name: "Selin", relationType: "Kuzen", memories: [] },
+    { id: "emre", name: "Emre", relationType: "Eski sınıf arkadaşı", memories: [] },
+    { id: "burak", name: "Burak", relationType: "Eski iş bağlantısı", memories: [] },
   ].map((person) => ({
     ...person,
     roleId: SOCIAL_DEFAULTS[person.id].roleId,
     tags: [...SOCIAL_DEFAULTS[person.id].tags],
+    circles: [...(SOCIAL_DEFAULTS[person.id].circles || (SOCIAL_DEFAULTS[person.id].roleId === "family" ? ["family"] : ["friends"]))],
+    contactCategory: SOCIAL_DEFAULTS[person.id].contactCategory || "close",
+    dormant: false,
+    lifeState: { employment: null, education: null, residence: null, relationship: "single", concern: null },
+    lifeMilestones: [],
+    knownMilestones: [],
     available: true,
     social: {
       trust: SOCIAL_DEFAULTS[person.id].trust,
@@ -238,6 +421,18 @@ export function normalizeSocialState(state) {
           : fallback.relationType,
       roleId: fallback.roleId,
       tags: [...fallback.tags],
+      circles: Array.isArray(raw.circles) ? [...new Set(raw.circles.filter((value) => typeof value === "string"))].slice(0, 4) : [...fallback.circles],
+      contactCategory: typeof raw.contactCategory === "string" ? raw.contactCategory : fallback.contactCategory,
+      dormant: raw.dormant === true,
+      lifeState: {
+        employment: typeof raw.lifeState?.employment === "string" ? raw.lifeState.employment : null,
+        education: typeof raw.lifeState?.education === "string" ? raw.lifeState.education : null,
+        residence: typeof raw.lifeState?.residence === "string" ? raw.lifeState.residence : null,
+        relationship: typeof raw.lifeState?.relationship === "string" ? raw.lifeState.relationship : "single",
+        concern: typeof raw.lifeState?.concern === "string" ? raw.lifeState.concern : null,
+      },
+      lifeMilestones: Array.isArray(raw.lifeMilestones) ? raw.lifeMilestones.slice(-12) : [],
+      knownMilestones: Array.isArray(raw.knownMilestones) ? [...new Set(raw.knownMilestones.filter((value) => typeof value === "string"))].slice(-12) : [],
       available: raw.available !== false,
       memories,
       social: {
@@ -254,11 +449,12 @@ export function normalizeSocialState(state) {
       },
     };
   });
+  const extendedSave = rawPeople.some((person) => ["selin", "emre", "burak"].includes(person?.id)) && ["selin", "emre", "burak"].some((id) => Object.hasOwn(rawRelationships, id));
   state.relationships = Object.fromEntries(
-    defaults.map((person) => [
+    defaults.filter((person) => extendedSave || !["selin", "emre", "burak"].includes(person.id)).map((person) => [
       person.id,
       safeRelationshipValue(rawRelationships[person.id],
-        person.id === "anne" ? 70 : person.id === "baba" ? 64 : person.id === "mehmet" ? 52 : 38),
+        person.id === "anne" ? 70 : person.id === "baba" ? 64 : person.id === "mehmet" ? 52 : person.id === "elif" ? 38 : 44),
     ]),
   );
   const rawSocial = state.social && typeof state.social === "object" ? state.social : {};
@@ -294,6 +490,10 @@ export function normalizeEducationCareer(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return state;
 
   const career = state.career && typeof state.career === "object" ? state.career : {};
+  const rawRetirement = career.retirement && typeof career.retirement === "object" ? career.retirement : {};
+  const retirementStatus = ["working", "planned", "retired"].includes(rawRetirement.status)
+    ? rawRetirement.status
+    : "working";
   const rawExperience = career.jobFamilyExperience;
   const experience = {};
   if (rawExperience && typeof rawExperience === "object" && !Array.isArray(rawExperience)) {
@@ -310,7 +510,26 @@ export function normalizeEducationCareer(state) {
     jobId: career.jobId === undefined ? null : career.jobId,
     pendingJob: career.pendingJob === undefined ? null : career.pendingJob,
     jobFamilyExperience: experience,
+    performance: Number.isFinite(career.performance) ? clamp(career.performance) : 50,
+    weeksInRole: safeCount(career.weeksInRole),
+    history: Array.isArray(career.history) ? career.history.slice(-LIMITS.careerHistory) : [],
+    retirement: {
+      status: retirementStatus,
+      plannedWeek: Number.isInteger(rawRetirement.plannedWeek) ? rawRetirement.plannedWeek : null,
+      deferredUntil: Number.isInteger(rawRetirement.deferredUntil) ? rawRetirement.deferredUntil : null,
+      retiredWeek: retirementStatus === "retired" && Number.isInteger(rawRetirement.retiredWeek) ? rawRetirement.retiredWeek : null,
+      monthlyIncome: retirementStatus === "retired" && Number.isFinite(rawRetirement.monthlyIncome)
+        ? Math.max(0, Math.round(rawRetirement.monthlyIncome))
+        : 0,
+      lastJobId: rawRetirement.lastJobId === null || getJobById(rawRetirement.lastJobId) ? rawRetirement.lastJobId || null : null,
+    },
   };
+  // Eski kayıtlar için nötr varsayılan: yalnız açıkça emekli olarak kaydedilmiş
+  // bir durum işi kapatır. Yaşa bakarak geriye dönük emeklilik üretilmez.
+  if (state.career.retirement.status === "retired") {
+    state.career.jobId = null;
+    state.career.pendingJob = null;
+  }
 
   const raw = state.education && typeof state.education === "object" ? state.education : {};
   const fields = [];
@@ -324,7 +543,106 @@ export function normalizeEducationCareer(state) {
     active: isValidActiveEducation(raw.active) ? raw.active : null,
     tuitionOwedThisMonth: safeCount(raw.tuitionOwedThisMonth),
   };
+  const rawPlayer = state.player && typeof state.player === "object" ? state.player : {};
+  const rawBackground = rawPlayer.background && typeof rawPlayer.background === "object" ? rawPlayer.background : {};
+  state.player = {
+    ...rawPlayer,
+    background: {
+      family: Object.hasOwn(BACKGROUND_OPTIONS.family, rawBackground.family) ? rawBackground.family : "supportive",
+      economic: Object.hasOwn(BACKGROUND_OPTIONS.economic, rawBackground.economic) ? rawBackground.economic : "modest",
+      education: Object.hasOwn(BACKGROUND_OPTIONS.education, rawBackground.education) ? rawBackground.education : "general",
+      social: Object.hasOwn(BACKGROUND_OPTIONS.social, rawBackground.social) ? rawBackground.social : "close",
+    },
+    tendencies: Object.fromEntries(Object.keys(DEFAULT_TENDENCIES).map((key) => [
+      key,
+      Number.isFinite(rawPlayer.tendencies?.[key]) ? clamp(rawPlayer.tendencies[key]) : DEFAULT_TENDENCIES[key],
+    ])),
+  };
+  const rawPlan = state.yearlyPlan && typeof state.yearlyPlan === "object" ? state.yearlyPlan : {};
+  state.yearlyPlan = {
+    year: Number.isInteger(rawPlan.year) ? rawPlan.year : state.time.year,
+    priorities: Array.isArray(rawPlan.priorities)
+      ? rawPlan.priorities.filter((id) => Object.hasOwn(PRIORITY_OPTIONS, id)).slice(0, 2)
+      : [],
+    progress: rawPlan.progress && typeof rawPlan.progress === "object" ? rawPlan.progress : {},
+  };
+  const rawBody = state.body && typeof state.body === "object" ? state.body : {};
+  const rawExposures = rawBody.exposures && typeof rawBody.exposures === "object" ? rawBody.exposures : {};
+  state.body = {
+    exposures: Object.fromEntries(["overwork", "underRecovery", "inactivity"].map((key) => [key, Number.isFinite(rawExposures[key]) ? clamp(rawExposures[key]) : 0])),
+    conditions: Array.isArray(rawBody.conditions) ? rawBody.conditions.filter((item) => item?.id).slice(-8) : [],
+    warningAcknowledged: Boolean(rawBody.warningAcknowledged),
+    warningAvailable: Boolean(rawBody.warningAvailable),
+  };
+  ensureBodyState(state);
+  state.secrets = Array.isArray(state.secrets)
+    ? state.secrets
+        .filter((secret) => secret?.id && ["hidden", "exposed", "resolved"].includes(secret.status))
+        .slice(-LIMITS.secrets)
+        .map((secret) => ({
+          id: String(secret.id),
+          type: typeof secret.type === "string" ? secret.type : "personal",
+          summary: typeof secret.summary === "string" ? secret.summary : "Özel bir mesele",
+          createdWeek: Number.isInteger(secret.createdWeek) ? Math.max(1, secret.createdWeek) : state.time.absoluteWeek,
+          status: secret.status,
+          relatedPeople: Array.isArray(secret.relatedPeople) ? secret.relatedPeople.filter((id) => typeof id === "string").slice(0, 4) : [],
+          knownBy: Array.isArray(secret.knownBy) ? [...new Set(secret.knownBy.filter((id) => typeof id === "string"))] : ["player"],
+          hiddenFrom: Array.isArray(secret.hiddenFrom) ? [...new Set(secret.hiddenFrom.filter((id) => typeof id === "string"))].slice(0, 4) : [],
+          evidence: ["none", "weak", "strong"].includes(secret.evidence) ? secret.evidence : "none",
+          ...(Number.isInteger(secret.exposedWeek) ? { exposedWeek: secret.exposedWeek } : {}),
+          ...(Number.isInteger(secret.resolvedWeek) ? { resolvedWeek: secret.resolvedWeek } : {}),
+          ...(typeof secret.sourceEvent === "string" ? { sourceEvent: secret.sourceEvent } : {}),
+        }))
+    : [];
+  const rawCircle = state.comparisonCircle && typeof state.comparisonCircle === "object" ? state.comparisonCircle : {};
+  const defaultPeers = [
+    { id: "comparison-cousin", name: "Selin", relation: "Kuzen", status: "Yeni bir iş arıyor" },
+    { id: "comparison-classmate", name: "Emre", relation: "Eski sınıf arkadaşı", status: "Eğitimine devam ediyor" },
+  ];
+  const peers = defaultPeers.map((fallback) => {
+    const raw = Array.isArray(rawCircle.peers) ? rawCircle.peers.find((peer) => peer?.id === fallback.id) : null;
+    return {
+      ...fallback,
+      ...(raw || {}),
+      id: fallback.id,
+      name: typeof raw?.name === "string" && raw.name ? raw.name : fallback.name,
+      relation: typeof raw?.relation === "string" && raw.relation ? raw.relation : fallback.relation,
+      status: typeof raw?.status === "string" && raw.status ? raw.status : fallback.status,
+      milestones: Array.isArray(raw?.milestones) ? raw.milestones.slice(-8) : [],
+      memories: Array.isArray(raw?.memories) ? raw.memories.slice(-12) : [],
+    };
+  });
+  state.comparisonCircle = {
+    peers,
+    milestones: Array.isArray(rawCircle.milestones) ? rawCircle.milestones.slice(-LIMITS.comparisonMilestones) : [],
+  };
+  const rawFavors = Array.isArray(state.favors) ? state.favors : [];
+  state.favors = rawFavors
+    .filter((item) => item?.id && item?.personId)
+    .slice(-LIMITS.favors)
+    .map((item) => ({
+      ...item,
+      direction: item.direction === "npc_owes" ? "npc_owes" : "player_owes",
+      status: item.status === "resolved" ? "resolved" : "open",
+    }));
+  const rawReputation = state.reputation && typeof state.reputation === "object" ? state.reputation : {};
+  state.reputation = {
+    evidence: Array.isArray(rawReputation.evidence) ? rawReputation.evidence.filter((item) => item?.circle && item?.signal).slice(-LIMITS.reputationEvidence) : [],
+  };
+  const rawPerception = state.perception && typeof state.perception === "object" ? state.perception : {};
+  state.perception = { circles: rawPerception.circles && typeof rawPerception.circles === "object" ? rawPerception.circles : {} };
+  const rawMilitary = state.military && typeof state.military === "object" ? state.military : {};
+  state.military = {
+    applicable: rawMilitary.applicable === true,
+    status: rawMilitary.applicable === true && ["pending", "deferred", "completed", "expired"].includes(rawMilitary.status)
+      ? rawMilitary.status
+      : rawMilitary.applicable === true ? "pending" : "not_applicable",
+    dueWeek: rawMilitary.applicable === true && Number.isInteger(rawMilitary.dueWeek) ? rawMilitary.dueWeek : null,
+  };
   normalizeSocialState(state);
+  normalizeHousehold(state);
+  normalizeParenthood(state);
+  normalizeLifetime(state);
   return state;
 }
 
@@ -334,6 +652,7 @@ export function validateState(state) {
   if (!state || typeof state !== "object" || Array.isArray(state))
     return { ok: false, errors: ["State nesne değil"] };
   if (state.meta?.saveVersion !== SAVE_VERSION) errors.push("Save sürümü geçersiz");
+  if (!validateLifetime(state)) errors.push("Yaşam ve kuşak kaydı geçersiz");
   if (
     !state.player ||
     typeof state.player.name !== "string" ||
@@ -381,6 +700,24 @@ export function validateState(state) {
     Object.values(experience).some((weeks) => !Number.isInteger(weeks) || weeks < 0)
   )
     errors.push("Deneyim kaydı geçersiz");
+  if (
+    !finite(state.career?.performance) ||
+    state.career.performance < 0 ||
+    state.career.performance > 100 ||
+    !Number.isInteger(state.career?.weeksInRole) ||
+    state.career.weeksInRole < 0 ||
+    !Array.isArray(state.career?.history)
+  )
+    errors.push("Kariyer ilerlemesi geçersiz");
+  const retirement = state.career?.retirement;
+  if (
+    !retirement ||
+    !["working", "planned", "retired"].includes(retirement.status) ||
+    !finite(retirement.monthlyIncome) ||
+    retirement.monthlyIncome < 0 ||
+    (retirement.status === "retired" && state.career.jobId !== null)
+  )
+    errors.push("Emeklilik kaydı geçersiz");
   const education = state.education;
   if (
     !education ||
@@ -396,6 +733,16 @@ export function validateState(state) {
   )
     errors.push("Eğitim kaydı geçersiz");
   if (!state.household || !getHomeById(state.household.homeId)) errors.push("Konut kaydı geçersiz");
+  if (state.household?.union && (
+    ["cohabitingSince", "marriedSince", "separatedSince"].some((key) => state.household.union[key] != null && (!Number.isInteger(state.household.union[key]) || state.household.union[key] < 1 || state.household.union[key] > state.time.absoluteWeek)) ||
+    (state.household.union.separatedSince && (!state.household.union.marriedSince || state.household.union.cohabitingSince)) ||
+    (state.household.union.reconciled !== undefined && typeof state.household.union.reconciled !== "boolean") ||
+    (state.household.union.familyPlan && (!Object.hasOwn(FAMILY_INTENTS, state.household.union.familyPlan.intent) || !Object.hasOwn(FAMILY_INTENTS, state.household.union.familyPlan.response))) ||
+    (state.household.union.cohabitingSince && (!state.social?.currentPartnerNpcId || state.household.homeId === "family")) ||
+    (state.household.union.marriedSince && !state.social?.currentPartnerNpcId) ||
+    !Array.isArray(state.household.history) || state.household.history.length > HOUSEHOLD_HISTORY_LIMIT
+  )) errors.push("Ortak yaşam kaydı geçersiz");
+  if (!validateParenthood(state)) errors.push("Ebeveynlik kaydı geçersiz");
   if (!state.world || !getEraById(state.world.eraId)) errors.push("Dönem kaydı geçersiz");
   if (
     !state.health ||
@@ -404,6 +751,12 @@ export function validateState(state) {
     )
   )
     errors.push("Beden değerleri geçersiz");
+  if (state.body && (
+    !["overwork", "underRecovery", "inactivity"].every((key) => Number.isFinite(state.body.exposures?.[key]) && state.body.exposures[key] >= 0 && state.body.exposures[key] <= 100) ||
+    !Array.isArray(state.body.conditions) || state.body.conditions.length > 8 ||
+    new Set(state.body.conditions.map((item) => item.id)).size !== state.body.conditions.length ||
+    state.body.conditions.some((item) => !item.id || !["active", "managed", "resolved", "chronic"].includes(item.status) || typeof item.knownToPlayer !== "boolean")
+  )) errors.push("Uzun dönem beden kaydı geçersiz");
   if (
     !Array.isArray(state.people) ||
     new Set(state.people.map((person) => person?.id)).size !== state.people.length ||
@@ -466,6 +819,25 @@ export function validateState(state) {
     !Array.isArray(state.yearlyHistory)
   )
     errors.push("Geçmiş kayıtları geçersiz");
+  if (
+    !state.player?.tendencies ||
+    Object.keys(DEFAULT_TENDENCIES).some((key) => !finite(state.player.tendencies[key]) || state.player.tendencies[key] < 0 || state.player.tendencies[key] > 100)
+  ) errors.push("Davranış eğilimleri geçersiz");
+  if (
+    !state.yearlyPlan ||
+    !Array.isArray(state.yearlyPlan.priorities) ||
+    state.yearlyPlan.priorities.length > 2 ||
+    state.yearlyPlan.priorities.some((id) => !Object.hasOwn(PRIORITY_OPTIONS, id))
+  ) errors.push("Yıllık öncelikler geçersiz");
+  if (!Array.isArray(state.secrets) || state.secrets.some((secret) => !secret?.id || !["hidden", "exposed", "resolved"].includes(secret.status)))
+    errors.push("Gizli mesele kaydı geçersiz");
+  if (!Array.isArray(state.favors) || state.favors.some((favor) => !favor?.id || !favor?.personId || !["player_owes", "npc_owes"].includes(favor.direction) || !["open", "resolved"].includes(favor.status)))
+    errors.push("İyilik kaydı geçersiz");
+  if (!state.reputation || !Array.isArray(state.reputation.evidence) || state.reputation.evidence.some((item) => !item?.circle || !item?.signal))
+    errors.push("Çevre itibarı geçersiz");
+  if (!state.perception || typeof state.perception.circles !== "object") errors.push("Algı kaydı geçersiz");
+  if (!state.military || typeof state.military.applicable !== "boolean" || !["pending", "deferred", "completed", "expired", "not_applicable"].includes(state.military.status) || (state.military.applicable === false && state.military.status !== "not_applicable"))
+    errors.push("Yükümlülük kaydı geçersiz");
   if (
     !state.events ||
     !Array.isArray(state.events.queue) ||

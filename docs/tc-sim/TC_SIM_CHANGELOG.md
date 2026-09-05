@@ -1,5 +1,35 @@
 # TC SIM — Değişiklik Kaydı
 
+## Ebeveynliğe geçiş
+
+- Mevcut çocuk niyeti, açık deneme/bekleme kararı, gebelik haberi, hazırlık ve doğum birbirine bağlandı. Evlilik kendiliğinden gebelik üretmez; temel görüş ayrılığı parayla silinmez.
+- Çocuklar ayrı bir oyuncu/NPC simülasyonu değildir. Doğumdan türeyen yaş ve 0–5 dönemleri, bakım zamanı, aylık gider, aile desteği ve konut görüşmeleri mevcut sistemleri kullanır.
+- Gebelik ve doğum bilgisi ilgili ebeveynlerde kalır; Anne ancak açık paylaşım yoluyla öğrenir. Bilinen takipler takvimde, önemli sonuçlar yıl dosyasında görünür.
+- Ay içinde kullanılan ücretli bakım, düzen değişse bile borç olarak ay sonunda bir kez işlenir. Çocuklar kayıt listesi sınırı nedeniyle silinmez; yeni doğum uygunluğu bakım kapasitesi ve zaman aralığıyla sınırlandırılır.
+- Sürüm 5 korunur; eski kayıtlar gebelik, çocuk ve ebeveynlik geçmişi kazanmaz.
+
+## Ayrılık ve ortak niyetler
+
+- Ciddi çözülmemiş gerilim açık ayrılık görüşmesi doğurur. Katkı kesilir; boşanma altı haftalık değerlendirmeden sonra ayrıca seçilir. Eski eş ve ortak geçmiş korunur.
+- Barışma zamanın yanında ilişki onarımı ve bağımsız konut gerektirir; aynı evlilikte bir kez mümkündür. Anlık boşanma/yeniden ilişki döngüsü engellenir.
+- Çocuk konusundaki niyet görüşmesi ve gecikmeli geri dönüş eklendi. Yanıt mevcut ilişki/bütçe bağlamını okur; farklı niyetler korunur. Gebelik veya çocuk durumu oluşturulmaz.
+- Eski ev arama daveti aynı ortak ev planına bağlandı; ayrı yaşayan eşler normal ortak ev davetleri almaz.
+
+## Ortak yaşam ve evlilik
+
+- Tek partner bağlantısı üzerinden birlikte yaşama, ev sorumlulukları, aileye açıklama ve açık evlilik kararı bağlandı. Görüşmeler haftalık zaman kullanır; ertelenebilir.
+- Ortak gider katkısı ikinci gelir değildir; konut hesabında ayda bir ve ilk ay birlikte geçirilen haftalara göre uygulanır.
+- Önemli kararlar kişi hafızası, geçmiş, takvim ve yıl dosyasında görünür. Açıklama yalnız seçilen kişiye ulaşır.
+- Çevre algısının gizli gerçeklerden yeniden yazılması, olumsuz itibar kanıtlarının etkisiz kalması ve kapanan iyiliklerin bekleyen dosyaları düzeltildi.
+- Kayıt sürümü 5 korunur; eski kayıtlara partner veya evlilik geçmişi eklenmez.
+
+## Beden sonuçları kabul kapanışı
+
+- Dört sağlık zincirine gerçek gecikmeli sonuçlar, kişiyle sınırlı açıklama, kayıt devamlılığı ve uçtan uca senaryolar bağlandı.
+- Haftanın son kararına takılan maruziyet hesabı ve sağlık temizliğinin başka sistemlerin dosyalarını kesmesi düzeltildi.
+- Bilinen durum/sonuç, sağlık önceliği değerlendirmesi ve seçilmiş takibin görünürlüğü tamamlandı; gizli riskler arayüze taşınmaz.
+- Mevcut uzun koşu aracına dört deterministik beden stratejisi eklendi. Kayıt sürümü 5 korunur; eski kayıtlara sağlık geçmişi üretilmez.
+
 ## Çalışan Çekirdek
 
 - Modüler Vanilla HTML/CSS/JavaScript oyun iskeleti oluşturuldu.
@@ -7,7 +37,7 @@
 - Para, beden, ilişkiler, NPC hafızası, flag, koşullu event ve gecikmiş sonuç akışları çalıştırıldı.
 - Ay sonu finansı, yaş artışı ve temel yıl dosyası eklendi.
 - Sürümlü doğrulama, migration, yedek/recovery ve güvenli hata davranışı olan localStorage kaydı eklendi.
-- Çekirdek davranış testleri ve üç yıllık deterministik simülasyon eklendi.
+- Çekirdek davranış testleri ve üç yıllık deterministik simulasyon eklendi.
 - Oyun TarikLab kataloğuna `/oyna/tc-sim` adresiyle bağlandı.
 
 ## Yönetim arayüzü düzeni
@@ -44,3 +74,21 @@
 - Save sürümü 5'e çıkarıldı; v4 kayıtları eski NPC puanları ve hafızaları korunarak taşınıyor.
 - Deploy sırasında eski/yeni modül karışmasını önlemek için runtime importlarına v5 cache anahtarı eklendi.
 - 28 yeni davranış testi ile sosyal eylem içeren 144/520 haftalık ve 20 seed fuzz doğrulaması eklendi.
+
+## Aşama 3D — İçerik temeli (yalnız belge)
+
+- Sosyal hayat araştırma paketi `docs/tc-sim/` altına kondu (kütüphane, zincir, dil, araştırma notu).
+- Gerçek 3C motora göre 24 olay + 5 gecikmeli zincir seçildi.
+- 3D uygulama notları: `TC_SIM_3D_POST_IMPLEMENTATION.md`.
+- Runtime, save v5 ve 111 test bu kayıtta değişmedi.
+
+## Aşama 3D — Sosyal İçerik + Hafıza + Gecikmeli Sonuçlar (runtime)
+
+- Seçilmiş 24 bağımsız sosyal event (arkadaşlık, romantik/Elif, aile, para, görünürlük, yetişkin hayat 4'er) `events.js`'e eklendi.
+- 5 gecikmeli üç adımlı zincir eklendi: CHN-01 (kişisel borç → görünürlük → yüzleşme), CHN-03 (referans sözü → sonuç → karşılık, sade), CHN-08 (yetişkin ilişki → ertesi gün → sonlu korku çözümü), CHN-09 (düğün altını → ay sonu → karşılık), CHN-10 (saklanan gece → sır sorgusu → sızma).
+- Üç motor eklentisi: `scheduleSocialFollowup` (mevcut openCases mimarisini sarar), `personal-debt` openCase türü (kişiye özel, mevcut sabit 1500 TL `loan_repayment` davranışından ayrı), `hasNpcMemory(state, personId, type)`.
+- Görünürlük/yetişkin bağlamı yalnız mevcut `flags` mimarisiyle temsil edildi; yeni NPC, rol, tag veya kişilik state'i eklenmedi.
+- Organik aramada haftada en fazla bir yeni 3D olay aktifleşecek şekilde yoğunluk siperi güçlendirildi (`flags.lastSocial3DWeek` + `flags.lastEventResolvedWeek`).
+- Dashboard "AÇIK MESELELER" panelinin sabit etiket eşlemesi yeni case türlerini (`personal-debt`, `social-followup`) tanıyacak şekilde genişletildi; başka arayüz değişikliği yapılmadı.
+- Save sürümü değişmedi (**hâlâ 5**); `migrateV4()`'e dokunulmadı, v6 yok.
+- 24 yeni davranış/bütünleşik senaryo testiyle (`scripts/tc-sim-3d.test.mjs`) toplam 135 test yeşil; 144/520 hafta ve 20 seed × 260 hafta fuzz koşuları ile gerçek tarayıcı smoke testi geçti. Ayrıntı: `TC_SIM_3D_POST_IMPLEMENTATION.md`.

@@ -43,7 +43,7 @@ Sayılar kesin kota değil, kapsam sınırıdır.
 - 0–17 yaş, tam 18–80 hayat, ölüm, çocuk ve kuşak sistemi
 - İstanbul dışı şehirler veya bütün Türkiye simülasyonu
 - 3D/açık dünya, karakter yürütme, Sims tarzı ev ekranı ve animasyon sistemi
-- Yüzlerce NPC/event/meslek, canlı ekonomik API veya sürekli çalışan AI NPC'ler
+- Yüzlerce NPC/event/meslek, canlı ekonomik API veya sürekli çalışan özerk NPC'ler
 - Gelişmiş yetişkin ilişkileri, sır, sosyal medya, yatırım ve kapsamlı mülk sistemi
 - Erken dengeleme ve UI polish
 
