@@ -141,6 +141,17 @@ export const DEPTH2_EVENTS = [
     ],
   },
   {
+    id: "job_security_review",
+    repeat: "repeatable",
+    title: "İş güvenliği değerlendirmesi",
+    text: "Önceki uyarının ardından performansın hâlâ düşük. İşini korumak için son bir toparlanma fırsatın var.",
+    condition: () => false,
+    choices: [
+      { id: "recover", label: "Toparlanma planını sürdür", effects: { health: { stress: -3 }, flags: { jobSecurityRecovery: true }, memory: "İşini korumak için toparlanma planını sürdürdün." } },
+      { id: "accept_risk", label: "Riski kabul et", effects: { health: { stress: 4 }, flags: { jobSecurityRisk: true }, memory: "İş güvenliği riskini kabul ettin." } },
+    ],
+  },
+  {
     id: "privacy_context_event",
     repeat: "cooldown",
     cooldownWeeks: 48,

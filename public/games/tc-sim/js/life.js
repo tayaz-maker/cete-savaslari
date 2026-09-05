@@ -53,6 +53,10 @@ export const PRIVACY_CONTEXT =
   "Mahremiyet şu an doğrudan stat değiştirmez; ileride aile, partner ve sosyal olaylarda bağlam sağlar.";
 
 export const getMonthlyEmploymentIncome = (state) => getJobById(state.career.jobId)?.salary || 0;
+export function getCostOfLivingIndex(state) {
+  const years = Math.max(0, Math.floor((state.time?.absoluteWeek || 0) / 52));
+  return Math.min(1.5, 1 + years * 0.04);
+}
 export function getMonthlyHousingBreakdown(state, options = {}) {
   const home = getHomeById(state.household.homeId);
   const base = home?.monthlyCost || 0;
@@ -117,7 +121,7 @@ export function getMonthlySummary(state, options = {}) {
   const housingBreakdown = getMonthlyHousingBreakdown(state, options);
   const housing = housingBreakdown.total;
   const otherIncome = state.finances.otherMonthlyIncome;
-  const otherExpenses = state.finances.otherMonthlyExpenses;
+  const otherExpenses = Math.round(state.finances.otherMonthlyExpenses * getCostOfLivingIndex(state));
   const tuition = state.education?.tuitionOwedThisMonth || 0;
   return {
     salary,

@@ -234,8 +234,17 @@ export function applyDepth2Resolution(state, definition, choiceId) {
     state.military.dueWeek = choiceId === "defer" ? state.time.absoluteWeek + deferWeeks : null;
     addMemory(state, choiceId === "defer" ? "Askerlik yükümlülüğünü erteledin." : "Askerlik hizmetini planına aldın.", "important");
   }
-  if (id === "job_security_warning" && choiceId === "push")
-    createSecret(state, { id: "career-warning", type: "career", summary: "İşteki yorgunluk ve performans riski", relatedPeople: [], knownBy: ["player"], sourceEvent: id });
+  if (id === "job_security_warning") {
+    if (choiceId === "push") createSecret(state, { id: "career-warning", type: "career", summary: "İşteki yorgunluk ve performans riski", relatedPeople: [], knownBy: ["player"], sourceEvent: id });
+    scheduleDepth2Followup(state, { eventId: "job_security_review", dueWeek: state.time.absoluteWeek + 8, expiresWeek: state.time.absoluteWeek + 16, kind: "job_security" });
+  }
+  if (id === "job_security_review" && choiceId === "accept_risk" && state.career.jobId !== null && state.career.performance <= 30) {
+    const oldJob = state.career.jobId;
+    state.career.jobId = null;
+    state.career.weeksInRole = 0;
+    addCareerHistory(state, { type: "involuntary_unemployment", jobId: oldJob, label: "Performans düşüşü sonrası işini kaybettin." });
+    addMemory(state, "Performans düşüşü sonrası işini kaybettin.", "important");
+  }
 }
 
 export function expireDepth2Cases(state) {
