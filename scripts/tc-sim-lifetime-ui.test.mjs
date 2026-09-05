@@ -5,6 +5,7 @@ import { saveGame, loadGame } from "../public/games/tc-sim/js/save.js";
 import { advanceWeek, applyDecision } from "../public/games/tc-sim/js/time.js";
 import { activateNextEvent, getEventDefinition, getEventChoiceAvailability, resolveEvent } from "../public/games/tc-sim/js/events.js";
 import { NAVIGATION_ITEMS } from "../public/games/tc-sim/js/navigation.js";
+import { createSocialObligation } from "../public/games/tc-sim/js/social.js";
 import { settleHouseholdEvents } from "./tc-sim-longrun.mjs";
 
 // Minimal DOM boundary double, not a browser or an alternate UI implementation.
@@ -99,6 +100,9 @@ test("real employment and education click handlers preserve costs and delayed jo
     ui.click(button);
   }
   assert.equal(ui.saved().career.jobId, "office");
+  ui.click(ui.find("view", "career"));
+  ui.click(ui.document.querySelector("#quit-job"));
+  assert.equal(ui.saved().career.jobId, null);
   ui.click(ui.find("view", "education"));
   const enroll = ui.find("enroll", "university"); const balance = ui.saved().finances.balance;
   ui.click(enroll);
@@ -106,6 +110,32 @@ test("real employment and education click handlers preserve costs and delayed jo
   assert.equal(ui.saved().finances.balance, balance - 3000);
   enroll.listeners.click();
   assert.equal(ui.saved().finances.balance, balance - 3000);
+  ui.click(ui.document.querySelector("#stop-education"));
+  assert.equal(ui.saved().education.active, null);
+});
+
+test("calendar, relationship and Body controls use real state and persist feedback", async () => {
+  const state = createNewGame();
+  state.finances.balance = 50000;
+  assert.equal(createSocialObligation(state, "mehmet"), true);
+  const ui = await mount(state);
+
+  ui.click(ui.find("view", "calendar"));
+  assert.match(ui.root.innerHTML, /Verilen yardım sözü/);
+
+  const before = ui.saved().relationships.mehmet;
+  ui.click(ui.find("view", "people"));
+  ui.click(ui.find("socialAction", "meet"));
+  assert.ok(ui.saved().relationships.mehmet > before);
+  assert.equal(ui.saved().weekly.used, 1);
+
+  const health = ui.saved().health.health;
+  ui.click(ui.find("view", "dashboard"));
+  ui.click(ui.find("decision", "exercise"));
+  assert.ok(ui.saved().health.health >= health);
+  assert.equal(ui.saved().weekly.used, 2);
+  ui.click(ui.find("view", "body"));
+  assert.match(ui.root.innerHTML, /Fiziksel ve zihinsel durum/);
 });
 
 test("real retirement event click disables work actions and persists pension without duplicate retirement", async () => {
