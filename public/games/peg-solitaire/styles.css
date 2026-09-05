@@ -1,0 +1,354 @@
+/* Tek Taş — TLab Edition
+ * TarikLab özgün arayüzü. Görsel yön: oyulmuş ahşap tabla ve pirinç taşlar.
+ * Labirent'in soğuk ozalit dilinin karşısında sıcak, dokunsal bir karakter.
+ */
+
+/* --- TLab Classics ortak katman --- */
+:root {
+  --bg: #080706;
+  --surface: #100d0b;
+  --elevated: #191512;
+  --fg: #efe8de;
+  --muted: #c4b8ac;
+  --subtle: #9a9086;
+  --border: #221d19;
+  --danger: #c45c4a;
+  --ok: #7a9a7e;
+  --font-sans: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Tek Taş'a özgü kimlik: pirinç ve oyulmuş ahşap */
+  --accent: #c9a227;
+  --accent-dim: #8a6f20;
+  --board-face: #241d16;
+  --board-edge: #3a2e22;
+  --hole: #14100c;
+  --peg-top: #e0be55;
+  --peg-bottom: #9c7d1e;
+  --target: #7a9a7e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+.shell {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 12px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100dvh;
+}
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.family-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.readout div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.readout dt {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.readout dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabla: oyulmuş bir ahşap yüzey hissi, tamamen CSS gradyanıyla */
+.tray {
+  background: radial-gradient(120% 120% at 50% 0%, var(--board-edge), var(--board-face) 70%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  box-shadow: inset 0 1px 0 rgba(239, 232, 222, 0.06);
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+}
+
+.hole {
+  fill: var(--hole);
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.6;
+}
+
+.peg {
+  cursor: pointer;
+}
+
+.peg-body {
+  fill: url(#peg-gradient);
+  stroke: rgba(0, 0, 0, 0.4);
+  stroke-width: 0.5;
+}
+
+.peg-shine {
+  fill: rgba(255, 255, 255, 0.28);
+}
+
+.peg.selected .peg-body {
+  stroke: var(--fg);
+  stroke-width: 1.2;
+}
+
+.peg.hinted .peg-body {
+  stroke: var(--target);
+  stroke-width: 1.2;
+}
+
+/* Yasal hedef: yalnız renkle değil, biçimle de belirtilir (halka + nokta) */
+.target {
+  cursor: pointer;
+}
+
+.target-ring {
+  fill: rgba(122, 154, 126, 0.16);
+  stroke: var(--target);
+  stroke-width: 0.9;
+}
+
+.target-dot {
+  fill: var(--target);
+}
+
+.last-from,
+.last-to {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.8;
+  opacity: 0.75;
+}
+
+.last-to {
+  stroke-dasharray: 1.6 1.2;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent-dim);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #17130a;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.best-line {
+  color: var(--subtle);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+details.help {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+details.help summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+details.help ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.credit {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--subtle);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+dialog.result {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--fg);
+  padding: 0;
+  width: min(92vw, 380px);
+  max-height: 86dvh;
+  overflow: auto;
+}
+
+dialog.result::backdrop {
+  background: rgba(8, 7, 6, 0.78);
+}
+
+.result-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-grade {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.result-stats div {
+  background: var(--elevated);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.result-stats dt {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.result-stats dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.result-actions button {
+  flex: 1 1 130px;
+}
+
+@media (max-width: 400px) {
+  .title {
+    font-size: 1.35rem;
+  }
+  .readout dd {
+    font-size: 0.95rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

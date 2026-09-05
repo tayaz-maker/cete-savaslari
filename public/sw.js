@@ -42,8 +42,19 @@ function isAsset(url) {
   );
 }
 
-function isTcSimAsset(url) {
-  return url.pathname.startsWith("/games/tc-sim/");
+// Native ES module graph'lari: bir modulu eski cache'ten dondurmek, farkli
+// deploy'lardan gelen parcalari karistirip render edilmis kontrolleri
+// dinleyicisiz birakabiliyor. Bu oyunlar bu yuzden online'da tek tutarli
+// deploy'dan yuklenir; cache yalniz cevrimdisi yedegidir.
+const MODULE_GAME_PATHS = [
+  "/games/tc-sim/",
+  "/games/labirent/",
+  "/games/peg-solitaire/",
+  "/games/satranc/",
+];
+
+function isModuleGameAsset(url) {
+  return MODULE_GAME_PATHS.some((prefix) => url.pathname.startsWith(prefix));
 }
 
 self.addEventListener("fetch", (event) => {
@@ -62,11 +73,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(req));
     return;
   }
-  // TC SIM is a native module graph. Returning a cached module before its
-  // matching imports can mix different deployments and leave rendered
-  // controls without the current app listeners. Online loads therefore use
-  // one coherent deployment; the cache remains the offline fallback.
-  if (isTcSimAsset(url)) {
+  if (isModuleGameAsset(url)) {
     event.respondWith(networkFirst(req));
     return;
   }
