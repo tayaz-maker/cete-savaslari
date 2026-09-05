@@ -104,6 +104,7 @@ export function getRetirementIncomePreview(state) {
 }
 
 export function retireCareer(state) {
+  if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   const eligibility = getRetirementEligibility(state);
   if (!eligibility.eligible) return { ok: false, reason: eligibility.reason };
   const job = getJobById(state.career.jobId);
@@ -168,6 +169,7 @@ export function getNextCareerStep(state) {
 }
 
 export function promoteCareer(state) {
+  if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   // Sert kural: işsiz oyuncu terfi edemez. Terfi görüşmesi işten sonra
   // sonuçlansa bile bu kapı kapalıdır.
   if (state?.career?.retirement?.status === "retired") return { ok: false, reason: "Emeklilikten sonra normal kariyer terfisi yok." };
@@ -267,6 +269,7 @@ export function getMonthlySummary(state, options = {}) {
 }
 
 function canUseWeeklyAction(state, actionId) {
+  if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
   if (state.weekly.used >= getWeeklyActivityLimit(state))
     return {
@@ -320,6 +323,7 @@ export function acceptJobOffer(state, jobId) {
 }
 
 export function completePendingJob(state, sourceCaseId) {
+  if (state.lifetime?.death) return false;
   const pending = state.career.pendingJob;
   if (!pending || pending.caseId !== sourceCaseId || !getJobById(pending.jobId)) return false;
   state.career.jobId = pending.jobId;
@@ -366,6 +370,7 @@ export function moveHome(state, homeId) {
 
 /** Ortak taşınma işlemi; haftalık karar veya doğrulanmış olay seçimi kullanır. */
 export function relocateHome(state, homeId) {
+  if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   const home = getHomeById(homeId);
   if (!home || state.household.homeId === homeId) return { ok: false, reason: "Konut değişikliği yok." };
   if (homeId === "family" && state.household.union?.cohabitingSince) return { ok: false, reason: "Önce partnerinle ayrı evlerde yaşama kararını konuşmalısın." };
@@ -422,6 +427,7 @@ function advanceEducationProgress(state) {
 }
 
 export function applyWeeklyLifeLoad(state) {
+  if (state.lifetime?.death) return;
   const week = state.time.absoluteWeek;
   if (state.flags.lastLifeLoadWeek === week) return false;
   const effects = getWeeklyLifeLoad(state);

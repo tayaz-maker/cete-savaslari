@@ -1,3 +1,5 @@
+import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=5";
+import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=5";
 import { parenthoodSummary } from "./parenthood.js?v=5";
 import { getHouseholdSummary } from "./household.js?v=5";
 import {
@@ -61,9 +63,9 @@ import {
   getPerson,
   getPersonalDebt,
   getRelationship,
-  getRelationshipContext,
   getRelationshipStage,
 } from "./social.js?v=5";
+import { getRelationshipContext } from "./depth2-systems.js?v=5";
 import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=5";
 
 const app = document.querySelector("#app");
@@ -88,6 +90,7 @@ const escapeText = (value) =>
   );
 
 function openCaseLabel(item) {
+  if (item.type === "adult-child") return `${state.parenthood.children.find(c => c.id === item.payload.childId)?.name || "Yetişkin çocuk"} ile yetişkinlik görüşmesi`;
   if (item.type === "parenting-followup") return ({ planning: "Çocuk planını görüşme", preparation: "Doğum hazırlığı", birth: "Doğum zamanı", care: "Bakım düzenini görüşme", budget: "Çocuk giderlerini görüşme", support: "Aile desteğini görüşme", housing: "Çocuk için yaşam alanı" })[item.payload?.kind] || "Aile görüşmesi";
   if (item.type === "household-followup") return ({ cohabitation: "Ortak ev kararı", adjustment: "Ev sorumluluklarını görüşme", marriage: "Evlilik kararı", family: "Aileyle ortak yaşam görüşmesi", settlement: "Ayrılık sonrası görüşme", planning: "Ortak niyetleri görüşme" })[item.payload?.kind] || "Ortak yaşam görüşmesi";
   if (item.type === "health-followup") return "Planlanan beden takibi";
@@ -255,7 +258,7 @@ function renderPeopleScreen() {
 
 function renderParenthoodContext() {
   const context = parenthoodSummary(state);
-  const lines = [context.pregnancy, ...context.children, context.care].filter(Boolean);
+  const lines = [context.pregnancy, ...context.children, ...adultChildSummary(state).map(c => c.text), context.care].filter(Boolean);
   return lines.length ? `<p class="context-note">${lines.map(escapeText).join("<br>")}</p>` : "";
 }
 
@@ -757,7 +760,8 @@ function renderCalendar() {
 
 function renderEvent() {
   if (!state.events.active) return "";
-  const definition = getEventDefinition(state.events.active.eventId);
+  const base = getEventDefinition(state.events.active.eventId);
+  const definition = base && { ...base, text: `${base.text} ${adultEventContext(state)}` };
   if (!definition) return "";
   return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(definition.title)}</h2><p>${escapeText(definition.text)}</p>${getBodyEventContext(state, definition) ? `<p>${escapeText(getBodyEventContext(state, definition))}</p>` : ""}<div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}" ${getEventChoiceAvailability(state, choice.id).ok ? "" : "disabled"} title="${escapeText(getEventChoiceAvailability(state, choice.id).reason || "")}"><strong>${escapeText(choice.label)}</strong><small>${escapeText(getChoiceEffectSummary(choice))}</small></button>`).join("")}</div></section></div>`;
 }
@@ -779,7 +783,8 @@ const VIEW_RENDERERS = {
 function render() {
   if (!state) return startScreen(loadGame(localStorage));
   if (!weekStartSnapshot) weekStartSnapshot = snapshotWeekState(state);
-  const workspace = (VIEW_RENDERERS[activeView] || renderDashboard)();
+  const terminal = Boolean(state.lifetime?.death);
+  const workspace = terminal ? renderLifetimeTerminal(state) : (VIEW_RENDERERS[activeView] || renderDashboard)() + (["character", "history", "yearbook"].includes(activeView) ? renderLineage(state) : "");
   app.innerHTML = `
     <main class="game-frame">
       <header class="game-topbar">
@@ -788,13 +793,21 @@ function render() {
         <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>
       <div class="game-body">
-        <nav class="side-nav" aria-label="Oyun bölümleri">${renderNav()}</nav>
+        <nav class="side-nav" aria-label="Oyun bölümleri">${terminal ? "Yaşam raporu" : renderNav()}</nav>
         <section class="workspace">${workspace}</section>
       </div>
       ${renderEvent()}
       <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık.</footer>
     </main>`;
 
+  document.querySelectorAll("[data-successor]").forEach(button => button.addEventListener("click", () => {
+    if (!window.confirm("Bu çocukla yeni kuşağa geçmek istiyor musun?")) return;
+    const result = continueGeneration(state, button.dataset.successor);
+    notice = result.message || result.reason;
+    if (result.ok) { activeView = "dashboard"; weekStartSnapshot = null; }
+    persist();
+    render();
+  }));
   document.querySelectorAll("[data-decision]").forEach((button) =>
     button.addEventListener("click", () => {
       const result = applyDecision(state, button.dataset.decision);
@@ -913,7 +926,11 @@ function render() {
   });
   document.querySelector("#new-game").addEventListener("click", () => {
     if (!window.confirm("Mevcut hayatı silip yeni oyuna dönmek istiyor musun?")) return;
-    clearSaves(localStorage);
+    if (!clearSaves(localStorage)) {
+      saveStatus = "Eski kayıt silinemedi; mevcut yaşam açık tutuldu.";
+      render();
+      return;
+    }
     state = null;
     notice = "";
     saveStatus = "";

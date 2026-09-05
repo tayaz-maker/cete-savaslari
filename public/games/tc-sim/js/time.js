@@ -1,3 +1,4 @@
+import { processLifetimeWeek } from "./lifetime.js?v=5";
 import { needsParentCare, canRequestParentPlanning, requestParentPlanning, requestCareBudget, parentingOvertimeBlocked, processParenthoodWeek, parenthoodYearSummary } from "./parenthood.js?v=5";
 import { getHouseholdSummary } from "./household.js?v=5";
 import {
@@ -251,6 +252,7 @@ export function getAvailableDecisions(state) {
 }
 
 export function canApplyDecision(state, decisionId) {
+  if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   const decision = DECISIONS.find((item) => item.id === decisionId);
   if (!decision) return { ok: false, reason: "Karar bulunamadı." };
   if (decisionId === "parent-plan" && !decision.contextual(state)) return { ok: false, reason: "Yeni bir niyet görüşmesi için uygun bağlam yok." };
@@ -394,6 +396,7 @@ function reflectYearPriorities(state, priorities) {
 }
 
 export function advanceWeek(state) {
+  if (state.lifetime?.death) return { ok: false, messages: ["Bu yaşam tamamlandı; yaşam raporuna geç."] };
   if (state.events.active) return { ok: false, messages: ["Önce açık olayı sonuçlandır."] };
   const messages = [];
   const previousYear = state.time.year;
@@ -404,6 +407,7 @@ export function advanceWeek(state) {
   processLongTermBody(state, { decisionIds: state.weekly.selectedIds });
 
   state.time.absoluteWeek += 1;
+  if (Number.isInteger(state.lifetime?.bornWeek)) state.player.age = Math.floor((state.time.absoluteWeek - state.lifetime.bornWeek) / 48);
   state.time.weekOfMonth += 1;
   if (state.time.weekOfMonth > WEEKS_PER_MONTH) {
     state.time.weekOfMonth = 1;
@@ -412,7 +416,7 @@ export function advanceWeek(state) {
     if (state.time.month > MONTHS_PER_YEAR) {
       state.time.month = 1;
       state.time.year += 1;
-      state.player.age += 1;
+      if (!Number.isInteger(state.lifetime?.bornWeek)) state.player.age += 1;
       closeYear(state, previousYear);
       state.yearlyPlan = { year: state.time.year, priorities: [], progress: {} };
       messages.push(`${previousYear} yılı tamamlandı; yaşın ${state.player.age} oldu.`);
@@ -424,6 +428,8 @@ export function advanceWeek(state) {
   const ageRecovery = state.player.age < 45 ? 7 : state.player.age < 55 ? 6 : state.player.age < 65 ? 5 : 4;
   const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
   adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
+  processLifetimeWeek(state);
+  if (state.lifetime?.death) { assertValidState(state); return { ok: true, messages: ["Yaşam tamamlandı. Yaşam raporu hazır."] }; }
   processDueOpenCases(state);
   advanceComparisonCircle(state);
   processNpcMilestones(state);

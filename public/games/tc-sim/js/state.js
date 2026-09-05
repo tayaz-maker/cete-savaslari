@@ -1,3 +1,4 @@
+import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=5";
 import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=5";
 import { normalizeHousehold, HOUSEHOLD_HISTORY_LIMIT, neutralUnion, FAMILY_INTENTS } from "./household.js?v=5";
 import { ensureBodyState } from "./body-systems.js?v=5";
@@ -257,6 +258,7 @@ export function nextRandom(state) {
 }
 
 export function transact(state, amount, reason, category = "other") {
+  if (state.lifetime?.death) return;
   if (!Number.isFinite(amount)) throw new Error("Geçersiz para işlemi");
   const rounded = Math.round(amount);
   state.finances.balance += rounded;
@@ -275,6 +277,7 @@ export function adjustHealth(state, changes) {
 }
 
 export function updateRelationship(state, personId, amount) {
+  if (state.people.find(p => p.id === personId)?.deceased) return false;
   if (!(personId in state.relationships) || !Number.isFinite(amount)) return false;
   state.relationships[personId] = clamp(state.relationships[personId] + amount);
   return true;
@@ -639,6 +642,7 @@ export function normalizeEducationCareer(state) {
   normalizeSocialState(state);
   normalizeHousehold(state);
   normalizeParenthood(state);
+  normalizeLifetime(state);
   return state;
 }
 
@@ -648,6 +652,7 @@ export function validateState(state) {
   if (!state || typeof state !== "object" || Array.isArray(state))
     return { ok: false, errors: ["State nesne değil"] };
   if (state.meta?.saveVersion !== SAVE_VERSION) errors.push("Save sürümü geçersiz");
+  if (!validateLifetime(state)) errors.push("Yaşam ve kuşak kaydı geçersiz");
   if (
     !state.player ||
     typeof state.player.name !== "string" ||

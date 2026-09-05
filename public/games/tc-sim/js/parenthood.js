@@ -134,6 +134,7 @@ function familyContext(state) {
   return Boolean(state.social.currentPartnerNpcId && state.household.union?.cohabitingSince && !state.household.union.separatedSince && state.household.union.familyPlan);
 }
 export function canTryParenthood(state) {
+  if (state.lifetime?.death) return false;
   const p = state.parenthood;
   if (!familyContext(state) || p.pregnancy || state.player.age < 18 || state.player.age > 35) return false;
   const plan = state.household.union.familyPlan;
@@ -172,6 +173,7 @@ export function canRequestParentPlanning(state) {
 export function requestParentPlanning(state) { schedule(state, "planning", 1); }
 export function requestCareBudget(state) { schedule(state, "budget", 1); }
 export function processParenthoodWeek(state) {
+  if (state.lifetime?.death) return;
   const p = state.parenthood;
   if (p.lastWeek === state.time.absoluteWeek) return;
   p.lastWeek = state.time.absoluteWeek;
@@ -221,6 +223,7 @@ export function processParenthoodWeek(state) {
   }
 }
 export function processParenthoodCases(state) {
+  if (state.lifetime?.death) return;
   const p = state.parenthood;
   for (const item of state.openCases) {
     // C06 B EVRESİ — AÇILMA. Yalnız gizli sonda vakası terfi eder; devam vakası

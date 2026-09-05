@@ -11,6 +11,7 @@ import { needsParentCare, canTryParenthood, childStage, childAge, childAcademicS
  * yürüyüşü yapılır; ihlal varsa çıkış kodu 1 olur ve hafta numarasıyla raporlanır.
  */
 import { pathToFileURL } from "node:url";
+import { continueGeneration, isDeceased } from "../public/games/tc-sim/js/lifetime.js";
 import assert from "node:assert/strict";
 import { createNewGame, validateState } from "../public/games/tc-sim/js/state.js";
 import {
@@ -427,11 +428,12 @@ const CHILD_POLICIES = {
 };
 CHILD_POLICIES.separated = { ...CHILD_POLICIES.stable };
 
-export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
+export function runChildScenario(kind = "stable", { weeks = 1180, includeState = false, maxChildren = 1, economicPolicy = false } = {}) {
   let state = createNewGame({ now: "2027-01-01T00:00:00.000Z", name: "Deniz" });
   const storage = new MemoryStorage();
   const policy = CHILD_POLICIES[kind] || CHILD_POLICIES.stable;
   const checkpoints = {};
+  const playerCheckpoints = {};
   const chainCounts = {};
   const maximums = { attendance: 0, social: 0, issues: 0, parentingCases: 0, secrets: 0, npcMemories: 0, history: 0, yearFile: 0, commitments: 0 };
   const seenResolved = new Set();
@@ -442,7 +444,7 @@ export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
 
   for (let step = 0; step < weeks; step += 1) {
     const kid = child();
-    const tryingChoice = state.parenthood.children.length >= 1 ? "no" : canTryParenthood(state) ? "try_partner" : "discuss";
+    const tryingChoice = state.parenthood.children.length >= maxChildren ? "no" : canTryParenthood(state) ? "try_partner" : "discuss";
     // Ayrılık yalnız gerçek Second Stage B olay yolundan gelir; state elle
     // "separated" yapılmaz. Çocuk okul çağına geldikten sonra tetiklenir.
     const wantSeparation = kind === "separated" && kid && childAge(state, kid) >= 6;
@@ -470,7 +472,11 @@ export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
     // Geçerli bir oyuncu gibi geçimini de sürdürür: 24 haftada bir uygun olan
     // en iyi işe geçmeyi dener. Aksi halde koşu yıllar içinde iflasa gider ve
     // ölçülen şey ebeveynlik değil yoksulluk olur.
-    if (step % 24 === 0) for (const jobId of ["specialist", "technician", "office", "courier", "market"]) if (acceptJobOffer(state, jobId).ok) break;
+    if (economicPolicy && !state.education.active && state.education.level !== "lisans" && state.finances.balance >= 8000) enrollEducation(state, "university", "part");
+    if (step % 24 === 0) for (const jobId of ["specialist", "technician", "office", "courier", "market"]) {
+      if (economicPolicy && getJobById(jobId).salary <= (getJobById(state.career.jobId)?.salary || 0)) continue;
+      if (acceptJobOffer(state, jobId).ok) break;
+    }
     settle();
     if (kind !== "strained" && needsParentCare(state) && canApplyDecision(state, "parent-care").ok) applyDecision(state, "parent-care");
     else if (canApplyDecision(state, "rest").ok) applyDecision(state, "rest");
@@ -527,6 +533,11 @@ export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
         balance: Math.round(state.finances.balance), history: state.household.history.length, yearFile: state.yearlyHistory.length,
       };
     }
+    if (economicPolicy && state.player.age === 35 && !playerCheckpoints[35]) playerCheckpoints[35] = {
+      age: state.player.age, week: state.time.absoluteWeek, job: state.career.jobId,
+      retirement: structuredClone(state.career.retirement), money: state.finances.balance, health: structuredClone(state.health),
+      children: structuredClone(state.parenthood.children.map(c => ({ id: c.id, age: childAge(state, c), adult: c.adult, trajectory: c.trajectory }))), generation: 1,
+    };
     if (step % 24 === 0) {
       assert.equal(saveGame(storage, state).ok, true);
       const next = loadGame(storage);
@@ -538,7 +549,7 @@ export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
   }
   const finalChild = child();
   return {
-    kind, birthWeek, separatedAt, weeks: state.time.absoluteWeek, checkpoints, chainCounts, maximums,
+    ...(includeState ? { state } : {}), kind, birthWeek, separatedAt, weeks: state.time.absoluteWeek, checkpoints, playerCheckpoints, chainCounts, maximums,
     child: finalChild ? { id: finalChild.id, name: finalChild.name, trajectory: finalChild.trajectory ?? null, futurePreference: finalChild.futurePreference,
       otherParentId: finalChild.otherParentId, otherParentValid: state.people.some((p) => p.id === finalChild.otherParentId),
       hiddenIssue: finalChild.school.hiddenIssue, knownIssue: isChildIssueKnown(state, finalChild) } : null,
@@ -926,13 +937,116 @@ export function runAdultCoreScenario(kind = "balanced", { weeks = 520 } = {}) {
   };
 }
 
+export function runLifetimeScenario(kind = "balanced-family", { successorYears = 5, generations = 2 } = {}) {
+  const family = kind === "balanced-family" || kind === "multiple-heirs";
+  const early = family ? runChildScenario("stable", { includeState: true, maxChildren: kind === "multiple-heirs" ? 2 : 1, economicPolicy: true }) : null;
+  let state = early?.state || createNewGame({ now: "2027-01-01T00:00:00.000Z" });
+  const checkpoints = { ...early?.playerCheckpoints };
+  const counts = {};
+  const maximums = { memories: 0, npcMemories: 0, history: 0, years: 0, cases: 0, activeCases: 0, ledger: 0, children: 0, adultContexts: 0, reports: 0, secrets: 0, career: 0 };
+  const storage = new MemoryStorage();
+  const observe = (event) => { counts[event.id] = (counts[event.id] || 0) + 1; };
+  const policies = {
+    parent_planning: "no", parent_planning_review: "no", family_intent_discussion: "later",
+    adult_child_discussion: s => kind === "overwork" ? "direct" : s.finances.balance >= 1500 ? "support" : "space",
+    retirement_planning: kind === "overwork" ? "continue" : "plan",
+    retirement_transition: kind === "overwork" ? "continue" : "retire",
+    health_overload_review: kind === "overwork" ? "continue" : "slow",
+    health_recovery_review: kind === "overwork" ? "ignore" : "care",
+    health_inactivity_review: kind === "overwork" ? "ignore" : "move",
+  };
+  const settle = () => settleHouseholdEvents(state, policies, observe);
+  const snapshot = () => ({ age: state.player.age, week: state.time.absoluteWeek, job: state.career.jobId,
+    retirement: structuredClone(state.career.retirement), money: state.finances.balance,
+    health: structuredClone(state.health), children: structuredClone(state.parenthood.children.map(c => ({ id: c.id, age: childAge(state, c), adult: c.adult, trajectory: c.trajectory }))),
+    generation: state.lifetime?.generation || 1 });
+  const measure = () => {
+    const values = { memories: state.memories.length, npcMemories: Math.max(...state.people.map(p => p.memories.length)), history: state.events.history.length,
+      years: state.yearlyHistory.length, cases: state.openCases.length, activeCases: state.openCases.filter(c => c.status !== "resolved").length,
+      ledger: state.finances.ledger.length, children: state.parenthood.children.length, adultContexts: state.parenthood.children.filter(c => c.adult).length,
+      reports: state.lifetime?.reports.length || 0, secrets: state.secrets.length, career: state.career.history.length };
+    for (const [k, v] of Object.entries(values)) maximums[k] = Math.max(maximums[k], v);
+    assert.ok(values.memories <= 200 && values.npcMemories <= 50 && values.years <= 80 && values.ledger <= 120 && values.reports <= 8, JSON.stringify(values));
+    const ids = state.openCases.filter(c => c.status !== "resolved").map(c => c.id);
+    assert.equal(new Set(ids).size, ids.length);
+    assert.equal(validateState(state).ok, true, validateState(state).errors.join("; "));
+  };
+  const play = () => {
+    settle();
+    if (kind !== "overwork" && state.player.age < 55 && !state.education.active && state.education.level !== "lisans" && state.finances.balance >= 8000) enrollEducation(state, "university", "part");
+    if (state.career.retirement.status !== "retired" && state.time.absoluteWeek % 24 === 0)
+      for (const job of ["specialist", "technician", "office", "courier", "market"]) {
+        if (getJobById(job).salary <= (getJobById(state.career.jobId)?.salary || 0)) continue;
+        if (acceptJobOffer(state, job).ok) break;
+      }
+    settle();
+    const actions = kind === "overwork" ? ["overtime"] : kind === "health-first" ? ["rest", "exercise"] : ["rest", state.time.absoluteWeek % 4 === 0 ? "family" : "exercise"];
+    for (const id of actions) { if (canApplyDecision(state, id).ok) applyDecision(state, id); settle(); }
+    assert.equal(advanceWeek(state).ok, true);
+    if (!isDeceased(state)) settle();
+    measure();
+    if (state.time.absoluteWeek % 48 === 0 || isDeceased(state)) {
+      assert.equal(saveGame(storage, state).ok, true);
+      const loaded = loadGame(storage); assert.equal(loaded.ok, true, loaded.message);
+      state = loaded.state;
+    }
+  };
+  for (let step = 0; step < 4500 && !isDeceased(state); step++) {
+    play();
+    if ([35, 45, 55, 65, 70].includes(state.player.age) && !checkpoints[state.player.age]) checkpoints[state.player.age] = snapshot();
+  }
+  assert.ok(isDeceased(state), "production lifetime must terminate within the measured horizon");
+  const death = structuredClone(state.lifetime.death);
+  const report = structuredClone(state.lifetime.reports.at(-1));
+  const terminal = snapshot();
+  assert.equal(advanceWeek(state).ok, false);
+  let successor = null;
+  let thirdGeneration = null;
+  let lineageEnding = null;
+  if (family) {
+    assert.ok(state.parenthood.children.some(c => childAge(state, c) >= 18));
+    const id = state.parenthood.children[0].id;
+    assert.equal(continueGeneration(state, id).ok, true);
+    assert.equal(continueGeneration(state, id).ok, false);
+    successor = { first: snapshot() };
+    for (let week = 1; week <= successorYears * 48; week++) {
+      play();
+      if (week === 48) successor.year1 = snapshot();
+    }
+    successor.final = snapshot();
+    assert.equal(state.lifetime.generation, 2);
+    assert.deepEqual(state.lifetime.reports[0], report);
+    for (let generation = 3; generation <= generations; generation++) {
+      const remainingWeeks = Math.max(48, (99 - state.player.age) * 48);
+      for (let i = 0; i < remainingWeeks && !isDeceased(state); i++) play();
+      assert.ok(isDeceased(state));
+      const nextChild = state.parenthood.children.find(c => childAge(state, c) >= 18);
+      if (!nextChild && generation > 3) {
+        assert.equal(continueGeneration(state, "none").ok, false);
+        lineageEnding = { generation: state.lifetime.generation, age: state.player.age, reason: "no eligible successor" };
+        break;
+      }
+      assert.ok(nextChild, "next eligible heir must come from runtime family context");
+      assert.equal(continueGeneration(state, nextChild.id).ok, true);
+      for (let i = 0; i < 48; i++) play();
+      thirdGeneration = snapshot();
+      assert.equal(thirdGeneration.generation, generation);
+      assert.equal(state.lifetime.reports.length, Math.min(generation - 1, 8));
+    }
+  } else assert.equal(continueGeneration(state, "none").ok, false);
+  return { kind, birthWeek: early?.birthWeek || null, checkpoints, terminal, death, successor, thirdGeneration, lineageEnding, counts, maximums, state };
+}
+
 export function runAdultCoreMatrix() {
   return Object.fromEntries(["career-focused", "balanced", "financially-strained", "education-career"].map((kind) => [kind, runAdultCoreScenario(kind)]));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 const mode = process.argv[2] || "520";
-if (mode.startsWith("adult-")) {
+if (mode.startsWith("lifetime")) {
+  const kinds = mode === "lifetime" ? ["balanced-family", "health-first", "overwork", "no-successor", "multiple-heirs"] : [mode.slice(9)];
+  console.log(JSON.stringify(kinds.map(k => { const { state, ...result } = runLifetimeScenario(k); return result; }), null, 2));
+} else if (mode.startsWith("adult-")) {
   const kind = { "adult-career": "career-focused", "adult-balanced": "balanced", "adult-strained": "financially-strained", "adult-education": "education-career" }[mode];
   console.log(JSON.stringify(kind ? runAdultCoreScenario(kind) : runAdultCoreMatrix(), null, 2));
 } else if (mode === "child" || mode === "child-stable" || mode === "child-strained" || mode === "child-separated") {

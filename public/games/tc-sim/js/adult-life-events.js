@@ -250,7 +250,7 @@ export const ADULT_LIFE_EVENTS = [
     cooldownWeeks: 16,
     title: "Araba anahtarı",
     text: "Baban: \"Akşam alırsın. Depo yarım. Kendi işin için kullanıyorsan sen koyarsın.\"",
-    condition: (state) => state.household.homeId === "family" && state.time.absoluteWeek >= 6,
+    condition: (state) => !state.people.find(p => p.id === "baba")?.deceased && state.household.homeId === "family" && state.time.absoluteWeek >= 6,
     choices: [
       {
         id: "fill",
@@ -651,6 +651,7 @@ export const ADULT_LIFE_EVENTS = [
     title: "Kısa vadeli",
     text: "Baban televizyonu kapatmadan: \"Bu ay sıkıştım. 1.200. Bayrama kadar.\" Annen koridorda duruyor.",
     condition: (state) =>
+      !state.people.find(p => p.id === "baba")?.deceased &&
       state.household.homeId === "family" &&
       state.time.absoluteWeek >= 12 &&
       state.finances.balance >= 600,
@@ -834,7 +835,7 @@ export const ADULT_LIFE_EVENTS = [
     id: "life_chn12_table",
     repeat: "once",
     title: "Masa sessiz",
-    text: "Pazar sofrası. Annen Elif'e bakmıyor. Elif salatayı geçiriyor. Baban televizyonu açıyor.",
+    text: "Pazar sofrası. Annen Elif'e bakmıyor. Elif salatayı geçiriyor. Televizyonun sesi sessizliği dolduruyor.",
     condition: () => false,
     choices: [
       {

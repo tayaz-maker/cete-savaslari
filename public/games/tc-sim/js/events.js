@@ -1,3 +1,4 @@
+import { LIFETIME_EVENTS, resolveAdultChoice } from "./lifetime.js?v=5";
 import { PARENTING_EVENTS, resolveParentChoice, processParenthoodCases } from "./parenthood.js?v=5";
 import { HOUSEHOLD_EVENTS, resolveHouseholdChoice, processHouseholdCases, canDiscussHousehold, householdChoiceAvailability } from "./household.js?v=5";
 import {
@@ -114,6 +115,7 @@ export function getChoiceEffectSummary(choice) {
 }
 
 export const EVENT_DEFINITIONS = [
+  ...LIFETIME_EVENTS,
   {
     // Diploma ödülü haftalık tick'te verilir; bu tanım yalnız bildirimdir.
     id: "education_completed",
@@ -1462,6 +1464,7 @@ export function enqueueEvent(state, eventId, sourceCaseId = null) {
 }
 
 export function activateNextEvent(state) {
+  if (state.lifetime?.death) return null;
   seedDepth2Secrets(state);
   ensureDepth3State(state);
   updatePerceivedIdentity(state);
@@ -1483,6 +1486,7 @@ export function getEventChoiceAvailability(state, choiceId) {
 }
 
 export function resolveEvent(state, choiceId) {
+  if (state.lifetime?.death) return { ok: false, message: "Bu yaşam tamamlandı." };
   const active = state.events.active;
   if (!active) return { ok: false, message: "Çözülecek olay yok." };
   if (state.events.history.some((entry) => entry.occurrenceId === active.occurrenceId))
@@ -1643,6 +1647,7 @@ export function resolveEvent(state, choiceId) {
     if (choiceId === "tell_anne") transferSecret(state, secret.id, "anne");
   }
   const adultFollowup = applyAdultLifeResolution(state, definition, choiceId);
+  if (definition.lifetime) resolveAdultChoice(state, choiceId, state.openCases.find(item => item.id === active.sourceCaseId));
   if (adultFollowup) scheduleSocialFollowup(state, adultFollowup);
   applyDepthResolution(state, definition, choiceId);
   applyDepth2Resolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
@@ -1671,6 +1676,7 @@ export function resolveEvent(state, choiceId) {
 }
 
 export function processDueOpenCases(state) {
+  if (state.lifetime?.death) return [];
   processHouseholdCases(state);
   processParenthoodCases(state);
   expireDepthCases(state);

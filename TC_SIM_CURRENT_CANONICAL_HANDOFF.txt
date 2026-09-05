@@ -1,38 +1,12 @@
 PROJECT:
 TC SIM
 
-REPOSITORY:
-tayaz-maker/cete-savaslari
+CANONICAL IDENTITY:
+Use the Git commit and tree containing this file.
+Exact transfer hashes are generated AFTER committing, in the accompanying
+TC_SIM_CURRENT_CANONICAL_HANDOFF_FINAL.txt and bundle manifest.
 
-ACCEPTED BRANCH:
-opus/tc-sim-18-35-definitive
-
-PREVIOUS BASE:
-e20be03a3bb83cac4c144b6fe11315e9ed501fe7 (luna/tc-sim-18-35-core-completion)
-tree bce2b00c7286b377ffdb86ba0d7dfbf6d5a91e74 — canonical archive transfer verified
-
-TEST BASELINE:
-343/343 PASS (was 320/320)
-
-SAVE_VERSION:
-5
-
-ACCEPTED SYSTEMS:
-Depth Sprint 4
-Second Stage A
-Second Stage B
-Parenthood Foundation
-Child 6-17
-18-35 Core
-
-18-35 CORE:
-PASS
-
-LONG-RUN COVERAGE:
-520 standard, 20x260 fuzz, Body matrix, household, separation,
-parenthood, no-child, child matrix (stable/strained/separated),
-adult core matrix (career-focused/balanced/financially-strained/
-education-career) at 520 weeks with 52/156/260/520 checkpoints
-
-REMOTE VERIFIED:
-YES
+WARNING:
+Older textual handoffs are historical records, not current source identity.
+Verify the bundle head and tree directly with Git before implementation.
+Remote publication status is recorded separately in the final transfer manifest.

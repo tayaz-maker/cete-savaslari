@@ -69,7 +69,7 @@ export function getRelationshipStage(state, personId) {
 
 export function applyRelationshipDelta(state, personId, delta = {}) {
   const person = getPerson(state, personId);
-  if (!person) return false;
+  if (!person || person.deceased || state.lifetime?.death) return false;
   if (Number.isFinite(delta.closeness)) updateRelationship(state, personId, delta.closeness);
   if (Number.isFinite(delta.trust)) person.social.trust = clamp(person.social.trust + delta.trust);
   if (Number.isFinite(delta.tension))
@@ -174,6 +174,7 @@ export function becomePartner(state, personId) {
 }
 
 export function canUseSocialAction(state, personId, actionId) {
+  if (state.lifetime?.death || state.people.find(p => p.id === personId)?.deceased) return { ok: false, reason: "Bu kişiyle artık yeni bir eylem yapılamaz." };
   const person = getPerson(state, personId);
   const relationship = getRelationship(state, personId);
   const action = ACTIONS[actionId];
@@ -329,6 +330,7 @@ export function applySocialMaintenance(state) {
   const week = state.time.absoluteWeek;
   if (state.social.lastMaintenanceWeek === week) return false;
   for (const person of state.people) {
+    if (person.deceased) continue;
     const relationship = getRelationship(state, person.id);
     const gap = week - relationship.lastMeaningfulContactWeek;
     const stage = getRelationshipStage(state, person.id);
