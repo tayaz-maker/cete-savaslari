@@ -196,6 +196,14 @@ export function createNewGame(options = {}) {
       performance: 50,
       weeksInRole: 0,
       history: [],
+      retirement: {
+        status: "working",
+        plannedWeek: null,
+        deferredUntil: null,
+        retiredWeek: null,
+        monthlyIncome: 0,
+        lastJobId: null,
+      },
     },
     education: { level: "lise", fields: educationFields, active: null, tuitionOwedThisMonth: 0 },
     parenthood: neutralParenthood(),
@@ -479,6 +487,10 @@ export function normalizeEducationCareer(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return state;
 
   const career = state.career && typeof state.career === "object" ? state.career : {};
+  const rawRetirement = career.retirement && typeof career.retirement === "object" ? career.retirement : {};
+  const retirementStatus = ["working", "planned", "retired"].includes(rawRetirement.status)
+    ? rawRetirement.status
+    : "working";
   const rawExperience = career.jobFamilyExperience;
   const experience = {};
   if (rawExperience && typeof rawExperience === "object" && !Array.isArray(rawExperience)) {
@@ -498,7 +510,23 @@ export function normalizeEducationCareer(state) {
     performance: Number.isFinite(career.performance) ? clamp(career.performance) : 50,
     weeksInRole: safeCount(career.weeksInRole),
     history: Array.isArray(career.history) ? career.history.slice(-LIMITS.careerHistory) : [],
+    retirement: {
+      status: retirementStatus,
+      plannedWeek: Number.isInteger(rawRetirement.plannedWeek) ? rawRetirement.plannedWeek : null,
+      deferredUntil: Number.isInteger(rawRetirement.deferredUntil) ? rawRetirement.deferredUntil : null,
+      retiredWeek: retirementStatus === "retired" && Number.isInteger(rawRetirement.retiredWeek) ? rawRetirement.retiredWeek : null,
+      monthlyIncome: retirementStatus === "retired" && Number.isFinite(rawRetirement.monthlyIncome)
+        ? Math.max(0, Math.round(rawRetirement.monthlyIncome))
+        : 0,
+      lastJobId: rawRetirement.lastJobId === null || getJobById(rawRetirement.lastJobId) ? rawRetirement.lastJobId || null : null,
+    },
   };
+  // Eski kayıtlar için nötr varsayılan: yalnız açıkça emekli olarak kaydedilmiş
+  // bir durum işi kapatır. Yaşa bakarak geriye dönük emeklilik üretilmez.
+  if (state.career.retirement.status === "retired") {
+    state.career.jobId = null;
+    state.career.pendingJob = null;
+  }
 
   const raw = state.education && typeof state.education === "object" ? state.education : {};
   const fields = [];
@@ -676,6 +704,15 @@ export function validateState(state) {
     !Array.isArray(state.career?.history)
   )
     errors.push("Kariyer ilerlemesi geçersiz");
+  const retirement = state.career?.retirement;
+  if (
+    !retirement ||
+    !["working", "planned", "retired"].includes(retirement.status) ||
+    !finite(retirement.monthlyIncome) ||
+    retirement.monthlyIncome < 0 ||
+    (retirement.status === "retired" && state.career.jobId !== null)
+  )
+    errors.push("Emeklilik kaydı geçersiz");
   const education = state.education;
   if (
     !education ||

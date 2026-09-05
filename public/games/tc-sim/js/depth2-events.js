@@ -1,4 +1,4 @@
-import { getMoneyReliefAmount, getNextCareerStep } from "./life.js?v=5";
+import { getMoneyReliefAmount, getNextCareerStep, getRetirementEligibility } from "./life.js?v=5";
 import { getStartingProfileId } from "./state.js?v=5";
 
 export const DEPTH2_EVENTS = [
@@ -164,6 +164,76 @@ export const DEPTH2_EVENTS = [
     choices: [
       { id: "boundary", label: "Kendine bir akşam ayır", effects: { health: { stress: -8, energy: 4 }, memory: "Yoğun haftada kendine ait bir akşam ayırdın." } },
       { id: "available", label: "Herkese yetişmeye çalış", effects: { health: { energy: -5, stress: 6 }, memory: "Yoğun haftada herkese yetişmeye çalıştın." } },
+    ],
+  },
+  {
+    id: "midlife_career_family_pressure",
+    repeat: "cooldown",
+    cooldownWeeks: 64,
+    title: "Her şeye aynı anda yetişmek",
+    text: "İş, ev ve yakınların aynı dönemde senden daha fazla şey bekliyor. Bu tempoyu nasıl düzenleyeceğine karar vermelisin.",
+    condition: (state) => state.player.age >= 36 && state.player.age < 55 && state.career.jobId !== null && state.health.stress >= 50,
+    choices: [
+      { id: "rebalance", label: "Bir sınır koy ve toparlan", effects: { health: { energy: 5, stress: -9 }, memory: "Orta yaşam temposunda iş ve aile arasında sınır koydun." } },
+      { id: "carry", label: "Bir süre daha yükü taşı", effects: { health: { energy: -6, stress: 8 }, memory: "İş ve aile yükünü aynı tempoda taşımayı seçtin." } },
+    ],
+  },
+  {
+    id: "late_career_workload",
+    repeat: "cooldown",
+    cooldownWeeks: 72,
+    title: "Geç kariyerde tempo kararı",
+    text: "Deneyimin güçlü, fakat mevcut çalışma temposunun bedeli de daha görünür. Önümüzdeki dönemin yükünü seçmelisin.",
+    condition: (state) => state.player.age >= 55 && state.player.age < 70 && state.career.jobId !== null && state.career.retirement?.status !== "retired",
+    choices: [
+      { id: "downshift", label: "Sorumluluğu azalt", effects: { health: { energy: 6, stress: -8 }, memory: "Geç kariyerde çalışma yükünü azaltmayı seçtin." } },
+      { id: "steady", label: "Mevcut tempoyu koru", effects: { health: { energy: -3, stress: 4 }, memory: "Geç kariyerde mevcut çalışma temposunu korudun." } },
+    ],
+  },
+  {
+    id: "midlife_family_obligation",
+    repeat: "cooldown",
+    cooldownWeeks: 72,
+    title: "Aile içinde değişen sorumluluk",
+    text: "Ailen bu kez yalnız fikir değil, somut bir zaman desteği istiyor. Kendi düzeninle bu sorumluluk arasında seçim yapmalısın.",
+    condition: (state) => state.player.age >= 45 && state.relationships.anne >= 30 && !state.flags.midlifeFamilyObligationOpen,
+    choices: [
+      { id: "commit", label: "Bu ay zaman ayır", effects: { health: { energy: -3, stress: 3 }, flags: { midlifeFamilyObligationOpen: true }, memory: "Ailene bu ay zaman ayıracağına söz verdin." } },
+      { id: "boundary", label: "Bu kez sınır koy", effects: { health: { stress: 3 }, memory: "Aile yükümlülüğünde kendi sınırını korudun." } },
+    ],
+  },
+  {
+    id: "midlife_family_obligation_followup",
+    repeat: "repeatable",
+    title: "Aileye ayrılan zaman",
+    text: "Ailene ayıracağını söylediğin zaman geldi. Verdiğin sözün sonucuyla yüzleşmelisin.",
+    condition: () => false,
+    choices: [
+      { id: "keep", label: "Sözünü yerine getir", effects: { health: { energy: -5, stress: -2 }, flags: { midlifeFamilyObligationOpen: null }, memory: "Ailene verdiğin zaman sözünü yerine getirdin." } },
+      { id: "miss", label: "Bu kez yetişmedi", effects: { health: { stress: 6 }, flags: { midlifeFamilyObligationOpen: null }, memory: "Ailene verdiğin zaman sözünü yerine getiremedin." } },
+    ],
+  },
+  {
+    id: "retirement_planning",
+    repeat: "cooldown",
+    cooldownWeeks: 48,
+    title: "Emeklilik planını netleştirmek",
+    text: "Çalışma geçmişin emeklilik seçeneğini görünür kılıyor. Gelir ve tempo değişmeden önce nasıl ilerleyeceğine karar vermelisin.",
+    condition: (state) => getRetirementEligibility(state).eligible && state.career.jobId !== null && state.career.retirement?.status !== "retired" && state.time.absoluteWeek >= (state.career.retirement?.deferredUntil || 0),
+    choices: [
+      { id: "plan", label: "Emeklilik hesabını aç", effects: { health: { stress: 2 }, memory: "Emeklilik geçişini planlamaya başladın." } },
+      { id: "continue", label: "Bir yıl daha çalış", effects: { health: { stress: 2 }, memory: "Emeklilik kararını bir yıl erteledin." } },
+    ],
+  },
+  {
+    id: "retirement_transition",
+    repeat: "repeatable",
+    title: "Emeklilik kararı",
+    text: "Planlama dönemi tamamlandı. Tam zamanlı çalışma gelirinden vazgeçip emeklilik düzenine geçip geçmeyeceğine karar vermelisin.",
+    condition: () => false,
+    choices: [
+      { id: "retire", label: "Emekli ol", effects: { health: { energy: 6, stress: -8 }, memory: "Tam zamanlı çalışma hayatını emeklilikle kapattın." } },
+      { id: "continue", label: "Çalışmaya devam et", effects: { health: { stress: 3 }, memory: "Emeklilik yerine çalışmaya devam etmeyi seçtin." } },
     ],
   },
 ];

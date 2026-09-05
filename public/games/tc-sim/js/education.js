@@ -140,6 +140,8 @@ export function getEducationProgress(state) {
 
 export function isEligibleForJob(state, job) {
   if (!job) return { ok: false, reason: "İş tanımı bulunamadı." };
+  if (state?.career?.retirement?.status === "retired")
+    return { ok: false, reason: "Emeklilikten sonra normal iş teklifleri kapalı." };
   if (job.requiredEducation && eduRank(state.education?.level) < eduRank(job.requiredEducation))
     return {
       ok: false,

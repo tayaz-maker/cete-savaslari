@@ -9,7 +9,7 @@ import {
   transact,
 } from "./state.js?v=5";
 import { applyRelationshipDelta } from "./social.js?v=5";
-import { CAREER_RISK_PERFORMANCE, clampMoneyReliefAmount, endEmployment, getMoneyReliefAmount, promoteCareer } from "./life.js?v=5";
+import { CAREER_RISK_PERFORMANCE, clampMoneyReliefAmount, endEmployment, getMoneyReliefAmount, promoteCareer, retireCareer } from "./life.js?v=5";
 
 const MAX_DEPTH2_CASES = 24;
 
@@ -284,6 +284,65 @@ export function applyDepth2Resolution(state, definition, choiceId, sourceCase = 
       endEmployment(state, { label: "Performans düşüşü sonrası işini kaybettin." });
     }
   }
+  if (id === "midlife_career_family_pressure" && choiceId === "carry") {
+    state.career.performance = Math.min(100, state.career.performance + 2);
+  }
+  if (id === "late_career_workload") {
+    if (choiceId === "downshift") {
+      state.flags.lateCareerReducedLoadUntil = state.time.absoluteWeek + 24;
+      state.career.performance = Math.max(0, state.career.performance - 2);
+    } else {
+      state.flags.lateCareerReducedLoadUntil = null;
+      state.career.performance = Math.min(100, state.career.performance + 2);
+    }
+  }
+  if (id === "midlife_family_obligation") {
+    if (choiceId === "commit") {
+      scheduleDepth2Followup(state, {
+        eventId: "midlife_family_obligation_followup",
+        dueWeek: state.time.absoluteWeek + 6,
+        expiresWeek: state.time.absoluteWeek + 12,
+        kind: "midlife_family_obligation",
+      });
+      applyRelationshipDelta(state, "anne", { trust: 2 });
+    } else {
+      applyRelationshipDelta(state, "anne", { trust: -3, tension: 4 });
+      addNpcMemory(state, "anne", "Aile yükümlülüğünde bu kez sınır koydu.", "midlife_boundary");
+    }
+  }
+  if (id === "midlife_family_obligation_followup") {
+    state.flags.midlifeFamilyObligationOpen = null;
+    if (choiceId === "keep") {
+      applyRelationshipDelta(state, "anne", { trust: 6, tension: -4 });
+      addNpcMemory(state, "anne", "Değişen aile sorumluluğunda verdiği sözü tuttu.", "midlife_support");
+    } else {
+      applyRelationshipDelta(state, "anne", { trust: -7, tension: 7 });
+      addNpcMemory(state, "anne", "Değişen aile sorumluluğunda verdiği sözü tutamadı.", "midlife_missed");
+    }
+  }
+  if (id === "retirement_planning") {
+    state.career.retirement.plannedWeek = state.time.absoluteWeek;
+    if (choiceId === "plan") {
+      state.career.retirement.status = "planned";
+      scheduleDepth2Followup(state, {
+        eventId: "retirement_transition",
+        dueWeek: state.time.absoluteWeek + 8,
+        expiresWeek: state.time.absoluteWeek + 20,
+        kind: "retirement_transition",
+      });
+    } else {
+      state.career.retirement.status = "working";
+      state.career.retirement.deferredUntil = state.time.absoluteWeek + 48;
+    }
+  }
+  if (id === "retirement_transition") {
+    if (choiceId === "retire") retireCareer(state);
+    else {
+      state.career.retirement.status = "working";
+      state.career.retirement.deferredUntil = state.time.absoluteWeek + 48;
+      addCareerHistory(state, { type: "retirement_deferred", jobId: state.career.jobId, label: "Emeklilik yerine bir yıl daha çalışmayı seçtin." });
+    }
+  }
 }
 
 export function expireDepth2Cases(state) {
@@ -311,6 +370,14 @@ export function expireDepth2Cases(state) {
         state.flags.educationWindowOpen = null;
         state.flags.educationWindowExpired = true;
         addMemory(state, "Eğitim kayıt penceresini kaçırdın.", "important");
+      }
+      if (item.payload?.kind === "midlife_family_obligation") {
+        state.flags.midlifeFamilyObligationOpen = null;
+        applyRelationshipDelta(state, "anne", { trust: -7, tension: 7 });
+      }
+      if (item.payload?.kind === "retirement_transition") {
+        state.career.retirement.status = "working";
+        state.career.retirement.deferredUntil = state.time.absoluteWeek + 48;
       }
       addMemory(state, "Bir yaşam fırsatının süresi doldu; karar vermek için geç kaldın.");
     }

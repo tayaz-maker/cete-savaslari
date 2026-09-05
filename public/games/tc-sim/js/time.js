@@ -295,6 +295,7 @@ export function applyDecision(state, decisionId) {
 function processMonthEnd(state) {
   const summary = getMonthlySummary(state, { closingMonth: true });
   if (summary.salary) transact(state, summary.salary, "Aylık maaş", "income");
+  if (summary.retirementIncome) transact(state, summary.retirementIncome, "Aylık emeklilik geliri", "income");
   if (summary.otherIncome) transact(state, summary.otherIncome, "Diğer düzenli gelir", "income");
   transact(state, -summary.housing, "Aylık konut gideri", "housing");
   if (summary.otherExpenses)
@@ -340,6 +341,8 @@ function closeYear(state, endedYear) {
     relationships: { ...state.relationships },
     career: {
       jobId: state.career.jobId,
+      retirementStatus: state.career.retirement?.status || "working",
+      retirementIncome: state.career.retirement?.monthlyIncome || 0,
       experience: { ...state.career.jobFamilyExperience },
       performance: state.career.performance,
       milestones: careerMilestones,
@@ -418,7 +421,9 @@ export function advanceWeek(state) {
 
   state.weekly = { used: 0, selectedIds: [] };
   if (!workedOvertime) state.flags.overtimeStreak = 0;
-  adjustHealth(state, { energy: 7, stress: -2, health: state.health.stress >= 80 ? -2 : 0 });
+  const ageRecovery = state.player.age < 45 ? 7 : state.player.age < 55 ? 6 : state.player.age < 65 ? 5 : 4;
+  const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
+  adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
   processDueOpenCases(state);
   advanceComparisonCircle(state);
   processNpcMilestones(state);

@@ -18,12 +18,13 @@ export function getWeeklyLifeLoad(state) {
   const job = getJobById(state.career.jobId);
   const commute = getCommuteLoad(state.household.homeId, state.career.jobId);
   const education = getEducationWeeklyLoad(state);
+  const reduced = state.flags?.lateCareerReducedLoadUntil > state.time.absoluteWeek;
   return {
     commute,
     education,
-    load: (job?.load || 0) + commute + education.load,
-    energy: (job?.energy || 0) - commute * 2 + education.energy,
-    stress: (job?.stress || 0) + commute * 2 + education.stress,
+    load: Math.max(0, (job?.load || 0) - (reduced ? 1 : 0)) + commute + education.load,
+    energy: (job?.energy || 0) + (reduced && job ? 2 : 0) - commute * 2 + education.energy,
+    stress: Math.max(0, (job?.stress || 0) - (reduced ? 2 : 0)) + commute * 2 + education.stress,
   };
 }
 
@@ -57,6 +58,84 @@ export function getCostOfLivingIndex(state) {
   const years = Math.max(0, Math.floor((state.time?.absoluteWeek || 0) / 52));
   return Math.min(1.5, 1 + years * 0.04);
 }
+
+export function getLateLifeCostFactor(state) {
+  // 18–35'in kabul edilmiş 1.5 tavanını değiştirmeden, 36'dan sonra temel
+  // yaşam giderine çok daha yavaş ve sınırlı bir devam uygular.
+  const age = Number(state?.player?.age) || 18;
+  return age <= 35 ? 1 : Math.min(1.2, 1 + (age - 35) * 0.006);
+}
+
+export function getPlayerLifeStage(state) {
+  const age = Number(state?.player?.age) || 18;
+  if (age < 36) return { id: "young_adult", label: "Genç yetişkinlik" };
+  if (age < 45) return { id: "mid_career", label: "Orta kariyer" };
+  if (age < 55) return { id: "midlife", label: "Orta yaşam" };
+  if (age < 65) return { id: "late_career", label: "Geç kariyer" };
+  return { id: "retirement_transition", label: "Emeklilik dönemi" };
+}
+
+export function getRetirementEligibility(state) {
+  const age = Number(state?.player?.age) || 0;
+  const experienceWeeks = Object.values(state?.career?.jobFamilyExperience || {})
+    .reduce((sum, weeks) => sum + (Number.isFinite(weeks) ? weeks : 0), 0);
+  const eligible = state?.career?.retirement?.status !== "retired" &&
+    ((age >= 60 && experienceWeeks >= 480) || (age >= 65 && experienceWeeks >= 240));
+  return {
+    eligible,
+    age,
+    experienceWeeks,
+    reason: eligible
+      ? "TC SIM'in soyut yaş ve çalışma geçmişi koşullarını karşılıyorsun."
+      : age < 60
+        ? "Emeklilik değerlendirmesi 60 yaşından sonra açılır."
+        : "Emeklilik için yeterli çalışma geçmişi henüz oluşmadı.",
+  };
+}
+
+export function getRetirementIncomePreview(state) {
+  const current = getJobById(state?.career?.jobId);
+  const last = getJobById(state?.career?.retirement?.lastJobId);
+  const salary = current?.salary || last?.salary || 9000;
+  const weeks = Object.values(state?.career?.jobFamilyExperience || {})
+    .reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+  const serviceFactor = Math.min(0.65, 0.48 + Math.floor(weeks / 520) * 0.03);
+  return Math.min(12500, Math.max(4800, Math.round((salary * serviceFactor) / 100) * 100));
+}
+
+export function retireCareer(state) {
+  const eligibility = getRetirementEligibility(state);
+  if (!eligibility.eligible) return { ok: false, reason: eligibility.reason };
+  const job = getJobById(state.career.jobId);
+  if (!job) return { ok: false, reason: "Emeklilik geçişi için aktif bir iş gerekiyor." };
+  const monthlyIncome = getRetirementIncomePreview(state);
+  state.career.retirement = {
+    ...state.career.retirement,
+    status: "retired",
+    retiredWeek: state.time.absoluteWeek,
+    deferredUntil: null,
+    monthlyIncome,
+    lastJobId: job.id,
+  };
+  state.career.jobId = null;
+  state.career.pendingJob = null;
+  state.career.weeksInRole = 0;
+  state.flags.jobSecurityRisk = null;
+  state.flags.jobSecurityRecovery = null;
+  state.flags.depth2PromotionPending = null;
+  state.flags.overtimeLastWeek = null;
+  state.flags.overtimeStreak = 0;
+  for (const item of state.openCases || []) {
+    if (item.status === "resolved") continue;
+    if (item.type === "job-start" || (item.type === "depth2-followup" && ["job_security", "career_promotion", "retirement_transition"].includes(item.payload?.kind))) {
+      item.status = "resolved";
+      item.resolutionApplied = true;
+    }
+  }
+  addCareerHistory(state, { type: "retirement", jobId: job.id, label: `${job.title} işinden emekli oldun.` });
+  addMemory(state, `${job.title} işinden emekli oldun; aylık emeklilik gelirin bağlandı.`, "important");
+  return { ok: true, monthlyIncome };
+}
 export function getMonthlyHousingBreakdown(state, options = {}) {
   const home = getHomeById(state.household.homeId);
   const base = home?.monthlyCost || 0;
@@ -80,6 +159,7 @@ const PROMOTION_PATHS = {
 };
 
 export function getNextCareerStep(state) {
+  if (state?.career?.retirement?.status === "retired") return null;
   const current = getJobById(state?.career?.jobId);
   const nextId = current ? PROMOTION_PATHS[current.id] : null;
   const next = nextId ? getJobById(nextId) : null;
@@ -90,6 +170,7 @@ export function getNextCareerStep(state) {
 export function promoteCareer(state) {
   // Sert kural: işsiz oyuncu terfi edemez. Terfi görüşmesi işten sonra
   // sonuçlansa bile bu kapı kapalıdır.
+  if (state?.career?.retirement?.status === "retired") return { ok: false, reason: "Emeklilikten sonra normal kariyer terfisi yok." };
   if (state?.career?.jobId === null) return { ok: false, reason: "İşsizken üst pozisyona geçilemez." };
   const next = getNextCareerStep(state);
   if (!next) return { ok: false, reason: "Şu an uygun bir üst pozisyon yok." };
@@ -165,18 +246,22 @@ export function getMonthlySummary(state, options = {}) {
   const salary = getMonthlyEmploymentIncome(state);
   const housingBreakdown = getMonthlyHousingBreakdown(state, options);
   const housing = housingBreakdown.total;
+  const retirementIncome = state.career?.retirement?.status === "retired"
+    ? state.career.retirement.monthlyIncome
+    : 0;
   const otherIncome = state.finances.otherMonthlyIncome;
-  const otherExpenses = Math.round(state.finances.otherMonthlyExpenses * getCostOfLivingIndex(state));
+  const otherExpenses = Math.round(state.finances.otherMonthlyExpenses * getCostOfLivingIndex(state) * getLateLifeCostFactor(state));
   const tuition = state.education?.tuitionOwedThisMonth || 0;
   return {
     salary,
+    retirementIncome,
     housing,
     housingBreakdown,
     otherIncome,
     otherExpenses,
     tuition,
     parenting: parenthoodCosts(state, options),
-    income: salary + otherIncome,
+    income: salary + otherIncome + retirementIncome,
     expenses: housing + otherExpenses + tuition + parenthoodCosts(state, options),
   };
 }
@@ -201,6 +286,8 @@ function markWeeklyAction(state, actionId) {
 }
 
 export function acceptJobOffer(state, jobId) {
+  if (state.career?.retirement?.status === "retired")
+    return { ok: false, reason: "Emeklilikten sonra normal iş teklifleri kapalı." };
   const job = getJobById(jobId);
   if (!job) return { ok: false, reason: "İş teklifi geçersiz." };
   if (state.career.jobId === jobId) return { ok: false, reason: "Zaten bu işte çalışıyorsun." };
