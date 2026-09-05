@@ -213,6 +213,7 @@ export function runFullLife(strategy) {
   state.flags.depth2Enabled = true;
   state.flags.depth3Enabled = true;
   state.military.applicable = false;
+  if (strategy === "health") acceptJobOffer(state, "office");
   const counts = {};
   const checkpoints = {};
   if (strategy === "strained") {
