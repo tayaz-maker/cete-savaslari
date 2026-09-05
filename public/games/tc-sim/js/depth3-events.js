@@ -1,6 +1,6 @@
-import { createSecret, transferSecret } from "./depth2-systems.js?v=7";
-import { addCareerHistory, addNpcMemory } from "./state.js?v=7";
-import { applyRelationshipDelta, getPerson, markMeaningfulContact } from "./social.js?v=7";
+import { createSecret, transferSecret } from "./depth2-systems.js?v=8";
+import { addCareerHistory, addNpcMemory } from "./state.js?v=8";
+import { applyRelationshipDelta, getPerson, markMeaningfulContact } from "./social.js?v=8";
 import {
   createFavor,
   createNetworkOpportunity,
@@ -14,7 +14,7 @@ import {
   markNpcMilestoneKnown,
   recordReputationEvidence,
   DEPTH3_CHAIN_REGISTRY,
-} from "./depth3-systems.js?v=7";
+} from "./depth3-systems.js?v=8";
 
 const hasWeakContact = (state) => getNetworkContacts(state).some((person) => person.contactCategory === "weak" || person.contactCategory === "former");
 

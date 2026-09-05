@@ -1,22 +1,35 @@
-import { parenthoodCosts } from "./parenthood.js?v=7";
-import { getHouseholdFinance } from "./household.js?v=7";
-import { addCareerHistory, addMemory, adjustHealth, getWeeklyActivityLimit, isCriticalHealth, transact } from "./state.js?v=7";
-import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=7";
+import { parenthoodCosts } from "./parenthood.js?v=8";
+import { getHouseholdFinance } from "./household.js?v=8";
+import {
+  addCareerHistory,
+  addMemory,
+  adjustHealth,
+  getWeeklyActivityLimit,
+  isCriticalHealth,
+  transact,
+} from "./state.js?v=8";
+import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=8";
+import { getWealthMonthlySummary } from "./wealth.js?v=8";
 import {
   getEducationWeeklyLoad,
   getPathById,
   getWeeklyProgressGain,
   isEligibleForJob,
   resolveCompletedLevel,
-} from "./education.js?v=7";
-import { applySocialMaintenance } from "./social.js?v=7";
-import { scheduleMoveConsequence } from "./depth3-systems.js?v=7";
+} from "./education.js?v=8";
+import { applySocialMaintenance } from "./social.js?v=8";
+import { scheduleMoveConsequence } from "./depth3-systems.js?v=8";
 
-export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=7";
+export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=8";
+
+export function getEffectiveCommuteLoad(state) {
+  const raw = getCommuteLoad(state.household.homeId, state.career.jobId);
+  return state.wealth?.vehicle ? Math.max(0, raw - 1) : raw;
+}
 
 export function getWeeklyLifeLoad(state) {
   const job = getJobById(state.career.jobId);
-  const commute = getCommuteLoad(state.household.homeId, state.career.jobId);
+  const commute = getEffectiveCommuteLoad(state);
   const education = getEducationWeeklyLoad(state);
   const reduced = state.flags?.lateCareerReducedLoadUntil > state.time.absoluteWeek;
   return {
@@ -28,7 +41,7 @@ export function getWeeklyLifeLoad(state) {
   };
 }
 
-export function getCommuteExplanation(homeId, jobId) {
+export function getCommuteExplanation(homeId, jobId, state = null) {
   if (jobId === null)
     return {
       label: "İşsiz — ulaşım yükü yok",
@@ -36,7 +49,8 @@ export function getCommuteExplanation(homeId, jobId) {
       energy: 0,
       stress: 0,
     };
-  const load = getCommuteLoad(homeId, jobId);
+  const rawLoad = getCommuteLoad(homeId, jobId);
+  const load = state?.wealth?.vehicle ? Math.max(0, rawLoad - 1) : rawLoad;
   const labels = ["Çok düşük", "Düşük", "Orta", "Yüksek"];
   const label = labels[Math.min(load, labels.length - 1)];
   return {
@@ -44,7 +58,7 @@ export function getCommuteExplanation(homeId, jobId) {
     detail:
       load === 0
         ? "Ev ve iş yakın; haftalık ek ulaşım yükü yok."
-        : `Haftalık etki: ${-load * 2} enerji · +${load * 2} stres`,
+        : `Haftalık etki: ${-load * 2} enerji · +${load * 2} stres${state?.wealth?.vehicle && rawLoad > load ? " · araç ulaşım yükünü azalttı" : ""}`,
     energy: -load * 2,
     stress: load * 2,
   };
@@ -77,9 +91,12 @@ export function getPlayerLifeStage(state) {
 
 export function getRetirementEligibility(state) {
   const age = Number(state?.player?.age) || 0;
-  const experienceWeeks = Object.values(state?.career?.jobFamilyExperience || {})
-    .reduce((sum, weeks) => sum + (Number.isFinite(weeks) ? weeks : 0), 0);
-  const eligible = state?.career?.retirement?.status !== "retired" &&
+  const experienceWeeks = Object.values(state?.career?.jobFamilyExperience || {}).reduce(
+    (sum, weeks) => sum + (Number.isFinite(weeks) ? weeks : 0),
+    0,
+  );
+  const eligible =
+    state?.career?.retirement?.status !== "retired" &&
     ((age >= 60 && experienceWeeks >= 480) || (age >= 65 && experienceWeeks >= 240));
   return {
     eligible,
@@ -97,8 +114,10 @@ export function getRetirementIncomePreview(state) {
   const current = getJobById(state?.career?.jobId);
   const last = getJobById(state?.career?.retirement?.lastJobId);
   const salary = current?.salary || last?.salary || 9000;
-  const weeks = Object.values(state?.career?.jobFamilyExperience || {})
-    .reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+  const weeks = Object.values(state?.career?.jobFamilyExperience || {}).reduce(
+    (sum, value) => sum + (Number.isFinite(value) ? value : 0),
+    0,
+  );
   const serviceFactor = Math.min(0.65, 0.48 + Math.floor(weeks / 520) * 0.03);
   return Math.min(12500, Math.max(4800, Math.round((salary * serviceFactor) / 100) * 100));
 }
@@ -128,13 +147,25 @@ export function retireCareer(state) {
   state.flags.overtimeStreak = 0;
   for (const item of state.openCases || []) {
     if (item.status === "resolved") continue;
-    if (item.type === "job-start" || (item.type === "depth2-followup" && ["job_security", "career_promotion", "retirement_transition"].includes(item.payload?.kind))) {
+    if (
+      item.type === "job-start" ||
+      (item.type === "depth2-followup" &&
+        ["job_security", "career_promotion", "retirement_transition"].includes(item.payload?.kind))
+    ) {
       item.status = "resolved";
       item.resolutionApplied = true;
     }
   }
-  addCareerHistory(state, { type: "retirement", jobId: job.id, label: `${job.title} işinden emekli oldun.` });
-  addMemory(state, `${job.title} işinden emekli oldun; aylık emeklilik gelirin bağlandı.`, "important");
+  addCareerHistory(state, {
+    type: "retirement",
+    jobId: job.id,
+    label: `${job.title} işinden emekli oldun.`,
+  });
+  addMemory(
+    state,
+    `${job.title} işinden emekli oldun; aylık emeklilik gelirin bağlandı.`,
+    "important",
+  );
   return { ok: true, monthlyIncome };
 }
 export function getMonthlyHousingBreakdown(state, options = {}) {
@@ -142,15 +173,27 @@ export function getMonthlyHousingBreakdown(state, options = {}) {
   const base = home?.monthlyCost || 0;
   const salary = getMonthlyEmploymentIncome(state);
   // Aile yanında yaşamak düşük maliyetli kalır; gelir yükseldikçe ev katkısı da yükselir.
-  const familyContribution = home?.id === "family" && salary > 10000 ? Math.round((salary - 10000) * 0.2) : 0;
+  const familyContribution =
+    home?.id === "family" && salary > 10000 ? Math.round((salary - 10000) * 0.2) : 0;
   const shared = getHouseholdFinance(state, options);
-  return { base, familyContribution, ...shared, total: Math.max(0, base + familyContribution + shared.householdExtra - shared.partnerContribution) };
+  return {
+    base,
+    familyContribution,
+    ...shared,
+    total: Math.max(
+      0,
+      base + familyContribution + shared.householdExtra - shared.partnerContribution,
+    ),
+  };
 }
 
 export const getMonthlyHousingCost = (state) => getMonthlyHousingBreakdown(state).total;
-export const hasIndependentHousing = (state) => getHomeById(state.household.homeId)?.id !== "family";
+export const hasIndependentHousing = (state) =>
+  getHomeById(state.household.homeId)?.id !== "family";
 export const hasSavings = (state, amount) =>
-  Number.isFinite(amount) && Number.isFinite(state.finances?.balance) && state.finances.balance >= amount;
+  Number.isFinite(amount) &&
+  Number.isFinite(state.finances?.balance) &&
+  state.finances.balance >= amount;
 export const getMoveCost = (homeId) => getHomeById(homeId)?.moveCost ?? Infinity;
 
 const PROMOTION_PATHS = {
@@ -172,8 +215,10 @@ export function promoteCareer(state) {
   if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   // Sert kural: işsiz oyuncu terfi edemez. Terfi görüşmesi işten sonra
   // sonuçlansa bile bu kapı kapalıdır.
-  if (state?.career?.retirement?.status === "retired") return { ok: false, reason: "Emeklilikten sonra normal kariyer terfisi yok." };
-  if (state?.career?.jobId === null) return { ok: false, reason: "İşsizken üst pozisyona geçilemez." };
+  if (state?.career?.retirement?.status === "retired")
+    return { ok: false, reason: "Emeklilikten sonra normal kariyer terfisi yok." };
+  if (state?.career?.jobId === null)
+    return { ok: false, reason: "İşsizken üst pozisyona geçilemez." };
   const next = getNextCareerStep(state);
   if (!next) return { ok: false, reason: "Şu an uygun bir üst pozisyon yok." };
   const previous = getJobById(state.career.jobId);
@@ -230,7 +275,9 @@ export function getMoneyReliefAmount(state) {
 
 /** Kayıttan gelen tutarı sınırlara oturtur; bozuk kayıt tabana düşer. */
 export const clampMoneyReliefAmount = (value) =>
-  Number.isFinite(value) ? Math.min(MONEY_RELIEF_MAX, Math.max(MONEY_RELIEF_MIN, Math.round(value))) : MONEY_RELIEF_MIN;
+  Number.isFinite(value)
+    ? Math.min(MONEY_RELIEF_MAX, Math.max(MONEY_RELIEF_MIN, Math.round(value)))
+    : MONEY_RELIEF_MIN;
 
 export function updateCareerProgress(state) {
   const career = state.career;
@@ -238,21 +285,43 @@ export function updateCareerProgress(state) {
   career.weeksInRole = Number.isInteger(career.weeksInRole) ? career.weeksInRole + 1 : 1;
   const healthyWeek = state.health.health > 40 && state.health.energy >= 35;
   const manageableStress = state.health.stress < 70;
-  const bodyPenalty = state.body?.conditions?.some((condition) => condition.knownToPlayer && ["active", "chronic"].includes(condition.status)) ? 1 : 0;
-  const delta = healthyWeek && manageableStress ? Math.max(0, 1 - bodyPenalty) : state.health.health <= 15 || state.health.stress >= 85 ? -2 : 0;
+  const bodyPenalty = state.body?.conditions?.some(
+    (condition) => condition.knownToPlayer && ["active", "chronic"].includes(condition.status),
+  )
+    ? 1
+    : 0;
+  const delta =
+    healthyWeek && manageableStress
+      ? Math.max(0, 1 - bodyPenalty)
+      : state.health.health <= 15 || state.health.stress >= 85
+        ? -2
+        : 0;
   career.performance = Math.min(100, Math.max(0, career.performance + delta));
   return true;
 }
 
 export function getMonthlySummary(state, options = {}) {
   const salary = getMonthlyEmploymentIncome(state);
-  const housingBreakdown = getMonthlyHousingBreakdown(state, options);
+  const rawHousing = getMonthlyHousingBreakdown(state, options);
+  const ownsHome = state.wealth?.properties?.some((property) => property.occupancy === "owner");
+  const housingBreakdown = ownsHome
+    ? {
+        ...rawHousing,
+        base: 0,
+        total: Math.max(0, rawHousing.total - rawHousing.base),
+        ownerOccupied: true,
+      }
+    : rawHousing;
   const housing = housingBreakdown.total;
-  const retirementIncome = state.career?.retirement?.status === "retired"
-    ? state.career.retirement.monthlyIncome
-    : 0;
+  const wealth = getWealthMonthlySummary(state);
+  const retirementIncome =
+    state.career?.retirement?.status === "retired" ? state.career.retirement.monthlyIncome : 0;
   const otherIncome = state.finances.otherMonthlyIncome;
-  const otherExpenses = Math.round(state.finances.otherMonthlyExpenses * getCostOfLivingIndex(state) * getLateLifeCostFactor(state));
+  const otherExpenses = Math.round(
+    state.finances.otherMonthlyExpenses *
+      getCostOfLivingIndex(state) *
+      getLateLifeCostFactor(state),
+  );
   const tuition = state.education?.tuitionOwedThisMonth || 0;
   return {
     salary,
@@ -263,8 +332,9 @@ export function getMonthlySummary(state, options = {}) {
     otherExpenses,
     tuition,
     parenting: parenthoodCosts(state, options),
-    income: salary + otherIncome + retirementIncome,
-    expenses: housing + otherExpenses + tuition + parenthoodCosts(state, options),
+    wealth,
+    income: salary + otherIncome + retirementIncome + wealth.income,
+    expenses: housing + otherExpenses + tuition + parenthoodCosts(state, options) + wealth.expenses,
   };
 }
 
@@ -313,7 +383,11 @@ export function acceptJobOffer(state, jobId) {
     payload: { jobId },
   });
   markWeeklyAction(state, actionId);
-  addCareerHistory(state, { type: "offer_accepted", jobId, label: `${job.title} teklifini kabul ettin.` });
+  addCareerHistory(state, {
+    type: "offer_accepted",
+    jobId,
+    label: `${job.title} teklifini kabul ettin.`,
+  });
   addMemory(
     state,
     `${job.title} teklifini kabul ettin; başlangıç tarihini bekliyorsun.`,
@@ -330,7 +404,11 @@ export function completePendingJob(state, sourceCaseId) {
   state.career.pendingJob = null;
   state.career.weeksInRole = 0;
   state.career.performance = Math.max(50, Number(state.career.performance) || 50);
-  addCareerHistory(state, { type: "job_started", jobId: pending.jobId, label: `${getJobById(pending.jobId).title} olarak başladın.` });
+  addCareerHistory(state, {
+    type: "job_started",
+    jobId: pending.jobId,
+    label: `${getJobById(pending.jobId).title} olarak başladın.`,
+  });
   addMemory(state, `${getJobById(state.career.jobId).title} olarak işe başladın.`, "important");
   return true;
 }
@@ -349,8 +427,17 @@ export function quitJob(state) {
   state.flags.jobSecurityRisk = null;
   state.flags.jobSecurityRecovery = null;
   for (const item of state.openCases)
-    if (item.type === "depth2-followup" && item.status === "pending" && item.payload?.kind === "job_security") item.status = "resolved";
-  addCareerHistory(state, { type: "resigned", jobId: oldJob.id, label: `${oldJob.title} işinden ayrıldın.` });
+    if (
+      item.type === "depth2-followup" &&
+      item.status === "pending" &&
+      item.payload?.kind === "job_security"
+    )
+      item.status = "resolved";
+  addCareerHistory(state, {
+    type: "resigned",
+    jobId: oldJob.id,
+    label: `${oldJob.title} işinden ayrıldın.`,
+  });
   markWeeklyAction(state, "quit-job");
   addMemory(state, `${oldJob.title} işinden ayrıldın.`, "important");
   return { ok: true, message: "İşten ayrıldın; artık işsizsin." };
@@ -372,11 +459,14 @@ export function moveHome(state, homeId) {
 export function relocateHome(state, homeId) {
   if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   const home = getHomeById(homeId);
-  if (!home || state.household.homeId === homeId) return { ok: false, reason: "Konut değişikliği yok." };
-  if (homeId === "family" && state.household.union?.cohabitingSince) return { ok: false, reason: "Önce partnerinle ayrı evlerde yaşama kararını konuşmalısın." };
+  if (!home || state.household.homeId === homeId)
+    return { ok: false, reason: "Konut değişikliği yok." };
+  if (homeId === "family" && state.household.union?.cohabitingSince)
+    return { ok: false, reason: "Önce partnerinle ayrı evlerde yaşama kararını konuşmalısın." };
   const previousHomeId = state.household.homeId;
   const cost = getMoveCost(homeId);
-  if (state.finances.balance < cost) return { ok: false, reason: `Taşınmak için ₺${cost.toLocaleString("tr-TR")} gerekiyor.` };
+  if (state.finances.balance < cost)
+    return { ok: false, reason: `Taşınmak için ₺${cost.toLocaleString("tr-TR")} gerekiyor.` };
   transact(state, -cost, `${home.title} taşınma masrafı`, "housing");
   state.household.homeId = homeId;
   state.household.livingWithFamily = homeId === "family";

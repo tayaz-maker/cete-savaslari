@@ -1,5 +1,5 @@
-import { getMoneyReliefAmount, getNextCareerStep, getRetirementEligibility } from "./life.js?v=7";
-import { getStartingProfileId } from "./state.js?v=7";
+import { getMoneyReliefAmount, getNextCareerStep, getRetirementEligibility } from "./life.js?v=8";
+import { getStartingProfileId } from "./state.js?v=8";
 
 export const DEPTH2_EVENTS = [
   {

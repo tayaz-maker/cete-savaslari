@@ -1,7 +1,7 @@
 import {
   getRelationship,
   getRelationshipStage,
-} from "./social.js?v=7";
+} from "./social.js?v=8";
 
 const friendish = (state, id) =>
   ["friend", "close", "partner"].includes(getRelationshipStage(state, id));

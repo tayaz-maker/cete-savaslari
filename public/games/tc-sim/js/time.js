@@ -1,6 +1,14 @@
-import { processLifetimeWeek } from "./lifetime.js?v=7";
-import { needsParentCare, canRequestParentPlanning, requestParentPlanning, requestCareBudget, parentingOvertimeBlocked, processParenthoodWeek, parenthoodYearSummary } from "./parenthood.js?v=7";
-import { getHouseholdSummary } from "./household.js?v=7";
+import { processLifetimeWeek } from "./lifetime.js?v=8";
+import {
+  needsParentCare,
+  canRequestParentPlanning,
+  requestParentPlanning,
+  requestCareBudget,
+  parentingOvertimeBlocked,
+  processParenthoodWeek,
+  parenthoodYearSummary,
+} from "./parenthood.js?v=8";
+import { getHouseholdSummary } from "./household.js?v=8";
 import {
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
@@ -14,16 +22,26 @@ import {
   isCriticalHealth,
   transact,
   updateRelationship,
-} from "./state.js?v=7";
-import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=7";
-import { activateNextEvent, processDueOpenCases } from "./events.js?v=7";
-import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=7";
-import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=7";
-import { getReputationContext, processNpcMilestones, syncPeerMilestones, updatePerceivedIdentity } from "./depth3-systems.js?v=7";
-import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=7";
-import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=7";
+} from "./state.js?v=8";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=8";
+import { activateNextEvent, processDueOpenCases } from "./events.js?v=8";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=8";
+import { processWealthMonthEnd, netWorth } from "./wealth.js?v=8";
+import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=8";
+import {
+  getReputationContext,
+  processNpcMilestones,
+  syncPeerMilestones,
+  updatePerceivedIdentity,
+} from "./depth3-systems.js?v=8";
+import {
+  processLongTermBody,
+  getBodyYearSummary,
+  getHealthPriorityReflection,
+} from "./body-systems.js?v=8";
+import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=8";
 
-import { getPlayerVisibleOpenCases } from "./calendar.js?v=7";
+import { getPlayerVisibleOpenCases } from "./calendar.js?v=8";
 
 /** Ek mesai: ilk haftalar tam öder, aralıksız sürdükçe getirisi düşer ve yükü artar. */
 export const OVERTIME_BASE_PAY = 1250;
@@ -53,9 +71,32 @@ export function getRestEnergyGain(stress) {
 }
 
 export const DECISIONS = [
-  { id: "parent-plan", title: "Çocuk niyetini yeniden görüş", detail: "Bir aktivite · gelecek hafta niyetleri yeniden konuş", contextual: canRequestParentPlanning, apply: requestParentPlanning },
-  { id: "parent-budget", title: "Bakım bütçesini planla", detail: "Bir aktivite · gelecek hafta bakım düzenini seç", contextual: (s) => needsParentCare(s) && !s.openCases.some((c) => c.type === "parenting-followup" && c.payload.kind === "budget" && c.status !== "resolved"), apply: requestCareBudget },
-  { id: "parent-care", title: "Çocuğunun bakımına zaman ayır", detail: "Bir aktivite · bu haftanın bakım sorumluluğunu karşılar", contextual: needsParentCare, apply() {} },
+  {
+    id: "parent-plan",
+    title: "Çocuk niyetini yeniden görüş",
+    detail: "Bir aktivite · gelecek hafta niyetleri yeniden konuş",
+    contextual: canRequestParentPlanning,
+    apply: requestParentPlanning,
+  },
+  {
+    id: "parent-budget",
+    title: "Bakım bütçesini planla",
+    detail: "Bir aktivite · gelecek hafta bakım düzenini seç",
+    contextual: (s) =>
+      needsParentCare(s) &&
+      !s.openCases.some(
+        (c) =>
+          c.type === "parenting-followup" && c.payload.kind === "budget" && c.status !== "resolved",
+      ),
+    apply: requestCareBudget,
+  },
+  {
+    id: "parent-care",
+    title: "Çocuğunun bakımına zaman ayır",
+    detail: "Bir aktivite · bu haftanın bakım sorumluluğunu karşılar",
+    contextual: needsParentCare,
+    apply() {},
+  },
   {
     id: "overtime",
     title: "Ek mesai yap",
@@ -111,9 +152,17 @@ export const DECISIONS = [
     },
   },
   {
-    id: "body-care", title: "Bedenine bakım ayır", detail: "₺300 · birikmiş yükü yönetmeye başla",
+    id: "body-care",
+    title: "Bedenine bakım ayır",
+    detail: "₺300 · birikmiş yükü yönetmeye başla",
     minimumBalance: 300,
-    contextual: (state) => Boolean(state.body?.warningAvailable || state.body?.conditions?.some((item) => item.knownToPlayer && ["active", "chronic"].includes(item.status))),
+    contextual: (state) =>
+      Boolean(
+        state.body?.warningAvailable ||
+        state.body?.conditions?.some(
+          (item) => item.knownToPlayer && ["active", "chronic"].includes(item.status),
+        ),
+      ),
     apply(state) {
       transact(state, -300, "Beden bakımı", "health");
       if (state.body?.warningAvailable) acknowledgeBodyWarning(state);
@@ -255,12 +304,21 @@ export function canApplyDecision(state, decisionId) {
   if (state.lifetime?.death) return { ok: false, reason: "Bu yaşam tamamlandı." };
   const decision = DECISIONS.find((item) => item.id === decisionId);
   if (!decision) return { ok: false, reason: "Karar bulunamadı." };
-  if (decisionId === "parent-plan" && !decision.contextual(state)) return { ok: false, reason: "Yeni bir niyet görüşmesi için uygun bağlam yok." };
-  if (decisionId === "parent-budget" && !decision.contextual(state)) return { ok: false, reason: "Yeni bir bakım bütçesi görüşmesi için uygun bağlam yok." };
-  if (decisionId === "parent-care" && !needsParentCare(state)) return { ok: false, reason: "Bu bakım döneminde hanende çocuk yok." };
-  if (decisionId === "overtime" && state.career.jobId === null) return { ok: false, reason: "Ek mesai için aktif bir iş gerekiyor." };
-  if (decisionId === "overtime" && parentingOvertimeBlocked(state)) return { ok: false, reason: "Biriken bakım sorumluluğu için önce bu haftaya zaman ayırmalısın." };
-  if (decisionId === "body-care" && !decision.contextual(state)) return { ok: false, reason: "Şu anda bakım gerektiren bilinen bir durum yok." };
+  if (decisionId === "parent-plan" && !decision.contextual(state))
+    return { ok: false, reason: "Yeni bir niyet görüşmesi için uygun bağlam yok." };
+  if (decisionId === "parent-budget" && !decision.contextual(state))
+    return { ok: false, reason: "Yeni bir bakım bütçesi görüşmesi için uygun bağlam yok." };
+  if (decisionId === "parent-care" && !needsParentCare(state))
+    return { ok: false, reason: "Bu bakım döneminde hanende çocuk yok." };
+  if (decisionId === "overtime" && state.career.jobId === null)
+    return { ok: false, reason: "Ek mesai için aktif bir iş gerekiyor." };
+  if (decisionId === "overtime" && parentingOvertimeBlocked(state))
+    return {
+      ok: false,
+      reason: "Biriken bakım sorumluluğu için önce bu haftaya zaman ayırmalısın.",
+    };
+  if (decisionId === "body-care" && !decision.contextual(state))
+    return { ok: false, reason: "Şu anda bakım gerektiren bilinen bir durum yok." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
   if (state.weekly.used >= getWeeklyActivityLimit(state))
     return {
@@ -269,7 +327,13 @@ export function canApplyDecision(state, decisionId) {
         ? "Sağlığın kritik; bu hafta yalnız bir şeye gücün yetiyor."
         : "Bu haftanın aktivite hakkı bitti.",
     };
-  if (decisionId === "overtime" && (isCriticalHealth(state) || state.body?.conditions?.some((c) => c.knownToPlayer && ["active", "chronic"].includes(c.status))))
+  if (
+    decisionId === "overtime" &&
+    (isCriticalHealth(state) ||
+      state.body?.conditions?.some(
+        (c) => c.knownToPlayer && ["active", "chronic"].includes(c.status),
+      ))
+  )
     return { ok: false, reason: "Bedeninin mevcut kapasitesi bu hafta ek mesaiye uygun değil." };
   if (state.weekly.selectedIds.includes(decisionId))
     return { ok: false, reason: "Aynı aktivite bir haftada iki kez seçilemez." };
@@ -297,12 +361,14 @@ export function applyDecision(state, decisionId) {
 function processMonthEnd(state) {
   const summary = getMonthlySummary(state, { closingMonth: true });
   if (summary.salary) transact(state, summary.salary, "Aylık maaş", "income");
-  if (summary.retirementIncome) transact(state, summary.retirementIncome, "Aylık emeklilik geliri", "income");
+  if (summary.retirementIncome)
+    transact(state, summary.retirementIncome, "Aylık emeklilik geliri", "income");
   if (summary.otherIncome) transact(state, summary.otherIncome, "Diğer düzenli gelir", "income");
   transact(state, -summary.housing, "Aylık konut gideri", "housing");
   if (summary.otherExpenses)
     transact(state, -summary.otherExpenses, "Diğer düzenli gider", "expense");
-  if (summary.parenting) transact(state, -summary.parenting, "Aylık çocuk ve bakım gideri", "parenting");
+  if (summary.parenting)
+    transact(state, -summary.parenting, "Aylık çocuk ve bakım gideri", "parenting");
   state.parenthood.careOwedThisMonth = 0;
   // Ay içinde tek hafta bile ilerleme olduysa tam aylık ücret alınır; eğitimi
   // bırakmak o ayın borcunu silmez. Ay başına tam bir kez.
@@ -310,6 +376,7 @@ function processMonthEnd(state) {
     transact(state, -summary.tuition, "Eğitim ücreti", "education");
     state.education.tuitionOwedThisMonth = 0;
   }
+  processWealthMonthEnd(state);
   return `Ay sonu: ₺${summary.income.toLocaleString("tr-TR")} gelir, ₺${summary.expenses.toLocaleString("tr-TR")} gider işlendi.`;
 }
 
@@ -336,6 +403,8 @@ function closeYear(state, endedYear) {
     year: endedYear,
     startingBalance: state.meta.yearStartBalance,
     endingBalance: state.finances.balance,
+    netWorth: netWorth(state),
+    lifestyle: state.wealth?.lifestyle || "modest",
     importantMemories: yearMemories
       .filter((memory) => memory.importance === "important")
       .slice(-8)
@@ -360,15 +429,31 @@ function closeYear(state, endedYear) {
       livingWithFamily: state.household.livingWithFamily,
     },
     parenting: parenthoodYearSummary(state, yearStartWeek, yearEndWeek),
-    household: { ...getHouseholdSummary(state), milestones: (state.household.history || []).filter((item) => item.week >= yearStartWeek && item.week <= yearEndWeek).map((item) => item.text).slice(-6) },
+    household: {
+      ...getHouseholdSummary(state),
+      milestones: (state.household.history || [])
+        .filter((item) => item.week >= yearStartWeek && item.week <= yearEndWeek)
+        .map((item) => item.text)
+        .slice(-6),
+    },
     knownObligations: knownOpenCases.length,
     meaningfulEvents: yearEvents.length,
     priorities: [...(state.yearlyPlan?.priorities || [])],
     priorityReflection: reflectYearPriorities(state, state.yearlyPlan?.priorities || []),
     livingWorld: {
       knownMilestones,
-      favorsResolved: (state.favors || []).filter((favor) => favor.status === "resolved" && favor.resolvedWeek >= yearStartWeek && favor.resolvedWeek <= yearEndWeek).length,
-      reputation: Object.fromEntries(["family", "professional", "friends", "acquaintances"].map((circle) => [circle, getReputationContext(state, circle).label])),
+      favorsResolved: (state.favors || []).filter(
+        (favor) =>
+          favor.status === "resolved" &&
+          favor.resolvedWeek >= yearStartWeek &&
+          favor.resolvedWeek <= yearEndWeek,
+      ).length,
+      reputation: Object.fromEntries(
+        ["family", "professional", "friends", "acquaintances"].map((circle) => [
+          circle,
+          getReputationContext(state, circle).label,
+        ]),
+      ),
     },
   };
   addYearHistory(state, entry);
@@ -385,18 +470,34 @@ function closeYear(state, endedYear) {
 
 function reflectYearPriorities(state, priorities) {
   return priorities.map((priority) => {
-    if (priority === "career") return state.career.history?.some((entry) => entry.year === state.time.year) ? "Kariyerinde bir hareketlilik oldu." : "Kariyerin bu yıl aynı tempoda kaldı.";
-    if (priority === "education") return state.education.active || state.education.level !== "lise" ? "Eğitim hayatında ilerleme kaydettin." : "Eğitim bu yıl gündeminin gerisinde kaldı.";
-    if (priority === "money") return state.finances.balance >= state.meta.yearStartBalance ? "Birikimini korudun veya artırdın." : "Para hedefin beklenenden daha zor geçti.";
+    if (priority === "career")
+      return state.career.history?.some((entry) => entry.year === state.time.year)
+        ? "Kariyerinde bir hareketlilik oldu."
+        : "Kariyerin bu yıl aynı tempoda kaldı.";
+    if (priority === "education")
+      return state.education.active || state.education.level !== "lise"
+        ? "Eğitim hayatında ilerleme kaydettin."
+        : "Eğitim bu yıl gündeminin gerisinde kaldı.";
+    if (priority === "money")
+      return state.finances.balance >= state.meta.yearStartBalance
+        ? "Birikimini korudun veya artırdın."
+        : "Para hedefin beklenenden daha zor geçti.";
     if (priority === "health") return getHealthPriorityReflection(state);
-    if (priority === "relationship") return Object.values(state.relationships).some((value) => value >= 70) ? "Önemli ilişkilerine zaman ayırdın." : "İlişkiler bu yıl daha fazla emek istedi.";
-    if (priority === "independence") return state.household.homeId !== "family" ? "Kendi yaşam alanını kurdun." : "Bağımsızlık planın bu yıl tamamlanmadı.";
+    if (priority === "relationship")
+      return Object.values(state.relationships).some((value) => value >= 70)
+        ? "Önemli ilişkilerine zaman ayırdın."
+        : "İlişkiler bu yıl daha fazla emek istedi.";
+    if (priority === "independence")
+      return state.household.homeId !== "family"
+        ? "Kendi yaşam alanını kurdun."
+        : "Bağımsızlık planın bu yıl tamamlanmadı.";
     return "Bu öncelik için yıl içinde yeterli kayıt oluşmadı.";
   });
 }
 
 export function advanceWeek(state) {
-  if (state.lifetime?.death) return { ok: false, messages: ["Bu yaşam tamamlandı; yaşam raporuna geç."] };
+  if (state.lifetime?.death)
+    return { ok: false, messages: ["Bu yaşam tamamlandı; yaşam raporuna geç."] };
   if (state.events.active) return { ok: false, messages: ["Önce açık olayı sonuçlandır."] };
   const messages = [];
   const previousYear = state.time.year;
@@ -407,7 +508,8 @@ export function advanceWeek(state) {
   processLongTermBody(state, { decisionIds: state.weekly.selectedIds });
 
   state.time.absoluteWeek += 1;
-  if (Number.isInteger(state.lifetime?.bornWeek)) state.player.age = Math.floor((state.time.absoluteWeek - state.lifetime.bornWeek) / 48);
+  if (Number.isInteger(state.lifetime?.bornWeek))
+    state.player.age = Math.floor((state.time.absoluteWeek - state.lifetime.bornWeek) / 48);
   state.time.weekOfMonth += 1;
   if (state.time.weekOfMonth > WEEKS_PER_MONTH) {
     state.time.weekOfMonth = 1;
@@ -425,11 +527,15 @@ export function advanceWeek(state) {
 
   state.weekly = { used: 0, selectedIds: [] };
   if (!workedOvertime) state.flags.overtimeStreak = 0;
-  const ageRecovery = state.player.age < 45 ? 7 : state.player.age < 55 ? 6 : state.player.age < 65 ? 5 : 4;
+  const ageRecovery =
+    state.player.age < 45 ? 7 : state.player.age < 55 ? 6 : state.player.age < 65 ? 5 : 4;
   const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
   adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
   processLifetimeWeek(state);
-  if (state.lifetime?.death) { assertValidState(state); return { ok: true, messages: ["Yaşam tamamlandı. Yaşam raporu hazır."] }; }
+  if (state.lifetime?.death) {
+    assertValidState(state);
+    return { ok: true, messages: ["Yaşam tamamlandı. Yaşam raporu hazır."] };
+  }
   processDueOpenCases(state);
   advanceComparisonCircle(state);
   processNpcMilestones(state);

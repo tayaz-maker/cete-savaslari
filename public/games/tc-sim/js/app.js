@@ -1,7 +1,26 @@
-import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=7";
-import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=7";
-import { parenthoodSummary } from "./parenthood.js?v=7";
-import { getHouseholdSummary } from "./household.js?v=7";
+import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=8";
+import {
+  LIFESTYLE_TIERS,
+  SUBSCRIPTIONS,
+  DURABLES,
+  VEHICLES,
+  INVESTMENTS,
+  SPENDING,
+  setLifestyle,
+  spendLifestyle,
+  toggleSubscription,
+  buyDurable,
+  tradeInvestment,
+  buyVehicle,
+  sellVehicle,
+  buyProperty,
+  sellProperty,
+  setPropertyOccupancy,
+  netWorth,
+} from "./wealth.js?v=8";
+import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=8";
+import { parenthoodSummary } from "./parenthood.js?v=8";
+import { getHouseholdSummary } from "./household.js?v=8";
 import {
   WEEKS_PER_MONTH,
   BACKGROUND_OPTIONS,
@@ -11,14 +30,23 @@ import {
   getWeeklyActivityLimit,
   isCriticalHealth,
   setYearlyPriorities,
-} from "./state.js?v=7";
-import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=7";
-import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=7";
-import { getChoiceEffectSummary, getEventDefinition, getEventChoiceAvailability, resolveEvent } from "./events.js?v=7";
-import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=7";
-import { getBodyEventContext } from "./body-events.js?v=7";
-import { getBodyRiskSummary, getKnownBodyConditions, getBodyCareContext } from "./body-systems.js?v=7";
-import { clearSaves, loadGame, saveGame } from "./save.js?v=7";
+} from "./state.js?v=8";
+import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=8";
+import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=8";
+import {
+  getChoiceEffectSummary,
+  getEventDefinition,
+  getEventChoiceAvailability,
+  resolveEvent,
+} from "./events.js?v=8";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=8";
+import { getBodyEventContext } from "./body-events.js?v=8";
+import {
+  getBodyRiskSummary,
+  getKnownBodyConditions,
+  getBodyCareContext,
+} from "./body-systems.js?v=8";
+import { clearSaves, loadGame, saveGame } from "./save.js?v=8";
 import {
   HOMES,
   JOBS,
@@ -38,7 +66,7 @@ import {
   quitJob,
   stopEducation,
   PRIVACY_CONTEXT,
-} from "./life.js?v=7";
+} from "./life.js?v=8";
 import {
   EDUCATION_PATHS,
   JOB_FAMILY_LABELS,
@@ -51,9 +79,9 @@ import {
   getIntensityLabel,
   getPathDurationWeeks,
   isEligibleForJob,
-} from "./education.js?v=7";
-import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=7";
-import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=7";
+} from "./education.js?v=8";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=8";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=8";
 import {
   RELATIONSHIP_STAGES,
   SOCIAL_ROLE_LABELS,
@@ -64,9 +92,9 @@ import {
   getPersonalDebt,
   getRelationship,
   getRelationshipStage,
-} from "./social.js?v=7";
-import { getRelationshipContext } from "./depth2-systems.js?v=7";
-import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=7";
+} from "./social.js?v=8";
+import { getRelationshipContext } from "./depth2-systems.js?v=8";
+import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=8";
 
 const app = document.querySelector("#app");
 let state = null;
@@ -90,9 +118,31 @@ const escapeText = (value) =>
   );
 
 function openCaseLabel(item) {
-  if (item.type === "adult-child") return `${state.parenthood.children.find(c => c.id === item.payload.childId)?.name || "Yetişkin çocuk"} ile yetişkinlik görüşmesi`;
-  if (item.type === "parenting-followup") return ({ planning: "Çocuk planını görüşme", preparation: "Doğum hazırlığı", birth: "Doğum zamanı", care: "Bakım düzenini görüşme", budget: "Çocuk giderlerini görüşme", support: "Aile desteğini görüşme", housing: "Çocuk için yaşam alanı" })[item.payload?.kind] || "Aile görüşmesi";
-  if (item.type === "household-followup") return ({ cohabitation: "Ortak ev kararı", adjustment: "Ev sorumluluklarını görüşme", marriage: "Evlilik kararı", family: "Aileyle ortak yaşam görüşmesi", settlement: "Ayrılık sonrası görüşme", planning: "Ortak niyetleri görüşme" })[item.payload?.kind] || "Ortak yaşam görüşmesi";
+  if (item.type === "adult-child")
+    return `${state.parenthood.children.find((c) => c.id === item.payload.childId)?.name || "Yetişkin çocuk"} ile yetişkinlik görüşmesi`;
+  if (item.type === "parenting-followup")
+    return (
+      {
+        planning: "Çocuk planını görüşme",
+        preparation: "Doğum hazırlığı",
+        birth: "Doğum zamanı",
+        care: "Bakım düzenini görüşme",
+        budget: "Çocuk giderlerini görüşme",
+        support: "Aile desteğini görüşme",
+        housing: "Çocuk için yaşam alanı",
+      }[item.payload?.kind] || "Aile görüşmesi"
+    );
+  if (item.type === "household-followup")
+    return (
+      {
+        cohabitation: "Ortak ev kararı",
+        adjustment: "Ev sorumluluklarını görüşme",
+        marriage: "Evlilik kararı",
+        family: "Aileyle ortak yaşam görüşmesi",
+        settlement: "Ayrılık sonrası görüşme",
+        planning: "Ortak niyetleri görüşme",
+      }[item.payload?.kind] || "Ortak yaşam görüşmesi"
+    );
   if (item.type === "health-followup") return "Planlanan beden takibi";
   if (item.type === "job-start") return "İş başlangıcı";
   if (item.type === "social-obligation") return "Verilen yardım sözü";
@@ -103,11 +153,21 @@ function openCaseLabel(item) {
   }
   if (item.type === "social-followup") return "Bekleyen sosyal mesele";
   if (item.type === "depth2-followup") {
-    const labels = { career_promotion: "Terfi değerlendirmesi", family_expectation: "Aile sorumluluğu", money_relief: "Geçici borç geri ödemesi", education_window: "Eğitim kayıt kararı", midlife_family_obligation: "Aileye ayrılan zaman", retirement_transition: "Emeklilik kararı" };
+    const labels = {
+      career_promotion: "Terfi değerlendirmesi",
+      family_expectation: "Aile sorumluluğu",
+      money_relief: "Geçici borç geri ödemesi",
+      education_window: "Eğitim kayıt kararı",
+      midlife_family_obligation: "Aileye ayrılan zaman",
+      retirement_transition: "Emeklilik kararı",
+    };
     return labels[item.payload?.kind] || "Bekleyen yaşam kararı";
   }
   if (item.type === "favor-obligation") return "Verilen iyiliğin karşılığı";
-  if (item.type === "depth3-followup") return item.payload?.networkType === "network_referral_followup" ? "İş bağlantısı görüşmesi" : "Bekleyen çevre fırsatı";
+  if (item.type === "depth3-followup")
+    return item.payload?.networkType === "network_referral_followup"
+      ? "İş bağlantısı görüşmesi"
+      : "Bekleyen çevre fırsatı";
   return "Bekleyen mesele";
 }
 
@@ -131,8 +191,7 @@ function describeWeeklyChange(change) {
     return `${name} ile aranda gerilim ${change.direction === "up" ? "arttı" : "azaldı"}.`;
   }
   if (change.kind === "obligation") return `Yeni yükümlülük: ${openCaseLabel(change.case)}`;
-  if (change.kind === "housing")
-    return `Yaşam yerin değişti: ${getHomeById(change.homeId).title}`;
+  if (change.kind === "housing") return `Yaşam yerin değişti: ${getHomeById(change.homeId).title}`;
   return "";
 }
 
@@ -152,8 +211,11 @@ function weeksAheadLabel(week) {
 
 function currentCommuteExplanation() {
   if (state.career.retirement?.status === "retired")
-    return { label: "Emekli — iş ulaşımı yok", detail: "Emeklilikten sonra haftalık işe gidiş yükü uygulanmaz." };
-  return getCommuteExplanation(state.household.homeId, state.career.jobId);
+    return {
+      label: "Emekli — iş ulaşımı yok",
+      detail: "Emeklilikten sonra haftalık işe gidiş yükü uygulanmaz.",
+    };
+  return getCommuteExplanation(state.household.homeId, state.career.jobId, state);
 }
 
 function getAllPersonalDebts() {
@@ -179,10 +241,26 @@ function startScreen(loadResult) {
           <label>İsim<input name="name" maxlength="40" value="Deniz" required /></label>
           <label>Kimlik<select name="gender"><option value="unspecified">Belirtmek istemiyorum</option><option value="woman">Kadın</option><option value="man">Erkek</option></select></label>
           <label>Başlangıç profili<select name="profile"><option value="balanced">Dengeli</option><option value="ambitious">Hırslı</option><option value="social">Sosyal</option></select></label>
-          <label>Aile ortamı<select name="familyBackground">${Object.entries(BACKGROUND_OPTIONS.family).map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`).join("")}</select></label>
-          <label>Maddi başlangıç<select name="economicBackground">${Object.entries(BACKGROUND_OPTIONS.economic).map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`).join("")}</select></label>
-          <label>Eğitim geçmişi<select name="educationBackground">${Object.entries(BACKGROUND_OPTIONS.education).map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`).join("")}</select></label>
-          <label>Sosyal çevre<select name="socialBackground">${Object.entries(BACKGROUND_OPTIONS.social).map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`).join("")}</select></label>
+          <label>Aile ortamı<select name="familyBackground">${Object.entries(
+            BACKGROUND_OPTIONS.family,
+          )
+            .map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`)
+            .join("")}</select></label>
+          <label>Maddi başlangıç<select name="economicBackground">${Object.entries(
+            BACKGROUND_OPTIONS.economic,
+          )
+            .map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`)
+            .join("")}</select></label>
+          <label>Eğitim geçmişi<select name="educationBackground">${Object.entries(
+            BACKGROUND_OPTIONS.education,
+          )
+            .map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`)
+            .join("")}</select></label>
+          <label>Sosyal çevre<select name="socialBackground">${Object.entries(
+            BACKGROUND_OPTIONS.social,
+          )
+            .map(([id, label]) => `<option value="${id}">${escapeText(label)}</option>`)
+            .join("")}</select></label>
           <label>Askerlik durumu<select name="militaryApplicable"><option value="false">Bu yaşamda yükümlülük yok</option><option value="true">Yükümlülük var</option></select></label>
           <label>Başlangıç dönemi<select name="eraId" disabled>${ERAS.map((era) => `<option value="${era.id}" ${era.id === PRESENT_DAY_ERA_ID ? "selected" : ""}>${escapeText(era.title)} · aktif</option>`).join("")}</select><small>Diğer dönemler daha sonra eklenecek.</small></label>
           <button class="button button-primary" type="submit">Yeni hayat başlat</button>
@@ -239,7 +317,13 @@ function renderRelationshipMetrics(person) {
 
 function personStageLabel(personId) {
   if (personId === state.social.currentPartnerNpcId) return getHouseholdSummary(state).status;
-  if (getPerson(state, personId)?.social.romanceStatus === "none" && state.household.history?.some((entry) => entry.kind === "divorce" && entry.personId === personId)) return "Eski eş";
+  if (
+    getPerson(state, personId)?.social.romanceStatus === "none" &&
+    state.household.history?.some(
+      (entry) => entry.kind === "divorce" && entry.personId === personId,
+    )
+  )
+    return "Eski eş";
   return RELATIONSHIP_STAGES[getRelationshipStage(state, personId)];
 }
 
@@ -250,15 +334,29 @@ function renderPeopleScreen() {
   const openCase = getOpenSocialCase(state, selected.id);
   const actions = getAvailableSocialActions(state, selected.id);
   const memories = selected.memories.slice(-5).reverse();
-  const milestone = selected.lifeMilestones?.filter((item) => selected.knownMilestones?.includes(item.id)).at(-1);
+  const milestone = selected.lifeMilestones
+    ?.filter((item) => selected.knownMilestones?.includes(item.id))
+    .at(-1);
   return `<div class="workspace-head"><div><p class="eyebrow">KİŞİLER</p><h1>Sosyal çevre</h1></div>${renderWeekControl()}</div>
     <div class="social-layout"><section class="panel people-directory"><div class="panel-head"><div><p class="eyebrow">ÇEVRE</p><h2>Önemli kişiler</h2></div><span>${state.people.length}</span></div>${state.people.map((person) => `<button class="person-select ${person.id === selected.id ? "is-current" : ""}" data-person="${person.id}"><span><strong>${escapeText(person.name)}</strong><small>${escapeText(SOCIAL_ROLE_LABELS[person.roleId])}</small></span><b>${escapeText(personStageLabel(person.id))}</b></button>`).join("")}</section>
-    <section class="panel person-detail"><div class="panel-head"><div><p class="eyebrow">KİŞİ DOSYASI</p><h2>${escapeText(selected.name)}</h2></div><span>${escapeText(stage)}</span></div><p class="context-note">${escapeText(SOCIAL_ROLE_LABELS[selected.roleId])} · Son anlamlı temas ${weeksSinceContact(selected)} hafta önce${openCase ? ` · ${Math.max(0, openCase.dueWeek - state.time.absoluteWeek)} hafta içinde açık söz` : ""}</p><p class="context-note">${escapeText(getSocialDistanceContext(state, selected.id))}</p>${selected.id === state.social.currentPartnerNpcId ? renderHouseholdContext() : ""}${milestone ? `<p class="context-note">Bilinen gelişme: ${escapeText(milestone.text)}</p>` : ""}${getRelationshipContext(state, selected.id).map((note) => `<p class="context-note">${escapeText(note)}</p>`).join("")}${renderRelationshipMetrics(selected)}<div class="social-actions">${actions.map((action) => `<button class="button decision" data-social-action="${action.id}" data-person-id="${selected.id}" ${action.availability.ok ? "" : "disabled"} title="${escapeText(action.availability.reason || "")}"><strong>${escapeText(action.title)}</strong><small>${escapeText(action.detail)}</small></button>`).join("")}</div><div class="person-memories"><p class="panel-kicker">SON ÖNEMLİ ANILAR</p>${memories.length ? memories.map((memory) => `<p><span>${memory.year}</span>${escapeText(memory.text)}</p>`).join("") : `<p class="empty">Henüz ortak bir anı yok.</p>`}</div><p class="result" role="status">${escapeText(notice || "Bir sosyal etkileşim haftalık karar hakkı kullanır.")}</p></section></div>`;
+    <section class="panel person-detail"><div class="panel-head"><div><p class="eyebrow">KİŞİ DOSYASI</p><h2>${escapeText(selected.name)}</h2></div><span>${escapeText(stage)}</span></div><p class="context-note">${escapeText(SOCIAL_ROLE_LABELS[selected.roleId])} · Son anlamlı temas ${weeksSinceContact(selected)} hafta önce${openCase ? ` · ${Math.max(0, openCase.dueWeek - state.time.absoluteWeek)} hafta içinde açık söz` : ""}</p><p class="context-note">${escapeText(getSocialDistanceContext(state, selected.id))}</p>${selected.id === state.social.currentPartnerNpcId ? renderHouseholdContext() : ""}${milestone ? `<p class="context-note">Bilinen gelişme: ${escapeText(milestone.text)}</p>` : ""}${getRelationshipContext(
+      state,
+      selected.id,
+    )
+      .map((note) => `<p class="context-note">${escapeText(note)}</p>`)
+      .join(
+        "",
+      )}${renderRelationshipMetrics(selected)}<div class="social-actions">${actions.map((action) => `<button class="button decision" data-social-action="${action.id}" data-person-id="${selected.id}" ${action.availability.ok ? "" : "disabled"} title="${escapeText(action.availability.reason || "")}"><strong>${escapeText(action.title)}</strong><small>${escapeText(action.detail)}</small></button>`).join("")}</div><div class="person-memories"><p class="panel-kicker">SON ÖNEMLİ ANILAR</p>${memories.length ? memories.map((memory) => `<p><span>${memory.year}</span>${escapeText(memory.text)}</p>`).join("") : `<p class="empty">Henüz ortak bir anı yok.</p>`}</div><p class="result" role="status">${escapeText(notice || "Bir sosyal etkileşim haftalık karar hakkı kullanır.")}</p></section></div>`;
 }
 
 function renderParenthoodContext() {
   const context = parenthoodSummary(state);
-  const lines = [context.pregnancy, ...context.children, ...adultChildSummary(state).map(c => c.text), context.care].filter(Boolean);
+  const lines = [
+    context.pregnancy,
+    ...context.children,
+    ...adultChildSummary(state).map((c) => c.text),
+    context.care,
+  ].filter(Boolean);
   return lines.length ? `<p class="context-note">${lines.map(escapeText).join("<br>")}</p>` : "";
 }
 
@@ -282,7 +380,9 @@ function renderRelationshipsOverview() {
     .flatMap((person) => person.memories.map((memory) => ({ person, memory })))
     .sort((a, b) => b.memory.year - a.memory.year || b.memory.week - a.memory.week)
     .slice(0, 6);
-  const knownSecrets = (state.secrets || []).filter((secret) => secret.knownBy?.includes("player") && secret.status !== "resolved");
+  const knownSecrets = (state.secrets || []).filter(
+    (secret) => secret.knownBy?.includes("player") && secret.status !== "resolved",
+  );
 
   return `<div class="workspace-head"><div><p class="eyebrow">AİLE / İLİŞKİLER</p><h1>Bağların</h1></div>${renderWeekControl()}</div>
     <section class="detail-summary panel">
@@ -323,7 +423,17 @@ function renderRelationshipsOverview() {
         : `<p class="empty">Şu anda açık bir sosyal mesele yok.</p>`
     }</section>
     ${knownSecrets.length ? `<section class="panel"><div class="panel-head"><div><p class="eyebrow">ÖZEL MESELELER</p><h2>Bildiklerin</h2></div><span>${knownSecrets.length}</span></div>${knownSecrets.map((secret) => `<p class="open-case"><b>${escapeText(secret.summary)}</b><span>${secret.status === "exposed" ? "Paylaşıldı" : "Sende kaldı"}</span></p>`).join("")}</section>` : ""}
-    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ÇEVRELER</p><h2>Hayatındaki farklı bakışlar</h2></div></div>${["family", "professional", "friends", "acquaintances"].map((circle) => { const context = getReputationContext(state, circle); return `<p class="open-case"><b>${escapeText(circle === "family" ? "Aile" : circle === "professional" ? "İş" : circle === "friends" ? "Arkadaşlar" : "Tanıdıklar")}</b><span>${escapeText(context.label)}</span></p>`; }).join("")}</section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ÇEVRELER</p><h2>Hayatındaki farklı bakışlar</h2></div></div>${[
+      "family",
+      "professional",
+      "friends",
+      "acquaintances",
+    ]
+      .map((circle) => {
+        const context = getReputationContext(state, circle);
+        return `<p class="open-case"><b>${escapeText(circle === "family" ? "Aile" : circle === "professional" ? "İş" : circle === "friends" ? "Arkadaşlar" : "Tanıdıklar")}</b><span>${escapeText(context.label)}</span></p>`;
+      })
+      .join("")}</section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">KIYAS ÇEVRESİ</p><h2>Çevrenden haberler</h2></div></div>${(state.comparisonCircle?.peers || []).map((peer) => `<p class="open-case"><b>${escapeText(peer.name)} · ${escapeText(peer.relation)}</b><span>${escapeText(peer.status)}</span></p>`).join("") || `<p class="empty">Henüz çevrenden haber yok.</p>`}</section>`;
 }
 
@@ -381,9 +491,12 @@ function bodyRiskText() {
     return "Yoğun iş ve stres birlikte iş baskısı olayı doğurabilir.";
   const longTerm = getBodyRiskSummary(state);
   if (longTerm && !longTerm.includes("yönetilebilir")) return longTerm;
-  if (state.player.age >= 65) return "İleri yaşta haftalık toparlanma daha yavaş; düzenli dinlenme sağlıklı yaşlanmayı destekliyor.";
-  if (state.player.age >= 55) return "Geç kariyerde yoğun haftaların toparlanması daha uzun sürüyor; iş yükü ve dinlenme dengesi önem kazandı.";
-  if (state.player.age >= 45) return "Orta yaşamda toparlanma payı daralıyor; mevcut sağlık ve dinlenme seçimlerin belirleyici.";
+  if (state.player.age >= 65)
+    return "İleri yaşta haftalık toparlanma daha yavaş; düzenli dinlenme sağlıklı yaşlanmayı destekliyor.";
+  if (state.player.age >= 55)
+    return "Geç kariyerde yoğun haftaların toparlanması daha uzun sürüyor; iş yükü ve dinlenme dengesi önem kazandı.";
+  if (state.player.age >= 45)
+    return "Orta yaşamda toparlanma payı daralıyor; mevcut sağlık ve dinlenme seçimlerin belirleyici.";
   return "Enerji ve stres; haftalık kararlar, iş yükü ve ulaşım tarafından etkilenir.";
 }
 
@@ -395,7 +508,9 @@ function renderDashboard() {
   const monthly = getMonthlySummary(state);
   const projectedBalance = state.finances.balance + monthly.income - monthly.expenses;
   const socialCases = activeCases.filter((item) => item.type === "social-obligation");
-  const partner = state.social.currentPartnerNpcId ? getPerson(state, state.social.currentPartnerNpcId) : null;
+  const partner = state.social.currentPartnerNpcId
+    ? getPerson(state, state.social.currentPartnerNpcId)
+    : null;
   return `<div class="workspace-head"><div><p class="eyebrow">ANA SAYFA</p><h1>Hayat merkezi</h1></div>${renderWeekControl()}</div>
     ${renderParenthoodContext()}
     <section class="overview-grid" aria-label="Hayat özeti">
@@ -461,7 +576,18 @@ function renderCareer() {
       },
     ).join(
       "",
-    )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= getWeeklyActivityLimit(state) ? "disabled" : ""}>İşi bırak</button>` : ""}<div class="history career-history">${state.career.history?.length ? state.career.history.slice(-5).reverse().map((entry) => `<div class="memory"><strong>${entry.year}</strong> · ${escapeText(entry.label)}</div>`).join("") : `<p class="empty">Henüz bir kariyer dönüm noktası yok.</p>`}</div><p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
+    )}</div>${active ? `<button class="button button-danger action-footer" id="quit-job" ${state.career.pendingJob || state.weekly.used >= getWeeklyActivityLimit(state) ? "disabled" : ""}>İşi bırak</button>` : ""}<div class="history career-history">${
+      state.career.history?.length
+        ? state.career.history
+            .slice(-5)
+            .reverse()
+            .map(
+              (entry) =>
+                `<div class="memory"><strong>${entry.year}</strong> · ${escapeText(entry.label)}</div>`,
+            )
+            .join("")
+        : `<p class="empty">Henüz bir kariyer dönüm noktası yok.</p>`
+    }</div><p class="result" role="status">${escapeText(notice || "Teklif kabulü bir karar hakkı kullanır ve iş gelecek hafta başlar.")}</p></section>`;
 }
 
 function experienceSummary() {
@@ -520,11 +646,14 @@ function renderEducation() {
 function renderHomes() {
   const activeJob = getJobById(state.career.jobId);
   const activeCommute = currentCommuteExplanation();
-  const housing = getMonthlyHousingBreakdown(state);
+  const housing = getMonthlySummary(state).housingBreakdown;
+  const owned = state.wealth.properties.filter((property) => property.occupancy === "owner");
+  const rentals = state.wealth.properties.filter((property) => property.occupancy !== "owner");
   return `<div class="workspace-head"><div><p class="eyebrow">EV</p><h1>Konut yönetimi</h1></div>${renderWeekControl()}</div>
     ${renderHouseholdContext()}
     <section class="detail-summary panel"><div><span>Aktif konut</span><strong>${escapeText(getHomeById(state.household.homeId).title)}</strong></div><div><span>Aylık maliyet</span><strong>${money(housing.total)}</strong>${housing.partnerContribution ? `<small>Ortak gider +${money(housing.householdExtra)} · Partner payı −${money(housing.partnerContribution)}</small>` : ""}${housing.familyContribution ? `<small>Konut ${money(housing.base)} · Aile katkısı ${money(housing.familyContribution)}</small>` : ""}</div><div><span>Çalışma yeri</span><strong>${escapeText(state.career.retirement?.status === "retired" ? "Emekli" : activeJob?.title || "İşsiz")}</strong></div><div><span>Ulaşım yükü</span><strong>${escapeText(activeCommute.label)}</strong><small>${escapeText(activeCommute.detail)}</small></div></section>
     <p class="context-note">${escapeText(PRIVACY_CONTEXT)}</p>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">MÜLKİYET</p><h2>Konut varlıkların</h2></div><span>${owned.length + rentals.length}</span></div><p class="context-note">${owned.length ? "Bu evin sahibi sensin; katalog kirası yerine bakım ve varsa konut borcu ödüyorsun." : "Mevcut konut aile veya kiralama düzeninde."}${rentals.length ? ` · ${rentals.length} yatırım mülkü: ${rentals.filter((property) => property.occupancy === "rental").length} kirada.` : ""}</p><button class="button button-quiet" data-view="finance">Alım, satış ve borçları PARA ekranında yönet</button></section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">SEÇENEKLER</p><h2>Konut alternatifleri</h2></div></div><div class="option-grid">${HOMES.map(
       (home) => {
         const cost = getMoveCost(home.id);
@@ -535,7 +664,7 @@ function renderHomes() {
           !affordable ||
           state.weekly.used >= getWeeklyActivityLimit(state) ||
           state.events.active;
-        const commute = getCommuteExplanation(home.id, state.career.jobId);
+        const commute = getCommuteExplanation(home.id, state.career.jobId, state);
         return `<article class="option-card ${current ? "is-current" : ""}"><div><p class="panel-kicker">${current ? "MEVCUT EV" : "KONUT"}</p><h3>${escapeText(home.title)}</h3></div><dl><div><dt>Mahremiyet</dt><dd>${lifeLabel(home.privacy)}</dd></div><div><dt>Aylık maliyet</dt><dd>${money(home.monthlyCost)}</dd></div><div><dt>İşe ulaşım</dt><dd>${escapeText(commute.label)}</dd></div><div><dt>Haftalık ulaşım</dt><dd>${escapeText(commute.detail)}</dd></div><div><dt>Taşınma</dt><dd>${money(cost)}</dd></div></dl><button class="button" data-move-home="${home.id}" ${disabled ? "disabled" : ""}>${current ? "Burada yaşıyorsun" : affordable ? "Taşın" : "Para yetersiz"}</button></article>`;
       },
     ).join(
@@ -551,6 +680,7 @@ function getFriendLoanAmount() {
 
 function renderFinance() {
   const monthly = getMonthlySummary(state);
+  const worth = netWorth(state);
   const projectedBalance = state.finances.balance + monthly.income - monthly.expenses;
   const personalDebts = getAllPersonalDebts();
   const friendLoan = state.openCases.find(
@@ -558,34 +688,97 @@ function renderFinance() {
   );
   const friendLoanAmount = getFriendLoanAmount();
   const owedToPlayer = [
-    ...personalDebts.map(({ person, debt }) => ({ name: person.name, amount: debt.payload.amount })),
+    ...personalDebts.map(({ person, debt }) => ({
+      name: person.name,
+      amount: debt.payload.amount,
+    })),
     ...(friendLoan && friendLoanAmount ? [{ name: "Mehmet", amount: friendLoanAmount }] : []),
   ];
   const ledger = [...state.finances.ledger].reverse().slice(0, 40);
-  return `<div class="workspace-head"><div><p class="eyebrow">PARA</p><h1>Mali durum</h1></div>${renderWeekControl()}</div>
-    <section class="detail-summary panel">
-      <div><span>Bakiye</span><strong>${money(state.finances.balance)}</strong></div>
-      <div><span>Aylık gelir</span><strong>${money(monthly.income)}</strong><small>Maaş ${money(monthly.salary)}${monthly.retirementIncome ? ` · Emeklilik ${money(monthly.retirementIncome)}` : ""}${monthly.otherIncome ? ` · Diğer ${money(monthly.otherIncome)}` : ""}</small></div>
-      <div><span>Aylık gider</span><strong>${money(monthly.expenses)}</strong><small>Konut ${money(monthly.housingBreakdown.base)}${monthly.housingBreakdown.familyContribution ? ` · Aile katkısı ${money(monthly.housingBreakdown.familyContribution)}` : ""}${monthly.tuition ? ` · Eğitim ${money(monthly.tuition)}` : ""} · Diğer ${money(monthly.otherExpenses)}${monthly.parenting ? ` · Çocuk/bakım ${money(monthly.parenting)}` : ""}${monthly.housingBreakdown.partnerContribution ? ` · Ortak gider +${money(monthly.housingBreakdown.householdExtra)} · Partner payı −${money(monthly.housingBreakdown.partnerContribution)}` : ""}</small></div>
+  const wealthButton = (action, value, label, detail, disabled = false) =>
+    `<button class="button decision wealth-action" data-wealth-action="${action}" data-wealth-value="${value}" ${disabled ? "disabled" : ""}><strong>${escapeText(label)}</strong><small>${escapeText(detail)}</small></button>`;
+  return `<div class="workspace-head"><div><p class="eyebrow">PARA</p><h1>Mali durum ve net servet</h1></div>${renderWeekControl()}</div>
+    <section class="detail-summary panel wealth-summary">
+      <div><span>Bakiye</span><strong>${money(state.finances.balance)}</strong></div><div><span>Net servet</span><strong>${money(worth.total)}</strong><small>Nakit ${money(worth.cash)} · Yatırım ${money(worth.investments)} · Gayrimenkul ${money(worth.property)} · Araç/eşya ${money(worth.vehicle + worth.durables)} · Borç −${money(worth.debt)}</small></div>
+      <div><span>Aylık gelir</span><strong>${money(monthly.income)}</strong><small>Maaş ${money(monthly.salary)}${monthly.retirementIncome ? ` · Emeklilik ${money(monthly.retirementIncome)}` : ""}${monthly.wealth.income ? ` · Kira ${money(monthly.wealth.income)}` : ""}</small></div>
+      <div><span>Aylık gider</span><strong>${money(monthly.expenses)}</strong><small>Konut ${money(monthly.housing)} · Yaşam/varlık ${money(monthly.wealth.expenses)} · Diğer ${money(monthly.otherExpenses)}${monthly.parenting ? ` · Çocuk ${money(monthly.parenting)}` : ""}</small></div>
       <div><span>Ay sonu tahmini</span><strong>${money(projectedBalance)}</strong></div>
     </section>
-    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ALACAKLAR</p><h2>Sana borçlu olanlar</h2></div><span>${owedToPlayer.length}</span></div>${
-      owedToPlayer.length
-        ? owedToPlayer
-            .map((item) => `<p class="open-case"><b>${escapeText(item.name)}</b><span>${money(item.amount)}</span></p>`)
-            .join("")
-        : `<p class="empty">Şu anda kimsenin sana borcu yok.</p>`
-    }</section>
-    <section class="panel"><div class="panel-head"><div><p class="eyebrow">İŞLEMLER</p><h2>Son işlemler</h2></div><span>${state.finances.ledger.length}</span></div><div class="history">${
-      ledger.length
-        ? ledger
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">YAŞAM STANDARDI</p><h2>Gündelik düzen</h2></div><span>${escapeText(LIFESTYLE_TIERS[state.wealth.lifestyle].label)}</span></div><p class="context-note">Daha yüksek standart yalnız daha fazla seçenek ve düzenli gider sağlar; mutluluk satın alınmaz.</p><div class="wealth-grid">${Object.entries(
+      LIFESTYLE_TIERS,
+    )
+      .map(([id, tier]) =>
+        wealthButton(
+          "lifestyle",
+          id,
+          tier.label,
+          `Aylık ${money(tier.monthly)}`,
+          state.wealth.lifestyle === id,
+        ),
+      )
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">DENEYİMLER</p><h2>Günlük yaşam, eğlence ve seyahat</h2></div><span>Haftalık karar</span></div><div class="wealth-grid">${Object.entries(
+      SPENDING,
+    )
+      .map(([id, item]) =>
+        wealthButton("spend", id, item.label, `${item.category} · ${money(item.cost)}`),
+      )
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ABONELİKLER</p><h2>Düzenli hizmetler</h2></div><span>${state.wealth.subscriptions.length}</span></div><div class="wealth-grid">${Object.entries(
+      SUBSCRIPTIONS,
+    )
+      .map(([id, item]) => {
+        const active = state.wealth.subscriptions.some((x) => x.id === id);
+        return wealthButton(
+          "subscription",
+          id,
+          item.label,
+          active
+            ? `Aktif · aylık ${money(item.monthly)} · kapat`
+            : `Aylık ${money(item.monthly)} · başlat`,
+        );
+      })
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">YATIRIMLAR</p><h2>Soyut varlık sınıfları</h2></div><span>${money(worth.investments)}</span></div><p class="context-note">Değerler ay sonunda deterministik değişir. Her işlemde %1 alış/satış farkı vardır; getiri garanti değildir.</p><div class="wealth-grid">${Object.entries(
+      INVESTMENTS,
+    )
+      .map(([id, item]) => {
+        const p = state.wealth.investments.find((x) => x.id === id);
+        return `<article class="wealth-card"><strong>${escapeText(item.label)}</strong><small>Değer ${money(p?.value || 0)} · Maliyet ${money(p?.basis || 0)}</small><div class="wealth-actions">${wealthButton("invest-buy", id, "₺5.000 al", "İşlem farkı dahil", state.finances.balance < 5050)}${wealthButton("invest-sell", id, "₺5.000 sat", "Nakit yarat", (p?.value || 0) < 5000)}</div></article>`;
+      })
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ÖNEMLİ EŞYALAR</p><h2>Kalıcı kullanım ve ikinci el değeri</h2></div><span>${money(worth.durables)}</span></div><div class="wealth-grid">${Object.entries(
+      DURABLES,
+    )
+      .map(([id, item]) =>
+        wealthButton(
+          "durable",
+          id,
+          item.label,
+          `${money(item.price)} · yenilemede eskisi satılır`,
+          state.finances.balance < item.price,
+        ),
+      )
+      .join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ARAÇ</p><h2>Ulaşım varlığı</h2></div><span>${state.wealth.vehicle ? escapeText(VEHICLES[state.wealth.vehicle.tier].label) : "Araç yok"}</span></div><div class="wealth-grid">${
+      state.wealth.vehicle
+        ? wealthButton(
+            "vehicle-sell",
+            "current",
+            "Aracı sat",
+            `Tahmini değer ${money(state.wealth.vehicle.currentValue)}`,
+          )
+        : Object.entries(VEHICLES)
             .map(
-              (entry) =>
-                `<div class="memory"><strong>${entry.amount >= 0 ? "+" : ""}${money(entry.amount)}</strong> · ${escapeText(entry.reason)} · <span>${escapeText(weeksAgoLabel(entry.week))}</span></div>`,
+              ([id, item]) =>
+                `${wealthButton("vehicle-cash", id, item.label, `${money(item.price)} peşin`, state.finances.balance < item.price)}${wealthButton("vehicle-finance", id, `${item.label} · finansman`, `%35 peşinat · aylık gider ve borç`, state.finances.balance < Math.ceil(item.price * 0.35))}`,
             )
             .join("")
-        : `<p class="empty">Henüz bir işlem kaydı yok.</p>`
-    }</div></section>`;
+    }</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">GAYRİMENKUL</p><h2>Ev ve kiralık mülk</h2></div><span>${state.wealth.properties.length}/3</span></div><p class="context-note">Oturulan evde kira durur; bakım ve varsa konut borcu işler. Kiralık mülk düzenli gelir ve gider yaratır.</p><div class="wealth-grid">${[...state.wealth.properties.flatMap((p) => [wealthButton("property-sell", p.id, p.occupancy === "owner" ? "Oturulan evi sat" : "Yatırım mülkünü sat", `Değer ${money(p.currentValue)}`), ...(p.occupancy === "owner" ? [] : [wealthButton(p.occupancy === "rental" ? "property-vacant" : "property-rent", p.id, p.occupancy === "rental" ? "Boş bırak" : "Kiraya ver", p.occupancy === "rental" ? "Kira geliri durur" : "Aylık kira geliri başlar")])]), wealthButton("property-owner", "cash", "Oturulan ev al", money(480000), state.finances.balance < 480000 || state.wealth.properties.some((p) => p.occupancy === "owner")), wealthButton("property-owner", "mortgage", "Oturulan ev · konut borcu", "%30 peşinat", state.finances.balance < 144000 || state.wealth.properties.some((p) => p.occupancy === "owner")), wealthButton("property-rental", "cash", "Kiralık mülk al", money(420000), state.finances.balance < 420000 || state.wealth.properties.some((p) => p.occupancy === "rental")), wealthButton("property-rental", "mortgage", "Kiralık mülk · konut borcu", "%30 peşinat", state.finances.balance < 126000 || state.wealth.properties.some((p) => p.occupancy === "rental"))].join("")}</div></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">BORÇLAR</p><h2>Varlığa bağlı yükümlülükler</h2></div><span>${money(worth.debt)}</span></div>${state.wealth.debts.length ? state.wealth.debts.map((d) => `<p class="open-case"><b>${d.type === "mortgage" ? "Konut borcu" : d.type === "vehicle" ? "Araç borcu" : "Kişisel borç"}</b><span>${money(d.principal)} · aylık ${money(Math.min(d.principal, d.monthlyPayment))}</span></p>`).join("") : `<p class="empty">Varlığa bağlı borç yok.</p>`}</section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ALACAKLAR</p><h2>Sana borçlu olanlar</h2></div><span>${owedToPlayer.length}</span></div>${owedToPlayer.length ? owedToPlayer.map((item) => `<p class="open-case"><b>${escapeText(item.name)}</b><span>${money(item.amount)}</span></p>`).join("") : `<p class="empty">Şu anda kimsenin sana borcu yok.</p>`}</section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">İŞLEMLER</p><h2>Son işlemler</h2></div><span>${state.finances.ledger.length}</span></div><div class="history">${ledger.length ? ledger.map((entry) => `<div class="memory"><strong>${entry.amount >= 0 ? "+" : ""}${money(entry.amount)}</strong> · ${escapeText(entry.reason)} · <span>${escapeText(weeksAgoLabel(entry.week))}</span></div>`).join("") : `<p class="empty">Henüz bir işlem kaydı yok.</p>`}</div><p class="result" role="status">${escapeText(notice || "Varlıklar piyasa değeriyle, borçlar kalan anaparayla gösterilir.")}</p></section>`;
 }
 
 function renderBody() {
@@ -600,7 +793,11 @@ function renderBody() {
       <div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div>
       <small class="body-note">${escapeText(bodyRiskText())}</small>
       <p class="panel-kicker">BİLİNEN DURUMLAR</p>
-      <div class="known-conditions">${getKnownBodyConditions(state).map((c) => `<p>${escapeText(c.name)} — ${escapeText(c.outcome)}.</p>`).join("") || `<p class="empty">Bilinen kalıcı bir durum yok.</p>`}</div>
+      <div class="known-conditions">${
+        getKnownBodyConditions(state)
+          .map((c) => `<p>${escapeText(c.name)} — ${escapeText(c.outcome)}.</p>`)
+          .join("") || `<p class="empty">Bilinen kalıcı bir durum yok.</p>`
+      }</div>
       ${state.body?.warningAvailable || getKnownBodyConditions(state).length ? `<small class="body-note">${escapeText(getBodyCareContext(state))}</small>` : ""}
     </section>
     <section class="detail-summary panel">
@@ -636,9 +833,18 @@ function renderYearbook() {
         ? years
             .map((year) => {
               const net = year.endingBalance - year.startingBalance;
-              const job = year.career?.retirementStatus === "retired" ? "Emekli" : year.career?.jobId ? getJobById(year.career.jobId)?.title || "İş kaydı" : "İşsiz";
-              const home = year.housing?.homeId ? getHomeById(year.housing.homeId)?.title || "Konut kaydı" : null;
-              const education = year.education?.level ? getEducationLevelLabel(year.education.level) : null;
+              const job =
+                year.career?.retirementStatus === "retired"
+                  ? "Emekli"
+                  : year.career?.jobId
+                    ? getJobById(year.career.jobId)?.title || "İş kaydı"
+                    : "İşsiz";
+              const home = year.housing?.homeId
+                ? getHomeById(year.housing.homeId)?.title || "Konut kaydı"
+                : null;
+              const education = year.education?.level
+                ? getEducationLevelLabel(year.education.level)
+                : null;
               const health = year.health;
               const relationshipSummary = Object.entries(year.relationships || {})
                 .map(([personId, value]) => {
@@ -649,22 +855,49 @@ function renderYearbook() {
                 .slice(0, 3);
               const details = [
                 `İş: ${job}`,
+                year.netWorth
+                  ? `Net servet: ${money(year.netWorth.total)} · yatırım ${money(year.netWorth.investments)} · gayrimenkul ${money(year.netWorth.property)} · borç ${money(year.netWorth.debt)}`
+                  : null,
+                year.lifestyle
+                  ? `Yaşam standardı: ${LIFESTYLE_TIERS[year.lifestyle]?.label || "Mütevazı"}`
+                  : null,
                 home ? `Konut: ${home}` : null,
                 education ? `Eğitim: ${education}` : null,
-                health ? `Beden: enerji ${health.end?.energy ?? health.energy} · stres ${health.end?.stress ?? health.stress} · sağlık ${health.end?.health ?? health.health}` : null,
-                health?.start ? `Yıl başı sağlık ${health.start.health} · yıl sonu sağlık ${health.end.health}` : null,
-                health?.conditions?.length ? health.conditions.filter((item) => item.name && item.outcome).map((item) => `${item.name} — ${item.outcome}`).join(" · ") : null,
-                Number.isInteger(year.knownObligations) ? `Bilinen açık mesele: ${year.knownObligations}` : null,
-                Number.isInteger(year.meaningfulEvents) ? `Önemli olay: ${year.meaningfulEvents}` : null,
-                year.priorities?.length ? `Öncelikler: ${year.priorities.map((id) => PRIORITY_OPTIONS[id] || id).join(" · ")}` : null,
-                year.priorityReflection?.length ? `Yılın karşılığı: ${year.priorityReflection.join(" · ")}` : null,
+                health
+                  ? `Beden: enerji ${health.end?.energy ?? health.energy} · stres ${health.end?.stress ?? health.stress} · sağlık ${health.end?.health ?? health.health}`
+                  : null,
+                health?.start
+                  ? `Yıl başı sağlık ${health.start.health} · yıl sonu sağlık ${health.end.health}`
+                  : null,
+                health?.conditions?.length
+                  ? health.conditions
+                      .filter((item) => item.name && item.outcome)
+                      .map((item) => `${item.name} — ${item.outcome}`)
+                      .join(" · ")
+                  : null,
+                Number.isInteger(year.knownObligations)
+                  ? `Bilinen açık mesele: ${year.knownObligations}`
+                  : null,
+                Number.isInteger(year.meaningfulEvents)
+                  ? `Önemli olay: ${year.meaningfulEvents}`
+                  : null,
+                year.priorities?.length
+                  ? `Öncelikler: ${year.priorities.map((id) => PRIORITY_OPTIONS[id] || id).join(" · ")}`
+                  : null,
+                year.priorityReflection?.length
+                  ? `Yılın karşılığı: ${year.priorityReflection.join(" · ")}`
+                  : null,
                 relationshipSummary.length ? `İlişkiler: ${relationshipSummary.join(" · ")}` : null,
-                year.household?.partnerName ? `Ortak yaşam: ${year.household.partnerName} · ${year.household.status} · ${year.household.residence}` : null,
+                year.household?.partnerName
+                  ? `Ortak yaşam: ${year.household.partnerName} · ${year.household.status} · ${year.household.residence}`
+                  : null,
                 year.parenting?.children?.length ? year.parenting.children.join(" · ") : null,
                 year.parenting?.pregnancy || null,
                 year.parenting?.births?.length ? year.parenting.births.join(" · ") : null,
                 year.household?.milestones?.length ? year.household.milestones.join(" · ") : null,
-                year.career?.milestones?.length ? `Kariyer: ${year.career.milestones.join(" · ")}` : null,
+                year.career?.milestones?.length
+                  ? `Kariyer: ${year.career.milestones.join(" · ")}`
+                  : null,
               ].filter(Boolean);
               return `<div class="open-case"><b>${year.year}</b><span>Başlangıç ${money(year.startingBalance)} · Bitiş ${money(year.endingBalance)} · Net ${net >= 0 ? "+" : ""}${money(net)}</span>${details.length ? `<span>${escapeText(details.join(" · "))}</span>` : ""}${year.importantMemories.length ? `<span>${year.importantMemories.map((text) => escapeText(text)).join(" · ")}</span>` : ""}</div>`;
             })
@@ -710,7 +943,16 @@ function renderCharacter() {
     </section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">YILLIK ÖNCELİKLER</p><h2>${state.yearlyPlan?.year || state.time.year} yılı</h2></div></div>
       ${priorities.length ? `<p class="context-note">${priorities.map((id) => escapeText(PRIORITY_OPTIONS[id])).join(" · ")}</p>` : `<p class="empty">Bu yıl için henüz bir öncelik seçmedin.</p>`}
-      <form id="yearly-plan-form" class="priority-form"><div class="priority-options">${Object.entries(PRIORITY_OPTIONS).map(([id, label]) => `<label><input type="checkbox" name="priority" value="${id}" ${priorities.includes(id) ? "checked" : ""}> ${escapeText(label)}</label>`).join("")}</div><button class="button button-quiet" type="submit">Öncelikleri kaydet</button></form>
+      <form id="yearly-plan-form" class="priority-form"><div class="priority-options">${Object.entries(
+        PRIORITY_OPTIONS,
+      )
+        .map(
+          ([id, label]) =>
+            `<label><input type="checkbox" name="priority" value="${id}" ${priorities.includes(id) ? "checked" : ""}> ${escapeText(label)}</label>`,
+        )
+        .join(
+          "",
+        )}</div><button class="button button-quiet" type="submit">Öncelikleri kaydet</button></form>
     </section>`;
 }
 
@@ -727,7 +969,9 @@ function renderCalendar() {
     personalDebts.length +
     (state.career.pendingJob ? 1 : 0) +
     (educationProgress ? 1 : 0) +
-    (state.military?.applicable && state.military.status === "pending" && state.military.dueWeek ? 1 : 0);
+    (state.military?.applicable && state.military.status === "pending" && state.military.dueWeek
+      ? 1
+      : 0);
   return `<div class="workspace-head"><div><p class="eyebrow">TAKVİM</p><h1>Bilinen yükümlülükler</h1></div>${renderWeekControl()}</div>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">AY SONU</p><h2>Düzenli tahsilat</h2></div></div><p class="context-note">${weeksLeftInMonth} hafta sonra ay kapanır: ${money(monthly.income)} gelir, ${money(monthly.expenses)} gider işlenecek.</p></section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">BİLİNEN İŞLER</p><h2>Yaklaşan tarihler</h2></div><span>${itemCount}</span></div>${
@@ -750,8 +994,10 @@ function renderCalendar() {
               ({ person, debt }) =>
                 `<p class="open-case"><b>${escapeText(person.name)}: ${money(debt.payload.amount)} borçlu</b><span>Bekleniyor</span></p>`,
             )
-            .join("")}`
-          + (state.military?.applicable && state.military.status === "pending" && state.military.dueWeek
+            .join("")}` +
+          (state.military?.applicable &&
+          state.military.status === "pending" &&
+          state.military.dueWeek
             ? `<p class="open-case"><b>Askerlik yükümlülüğü</b><span>${escapeText(weeksAheadLabel(state.military.dueWeek))}</span></p>`
             : "")
         : `<p class="empty">Şu anda bilinen bir yükümlülüğün yok.</p>`
@@ -784,7 +1030,10 @@ function render() {
   if (!state) return startScreen(loadGame(localStorage));
   if (!weekStartSnapshot) weekStartSnapshot = snapshotWeekState(state);
   const terminal = Boolean(state.lifetime?.death);
-  const workspace = terminal ? renderLifetimeTerminal(state) : (VIEW_RENDERERS[activeView] || renderDashboard)() + (["character", "history", "yearbook"].includes(activeView) ? renderLineage(state) : "");
+  const workspace = terminal
+    ? renderLifetimeTerminal(state)
+    : (VIEW_RENDERERS[activeView] || renderDashboard)() +
+      (["character", "history", "yearbook"].includes(activeView) ? renderLineage(state) : "");
   app.innerHTML = `
     <main class="game-frame">
       <header class="game-topbar">
@@ -805,6 +1054,23 @@ function render() {
     const result = continueGeneration(state, button.dataset.successor);
     notice = result.message || result.reason;
     if (result.ok) { activeView = "dashboard"; weekStartSnapshot = null; }
+    persist();
+    render();
+  }));
+  document.querySelectorAll("[data-wealth-action]").forEach((button) => button.addEventListener("click", () => {
+    const action = button.dataset.wealthAction;
+    const value = button.dataset.wealthValue;
+    const operations = {
+      lifestyle: () => setLifestyle(state, value), spend: () => spendLifestyle(state, value),
+      subscription: () => toggleSubscription(state, value), durable: () => buyDurable(state, value),
+      "invest-buy": () => tradeInvestment(state, value, 5000), "invest-sell": () => tradeInvestment(state, value, -5000),
+      "vehicle-cash": () => buyVehicle(state, value, false), "vehicle-finance": () => buyVehicle(state, value, true),
+      "vehicle-sell": () => sellVehicle(state), "property-owner": () => buyProperty(state, "owner", value === "mortgage"),
+      "property-rental": () => buyProperty(state, "rental", value === "mortgage"), "property-sell": () => sellProperty(state, value),
+      "property-rent": () => setPropertyOccupancy(state, value, "rental"), "property-vacant": () => setPropertyOccupancy(state, value, "vacant"),
+    };
+    const result = operations[action]?.() || { ok: false, reason: "İşlem kullanılamıyor." };
+    notice = result.message || result.reason;
     persist();
     render();
   }));
@@ -842,19 +1108,19 @@ function render() {
   );
   document.querySelector("#yearly-plan-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const selected = [...event.currentTarget.querySelectorAll("input[name=priority]:checked")].map((input) => input.value);
+    const selected = [...event.currentTarget.querySelectorAll("input[name=priority]:checked")].map(
+      (input) => input.value,
+    );
     setYearlyPriorities(state, selected);
-    notice = selected.length ? "Yıllık önceliklerin kaydedildi." : "Yıllık önceliklerin temizlendi.";
+    notice = selected.length
+      ? "Yıllık önceliklerin kaydedildi."
+      : "Yıllık önceliklerin temizlendi.";
     persist();
     render();
   });
   document.querySelectorAll("[data-social-action]").forEach((button) =>
     button.addEventListener("click", () => {
-      const result = applySocialAction(
-        state,
-        button.dataset.personId,
-        button.dataset.socialAction,
-      );
+      const result = applySocialAction(state, button.dataset.personId, button.dataset.socialAction);
       notice = result.reason || result.message;
       persist();
       render();

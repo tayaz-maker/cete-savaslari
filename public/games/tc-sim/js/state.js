@@ -1,10 +1,16 @@
-import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=7";
-import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=7";
-import { normalizeHousehold, HOUSEHOLD_HISTORY_LIMIT, neutralUnion, FAMILY_INTENTS } from "./household.js?v=7";
-import { ensureBodyState } from "./body-systems.js?v=7";
-import { getHomeById, getJobById } from "./catalog.js?v=7";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=7";
-import { isEducationLevel, isValidActiveEducation } from "./education.js?v=7";
+import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=8";
+import { neutralWealth, normalizeWealth, validateWealth } from "./wealth.js?v=8";
+import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=8";
+import {
+  normalizeHousehold,
+  HOUSEHOLD_HISTORY_LIMIT,
+  neutralUnion,
+  FAMILY_INTENTS,
+} from "./household.js?v=8";
+import { ensureBodyState } from "./body-systems.js?v=8";
+import { getHomeById, getJobById } from "./catalog.js?v=8";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=8";
+import { isEducationLevel, isValidActiveEducation } from "./education.js?v=8";
 
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;
@@ -48,14 +54,19 @@ export const BACKGROUND_OPTIONS = {
     strained: "Maddi olarak zorlanan aile",
   },
   economic: { tight: "Sıkışık başlangıç", modest: "Mütevazı başlangıç", stable: "Dengeli birikim" },
-  education: { general: "Genel lise", vocational: "Meslek lisesi", unfinished: "Yarım kalmış eğitim" },
+  education: {
+    general: "Genel lise",
+    vocational: "Meslek lisesi",
+    unfinished: "Yarım kalmış eğitim",
+  },
   social: { close: "Yakın çevre", broad: "Geniş çevre", family: "Aile merkezli" },
 };
 
 const DEFAULT_TENDENCIES = { risk: 50, discipline: 50, sociability: 50, frugality: 50 };
 
 export function adjustTendency(state, key, amount) {
-  if (!state?.player?.tendencies || !(key in DEFAULT_TENDENCIES) || !Number.isFinite(amount)) return false;
+  if (!state?.player?.tendencies || !(key in DEFAULT_TENDENCIES) || !Number.isFinite(amount))
+    return false;
   state.player.tendencies[key] = clamp(state.player.tendencies[key] + amount);
   return true;
 }
@@ -131,10 +142,18 @@ export function createNewGame(options = {}) {
   const seed = Number.isInteger(options.seed) ? options.seed >>> 0 : 20270101;
   const socialBonus = options.profile === "social" ? 6 : 0;
   const background = {
-    family: Object.hasOwn(BACKGROUND_OPTIONS.family, options.familyBackground) ? options.familyBackground : "supportive",
-    economic: Object.hasOwn(BACKGROUND_OPTIONS.economic, options.economicBackground) ? options.economicBackground : "modest",
-    education: Object.hasOwn(BACKGROUND_OPTIONS.education, options.educationBackground) ? options.educationBackground : "general",
-    social: Object.hasOwn(BACKGROUND_OPTIONS.social, options.socialBackground) ? options.socialBackground : "close",
+    family: Object.hasOwn(BACKGROUND_OPTIONS.family, options.familyBackground)
+      ? options.familyBackground
+      : "supportive",
+    economic: Object.hasOwn(BACKGROUND_OPTIONS.economic, options.economicBackground)
+      ? options.economicBackground
+      : "modest",
+    education: Object.hasOwn(BACKGROUND_OPTIONS.education, options.educationBackground)
+      ? options.educationBackground
+      : "general",
+    social: Object.hasOwn(BACKGROUND_OPTIONS.social, options.socialBackground)
+      ? options.socialBackground
+      : "close",
   };
   const economicBalance = { tight: -1000, modest: 0, stable: 1000 }[background.economic];
   const familyRelationship = { supportive: 0, demanding: -4, strained: -8 }[background.family];
@@ -184,6 +203,7 @@ export function createNewGame(options = {}) {
     },
     world: { eraId: getEraById(options.eraId)?.id || PRESENT_DAY_ERA_ID },
     time: { year: 2027, month: 1, weekOfMonth: 1, absoluteWeek: 1 },
+    wealth: neutralWealth(),
     finances: {
       balance: profile.balance + economicBalance,
       otherMonthlyIncome: 0,
@@ -236,7 +256,12 @@ export function createNewGame(options = {}) {
     comparisonCircle: {
       peers: [
         { id: "comparison-cousin", name: "Selin", relation: "Kuzen", status: "Yeni bir iş arıyor" },
-        { id: "comparison-classmate", name: "Emre", relation: "Eski sınıf arkadaşı", status: "Eğitimine devam ediyor" },
+        {
+          id: "comparison-classmate",
+          name: "Emre",
+          relation: "Eski sınıf arkadaşı",
+          status: "Eğitimine devam ediyor",
+        },
       ],
       milestones: [],
     },
@@ -277,7 +302,7 @@ export function adjustHealth(state, changes) {
 }
 
 export function updateRelationship(state, personId, amount) {
-  if (state.people.find(p => p.id === personId)?.deceased) return false;
+  if (state.people.find((p) => p.id === personId)?.deceased) return false;
   if (!(personId in state.relationships) || !Number.isFinite(amount)) return false;
   state.relationships[personId] = clamp(state.relationships[personId] + amount);
   return true;
@@ -345,9 +370,33 @@ const SOCIAL_DEFAULTS = {
     trust: 42,
     romanceStatus: "none",
   },
-  selin: { roleId: "acquaintance", tags: ["peer", "weak_tie"], trust: 44, romanceStatus: "none", relationType: "Kuzen", circles: ["family", "acquaintances"], contactCategory: "weak" },
-  emre: { roleId: "acquaintance", tags: ["peer", "weak_tie"], trust: 44, romanceStatus: "none", relationType: "Eski sınıf arkadaşı", circles: ["friends", "acquaintances"], contactCategory: "weak" },
-  burak: { roleId: "work_contact", tags: ["professional", "weak_tie"], trust: 48, romanceStatus: "none", relationType: "Eski iş bağlantısı", circles: ["professional", "acquaintances"], contactCategory: "former" },
+  selin: {
+    roleId: "acquaintance",
+    tags: ["peer", "weak_tie"],
+    trust: 44,
+    romanceStatus: "none",
+    relationType: "Kuzen",
+    circles: ["family", "acquaintances"],
+    contactCategory: "weak",
+  },
+  emre: {
+    roleId: "acquaintance",
+    tags: ["peer", "weak_tie"],
+    trust: 44,
+    romanceStatus: "none",
+    relationType: "Eski sınıf arkadaşı",
+    circles: ["friends", "acquaintances"],
+    contactCategory: "weak",
+  },
+  burak: {
+    roleId: "work_contact",
+    tags: ["professional", "weak_tie"],
+    trust: 48,
+    romanceStatus: "none",
+    relationType: "Eski iş bağlantısı",
+    circles: ["professional", "acquaintances"],
+    contactCategory: "former",
+  },
 };
 
 function createDefaultPeople(startWeek = 1) {
@@ -363,10 +412,19 @@ function createDefaultPeople(startWeek = 1) {
     ...person,
     roleId: SOCIAL_DEFAULTS[person.id].roleId,
     tags: [...SOCIAL_DEFAULTS[person.id].tags],
-    circles: [...(SOCIAL_DEFAULTS[person.id].circles || (SOCIAL_DEFAULTS[person.id].roleId === "family" ? ["family"] : ["friends"]))],
+    circles: [
+      ...(SOCIAL_DEFAULTS[person.id].circles ||
+        (SOCIAL_DEFAULTS[person.id].roleId === "family" ? ["family"] : ["friends"])),
+    ],
     contactCategory: SOCIAL_DEFAULTS[person.id].contactCategory || "close",
     dormant: false,
-    lifeState: { employment: null, education: null, residence: null, relationship: "single", concern: null },
+    lifeState: {
+      employment: null,
+      education: null,
+      residence: null,
+      relationship: "single",
+      concern: null,
+    },
     lifeMilestones: [],
     knownMilestones: [],
     available: true,
@@ -389,7 +447,9 @@ export function normalizeSocialState(state) {
   const defaults = createDefaultPeople(state.time?.absoluteWeek || 1);
   const rawPeople = Array.isArray(state.people) ? state.people : [];
   const rawRelationships =
-    state.relationships && typeof state.relationships === "object" && !Array.isArray(state.relationships)
+    state.relationships &&
+    typeof state.relationships === "object" &&
+    !Array.isArray(state.relationships)
       ? state.relationships
       : {};
   state.people = defaults.map((fallback) => {
@@ -490,7 +550,8 @@ export function normalizeEducationCareer(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return state;
 
   const career = state.career && typeof state.career === "object" ? state.career : {};
-  const rawRetirement = career.retirement && typeof career.retirement === "object" ? career.retirement : {};
+  const rawRetirement =
+    career.retirement && typeof career.retirement === "object" ? career.retirement : {};
   const retirementStatus = ["working", "planned", "retired"].includes(rawRetirement.status)
     ? rawRetirement.status
     : "working";
@@ -567,10 +628,18 @@ export function normalizeEducationCareer(state) {
     progress: rawPlan.progress && typeof rawPlan.progress === "object" ? rawPlan.progress : {},
   };
   const rawBody = state.body && typeof state.body === "object" ? state.body : {};
-  const rawExposures = rawBody.exposures && typeof rawBody.exposures === "object" ? rawBody.exposures : {};
+  const rawExposures =
+    rawBody.exposures && typeof rawBody.exposures === "object" ? rawBody.exposures : {};
   state.body = {
-    exposures: Object.fromEntries(["overwork", "underRecovery", "inactivity"].map((key) => [key, Number.isFinite(rawExposures[key]) ? clamp(rawExposures[key]) : 0])),
-    conditions: Array.isArray(rawBody.conditions) ? rawBody.conditions.filter((item) => item?.id).slice(-8) : [],
+    exposures: Object.fromEntries(
+      ["overwork", "underRecovery", "inactivity"].map((key) => [
+        key,
+        Number.isFinite(rawExposures[key]) ? clamp(rawExposures[key]) : 0,
+      ]),
+    ),
+    conditions: Array.isArray(rawBody.conditions)
+      ? rawBody.conditions.filter((item) => item?.id).slice(-8)
+      : [],
     warningAcknowledged: Boolean(rawBody.warningAcknowledged),
     warningAvailable: Boolean(rawBody.warningAvailable),
   };
@@ -583,30 +652,49 @@ export function normalizeEducationCareer(state) {
           id: String(secret.id),
           type: typeof secret.type === "string" ? secret.type : "personal",
           summary: typeof secret.summary === "string" ? secret.summary : "Özel bir mesele",
-          createdWeek: Number.isInteger(secret.createdWeek) ? Math.max(1, secret.createdWeek) : state.time.absoluteWeek,
+          createdWeek: Number.isInteger(secret.createdWeek)
+            ? Math.max(1, secret.createdWeek)
+            : state.time.absoluteWeek,
           status: secret.status,
-          relatedPeople: Array.isArray(secret.relatedPeople) ? secret.relatedPeople.filter((id) => typeof id === "string").slice(0, 4) : [],
-          knownBy: Array.isArray(secret.knownBy) ? [...new Set(secret.knownBy.filter((id) => typeof id === "string"))] : ["player"],
-          hiddenFrom: Array.isArray(secret.hiddenFrom) ? [...new Set(secret.hiddenFrom.filter((id) => typeof id === "string"))].slice(0, 4) : [],
+          relatedPeople: Array.isArray(secret.relatedPeople)
+            ? secret.relatedPeople.filter((id) => typeof id === "string").slice(0, 4)
+            : [],
+          knownBy: Array.isArray(secret.knownBy)
+            ? [...new Set(secret.knownBy.filter((id) => typeof id === "string"))]
+            : ["player"],
+          hiddenFrom: Array.isArray(secret.hiddenFrom)
+            ? [...new Set(secret.hiddenFrom.filter((id) => typeof id === "string"))].slice(0, 4)
+            : [],
           evidence: ["none", "weak", "strong"].includes(secret.evidence) ? secret.evidence : "none",
           ...(Number.isInteger(secret.exposedWeek) ? { exposedWeek: secret.exposedWeek } : {}),
           ...(Number.isInteger(secret.resolvedWeek) ? { resolvedWeek: secret.resolvedWeek } : {}),
           ...(typeof secret.sourceEvent === "string" ? { sourceEvent: secret.sourceEvent } : {}),
         }))
     : [];
-  const rawCircle = state.comparisonCircle && typeof state.comparisonCircle === "object" ? state.comparisonCircle : {};
+  const rawCircle =
+    state.comparisonCircle && typeof state.comparisonCircle === "object"
+      ? state.comparisonCircle
+      : {};
   const defaultPeers = [
     { id: "comparison-cousin", name: "Selin", relation: "Kuzen", status: "Yeni bir iş arıyor" },
-    { id: "comparison-classmate", name: "Emre", relation: "Eski sınıf arkadaşı", status: "Eğitimine devam ediyor" },
+    {
+      id: "comparison-classmate",
+      name: "Emre",
+      relation: "Eski sınıf arkadaşı",
+      status: "Eğitimine devam ediyor",
+    },
   ];
   const peers = defaultPeers.map((fallback) => {
-    const raw = Array.isArray(rawCircle.peers) ? rawCircle.peers.find((peer) => peer?.id === fallback.id) : null;
+    const raw = Array.isArray(rawCircle.peers)
+      ? rawCircle.peers.find((peer) => peer?.id === fallback.id)
+      : null;
     return {
       ...fallback,
       ...(raw || {}),
       id: fallback.id,
       name: typeof raw?.name === "string" && raw.name ? raw.name : fallback.name,
-      relation: typeof raw?.relation === "string" && raw.relation ? raw.relation : fallback.relation,
+      relation:
+        typeof raw?.relation === "string" && raw.relation ? raw.relation : fallback.relation,
       status: typeof raw?.status === "string" && raw.status ? raw.status : fallback.status,
       milestones: Array.isArray(raw?.milestones) ? raw.milestones.slice(-8) : [],
       memories: Array.isArray(raw?.memories) ? raw.memories.slice(-12) : [],
@@ -614,7 +702,9 @@ export function normalizeEducationCareer(state) {
   });
   state.comparisonCircle = {
     peers,
-    milestones: Array.isArray(rawCircle.milestones) ? rawCircle.milestones.slice(-LIMITS.comparisonMilestones) : [],
+    milestones: Array.isArray(rawCircle.milestones)
+      ? rawCircle.milestones.slice(-LIMITS.comparisonMilestones)
+      : [],
   };
   const rawFavors = Array.isArray(state.favors) ? state.favors : [];
   state.favors = rawFavors
@@ -642,6 +732,7 @@ export function normalizeEducationCareer(state) {
   normalizeSocialState(state);
   normalizeHousehold(state);
   normalizeParenthood(state);
+  normalizeWealth(state);
   normalizeLifetime(state);
   return state;
 }
@@ -653,6 +744,7 @@ export function validateState(state) {
     return { ok: false, errors: ["State nesne değil"] };
   if (state.meta?.saveVersion !== SAVE_VERSION) errors.push("Save sürümü geçersiz");
   if (!validateLifetime(state)) errors.push("Yaşam ve kuşak kaydı geçersiz");
+  if (!validateWealth(state)) errors.push("Servet kaydı geçersiz");
   if (
     !state.player ||
     typeof state.player.name !== "string" ||
@@ -791,7 +883,8 @@ export function validateState(state) {
   )
     errors.push("İlişkiler geçersiz");
   const partnerId = state.social?.currentPartnerNpcId;
-  const partners = state.people?.filter((person) => person.social?.romanceStatus === "partner") || [];
+  const partners =
+    state.people?.filter((person) => person.social?.romanceStatus === "partner") || [];
   if (
     !state.social ||
     typeof state.social.engaged !== "boolean" ||
@@ -821,22 +914,55 @@ export function validateState(state) {
     errors.push("Geçmiş kayıtları geçersiz");
   if (
     !state.player?.tendencies ||
-    Object.keys(DEFAULT_TENDENCIES).some((key) => !finite(state.player.tendencies[key]) || state.player.tendencies[key] < 0 || state.player.tendencies[key] > 100)
-  ) errors.push("Davranış eğilimleri geçersiz");
+    Object.keys(DEFAULT_TENDENCIES).some(
+      (key) =>
+        !finite(state.player.tendencies[key]) ||
+        state.player.tendencies[key] < 0 ||
+        state.player.tendencies[key] > 100,
+    )
+  )
+    errors.push("Davranış eğilimleri geçersiz");
   if (
     !state.yearlyPlan ||
     !Array.isArray(state.yearlyPlan.priorities) ||
     state.yearlyPlan.priorities.length > 2 ||
     state.yearlyPlan.priorities.some((id) => !Object.hasOwn(PRIORITY_OPTIONS, id))
-  ) errors.push("Yıllık öncelikler geçersiz");
-  if (!Array.isArray(state.secrets) || state.secrets.some((secret) => !secret?.id || !["hidden", "exposed", "resolved"].includes(secret.status)))
+  )
+    errors.push("Yıllık öncelikler geçersiz");
+  if (
+    !Array.isArray(state.secrets) ||
+    state.secrets.some(
+      (secret) => !secret?.id || !["hidden", "exposed", "resolved"].includes(secret.status),
+    )
+  )
     errors.push("Gizli mesele kaydı geçersiz");
-  if (!Array.isArray(state.favors) || state.favors.some((favor) => !favor?.id || !favor?.personId || !["player_owes", "npc_owes"].includes(favor.direction) || !["open", "resolved"].includes(favor.status)))
+  if (
+    !Array.isArray(state.favors) ||
+    state.favors.some(
+      (favor) =>
+        !favor?.id ||
+        !favor?.personId ||
+        !["player_owes", "npc_owes"].includes(favor.direction) ||
+        !["open", "resolved"].includes(favor.status),
+    )
+  )
     errors.push("İyilik kaydı geçersiz");
-  if (!state.reputation || !Array.isArray(state.reputation.evidence) || state.reputation.evidence.some((item) => !item?.circle || !item?.signal))
+  if (
+    !state.reputation ||
+    !Array.isArray(state.reputation.evidence) ||
+    state.reputation.evidence.some((item) => !item?.circle || !item?.signal)
+  )
     errors.push("Çevre itibarı geçersiz");
-  if (!state.perception || typeof state.perception.circles !== "object") errors.push("Algı kaydı geçersiz");
-  if (!state.military || typeof state.military.applicable !== "boolean" || !["pending", "deferred", "completed", "expired", "not_applicable"].includes(state.military.status) || (state.military.applicable === false && state.military.status !== "not_applicable"))
+  if (!state.perception || typeof state.perception.circles !== "object")
+    errors.push("Algı kaydı geçersiz");
+  if (
+    !state.military ||
+    typeof state.military.applicable !== "boolean" ||
+    !["pending", "deferred", "completed", "expired", "not_applicable"].includes(
+      state.military.status,
+    ) ||
+    (state.military.applicable === false && state.military.status !== "not_applicable")
+  )
     errors.push("Yükümlülük kaydı geçersiz");
   if (
     !state.events ||

@@ -11,8 +11,8 @@ test("responsive contracts protect tablet grids, short dialogs and mobile save/n
   assert.match(tablet, /\.social-layout\s*\{\s*grid-template-columns: minmax\(0, 1fr\)/);
   const mobile = css.slice(css.indexOf("@media (max-width: 540px)"));
   assert.match(mobile, /\.save-status\s*\{\s*position: static;/);
-  assert.match(mobile, /\[data-successor\].*width: 100%/);
-  assert.match(mobile, /\.event-card.*max-height: calc\(100dvh - 24px\)/);
+  assert.match(mobile, /\[data-successor\][\s\S]*?width: 100%/);
+  assert.match(mobile, /\.event-card[\s\S]*?max-height: calc\(100dvh - 24px\)/);
   assert.match(css, /\.event-card\s*\{[^}]*overflow-y: auto;/);
   assert.match(css, /\.body-row\s*\{[^}]*minmax\(0, 1fr\) max-content/);
   assert.match(css, /@media \(max-width: 360px\)/);
@@ -28,7 +28,7 @@ test("real service-worker fetch handler updates cached TC SIM CSS then retains e
     self: { location: { origin: "https://example.test" }, addEventListener: (name, fn) => { handlers[name] = fn; } },
     fetch: async () => { if (!online) throw new Error("offline"); return new Response("new responsive CSS"); } });
   vm.runInContext(readFileSync(new URL("../public/sw.js", import.meta.url), "utf8"), context);
-  const request = { method: "GET", mode: "cors", url: "https://example.test/games/tc-sim/styles.css?v=7" };
+  const request = { method: "GET", mode: "cors", url: "https://example.test/games/tc-sim/styles.css?v=8" };
   entries.set(request.url, new Response("old CSS"));
   let response;
   handlers.fetch({ request, respondWith: result => { response = result; } });

@@ -1,6 +1,6 @@
-import { SAVE_VERSION, createNewGame, normalizeEducationCareer, validateState } from "./state.js?v=7";
-import { getHomeById, getJobById } from "./life.js?v=7";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=7";
+import { SAVE_VERSION, createNewGame, normalizeEducationCareer, validateState } from "./state.js?v=8";
+import { getHomeById, getJobById } from "./life.js?v=8";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=8";
 
 export const SAVE_KEY = "tc-sim-save";
 export const BACKUP_KEY = "tc-sim-save-backup";
