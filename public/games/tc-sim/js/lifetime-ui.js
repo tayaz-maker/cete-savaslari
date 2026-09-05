@@ -1,7 +1,7 @@
-import { eligibleSuccessors } from "./lifetime.js?v=6";
-import { getHomeById, getJobById } from "./catalog.js?v=6";
-import { getEducationLevelLabel } from "./education.js?v=6";
-import { BACKGROUND_OPTIONS } from "./state.js?v=6";
+import { eligibleSuccessors } from "./lifetime.js?v=7";
+import { getHomeById, getJobById } from "./catalog.js?v=7";
+import { getEducationLevelLabel } from "./education.js?v=7";
+import { BACKGROUND_OPTIONS } from "./state.js?v=7";
 const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const money = value => `₺${Number(value || 0).toLocaleString("tr-TR")}`;
 export function renderLifeReport(report) {

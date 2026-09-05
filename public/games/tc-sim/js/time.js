@@ -1,6 +1,6 @@
-import { processLifetimeWeek } from "./lifetime.js?v=6";
-import { needsParentCare, canRequestParentPlanning, requestParentPlanning, requestCareBudget, parentingOvertimeBlocked, processParenthoodWeek, parenthoodYearSummary } from "./parenthood.js?v=6";
-import { getHouseholdSummary } from "./household.js?v=6";
+import { processLifetimeWeek } from "./lifetime.js?v=7";
+import { needsParentCare, canRequestParentPlanning, requestParentPlanning, requestCareBudget, parentingOvertimeBlocked, processParenthoodWeek, parenthoodYearSummary } from "./parenthood.js?v=7";
+import { getHouseholdSummary } from "./household.js?v=7";
 import {
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
@@ -14,16 +14,16 @@ import {
   isCriticalHealth,
   transact,
   updateRelationship,
-} from "./state.js?v=6";
-import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=6";
-import { activateNextEvent, processDueOpenCases } from "./events.js?v=6";
-import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=6";
-import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=6";
-import { getReputationContext, processNpcMilestones, syncPeerMilestones, updatePerceivedIdentity } from "./depth3-systems.js?v=6";
-import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=6";
-import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=6";
+} from "./state.js?v=7";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=7";
+import { activateNextEvent, processDueOpenCases } from "./events.js?v=7";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=7";
+import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=7";
+import { getReputationContext, processNpcMilestones, syncPeerMilestones, updatePerceivedIdentity } from "./depth3-systems.js?v=7";
+import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=7";
+import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=7";
 
-import { getPlayerVisibleOpenCases } from "./calendar.js?v=6";
+import { getPlayerVisibleOpenCases } from "./calendar.js?v=7";
 
 /** Ek mesai: ilk haftalar tam öder, aralıksız sürdükçe getirisi düşer ve yükü artar. */
 export const OVERTIME_BASE_PAY = 1250;

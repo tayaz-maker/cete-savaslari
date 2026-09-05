@@ -1,18 +1,18 @@
-import { parenthoodCosts } from "./parenthood.js?v=6";
-import { getHouseholdFinance } from "./household.js?v=6";
-import { addCareerHistory, addMemory, adjustHealth, getWeeklyActivityLimit, isCriticalHealth, transact } from "./state.js?v=6";
-import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=6";
+import { parenthoodCosts } from "./parenthood.js?v=7";
+import { getHouseholdFinance } from "./household.js?v=7";
+import { addCareerHistory, addMemory, adjustHealth, getWeeklyActivityLimit, isCriticalHealth, transact } from "./state.js?v=7";
+import { getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=7";
 import {
   getEducationWeeklyLoad,
   getPathById,
   getWeeklyProgressGain,
   isEligibleForJob,
   resolveCompletedLevel,
-} from "./education.js?v=6";
-import { applySocialMaintenance } from "./social.js?v=6";
-import { scheduleMoveConsequence } from "./depth3-systems.js?v=6";
+} from "./education.js?v=7";
+import { applySocialMaintenance } from "./social.js?v=7";
+import { scheduleMoveConsequence } from "./depth3-systems.js?v=7";
 
-export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=6";
+export { HOMES, JOBS, getCommuteLoad, getHomeById, getJobById } from "./catalog.js?v=7";
 
 export function getWeeklyLifeLoad(state) {
   const job = getJobById(state.career.jobId);

@@ -1,7 +1,7 @@
-import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=6";
-import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=6";
-import { parenthoodSummary } from "./parenthood.js?v=6";
-import { getHouseholdSummary } from "./household.js?v=6";
+import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=7";
+import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=7";
+import { parenthoodSummary } from "./parenthood.js?v=7";
+import { getHouseholdSummary } from "./household.js?v=7";
 import {
   WEEKS_PER_MONTH,
   BACKGROUND_OPTIONS,
@@ -11,14 +11,14 @@ import {
   getWeeklyActivityLimit,
   isCriticalHealth,
   setYearlyPriorities,
-} from "./state.js?v=6";
-import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=6";
-import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=6";
-import { getChoiceEffectSummary, getEventDefinition, getEventChoiceAvailability, resolveEvent } from "./events.js?v=6";
-import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=6";
-import { getBodyEventContext } from "./body-events.js?v=6";
-import { getBodyRiskSummary, getKnownBodyConditions, getBodyCareContext } from "./body-systems.js?v=6";
-import { clearSaves, loadGame, saveGame } from "./save.js?v=6";
+} from "./state.js?v=7";
+import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=7";
+import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=7";
+import { getChoiceEffectSummary, getEventDefinition, getEventChoiceAvailability, resolveEvent } from "./events.js?v=7";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=7";
+import { getBodyEventContext } from "./body-events.js?v=7";
+import { getBodyRiskSummary, getKnownBodyConditions, getBodyCareContext } from "./body-systems.js?v=7";
+import { clearSaves, loadGame, saveGame } from "./save.js?v=7";
 import {
   HOMES,
   JOBS,
@@ -38,7 +38,7 @@ import {
   quitJob,
   stopEducation,
   PRIVACY_CONTEXT,
-} from "./life.js?v=6";
+} from "./life.js?v=7";
 import {
   EDUCATION_PATHS,
   JOB_FAMILY_LABELS,
@@ -51,9 +51,9 @@ import {
   getIntensityLabel,
   getPathDurationWeeks,
   isEligibleForJob,
-} from "./education.js?v=6";
-import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=6";
-import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=6";
+} from "./education.js?v=7";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=7";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=7";
 import {
   RELATIONSHIP_STAGES,
   SOCIAL_ROLE_LABELS,
@@ -64,9 +64,9 @@ import {
   getPersonalDebt,
   getRelationship,
   getRelationshipStage,
-} from "./social.js?v=6";
-import { getRelationshipContext } from "./depth2-systems.js?v=6";
-import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=6";
+} from "./social.js?v=7";
+import { getRelationshipContext } from "./depth2-systems.js?v=7";
+import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=7";
 
 const app = document.querySelector("#app");
 let state = null;

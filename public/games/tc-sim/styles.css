@@ -29,14 +29,17 @@
 html,
 body,
 #app {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100%;
   margin: 0;
   background: var(--bg);
 }
 body {
   color: var(--text);
+  overflow-wrap: anywhere;
 }
+/* Grid/flex children must be allowed to shrink around long names and TL values. */
+.game-frame *, .start-card * { min-width: 0; }
 button,
 input,
 select {
@@ -181,7 +184,7 @@ select:focus-visible {
   border-left: 3px solid transparent;
   padding: 0 14px;
   background: transparent;
-  color: #71817e;
+  color: var(--muted);
   font-size: 0.73rem;
   font-weight: 700;
   letter-spacing: 0.075em;
@@ -330,7 +333,7 @@ select:focus-visible {
 }
 .body-row {
   display: grid;
-  grid-template-columns: 54px 1fr 24px;
+  grid-template-columns: 54px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 7px;
   font-size: 0.76rem;
@@ -619,9 +622,14 @@ select {
   place-items: center;
   padding: 20px;
   background: rgba(4, 6, 7, 0.78);
+  overflow-y: auto;
 }
 .event-card {
   width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   background: var(--surface);
@@ -859,6 +867,12 @@ select {
 }
 
 @media (max-width: 1060px) {
+  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; }
+  .week-panel, .right-column, .history-panel, .cases-panel { grid-area: auto; }
+  .option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .social-layout { grid-template-columns: minmax(0, 1fr); }
+  .game-topbar, .top-meta { flex-wrap: wrap; }
   :root {
     --nav: 176px;
   }
@@ -895,15 +909,19 @@ select {
     border-right: 0;
     border-bottom: 1px solid var(--line);
     padding: 0;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
   }
   .nav-item {
     flex: 0 0 auto;
     min-width: 112px;
-    min-height: 42px;
+    min-height: 44px;
     padding: 0 12px;
     justify-content: flex-start;
     border-left: 0;
     border-bottom: 2px solid transparent;
+    width: auto;
+    white-space: nowrap;
   }
   .nav-item.is-active {
     border-left: 0;
@@ -924,7 +942,7 @@ select {
     grid-area: auto;
   }
   .detail-summary {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .detail-summary > div:last-child:nth-child(odd) {
     grid-column: 1 / -1;
@@ -935,6 +953,10 @@ select {
   .social-layout {
     grid-template-columns: 1fr;
   }
+  .button, .button-quiet, .person-select, .relationship-line { min-height: 44px; }
+  input, select { min-height: 44px; font-size: 1rem; }
+  .save-area { flex-wrap: wrap; max-width: 100%; }
+  .top-meta span { white-space: normal; }
 }
 @media (max-width: 540px) {
   .game-brand span,
@@ -948,16 +970,27 @@ select {
     font-size: 0.8rem;
   }
   .save-status {
-    position: absolute;
-    top: 48px;
-    right: 12px;
-    z-index: 2;
-    max-width: 190px;
-    padding: 4px 7px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--surface-2);
+    position: static;
+    flex: 1 0 100%;
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
   }
+  .save-area { width: 100%; }
+  .save-area .button { flex: 1; }
+  .workspace { padding: 12px max(10px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+  .start-wrap { padding: 12px; }
+  .start-card { padding: 16px; }
+  .event-backdrop { padding: 12px; }
+  .event-card { padding: 14px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
+  .event-choice { min-height: 48px; }
+  .option-card dl div, .edu-facts div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .option-card dd, .edu-facts dd { text-align: left; }
+  .edu-actions { flex-direction: column; }
+  .action-footer { width: 100%; }
+  [data-successor] { display: block; width: 100%; margin-top: 8px; }
+  summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
+  .body-note, .context-note, .empty, .memory { font-size: 0.82rem; line-height: 1.5; }
   .workspace-head {
     align-items: flex-start;
     flex-direction: column;
@@ -970,7 +1003,7 @@ select {
     flex: 1;
   }
   .week-control .button-primary {
-    min-height: 42px;
+    min-height: 44px;
   }
   .overview-grid {
     gap: 8px;
@@ -988,6 +1021,12 @@ select {
   .social-metrics {
     grid-template-columns: 1fr;
   }
+}
+@media (max-width: 360px) {
+  .detail-summary, .profile-panel dl { grid-template-columns: minmax(0, 1fr); }
+  .profile-panel dl div { display: block; }
+  .profile-panel dd { margin-top: 3px; }
+  .detail-summary > div:last-child:nth-child(odd) { grid-column: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   *,

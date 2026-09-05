@@ -5,12 +5,12 @@ import { join } from "node:path";
 
 const root = new URL("../", import.meta.url).pathname;
 const game = join(root, "public/games/tc-sim");
-const token = "?v=6";
+const token = "?v=7";
 
 test("production TC SIM loads one coherent, current module graph", () => {
   const html = readFileSync(join(game, "index.html"), "utf8");
-  assert.ok(html.includes("styles.css?v=6"));
-  assert.ok(html.includes("js/app.js?v=6"));
+  assert.ok(html.includes("styles.css?v=7"));
+  assert.ok(html.includes("js/app.js?v=7"));
 
   for (const name of readdirSync(join(game, "js")).filter((file) => file.endsWith(".js"))) {
     const source = readFileSync(join(game, "js", name), "utf8");
@@ -37,5 +37,5 @@ test("mobile TC SIM navigation remains horizontally usable and tappable", () => 
   assert.ok(mobile.includes(".side-nav"));
   assert.ok(mobile.includes("display: flex"));
   assert.ok(mobile.includes("overflow: auto"));
-  assert.ok(mobile.includes("min-height: 42px"));
+  assert.ok(mobile.includes("min-height: 44px"));
 });

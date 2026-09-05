@@ -1,7 +1,7 @@
-import { addMemory, addNpcMemory, appendCapped, getWeeklyActivityLimit, transact } from "./state.js?v=6";
-import { getPerson, getRelationship, applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=6";
-import { getHomeById, relocateHome, getMonthlySummary } from "./life.js?v=6";
-import { createSecret, transferSecret, isSecretKnownTo } from "./depth2-systems.js?v=6";
+import { addMemory, addNpcMemory, appendCapped, getWeeklyActivityLimit, transact } from "./state.js?v=7";
+import { getPerson, getRelationship, applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=7";
+import { getHomeById, relocateHome, getMonthlySummary } from "./life.js?v=7";
+import { createSecret, transferSecret, isSecretKnownTo } from "./depth2-systems.js?v=7";
 
 export const HOUSEHOLD_HISTORY_LIMIT = 24;
 export const MARRIAGE_COST = 6000;
