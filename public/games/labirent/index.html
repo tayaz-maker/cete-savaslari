@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Labirent | TLab</title>
+    <meta
+      name="description"
+      content="Labirent: her zaman çözülebilir, üretilmiş labirentler. Dört zorluk, ipucu, temalar."
+    />
+    <meta
+      name="keywords"
+      content="maze game, maze puzzle, online maze, browser maze game, pathfinding, A* algorithm, procedural maze generator, html5 canvas game, puzzle game, leaderboard, achievements, free maze game, open source game"
+    />
+    <meta name="author" content="Son Nguyen (David Nguyen)" />
+    <meta name="theme-color" content="#0b0e11" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="application-name" content="The Maze Game" />
+
+    
+    
+    <link rel="icon" type="image/x-icon" href="utils/favicon.ico" />
+    <link rel="apple-touch-icon" href="utils/image-192x192.png" />
+    <link rel="author" href="https://sonnguyenhoang.com/" />
+    
+
+    <!-- Indexing -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="rating" content="General" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="distribution" content="global" />
+    <meta http-equiv="content-language" content="en" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Maze Game" />
+    <meta property="og:title" content="Labirent | TLab" />
+    <meta
+      property="og:description"
+      content="Procedurally generated, always-solvable mazes with difficulty levels, A* hints, accounts, stats, achievements, leaderboards, and 10 themes. Free & open-source."
+    />
+    <meta property="og:url" content="https://the-maze-game.onrender.com/" />
+    <meta property="og:image" content="https://the-maze-game.onrender.com/utils/MazeUI.png" />
+    <meta property="og:image:alt" content="The Maze Game gameplay" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Labirent | TLab" />
+    <meta
+      name="twitter:description"
+      content="Procedurally generated, always-solvable mazes with hints, accounts, stats, achievements, leaderboards, and 10 themes. Free & open-source."
+    />
+    <meta name="twitter:image" content="https://the-maze-game.onrender.com/utils/MazeUI.png" />
+    <meta name="twitter:creator" content="@hoangsonww" />
+
+    <!-- PWA / mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Labirent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Structured data (schema.org VideoGame) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "The Maze Game",
+        "url": "https://the-maze-game.onrender.com/",
+        "description": "Procedurally generated, always-solvable mazes with four difficulty levels, A* hints, accounts, per-user stats, achievements, global leaderboards, and 10 themes.",
+        "image": "https://the-maze-game.onrender.com/utils/MazeUI.png",
+        "genre": ["Puzzle", "Maze"],
+        "applicationCategory": "Game",
+        "operatingSystem": "Any (modern web browser)",
+        "browserRequirements": "Requires JavaScript and HTML5 Canvas",
+        "gamePlatform": "Web browser",
+        "playMode": "SinglePlayer",
+        "inLanguage": "en",
+        "license": "https://opensource.org/licenses/MIT",
+        "codeRepository": "https://github.com/hoangsonww/The-Maze-Game",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": {
+          "@type": "Person",
+          "name": "Son Nguyen",
+          "alternateName": "David Nguyen",
+          "url": "https://sonnguyenhoang.com/",
+          "sameAs": [
+            "https://github.com/hoangsonww",
+            "https://www.linkedin.com/in/hoangsonw/",
+            "https://orcid.org/0009-0002-7806-068X"
+          ]
+        }
+      }
+    </script>
+
+    
+    <link rel="stylesheet" href="src/css/style.css" />
+  
+    <style>
+      #authArea, .auth-area, #installAppBtn, #nameModal, #authModal, #profileModal { display: none !important; }
+      button[onclick="showLeaderboard()"], button[onclick="showAchievements()"] { display: none !important; }
+      body { font-family: Barlow, "Segoe UI", system-ui, sans-serif; }
+    </style>
+    </head>
+
+  <body>
+    <!-- Header -->
+    <header class="game-header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="30" height="30" fill="none">
+              <path
+                d="M6 7 H16 V14 H10 V21 H22 V14 H26"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="6" cy="7" r="3" fill="#ff6a4d" />
+              <circle cx="26" cy="14" r="3" fill="#c6f24e" />
+            </svg>
+          </span>
+          <span class="brand-text">
+            <span class="brand-name">Labirent</span>
+            <span class="brand-tag">Kapalı yollar, tek çıkış</span>
+          </span>
+        </div>
+        <div class="header-meta">
+          <span class="header-pill"><span class="dot"></span> v1.3</span>
+          <div id="authArea" class="auth-area"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <div class="main-container">
+      <!-- Stats Sidebar -->
+      <aside class="stats-sidebar">
+        <section class="panel reveal" style="--d: 1">
+          <h3><span class="tick"></span>Tur</h3>
+          <div class="hud-timer">
+            <span class="hud-timer-label">Süre</span>
+            <span class="hud-timer-value" id="timer">00:00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Zorluk</span><span class="stat-value" id="difficulty">Zor</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Skor</span><span class="stat-value accent" id="currentScore">0</span>
+          </div>
+          <div class="stat-item"><span class="stat-label">Hamle</span><span class="stat-value" id="moves">0</span></div>
+          <div class="stat-item">
+            <span class="stat-label">İpucu</span><span class="stat-value" id="hints">0 / 5</span>
+          </div>
+        </section>
+
+        <section class="panel reveal" style="--d: 2">
+          <h3><span class="tick"></span>Kariyer</h3>
+          <div class="stat-item">
+            <span class="stat-label">Toplam skor</span><span class="stat-value" id="lifetimeScore">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Kazanılan</span><span class="stat-value" id="gamesWon">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">En iyi süre</span><span class="stat-value" id="bestTime">--:--</span>
+          </div>
+        </section>
+
+        <section class="panel reveal" style="--d: 3">
+          <h3><span class="tick"></span>Ayarlar</h3>
+          <div class="setting-item">
+            <label for="playerName">Lakap</label>
+            <input
+              type="text"
+              id="playerName"
+              class="setting-control"
+              maxlength="20"
+              placeholder="Oyuncu"
+              autocomplete="off"
+            />
+          </div>
+          <div class="setting-item">
+            <label for="difficultySelect">Zorluk</label>
+            <div class="select-wrap">
+              <select id="difficultySelect" class="setting-control">
+                <option value="easy">Kolay</option>
+                <option value="medium">Orta</option>
+                <option value="hard" selected>Zor</option>
+                <option value="expert">Uzman</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label for="themeSelect">Tema</label>
+            <div class="select-wrap">
+              <select id="themeSelect" class="setting-control">
+                <option value="default">Daylight</option>
+                <option value="dark">Midnight</option>
+                <option value="neon">Neon</option>
+                <option value="forest">Forest</option>
+                <option value="sunset">Sunset</option>
+                <option value="ocean">Ocean</option>
+                <option value="dracula">Dracula</option>
+                <option value="mono">Mono</option>
+                <option value="candy">Candy</option>
+                <option value="volcano">Volcano</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-item setting-inline">
+            <label for="soundToggle">Ses</label>
+            <label class="switch">
+              <input type="checkbox" id="soundToggle" checked />
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel reveal" style="--d: 4">
+          <h3><span class="tick"></span>Keşfet</h3>
+          <button class="action-button" onclick="showLeaderboard()">
+            <span class="ab-ico">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 4h12v3a6 6 0 0 1-12 0V4z" />
+                <path d="M6 6H3.5v1A3.5 3.5 0 0 0 6 10.4M18 6h2.5v1a3.5 3.5 0 0 1-2.5 3.4" />
+                <path d="M9 20h6M12 16v4" />
+              </svg>
+            </span>
+            <span class="ab-label">Sıralama</span>
+          </button>
+          <button class="action-button" onclick="showAchievements()">
+            <span class="ab-ico">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="8" r="5" />
+                <path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5" />
+              </svg>
+            </span>
+            <span class="ab-label">Başarımlar</span>
+          </button>
+          <button class="action-button" onclick="showHelp()">
+            <span class="ab-ico">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M9.6 9a2.4 2.4 0 1 1 3.4 2.2c-.8.4-1 .9-1 1.8" />
+                <path d="M12 17h.01" />
+              </svg>
+            </span>
+            <span class="ab-label">Nasıl oynanır</span>
+          </button>
+          <button class="action-button" onclick="window.top.location.href='/credits.html'">
+            <span class="ab-ico">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v5M12 8h.01" />
+              </svg>
+            </span>
+            <span class="ab-label">Hakkında</span>
+          </button>
+        </section>
+      </aside>
+
+      <!-- Game Area -->
+      <main class="game-area">
+        <div class="game-canvas-container reveal" style="--d: 2">
+          <span class="corner tl"></span><span class="corner tr"></span> <span class="corner bl"></span
+          ><span class="corner br"></span>
+          <canvas id="mazeCanvas" aria-label="Maze Game Canvas"></canvas>
+          <div id="startOverlay" class="start-overlay">
+            <button id="startBtn" class="start-btn" type="button" aria-label="Start game">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 7 5.5z" />
+              </svg>
+              <span>Oyna</span>
+            </button>
+            <span class="start-hint">Oyna’ya basınca süre başlar</span>
+          </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+          <div class="control-group reveal" style="--d: 3">
+            <h4>Hareket</h4>
+            <div class="dpad">
+              <button id="moveUp" class="control-btn" aria-label="Move Up" title="Move Up (↑ or W)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 19V5" />
+                  <path d="M5 12l7-7 7 7" />
+                </svg>
+              </button>
+              <button id="moveLeft" class="control-btn" aria-label="Move Left" title="Move Left (← or A)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M19 12H5" />
+                  <path d="M12 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button id="moveDown" class="control-btn" aria-label="Move Down" title="Move Down (↓ or S)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M19 12l-7 7-7-7" />
+                </svg>
+              </button>
+              <button id="moveRight" class="control-btn" aria-label="Move Right" title="Move Right (→ or D)">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            <p class="control-hint">Ok tuşları / WASD · labirenti kaydır · veya okları kullan</p>
+          </div>
+
+          <div class="control-group reveal" style="--d: 4">
+            <h4>İşlemler</h4>
+            <div class="action-controls">
+              <button id="pauseGame" class="action-btn pause-btn" title="Pause (P)" disabled>
+                <span class="btn-ico">
+                  <svg class="ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <rect x="6" y="5" width="4" height="14" rx="1.2" />
+                    <rect x="14" y="5" width="4" height="14" rx="1.2" />
+                  </svg>
+                  <svg class="ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M7 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 7 5.5z" />
+                  </svg>
+                </span>
+                <span class="btn-label">Duraklat</span>
+              </button>
+              <button id="useHint" class="action-btn hint-btn" title="Show Hint (H)" disabled>
+                <span class="btn-ico">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 18h6" />
+                    <path d="M10 21h4" />
+                    <path d="M12 2a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 2z" />
+                  </svg>
+                </span>
+                <span class="btn-label">İpucu</span>
+              </button>
+              <button id="regenerateMaze" class="action-btn regen-btn" title="New Maze (R)" disabled>
+                <span class="btn-ico">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16" />
+                    <path d="M3 21v-5h5" />
+                  </svg>
+                </span>
+                <span class="btn-label">Yeni labirent</span>
+              </button>
+            </div>
+            <p class="control-hint"><kbd>P</kbd> duraklat · <kbd>H</kbd> ipucu · <kbd>R</kbd> yeni</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Hint Confirmation Modal -->
+    <div id="hintModal" class="modal-overlay" role="dialog" aria-labelledby="hintModalTitle" aria-modal="true">
+      <div class="modal-box hint-modal-box">
+        <span class="win-badge">İpucu</span>
+        <h2 id="hintModalTitle">İpucu kullanılsın mı?</h2>
+        <p id="hintModalText" class="modal-sub hint-modal-text">
+          Çıkışa giden sonraki birkaç adımı gösterir — tüm yolu değil.
+        </p>
+        <div class="hint-actions">
+          <button id="hintConfirm" type="button" class="auth-submit">İpucu kullan</button>
+          <button id="hintCancel" type="button" class="ghost-btn">Vazgeç</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="winModal" class="modal-overlay">
+      <canvas id="winConfetti" class="win-fx" aria-hidden="true"></canvas>
+      <div class="modal-box">
+        <span class="win-badge">Bitti</span>
+        <h2>Labirentten çıktın</h2>
+        <div class="win-stats">
+          <div><span>Skor</span><strong id="winScore">0</strong></div>
+          <div><span>Süre</span><strong id="winTime">0:00</strong></div>
+          <div><span>Hamle</span><strong id="winMoves">0</strong></div>
+          <div><span>İpucu</span><strong id="winHints">0</strong></div>
+          <div class="win-stat-wide"><span>Zorluk</span><strong id="winDifficulty">Zor</strong></div>
+        </div>
+        <button id="playAgain">Tekrar oyna →</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboardModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('leaderboardModal')">&times;</span>
+        <h2>Leaderboard</h2>
+        <div class="leaderboard-tabs">
+          <button class="tab-btn active" onclick="showLeaderboardTab('all')">All Time</button>
+          <button class="tab-btn" onclick="showLeaderboardTab('daily')">Daily</button>
+          <button class="tab-btn" onclick="showLeaderboardTab('weekly')">Weekly</button>
+          <button class="tab-btn" onclick="showLeaderboardTab('monthly')">Monthly</button>
+        </div>
+        <div id="leaderboardContent" class="leaderboard-list"><p class="loading">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div id="achievementsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('achievementsModal')">&times;</span>
+        <h2>Achievements</h2>
+        <div id="achievementsContent"><p class="loading">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('helpModal')">&times;</span>
+        <h2>Nasıl oynanır</h2>
+        <div class="help-content">
+          <section>
+            <h3>Amaç</h3>
+            <p>
+              Mercan renkli taşın sol üstten sağ alttaki <span class="hl-lime">çıkışa</span> ulaş.
+            </p>
+          </section>
+          <section>
+            <h3>Kontroller</h3>
+            <ul>
+              <li><strong>Ok tuşları</strong> veya <strong>WASD</strong> — hareket</li>
+              <li><strong>Labirenti kaydır</strong> — dokunmatik (veya ekrandaki oklar)</li>
+              <li><strong>P</strong> — duraklat / devam</li>
+              <li><strong>H</strong> — ipucu (birkaç adım; puan yer; tur başına sınırlı)</li>
+              <li><strong>R</strong> — yeni labirent</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Skor</h3>
+            <ul>
+              <li>Taban 100; süre, hamle ve ipucu düşer</li>
+              <li>İpucu tüm yolu değil, sonraki birkaç kareyi gösterir</li>
+              <li>İpucu hakkı zorluğa göre değişir (ör. Orta: en fazla 5)</li>
+              <li>Yüksek zorluk skoru çarpar</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Zorluk</h3>
+            <ul>
+              <li><strong>Kolay</strong> — küçük labirent, ucuz ipucu</li>
+              <li><strong>Orta</strong> — dengeli</li>
+              <li><strong>Zor</strong> — büyük labirent</li>
+              <li><strong>Uzman</strong> — en sıkı deneme</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+      <div class="modal-content modal-narrow">
+        <span class="close" onclick="closeModal('authModal')">&times;</span>
+        <h2 id="authTitle">Sign in</h2>
+        <div class="auth-tabs" id="authTabs">
+          <button class="auth-tab active" data-tab="login" onclick="mazeAuth.tab('login')">Log in</button>
+          <button class="auth-tab" data-tab="register" onclick="mazeAuth.tab('register')">Create account</button>
+        </div>
+        <form id="authForm" autocomplete="off" onsubmit="return mazeAuth.submit(event)">
+          <div class="field" id="fieldUsername">
+            <label for="authUsername">Username</label>
+            <input type="text" id="authUsername" class="setting-control" maxlength="20" placeholder="mazerunner" />
+          </div>
+          <div class="field" id="fieldEmail">
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" class="setting-control" placeholder="you@example.com" />
+          </div>
+          <div class="field" id="fieldLogin" hidden>
+            <label for="authLogin">Username or email</label>
+            <input type="text" id="authLogin" class="setting-control" placeholder="mazerunner" />
+          </div>
+          <div class="field" id="fieldPassword">
+            <label for="authPassword">Password</label>
+            <div class="password-field">
+              <input type="password" id="authPassword" class="setting-control" placeholder="••••••••" />
+              <button type="button" class="pw-toggle" data-target="authPassword" aria-label="Show password">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="field" id="fieldPasswordConfirm" hidden>
+            <label for="authPasswordConfirm">Confirm password</label>
+            <div class="password-field">
+              <input type="password" id="authPasswordConfirm" class="setting-control" placeholder="••••••••" />
+              <button type="button" class="pw-toggle" data-target="authPasswordConfirm" aria-label="Show password">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p id="authError" class="auth-error" hidden></p>
+          <button type="submit" id="authSubmit" class="auth-submit">Log in</button>
+          <div class="auth-links">
+            <a href="#" id="authForgot" onclick="return mazeAuth.tab('reset1')">Forgot password?</a>
+            <a href="#" id="authBack" hidden onclick="return mazeAuth.tab('login')">Back to log in</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Choose-a-name Modal (anonymous players) -->
+    <div id="nameModal" class="modal">
+      <div class="modal-content modal-narrow">
+        <span class="close" onclick="mazeAuth.skipGuestName()">&times;</span>
+        <h2>Pick a name</h2>
+        <p class="modal-sub">
+          Used for the leaderboard. Change it anytime in Settings - or create an account to save your progress and
+          stats.
+        </p>
+        <form onsubmit="return mazeAuth.saveGuestName(event)">
+          <div class="field">
+            <label for="guestName">Username</label>
+            <input type="text" id="guestName" class="setting-control" maxlength="20" placeholder="mazerunner" />
+          </div>
+          <div class="name-actions">
+            <button type="submit" class="auth-submit">Save name</button>
+            <button type="button" class="ghost-btn" onclick="mazeAuth.skipGuestName()">Play as guest</button>
+          </div>
+          <div class="auth-links">
+            <a href="#" onclick="closeModal('nameModal'); mazeAuth.openAuth('register'); return false;"
+              >or create an account →</a
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('profileModal')">&times;</span>
+        <h2>Your Profile</h2>
+        <div id="profileContent"><p class="loading">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>
+        &copy; <span id="footerYear">2024</span> Labirent · MIT, Son Nguyen ·
+        <a href="/credits.html">Kaynaklar</a>
+      </p>
+    </footer>
+
+    <script>window.MAZE_API_BASE = 'off';</script>
+    <!-- Scripts -->
+    <script src="src/js/game.js"></script>
+    <script src="src/js/ui-components.js"></script>
+    <script src="src/js/auth.js"></script>
+  </body>
+</html>

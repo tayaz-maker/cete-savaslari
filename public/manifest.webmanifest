@@ -1,0 +1,27 @@
+{
+  "name": "TLab",
+  "short_name": "TLab",
+  "description": "TLab oyun portalı. Çete Savaşları ve diğer HTML5 oyunlar.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0e0c0b",
+  "theme_color": "#0e0c0b",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/__grok/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang='tr'>
+<head profile='http://dublincore.org/documents/dcq-html/'>
+  <link rel='icon' href='img/icons/favicon.ico' type='image/x-icon' />
+  <link rel='schema.DC' href='http://purl.org/dc/elements/1.1/' />
+  <link rel='schema.DCTERMS' href='http://purl.org/dc/terms/' />
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+  <meta charset='UTF-8' />
+  <meta name='AUTHOR' content='Oliver Merkel' />
+  <meta name='COPYRIGHT' content='Oliver Merkel' />
+  <meta name='DC.creator' content='Oliver Merkel' />
+  <meta name='DC.contributor' content='Oliver Merkel' />
+  <meta name='DC.rights' content="
+See file named LICENSE being part of the repository.
+
+Copyright (c) 2016, 2026
+@author Oliver Merkel, Merkel(dot)Oliver(at)web(dot)de.
+All rights reserved.
+
+Logos, brands, and trademarks belong to their respective owners.
+
+All source code also including code parts written in HMTL, Javascript, CSS is under MIT License.
+
+The MIT License (MIT)
+
+Copyright (c) 2016, 2026 Oliver Merkel, Merkel(dot)Oliver(at)web(dot)de
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the &quot;Software&quot;), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+If not otherwise stated all graphics (independent of its format) are licensed under
+    http://creativecommons.org/licenses/by-nc-sa/4.0
+    Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+" />
+  <title>Tek Taş | TLab</title>
+  <meta name='apple-mobile-web-app-capable' content='yes' />
+  <meta name='apple-mobile-web-app-status-bar-style' content='black' />
+  <link rel='apple-touch-icon' href='img/icons/pegsol128.png' />
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+    name='viewport' />
+  <link rel='stylesheet' type='text/css' href='css/index.css' />
+  <script src='js/main.js' type='module'></script>
+</head>
+<body>
+<div id='game-page'>
+      <noscript>
+        <p>This HTML5 application depends on enabled Javascript capabilities in your browser.</p>
+        <p>Please consider enabling Javascript if disabled through settings.</p>
+      </noscript>
+<div id='tabs'>
+  <ul>
+    <li><a href='#tabs-board'>Tahta</a></li>
+    <li><a href='#tabs-options'>Seçenekler</a></li>
+    <li><a href='#tabs-about'>Hakkında</a></li>
+  </ul>
+  <div id='tabs-board'>
+    <center>
+      <div><svg id='board'><title>Tek Taş tahtası</title></svg></div>
+      <button id='new' class='app-button' type='button'>
+        Yeni
+      </button>
+      <button id='step' class='app-button is-hidden' type='button'>
+        Adım
+      </button>
+    </center>
+  </div><!-- /tabs-board -->
+
+  <div id='tabs-options'>
+  <div>
+    <p><i>Seçim, <b>Yeni</b> düğmesinden sonra açılır.</i></p>
+    <form>
+      <fieldset data-role='controlgroup'>
+        <legend>Tahta biçimi</legend>
+        <div class='radio-option'>
+          <input name='boardShape' id='boardTriangular5'
+            checked='checked' type='radio' />
+          <label for='boardTriangular5'>
+            Triangular 5
+          </label>
+        </div>
+        <div class='radio-option'>
+          <input name='boardShape' id='boardTriangular6'
+            type='radio' />
+          <label for='boardTriangular6'>
+            Triangular 6
+          </label>
+        </div>
+        <div class='radio-option'>
+          <input name='boardShape' id='boardEnglish'
+            type='radio' />
+          <label for='boardEnglish'>
+            English Solitaire
+          </label>
+        </div>
+        <div class='radio-option'>
+          <input name='boardShape' id='boardFrench'
+            type='radio' />
+          <label for='boardFrench'>
+            French Solitaire
+          </label>
+        </div>
+        <p style='background: darkred;'><b>Spoiler alert!</b> Here are some solutions to step through:</p>
+        <h3>Single vacancy to single survivor challenges</h3>
+        <h4>Solving English Solitaire</h4>
+        <p>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardEnglishSolution'
+              type='radio' />
+            <label for='boardEnglishSolution'>
+              Solve English Solitaire - Castle
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardEnglishHeartSolution'
+              type='radio' />
+            <label for='boardEnglishHeartSolution'>
+              Solve English Solitaire - Heart
+            </label>
+          </div>
+        </p>
+        <p>
+          <figure class='diagram' style='float: right;'>
+            <img src='img/english_solitaire_cp_start_to_end.svg' alt='English Solitaire complement challenge diagram' />
+            <figcaption>Here the single vacancy and single survivor are in same
+              centered position (complement challenge)</figcaption>
+          </figure>
+          This is the most aesthetic silver bullet solution of the
+          English Solitaire puzzle. There are multiple solutions
+          known to the challenge. Here I selected solutions with some
+          symmetrical well balanced board positions. That makes the aesthetic
+          solution easier to recall.
+        </p>
+        <br clear='all' />
+        <h4>Solving Triangular5</h4>
+        <p>
+          On a Triangular5 board there are 4 different type of peg positions: Corner position, mid edge position, the position in between both and the position not touching any edge or corner.
+          Each field is of one of these types and by symmetry (board axis mirroring and turning) you can see that no other field types exist. As such you can distinguish among four
+          single vacancy to single survivor challenges. And no matter which initial position is chosen as the vacancy you can always finally end up
+          with <em>just one peg remaining</em> on optimal strategy.
+        </p>
+        <p>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular5CornerSolution'
+              type='radio' />
+            <label for='boardTriangular5CornerSolution'>
+              Solve Triangular5 - Corner Vacancy
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular5MidEdgeSolution'
+              type='radio' />
+            <label for='boardTriangular5MidEdgeSolution'>
+              Solve Triangular5 - Mid Edge Vacancy
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular5EdgeSolution'
+              type='radio' />
+            <label for='boardTriangular5EdgeSolution'>
+              Solve Triangular5 - Edge Vacancy
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular5InnerSolution'
+              type='radio' />
+            <label for='boardTriangular5InnerSolution'>
+              Solve Triangular5 - Inner Vacancy
+            </label>
+          </div>
+        </p>
+        <p>
+          <em>Minor hint:</em> In all solutions of an Triangular5 board never
+          start a peg's jump from any of the three inner board positions.
+        </p>
+        <br clear='all' />
+        <h4>Solving Triangular6</h4>
+        <p>
+          There is a single vacancy to single survivor solution for each
+          chosen possible vacancy on this Triangular6 board, too. Depending
+          on the board situation a consecutive series of jumps with same peg
+          could be performed. Such a series of jumps is called a sweep. A sweep
+          can be seen as a single move removing multiple pegs. Here are some
+          solutions shown containing such sweeps.
+        </p>
+        <p>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular6Solution'
+              type='radio' />
+            <label for='boardTriangular6Solution'>
+              Solve Triangular6
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardTriangular6FinalLongSweepSolution'
+              type='radio' />
+            <label for='boardTriangular6FinalLongSweepSolution'>
+              Solve Triangular6 - Final long sweep
+            </label>
+          </div>
+        </p>
+        <br clear='all' />
+        <h4>Solving French Solitaire</h4>
+        <p>
+          In case of the French Solitaire there is no solution to end up
+          with a single survivor when the single vacancy is in centered
+          position of the board. Meaning there are no solvable complement
+          challenges. Instead the most aesthetic solutions have
+          the vacancy off the centered position and the single survivor
+          finally is located at the position turning the board by
+          180 degrees around the center. 
+        </p>
+        <p>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardFrench1Solution'
+              type='radio' />
+            <label for='boardFrench1Solution'>
+              Solve French Solitaire - Version 1
+            </label>
+          </div>
+          <div class='radio-option'>
+            <input name='boardShape' id='boardFrench2Solution'
+              type='radio' />
+            <label for='boardFrench2Solution'>
+              Solve French Solitaire - Version 2
+            </label>
+          </div>
+        </p>
+      </fieldset>
+    </form>
+  </div>
+  </div><!-- /tabs-options -->
+
+  <div id='tabs-about'>
+    <div>
+      <div id='accordion'>
+        <h3>Rules</h3>
+        <div>
+    <figure class='diagram' style='float: right;'>
+      <img src='img/jump.svg' alt='Peg jumping over adjacent peg diagram' />
+      <figcaption>Jump with a selected peg over an adjacent peg
+        removing it.</figcaption>
+    </figure>
+    <p>The mind bending puzzle of <em>Peg Solitaire</em> is 
+      well-known using different board shapes and different amount
+      of holes for placing the pegs. The common mechanics is that
+      a selected peg is capable to jump any directly adjacent single
+      neighbour in straight direction onto a free position. A peg
+      is removed as it gets jumped. The selected peg will end its
+      move just on the first free field behind the peg that gets
+      removed then.</p>
+    <br clear='all' />
+    <p>Supported board shapes include</p>
+    <ul>
+    <li>triangular 15 peg positions (also called triangular 5),</li>
+    <li>triangular 21 peg positions (also called triangular 6),</li>
+    <li>English board with orthogonal pattern of 33 peg positions, and</li>
+    <li>French board with orthogonal pattern of 37 peg positions.</li>
+    </ul>
+    <p>Due to the different shapes of the board
+      in this implementation straight jumps are possible in either
+      two or three directions (either four or six directions if counting
+      forward and backward jumps separately).</p>
+    <p>In <em>Peg Solitaire</em> you select one of the pegs first.
+      This peg is going to be removed building a starting position.</p>
+    <p>By jumping the total number of pegs is reduced then.
+      <b>All starting positions</b> of a 15 hole and 21 hole triangular
+      board shape <b>do definitively allow</b> to finally end up
+      with <em>just one peg remaining</em> on optimal strategy.
+      This class of challenges are referred to as
+      <em>single vacancy to single survivor challenges</em>.
+      Other board shapes and sizes have both, some solvable and
+      some unsolvable, starting positions for <em>single
+      vacancy to single survivor</em>, too.</p>
+    <p>If the single vacancy position matches the position
+      of the survivor the challenge is called a
+      <em>complement challenge</em>. As a tough task
+      you might find out <b>which board shapes and vacancies
+      either do or do not allow</b> a complement challenge.</p>
+    <p>Each jump reduces the total amount of remaining pegs by one.
+      Depending on the board situation a <em>consecutive series
+      of jumps with same peg</em> could be performed obviously.
+      Such <em>chained jumps</em> (also called <em>sweeps</em>)
+      could be seen as a single move. The question arises
+      to find the best solutions with minimum
+      amount of moves then.</p>
+    <p>Feel free to find all possible solutions for these
+      different kind of challenges.</p>
+        </div>
+        <h3>Legal</h3>
+        <div>
+          <figure class='author' style='float: right;'>
+            <img src='img/oliver-altenahr-230708.jpg' alt='Portrait of Oliver Merkel' />
+            <figcaption>Oliver Merkel, <a rel='license'
+              href='http://creativecommons.org/licenses/by-nc-nd/4.0'
+              target='_blank'>cc-by-nc-nd 4.0</a>.</figcaption>
+          </figure>
+          <br />
+          <p>Copyright (c) 2016, 2026<br />
+            <b>@author</b> <em>Oliver Merkel</em>, Merkel(dot) Oliver(at) web(dot) de.<br />
+            All rights reserved.<br />
+            Logos, brands, and trademarks belong to their respective owners.</p>
+          <p>All source code also including code parts written in HMTL, Javascript, CSS is under MIT License.</p>
+          <h4>The MIT License (MIT)</h4>
+          <p>Copyright (c) 2016, 2026 Oliver Merkel, Merkel(dot) Oliver(at) web(dot)de</p>
+
+          <p>Permission is hereby granted, free of charge, to any person obtaining a copy of
+          this software and associated documentation files (the &quot;Software&quot;), to deal in
+          the Software without restriction, including without limitation the rights to
+          use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+          the Software, and to permit persons to whom the Software is furnished to do so,
+          subject to the following conditions:</p>
+
+          <p>The above copyright notice and this permission notice shall be included in all
+          copies or substantial portions of the Software.</p>
+
+          <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+          FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+          COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+          IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+          CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+
+          <p>If not otherwise stated all graphics (independent of its format) are licensed under
+            <br /><a rel='license' href='http://creativecommons.org/licenses/by-nc-sa/4.0'
+            target='_blank'><img alt='Creative Commons License' style='border-width:0'
+            src='img/icons/cc_by_nc_sa.png' /></a><br />Images are licensed under a
+            <a rel='license' href='http://creativecommons.org/licenses/by-nc-sa/4.0'
+            target='_blank'>Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+            International License</a>.
+          </p>
+        </div>
+        <h3>Peg Solitaire Principles and Concepts</h3>
+        <div>
+      <p>The basic concept of removing a peg by jumping over the peg
+        in any Peg Solitaire variant belongs to the public domain due
+        to its age and unknown creator.</p>
+      <p>Commonly used are square-shaped, cross-shaped, or any
+        triangular Solitaire boards first referenced or dating
+        back even centuries ago.</p>
+      <p>Anyway one might find additional expired or active claims
+        for patents or other legal protection of related mechanics,
+        too, like utility compartments or specific design patterns
+        beyond the Peg Solitaire itself.</p>
+      <ul>
+        <li>Billy J. Burden, <em>'Pegboard game unit with utility compartment'</em>,
+          <a href='http://www.google.com/patents/US3658334' rel='external'
+            target='_blank' type='text/html'>US 3658334 A</a>, Apr. 25, 1972.</li>
+        <li>Homer H. Jenkins, <em>'Peg and hole game apparatus'</em>,
+          <a href='http://www.google.com/patents/US2727745' rel='external'
+            target='_blank' type='text/html'>US 2727745 A</a>, Dec. 20, 1955.</li>
+        <li>Charles H. Rickert, <em>'Puzzle'</em>,
+          <a href='http://www.google.com/patents/US484882' rel='external'
+            target='_blank' type='text/html'>US 484882 A</a>, Patented Oct. 25, 1892.</li>
+        <li>Herbert M. Smith, <em>'Puzzle'</em>,
+          <a href='http://www.google.com/patents/US462170' rel='external'
+            target='_blank' type='text/html'>US 462170 A</a>, Patented Oct. 27, 1891.</li>
+      </ul>
+        </div>
+        <h3>Runtime Dependencies</h3>
+        <div>
+          <p>This application does not use third-party runtime JavaScript libraries.</p>
+          <p>The browser runtime depends on standard Web APIs only (DOM, SVG, CSS).</p>
+        </div>
+      </div><!-- /accordion -->
+    </div><!-- /content -->
+  </div><!-- /tab-about -->
+</div><!-- /tabs -->
+</div><!-- /page -->
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e0c0b" />
+    <title>Satranç | TLab</title>
+    <link rel="stylesheet" href="css/chessboard-1.0.0.min.css" />
+    <style>
+      :root {
+        --bg: #0e0c0b;
+        --fg: #efe8de;
+        --muted: #c4b8ac;
+        --surface: #171412;
+        --elevated: #211c18;
+        --border: #2c2621;
+        --ok: #7a9a7e;
+        --danger: #c45c4a;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Barlow, "Segoe UI", system-ui, sans-serif;
+      }
+      .wrap {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 12px 12px 24px;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+      }
+      #durum {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        min-height: 1.3em;
+      }
+      #board {
+        width: min(100%, 92vw, 520px);
+        margin: 0 auto;
+        touch-action: none;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      button,
+      select {
+        min-height: 44px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--fg);
+        box-shadow: 0 0 0 1px rgba(239, 232, 222, 0.1);
+        font: inherit;
+        cursor: pointer;
+      }
+      select {
+        appearance: none;
+      }
+      .highlight-legal {
+        box-shadow: inset 0 0 0 4px rgba(122, 154, 126, 0.55);
+      }
+      .board-b72b1 {
+        border: 8px solid #211c18;
+        box-sizing: content-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="bar">
+        <h1>Satranç</h1>
+        <p id="durum">Beyazın hamlesi</p>
+      </div>
+      <div id="board"></div>
+      <div class="actions">
+        <button type="button" id="yeni">Yeni oyun</button>
+        <button type="button" id="cevir">Tahtayı çevir</button>
+        <label>
+          Zorluk
+          <select id="derinlik" aria-label="Zorluk">
+            <option value="1">Kolay</option>
+            <option value="2" selected>Orta</option>
+            <option value="3">Zor</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <script src="vendor/jquery.min.js"></script>
+    <script src="js/chessboard-1.0.0.min.js"></script>
+    <script src="vendor/chess.min.js"></script>
+    <script>
+      (function () {
+        const VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+        const game = new Chess();
+        let board;
+        let thinking = false;
+
+        function statusText() {
+          if (game.in_checkmate()) {
+            return game.turn() === "w" ? "Mat. Siyah kazandı." : "Mat. Beyaz kazandı.";
+          }
+          if (game.in_stalemate()) return "Pat. Berabere.";
+          if (game.in_draw() || game.in_threefold_repetition() || game.insufficient_material()) {
+            return "Berabere.";
+          }
+          if (thinking) return "Siyah düşünüyor…";
+          const side = game.turn() === "w" ? "Beyazın" : "Siyahın";
+          return game.in_check() ? side + " hamlesi — şah." : side + " hamlesi";
+        }
+
+        function paint() {
+          document.getElementById("durum").textContent = statusText();
+        }
+
+        function evalPos(g) {
+          if (g.in_checkmate()) return g.turn() === "w" ? -99999 : 99999;
+          if (g.in_draw() || g.in_stalemate() || g.insufficient_material()) return 0;
+          let s = 0;
+          const b = g.board();
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              const p = b[r][c];
+              if (!p) continue;
+              const v = VAL[p.type] || 0;
+              s += p.color === "w" ? v : -v;
+            }
+          }
+          s += (g.moves().length * (g.turn() === "w" ? 2 : -2)) / 4;
+          return s;
+        }
+
+        function minimax(g, depth, alpha, beta, maximizing) {
+          if (depth === 0 || g.game_over()) return evalPos(g);
+          const moves = g.moves();
+          if (maximizing) {
+            let best = -Infinity;
+            for (let i = 0; i < moves.length; i++) {
+              g.move(moves[i]);
+              best = Math.max(best, minimax(g, depth - 1, alpha, beta, false));
+              g.undo();
+              alpha = Math.max(alpha, best);
+              if (beta <= alpha) break;
+            }
+            return best;
+          }
+          let best = Infinity;
+          for (let i = 0; i < moves.length; i++) {
+            g.move(moves[i]);
+            best = Math.min(best, minimax(g, depth - 1, alpha, beta, true));
+            g.undo();
+            beta = Math.min(beta, best);
+            if (beta <= alpha) break;
+          }
+          return best;
+        }
+
+        function cpuMove() {
+          if (game.game_over() || game.turn() !== "b") return;
+          thinking = true;
+          paint();
+          const depth = Number(document.getElementById("derinlik").value) || 2;
+          setTimeout(function () {
+            const moves = game.moves();
+            if (!moves.length) {
+              thinking = false;
+              paint();
+              return;
+            }
+            let bestMoves = [moves[0]];
+            let bestScore = Infinity;
+            for (let i = 0; i < moves.length; i++) {
+              game.move(moves[i]);
+              const score = minimax(game, depth - 1, -Infinity, Infinity, true);
+              game.undo();
+              if (score < bestScore) {
+                bestScore = score;
+                bestMoves = [moves[i]];
+              } else if (score === bestScore) {
+                bestMoves.push(moves[i]);
+              }
+            }
+            game.move(bestMoves[(Math.random() * bestMoves.length) | 0]);
+            board.position(game.fen());
+            thinking = false;
+            paint();
+          }, 40);
+        }
+
+        function removeGrey() {
+          $("#board .square-55d63").removeClass("highlight-legal");
+        }
+
+        function greySquare(sq) {
+          $("#board .square-" + sq).addClass("highlight-legal");
+        }
+
+        board = Chessboard("board", {
+          draggable: true,
+          position: "start",
+          pieceTheme: "img/chesspieces/wikipedia/{piece}.png",
+          onDragStart: function (source, piece) {
+            if (thinking || game.game_over()) return false;
+            if (game.turn() === "w" && piece.search(/^b/) !== -1) return false;
+            if (game.turn() === "b") return false;
+          },
+          onDrop: function (source, target) {
+            removeGrey();
+            const move = game.move({
+              from: source,
+              to: target,
+              promotion: "q",
+            });
+            if (move === null) return "snapback";
+            paint();
+            cpuMove();
+          },
+          onMouseoverSquare: function (square) {
+            if (thinking || game.turn() !== "w") return;
+            const moves = game.moves({ square: square, verbose: true });
+            if (!moves.length) return;
+            greySquare(square);
+            for (let i = 0; i < moves.length; i++) greySquare(moves[i].to);
+          },
+          onMouseoutSquare: removeGrey,
+          onSnapEnd: function () {
+            board.position(game.fen());
+          },
+        });
+
+        function fit() {
+          board.resize();
+        }
+        window.addEventListener("resize", fit);
+        window.addEventListener("orientationchange", function () {
+          setTimeout(fit, 200);
+        });
+
+        document.getElementById("yeni").addEventListener("click", function () {
+          game.reset();
+          thinking = false;
+          board.start();
+          paint();
+        });
+        document.getElementById("cevir").addEventListener("click", function () {
+          board.flip();
+        });
+        paint();
+        fit();
+      })();
+    </script>
+  </body>
+</html>
