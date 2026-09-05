@@ -31,6 +31,7 @@ import {
   setRomanticInterest,
 } from "./social.js?v=7";
 import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=7";
+import { REALISM_EVENTS, applyRealismResolution } from "./realism-events.js?v=7";
 import { DEPTH_EVENTS, applyDepthResolution, expireDepthCases } from "./depth-events.js?v=7";
 import { DEPTH2_EVENTS } from "./depth2-events.js?v=7";
 import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secrets, transferSecret } from "./depth2-systems.js?v=7";
@@ -528,8 +529,8 @@ export const EVENT_DEFINITIONS = [
     id: "housing_squeeze",
     repeat: "cooldown",
     cooldownWeeks: 16,
-    title: "Konut bütçesi sıkıştı",
-    text: "Konut gideri nakit durumuna göre ağırlaşmaya başladı.",
+    title: "Kira günü yaklaştı",
+    text: "Hesapta kira kadar yok. Ev sahibi ayın beşini bekler. Market fişi bu hafta birikecek.",
     condition: (state) =>
       state.finances.balance < getMonthlyHousingCost(state) && getMonthlyHousingCost(state) >= 3600,
     choices: [
@@ -588,8 +589,8 @@ export const EVENT_DEFINITIONS = [
     id: "commute_fatigue",
     repeat: "cooldown",
     cooldownWeeks: 12,
-    title: "Yol yorgunluğu",
-    text: "Ev ile iş arasındaki yük enerjini tüketti; işe yetişmek zorlaştı.",
+    title: "Servis ve ayak",
+    text: "Minibüs dolu, aktarma kaçtı. İşe on dakika kala duraktasın; ter ve çanta omzunda.",
     condition: (state) =>
       getCommuteLoad(state.household.homeId, state.career.jobId) >= 2 && state.health.energy <= 45,
     choices: [
@@ -613,8 +614,8 @@ export const EVENT_DEFINITIONS = [
     id: "unemployed_pressure",
     repeat: "cooldown",
     cooldownWeeks: 8,
-    title: "İş arama baskısı",
-    text: "Gelir olmadan para azalırken çevrenden iş arama baskısı geliyor.",
+    title: "İlan kutusu boş",
+    text: "Başvurduğun yerler dönmüyor. Evde herkes iş saatini biliyor; sen salondasın.",
     condition: (state) =>
       state.career.jobId === null && !state.career.pendingJob && state.finances.balance < 3500,
     choices: [
@@ -1410,6 +1411,7 @@ export const EVENT_DEFINITIONS = [
       },
     ],
   },
+  ...REALISM_EVENTS,
   ...ADULT_LIFE_EVENTS,
   ...DEPTH_EVENTS,
   ...DEPTH2_EVENTS,
@@ -1647,8 +1649,10 @@ export function resolveEvent(state, choiceId) {
     if (choiceId === "tell_anne") transferSecret(state, secret.id, "anne");
   }
   const adultFollowup = applyAdultLifeResolution(state, definition, choiceId);
+  const realismFollowup = applyRealismResolution(state, definition, choiceId);
   if (definition.lifetime) resolveAdultChoice(state, choiceId, state.openCases.find(item => item.id === active.sourceCaseId));
   if (adultFollowup) scheduleSocialFollowup(state, adultFollowup);
+  if (realismFollowup) scheduleSocialFollowup(state, realismFollowup);
   applyDepthResolution(state, definition, choiceId);
   applyDepth2Resolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyDepth3Resolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
