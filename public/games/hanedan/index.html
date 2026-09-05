@@ -435,6 +435,8 @@ svg.face { display:block; flex:0 0 auto; }
     if (!data.gangs) data.gangs = [];
     if (!data.bld) data.bld = { kahvehane: 1, silahhane: 0, garaj: 0, revir: 0, hukuk: 0, depo: 0, hamam: 0, ocak: 0 };
     if (!data.staff) data.staff = { cayci: 0, doktor: 0, avukat: 0, kalfa: 0, soforbasi: 0, bekci: 0 };
+    BLD.forEach(function(b){if(!Number.isFinite(data.bld[b[0]]))data.bld[b[0]]=0;});
+    STAFF.forEach(function(b){if(!Number.isFinite(data.staff[b[0]]))data.staff[b[0]]=0;});
     if (!data.market) data.market = [];
     if (!data.jail) data.jail = [];
     if (!data.kronik) data.kronik = [];

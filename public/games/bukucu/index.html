@@ -461,6 +461,10 @@ button:disabled { opacity: .35; }
     if(data.wait && ["roll","jail","pass","buy","own","ok","pay","card","auc","offer","end"].indexOf(data.wait)<0)return null;
     if(data.wait==="auc" && !data.auc || data.wait==="offer" && !data.trade)return null;
     data.rng=Number.isInteger(data.rng)?data.rng>>>0:193731;
+    if(data.trade && (!Array.isArray(data.trade.give)||!Array.isArray(data.trade.take)||![data.trade.from,data.trade.to].every(function(x){return Number.isInteger(x)&&x>=0&&x<size;})||![data.trade.giveCash,data.trade.takeCash].every(function(x){return Number.isFinite(x)&&x>=0;})))return null;
+    if(data.auc && (!Number.isInteger(data.auc.i)||data.auc.i<0||data.auc.i>=40||!Array.isArray(data.auc.out)||!Number.isInteger(data.auc.turn)||data.auc.turn<0||data.auc.turn>=size||!Number.isFinite(data.auc.bid)||data.auc.bid<0))return null;
+    if(data.card && (!['R','I'].includes(data.card.k)||!Number.isInteger(data.card.id)||!(data.card.k==='R'?RACON:IHbar)[data.card.id]))return null;
+
 
     if (!data.cash || data.cash.length < 2 || data.cash.length > 4) return null;
     data.n = data.n || data.cash.length;
