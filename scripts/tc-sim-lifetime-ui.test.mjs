@@ -231,3 +231,14 @@ test("wealth controls route through real domain state, persist, and stale clicks
   assert.equal(ui.saved().weekly.used, 2);
   assert.equal(getMonthlySummary(ui.saved()).housingBreakdown.base, 0);
 });
+
+test("wealth controls never look enabled when money, time, cooldown or ownership gates reject them", async () => {
+  const s=createNewGame(); s.finances.balance=100;
+  const ui=await mount(s); ui.click(ui.find("view","finance"));
+  const high=ui.root.elements.find(e=>e.dataset.wealthAction==="lifestyle"&&e.dataset.wealthValue==="high");
+  const property=ui.root.elements.find(e=>e.dataset.wealthAction==="property-owner"&&e.dataset.wealthValue==="cash");
+  const coffee=ui.root.elements.find(e=>e.dataset.wealthAction==="spend"&&e.dataset.wealthValue==="coffee");
+  assert.equal(high.disabled,true); assert.match(high.attrs.title,/gerekiyor/);
+  assert.equal(property.disabled,true); assert.match(property.attrs.title,/gerekiyor/);
+  assert.equal(coffee.disabled,true); assert.match(coffee.attrs.title,/gerekiyor/);
+});

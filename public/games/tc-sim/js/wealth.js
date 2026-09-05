@@ -629,3 +629,79 @@ export function netWorth(state) {
     total: cash + investments + property + vehicle + durables - debt,
   };
 }
+
+/** Player-facing controls read the same gates before attempting a mutation. */
+export function getWealthActionAvailability(state, action, value) {
+  normalizeWealth(state);
+  const w = state.wealth;
+  const weekBlocked = (id, time = 1) => weekly(state, id) || (state.weekly.used + time > 2 ? "Bu işlem için haftanın kalan zamanı yetmiyor." : null);
+  if (action === "lifestyle") {
+    if (!TIERS[value]) return { ok: false, reason: "Yaşam standardı geçersiz." };
+    if (w.lifestyle === value) return { ok: false, reason: "Bu düzende yaşıyorsun." };
+    const increase = Math.max(0, TIERS[value].monthly - TIERS[w.lifestyle].monthly);
+    if (increase && w.lifestyleChangedWeek && state.time.absoluteWeek - w.lifestyleChangedWeek < 12)
+      return { ok: false, reason: "Yaşam düzenini yeniden yükseltmek için 12 hafta beklemelisin." };
+    return state.finances.balance < increase ? { ok: false, reason: `Geçiş için ₺${increase.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  if (action === "spend") {
+    const item = SPENDING[value]; if (!item) return { ok: false, reason: "Harcama geçersiz." };
+    const blocked = weekBlocked(`wealth-spend:${value}`, item.time || 1); if (blocked) return { ok: false, reason: blocked };
+    const last = w.cooldowns[value] || 0; if (last && state.time.absoluteWeek - last < 4) return { ok: false, reason: "Bu deneyimi yeniden planlamak için biraz beklemelisin." };
+    return state.finances.balance < item.cost ? { ok: false, reason: `Bu işlem için ₺${item.cost.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  if (action === "subscription") {
+    const item = SUBSCRIPTIONS[value]; if (!item) return { ok: false, reason: "Abonelik geçersiz." };
+    if (w.subscriptions.some(entry => entry.id === value)) return { ok: true };
+    if (w.subscriptions.length >= WEALTH_LIMITS.subscriptions) return { ok: false, reason: "Abonelik sınırına ulaştın." };
+    return state.finances.balance < item.monthly ? { ok: false, reason: `İlk dönem için ₺${item.monthly.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  if (action === "durable") {
+    const item = DURABLES[value]; if (!item) return { ok: false, reason: "Ürün geçersiz." };
+    const blocked = weekBlocked(`wealth-durable:${value}`); if (blocked) return { ok: false, reason: blocked };
+    return state.finances.balance < item.price ? { ok: false, reason: `Bu ürün için ₺${item.price.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  if (action === "invest-buy" || action === "invest-sell") {
+    const position = w.investments.find(item => item.id === value); if (!INVESTMENTS[value]) return { ok: false, reason: "Yatırım sınıfı geçersiz." };
+    if (w.cooldowns[`investment:${state.time.absoluteWeek}:${value}`]) return { ok: false, reason: "Aynı yatırım sınıfında haftada bir işlem yapabilirsin." };
+    if (action === "invest-buy") return state.finances.balance < 5050 ? { ok: false, reason: "Alım ve işlem farkı için ₺5.050 gerekiyor." } : { ok: true };
+    return (position?.value || 0) < 5000 ? { ok: false, reason: "Satılabilir değer ₺5.000 altında." } : { ok: true };
+  }
+  if (action.startsWith("vehicle-")) {
+    if (action === "vehicle-sell") return w.vehicle ? { ok: true } : { ok: false, reason: "Satılacak araç yok." };
+    const item = VEHICLES[value]; if (!item) return { ok: false, reason: "Araç geçersiz." };
+    if (w.vehicle) return { ok: false, reason: "Önce mevcut aracı satmalısın." };
+    const blocked = weekBlocked("wealth-vehicle"); if (blocked) return { ok: false, reason: blocked };
+    const financed = action === "vehicle-finance"; if (financed && w.debts.length >= WEALTH_LIMITS.debts) return { ok: false, reason: "Yeni borç için kayıt sınırına ulaştın." };
+    const due = financed ? Math.ceil(item.price * .35) : item.price;
+    return state.finances.balance < due ? { ok: false, reason: `Bu alım için ₺${due.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  if (action === "property-sell") return w.properties.some(item => item.id === value) ? { ok: true } : { ok: false, reason: "Mülk bulunamadı." };
+  if (action === "property-rent" || action === "property-vacant") {
+    const property = w.properties.find(item => item.id === value && item.occupancy !== "owner");
+    const occupancy = action === "property-rent" ? "rental" : "vacant";
+    if (!property) return { ok: false, reason: "Bu mülkün kullanım durumu değiştirilemez." };
+    if (property.occupancy === occupancy) return { ok: false, reason: "Mülk zaten bu durumda." };
+    const blocked = weekBlocked(`property-occupancy:${value}`); return blocked ? { ok: false, reason: blocked } : { ok: true };
+  }
+  if (action === "property-owner" || action === "property-rental") {
+    const kind = action === "property-owner" ? "owner" : "rental", financed = value === "mortgage";
+    if (w.properties.some(item => item.occupancy === kind) || w.properties.length >= WEALTH_LIMITS.properties) return { ok: false, reason: "Bu konut türü zaten var veya mülk sınırına ulaştın." };
+    if (financed && w.debts.length >= WEALTH_LIMITS.debts) return { ok: false, reason: "Yeni borç için kayıt sınırına ulaştın." };
+    const blocked = weekBlocked("wealth-property"); if (blocked) return { ok: false, reason: blocked };
+    const price = kind === "owner" ? 480000 : 420000, due = financed ? Math.ceil(price * .3) : price;
+    return state.finances.balance < due ? { ok: false, reason: `Bu alım için ₺${due.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
+  }
+  return { ok: false, reason: "İşlem kullanılamıyor." };
+}
+
+export function applyWealthAction(state, action, value) {
+  const availability = getWealthActionAvailability(state, action, value);
+  if (!availability.ok) return availability;
+  const operations = {
+    lifestyle: () => setLifestyle(state, value), spend: () => spendLifestyle(state, value), subscription: () => toggleSubscription(state, value), durable: () => buyDurable(state, value),
+    "invest-buy": () => tradeInvestment(state, value, 5000), "invest-sell": () => tradeInvestment(state, value, -5000), "vehicle-cash": () => buyVehicle(state, value, false), "vehicle-finance": () => buyVehicle(state, value, true),
+    "vehicle-sell": () => sellVehicle(state), "property-owner": () => buyProperty(state, "owner", value === "mortgage"), "property-rental": () => buyProperty(state, "rental", value === "mortgage"),
+    "property-sell": () => sellProperty(state, value), "property-rent": () => setPropertyOccupancy(state, value, "rental"), "property-vacant": () => setPropertyOccupancy(state, value, "vacant"),
+  };
+  return operations[action]?.() || { ok: false, reason: "İşlem kullanılamıyor." };
+}

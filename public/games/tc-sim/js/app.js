@@ -1,22 +1,7 @@
 import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=8";
 import {
-  LIFESTYLE_TIERS,
-  SUBSCRIPTIONS,
-  DURABLES,
-  VEHICLES,
-  INVESTMENTS,
-  SPENDING,
-  setLifestyle,
-  spendLifestyle,
-  toggleSubscription,
-  buyDurable,
-  tradeInvestment,
-  buyVehicle,
-  sellVehicle,
-  buyProperty,
-  sellProperty,
-  setPropertyOccupancy,
-  netWorth,
+  LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, SPENDING,
+  getWealthActionAvailability, applyWealthAction, netWorth,
 } from "./wealth.js?v=8";
 import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=8";
 import { parenthoodSummary } from "./parenthood.js?v=8";
@@ -695,8 +680,11 @@ function renderFinance() {
     ...(friendLoan && friendLoanAmount ? [{ name: "Mehmet", amount: friendLoanAmount }] : []),
   ];
   const ledger = [...state.finances.ledger].reverse().slice(0, 40);
-  const wealthButton = (action, value, label, detail, disabled = false) =>
-    `<button class="button decision wealth-action" data-wealth-action="${action}" data-wealth-value="${value}" ${disabled ? "disabled" : ""}><strong>${escapeText(label)}</strong><small>${escapeText(detail)}</small></button>`;
+  const wealthButton = (action, value, label, detail, disabled = false) => {
+    const availability = getWealthActionAvailability(state, action, value);
+    const reason = disabled && availability.ok ? "Bu seçenek mevcut durumda kullanılamıyor." : availability.reason || "";
+    return `<button class="button decision wealth-action" data-wealth-action="${action}" data-wealth-value="${value}" ${disabled || !availability.ok ? "disabled" : ""} title="${escapeText(reason)}"><strong>${escapeText(label)}</strong><small>${escapeText(detail)}${reason ? ` · ${escapeText(reason)}` : ""}</small></button>`;
+  };
   return `<div class="workspace-head"><div><p class="eyebrow">PARA</p><h1>Mali durum ve net servet</h1></div>${renderWeekControl()}</div>
     <section class="detail-summary panel wealth-summary">
       <div><span>Bakiye</span><strong>${money(state.finances.balance)}</strong></div><div><span>Net servet</span><strong>${money(worth.total)}</strong><small>Nakit ${money(worth.cash)} · Yatırım ${money(worth.investments)} · Gayrimenkul ${money(worth.property)} · Araç/eşya ${money(worth.vehicle + worth.durables)} · Borç −${money(worth.debt)}</small></div>
@@ -1058,18 +1046,7 @@ function render() {
     render();
   }));
   document.querySelectorAll("[data-wealth-action]").forEach((button) => button.addEventListener("click", () => {
-    const action = button.dataset.wealthAction;
-    const value = button.dataset.wealthValue;
-    const operations = {
-      lifestyle: () => setLifestyle(state, value), spend: () => spendLifestyle(state, value),
-      subscription: () => toggleSubscription(state, value), durable: () => buyDurable(state, value),
-      "invest-buy": () => tradeInvestment(state, value, 5000), "invest-sell": () => tradeInvestment(state, value, -5000),
-      "vehicle-cash": () => buyVehicle(state, value, false), "vehicle-finance": () => buyVehicle(state, value, true),
-      "vehicle-sell": () => sellVehicle(state), "property-owner": () => buyProperty(state, "owner", value === "mortgage"),
-      "property-rental": () => buyProperty(state, "rental", value === "mortgage"), "property-sell": () => sellProperty(state, value),
-      "property-rent": () => setPropertyOccupancy(state, value, "rental"), "property-vacant": () => setPropertyOccupancy(state, value, "vacant"),
-    };
-    const result = operations[action]?.() || { ok: false, reason: "İşlem kullanılamıyor." };
+    const result = applyWealthAction(state, button.dataset.wealthAction, button.dataset.wealthValue);
     notice = result.message || result.reason;
     persist();
     render();
