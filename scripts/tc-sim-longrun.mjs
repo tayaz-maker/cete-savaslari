@@ -1,4 +1,4 @@
-import { needsParentCare, canTryParenthood, childStage } from "../public/games/tc-sim/js/parenthood.js";
+import { needsParentCare, canTryParenthood, childStage, childAge, childAcademicStanding, isChildIssueKnown, parenthoodSummary, PARENTING_CHAINS } from "../public/games/tc-sim/js/parenthood.js";
 /**
  * TC SIM uzun koşu / fuzz doğrulayıcı.
  *
@@ -322,12 +322,13 @@ export function runBodyMatrix() {
   return Object.fromEntries(["overworker", "balanced", "low-recovery", "health-first"].map((strategy) => [strategy, runBodyStrategy(strategy)]));
 }
 
-export function settleHouseholdEvents(state, choices = {}) {
+export function settleHouseholdEvents(state, choices = {}, observe = () => {}) {
   let guard = 0;
   activateNextEvent(state);
   while (state.events.active) {
     assert.ok(guard++ < 80, "Olaylar sonlanmalı");
     const definition = getEventDefinition(state.events.active.eventId);
+    observe(definition);
     const preferred = choices[definition.id] || {
       cohabitation_discussion: "plan", cohabitation_move: "shared", household_adjustment: "coordinate",
       household_family_visit: "tell", marriage_discussion: "plan", marriage_commitment: "confirm",
@@ -335,7 +336,7 @@ export function settleHouseholdEvents(state, choices = {}) {
       health_overload_review: "slow", health_recovery_review: "care", health_inactivity_review: "move", health_support_disclosure: "tell",
     }[definition.id];
     const choice = definition.choices.find((item) => item.id === preferred && getEventChoiceAvailability(state, item.id).ok) || definition.choices.find((item) => getEventChoiceAvailability(state, item.id).ok);
-    assert.ok(choice);
+    assert.ok(choice, `${definition.id}: uygulanabilir seçim yok (${definition.choices.map((item) => `${item.id}=${getEventChoiceAvailability(state, item.id).reason || "ok"}`).join(", ")})`);
     assert.equal(resolveEvent(state, choice.id).ok, true);
   }
 }
@@ -383,6 +384,149 @@ export function runHouseholdScenario(weeks = 520, { conflict = false } = {}) {
   };
 }
 
+/**
+ * Çocuğun 6→18 yolunu tek bir yeniden kullanılabilir koşuda kanıtlar.
+ * Kurulum ortaktır; yalnız politika haritası değişir. Yaş asla elle yazılmaz:
+ * gebelik ve doğum gerçek üretim yolundan geçer, yaş doğum haftasından türer.
+ */
+const CHILD_POLICIES = {
+  stable: {
+    child_school_transition: "support", child_attendance_concern: "support", child_peer_concern: "support",
+    child_relationship_conflict: "listen", child_conflict_repair: "repair", child_autonomy_disclosure: "listen",
+    child_autonomy_followup: "listen", child_activity_choice: "join", child_activity_review: "continue",
+    child_other_parent_contact: "support", child_contact_followup: "support", child_future_discussion: "support",
+  },
+  strained: {
+    child_school_transition: "later", child_attendance_concern: "ignore", child_peer_concern: "ignore",
+    child_relationship_conflict: "insist", child_conflict_repair: "later", child_autonomy_disclosure: "insist",
+    child_autonomy_followup: "later", child_activity_choice: "later", child_activity_review: "stop",
+    child_other_parent_contact: "later", child_contact_followup: "later", child_future_discussion: "push",
+  },
+};
+CHILD_POLICIES.separated = { ...CHILD_POLICIES.stable };
+
+export function runChildScenario(kind = "stable", { weeks = 1180 } = {}) {
+  let state = createNewGame({ now: "2027-01-01T00:00:00.000Z", name: "Deniz" });
+  const storage = new MemoryStorage();
+  const policy = CHILD_POLICIES[kind] || CHILD_POLICIES.stable;
+  const checkpoints = {};
+  const chainCounts = {};
+  const maximums = { attendance: 0, social: 0, issues: 0, parentingCases: 0, secrets: 0, npcMemories: 0, history: 0, yearFile: 0, commitments: 0 };
+  const seenResolved = new Set();
+  let birthWeek = null;
+  let separatedAt = null;
+  const child = () => state.parenthood.children[0] || null;
+  const childAgeNow = () => (child() ? childAge(state, child()) : null);
+
+  for (let step = 0; step < weeks; step += 1) {
+    const kid = child();
+    const tryingChoice = state.parenthood.children.length >= 1 ? "no" : canTryParenthood(state) ? "try_partner" : "discuss";
+    // Ayrılık yalnız gerçek Second Stage B olay yolundan gelir; state elle
+    // "separated" yapılmaz. Çocuk okul çağına geldikten sonra tetiklenir.
+    const wantSeparation = kind === "separated" && kid && childAge(state, kid) >= 6;
+    const choices = {
+      ...policy,
+      family_intent_discussion: "wants", family_intent_review: "talk",
+      parent_planning: tryingChoice, parent_planning_review: tryingChoice,
+      parent_preparation: "prepare", parent_family_support: "tell",
+      // Bu koşuda hane geçimini koruyacak şekilde oynanır: stüdyoya taşınmak
+      // 18 yıl boyunca sürdürülemez bir gider yaratıp ölçümü yoksullukla
+      // gölgeliyordu. Taşınmayı ertelemek geçerli bir oyuncu kararıdır.
+      parent_housing_review: "later",
+      // Zorlu koşuda bakım düzeni de aksatılır: okul baskısı ve buna bağlı
+      // C02/C03/C04 zincirleri ancak böyle gerçek koşullarıyla doğar.
+      parent_care_review: kind === "strained" ? "later" : "arrange", parent_budget_review: "home",
+      ...(wantSeparation ? { household_adjustment: "skip", relationship_tension: "avoid", elif_neglect_week: "work", separation_discussion: "separate", separation_review: "divorce" } : {}),
+      ...(kind === "strained" ? { household_adjustment: "skip" } : {}),
+    };
+    const settle = () => settleHouseholdEvents(state, choices, (definition) => {
+      const chain = Object.values(PARENTING_CHAINS).find((entry) => entry.eventId === definition.id);
+      const key = chain?.id || (definition.id.startsWith("child_") ? definition.id : null);
+      if (key) chainCounts[key] = (chainCounts[key] || 0) + 1;
+    });
+    settle();
+    // Geçerli bir oyuncu gibi geçimini de sürdürür: 24 haftada bir uygun olan
+    // en iyi işe geçmeyi dener. Aksi halde koşu yıllar içinde iflasa gider ve
+    // ölçülen şey ebeveynlik değil yoksulluk olur.
+    if (step % 24 === 0) for (const jobId of ["specialist", "technician", "office", "courier", "market"]) if (acceptJobOffer(state, jobId).ok) break;
+    settle();
+    if (kind !== "strained" && needsParentCare(state) && canApplyDecision(state, "parent-care").ok) applyDecision(state, "parent-care");
+    else if (canApplyDecision(state, "rest").ok) applyDecision(state, "rest");
+    settle();
+    const socialAction = canUseSocialAction(state, "elif", "confide").ok ? "confide" : "meet";
+    // Ayrılık senaryosunda ilişki bakımı bırakılır ki gerçek Second Stage B
+    // ayrılık olayları kendi koşullarıyla uygun hale gelsin.
+    const nurture = (kind !== "strained" && !wantSeparation) || !kid;
+    if (nurture && step % 2 === 0 && canUseSocialAction(state, "elif", socialAction).ok) applySocialAction(state, "elif", socialAction);
+    else if (canApplyDecision(state, "exercise").ok) applyDecision(state, "exercise");
+    settle();
+    assert.equal(advanceWeek(state).ok, true);
+    settle();
+    assert.equal(validateState(state).ok, true);
+
+    if (!birthWeek && child()) birthWeek = child().bornWeek;
+    if (!separatedAt && state.household.union?.separatedSince) separatedAt = state.time.absoluteWeek;
+
+    const cases = state.openCases.filter((c) => c.type === "parenting-followup" && c.status !== "resolved");
+    assert.equal(new Set(cases.map((c) => `${c.payload.kind}:${c.payload.childId || "-"}`)).size, cases.length, "aynı çocuk için yinelenen zincir olmamalı");
+    for (const item of state.openCases) if (item.status === "resolved") seenResolved.add(item.id);
+    const kidNow = child();
+    if (kidNow) {
+      maximums.attendance = Math.max(maximums.attendance, kidNow.school.attendancePressure);
+      maximums.social = Math.max(maximums.social, kidNow.school.socialPressure);
+      maximums.issues = Math.max(maximums.issues, kidNow.school.issues.length);
+      maximums.commitments = Math.max(maximums.commitments, kidNow.school.extracurricular ? 1 : 0);
+      // Gizli konu hiçbir zaman oyuncuya sızmamalı.
+      if (kidNow.school.hiddenIssue && !isChildIssueKnown(state, kidNow))
+        assert.doesNotMatch(parenthoodSummary(state).children[0], /paylaşmıyor/, "gizli konu okunabilir olmamalı");
+    }
+    maximums.parentingCases = Math.max(maximums.parentingCases, cases.length);
+    maximums.secrets = Math.max(maximums.secrets, state.secrets.length);
+    maximums.npcMemories = Math.max(maximums.npcMemories, ...state.people.map((p) => p.memories.length));
+    maximums.history = Math.max(maximums.history, state.household.history.length);
+    maximums.yearFile = Math.max(maximums.yearFile, state.yearlyHistory.length);
+    assert.ok(state.secrets.length <= 30);
+    assert.ok(state.household.history.length <= 24);
+    assert.ok(state.yearlyHistory.length <= 80);
+    assert.ok(state.people.every((p) => p.memories.length <= 50));
+
+    const age = childAgeNow();
+    if (age !== null && [6, 12, 15, 18].includes(age) && !checkpoints[age]) {
+      const c = child();
+      checkpoints[age] = {
+        age, stage: childStage(state, c), standing: childAcademicStanding(c),
+        attendancePressure: c.school.attendancePressure, socialPressure: c.school.socialPressure,
+        schoolIssues: c.school.issues.filter((i) => i.status !== "resolved").length,
+        trust: c.relationship.trust, tension: c.relationship.tension, closeness: c.relationship.closeness,
+        extracurricular: Boolean(c.school.extracurricular),
+        openCases: state.openCases.filter((x) => x.payload?.childId === c.id && x.status !== "resolved").length,
+        knownIssue: isChildIssueKnown(state, c), hiddenIssuePending: Boolean(c.school.hiddenIssue) && !isChildIssueKnown(state, c),
+        futurePreference: c.futurePreference, trajectory: c.trajectory ?? null,
+        balance: Math.round(state.finances.balance), history: state.household.history.length, yearFile: state.yearlyHistory.length,
+      };
+    }
+    if (step % 24 === 0) {
+      assert.equal(saveGame(storage, state).ok, true);
+      const next = loadGame(storage);
+      assert.equal(next.ok, true);
+      assert.deepEqual(next.state.parenthood, state.parenthood, "kayıt/yükleme ebeveynlik durumunu bozmamalı");
+      state = next.state;
+    }
+    if (checkpoints[18]) break;
+  }
+  const finalChild = child();
+  return {
+    kind, birthWeek, separatedAt, weeks: state.time.absoluteWeek, checkpoints, chainCounts, maximums,
+    child: finalChild ? { id: finalChild.id, name: finalChild.name, trajectory: finalChild.trajectory ?? null, futurePreference: finalChild.futurePreference,
+      otherParentId: finalChild.otherParentId, otherParentValid: state.people.some((p) => p.id === finalChild.otherParentId),
+      hiddenIssue: finalChild.school.hiddenIssue, knownIssue: isChildIssueKnown(state, finalChild) } : null,
+    union: state.household.union ? { cohabitingSince: state.household.union.cohabitingSince ?? null, separatedSince: state.household.union.separatedSince ?? null } : null,
+    partner: state.social.currentPartnerNpcId,
+    openParentingCases: state.openCases.filter((c) => c.type === "parenting-followup" && c.status !== "resolved").length,
+    valid: validateState(state).ok,
+  };
+}
+
 export function runParenthoodScenario({ noChild = false } = {}) {
   let state = createNewGame({ now: "2027-01-01T00:00:00.000Z", name: "Deniz" });
   const storage = new MemoryStorage();
@@ -426,7 +570,12 @@ export function runParenthoodScenario({ noChild = false } = {}) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 const mode = process.argv[2] || "520";
-if (mode === "parenthood" || mode === "no-child") {
+if (mode === "child" || mode === "child-stable" || mode === "child-strained" || mode === "child-separated") {
+  const kind = mode === "child" ? "stable" : mode.replace("child-", "");
+  console.log(JSON.stringify(runChildScenario(kind), null, 2));
+} else if (mode === "child-matrix") {
+  console.log(JSON.stringify(Object.fromEntries(["stable", "strained", "separated"].map((k) => [k, runChildScenario(k)])), null, 2));
+} else if (mode === "parenthood" || mode === "no-child") {
   console.log(JSON.stringify(runParenthoodScenario({ noChild: mode === "no-child" }), null, 2));
 } else if (mode === "household" || mode === "separation") {
   console.log(JSON.stringify(runHouseholdScenario(520, { conflict: mode === "separation" }), null, 2));

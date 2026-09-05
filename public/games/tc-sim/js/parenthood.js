@@ -1,7 +1,7 @@
 import { addMemory, addNpcMemory, appendCapped, adjustHealth, getWeeklyActivityLimit, transact } from "./state.js?v=5";
 import { getRelationship, applyRelationshipDelta } from "./social.js?v=5";
 import { getMonthlySummary, relocateHome, getHomeById } from "./life.js?v=5";
-import { createSecret, transferSecret } from "./depth2-systems.js?v=5";
+import { createSecret, transferSecret, isSecretKnownTo, resolveSecret } from "./depth2-systems.js?v=5";
 
 export const PARENTING_CHAINS = Object.freeze({
   planning: { id: "CHN-P01", eventId: "parent_planning_review" },
@@ -20,6 +20,24 @@ export const PARENTING_CHAINS = Object.freeze({
   contact: { id: "CHN-C07", eventId: "child_contact_followup" },
   future: { id: "CHN-C08", eventId: "child_future_discussion" },
 });
+/** Çocuğun geniş gelecek yönelimi; null "henüz konuşulmadı" demektir. */
+export const FUTURE_PREFERENCES = Object.freeze(["education", "work", "undecided"]);
+const FUTURE_LABELS = Object.freeze({ education: "okumaya yakın", work: "çalışmaya yakın", undecided: "henüz net değil" });
+const TRAJECTORY_LABELS = Object.freeze({ "education-focused": "okuma yönünde", "work-focused": "çalışma yönünde", undecided: "yönü henüz açık" });
+const HIDDEN_ISSUE_STATUS = Object.freeze(["hidden", "disclosed"]);
+/**
+ * Gizli konu yuvası yalnız kimlik ve yaşam döngüsü taşır. Oyuncunun bunu bilip
+ * bilmediği tek bir yerden, state.secrets kaydından okunur; ikinci bir bayrak
+ * tutulmaz ki iki kaynak birbiriyle çelişemesin.
+ */
+const isHiddenIssueShape = (value) =>
+  Boolean(value) && typeof value === "object" && typeof value.id === "string" && value.id &&
+  HIDDEN_ISSUE_STATUS.includes(value.status) && Number.isInteger(value.createdWeek) && value.createdWeek >= 0;
+/** Gizli ergen konusunu oyuncu meşru yoldan öğrendi mi. Tek yetkili okuma. */
+export function isChildIssueKnown(state, child) {
+  const issue = child?.school?.hiddenIssue;
+  return isHiddenIssueShape(issue) && isSecretKnownTo(state, issue.id, "player");
+}
 export function neutralParenthood() {
   return { pregnancy: null, children: [], carePlan: "home", careOwedThisMonth: 0, coveredUntil: 0, missedCareWeeks: 0, lastWeek: 0 };
 }
@@ -28,9 +46,12 @@ export function normalizeParenthood(state) {
   else state.parenthood = { ...neutralParenthood(), ...state.parenthood };
   for (const child of state.parenthood.children) {
     if (!child.relationship) child.relationship = { closeness: 60, trust: 60, tension: 0 };
-    if (!Object.hasOwn(child, "futurePreference")) child.futurePreference = null;
+    if (!FUTURE_PREFERENCES.includes(child.futurePreference)) child.futurePreference = null;
     if (!child.school) child.school = { attendancePressure: 0, socialPressure: 0, issues: [], extracurricular: null, hiddenIssue: null, lastUpdatedWeek: 0 };
-    if (!Object.hasOwn(child.school, "hiddenIssue")) child.school.hiddenIssue = null;
+    // Gizli ergen konusu artık bilgiyi kendi içinde taşımaz: tek yetkili kaynak
+    // state.secrets kaydıdır. Eski kayıtlarda kalan yerel knownToPlayer alanı
+    // uydurma bir sır üretmemek için nötrlenir.
+    if (!isHiddenIssueShape(child.school.hiddenIssue)) child.school.hiddenIssue = null;
     if (!child.stageMark) child.stageMark = { stage: null, transitions: [] };
     if (!Array.isArray(child.stageMark.transitions)) child.stageMark.transitions = [];
     if (!Array.isArray(child.school.issues)) child.school.issues = [];
@@ -46,7 +67,9 @@ export function validateParenthood(state) {
   const person = (id) => state.people.some((item) => item.id === id);
   const cases = (state.openCases || []).filter(c => c.type === "parenting-followup" && c.status !== "resolved");
   if (cases.length > 14 || new Set(cases.map(c => c.id)).size !== cases.length || cases.some(c => !Object.hasOwn(PARENTING_CHAINS, c.payload?.kind) || c.chainId !== PARENTING_CHAINS[c.payload.kind].id || typeof c.payload.playerKnown !== "boolean")) return false;
-  return Array.isArray(p.children) && p.children.every((c) => typeof c?.id === "string" && c.id && typeof c.name === "string" && c.name.length <= 40 && week(c.bornWeek) && c.bornWeek >= 1 && person(c.otherParentId) && typeof c.livesWithPlayer === "boolean") &&
+  return Array.isArray(p.children) && p.children.every((c) => typeof c?.id === "string" && c.id && typeof c.name === "string" && c.name.length <= 40 && week(c.bornWeek) && c.bornWeek >= 1 && person(c.otherParentId) && typeof c.livesWithPlayer === "boolean" &&
+      (c.futurePreference === null || c.futurePreference === undefined || FUTURE_PREFERENCES.includes(c.futurePreference)) &&
+      (!c.school?.hiddenIssue || (isHiddenIssueShape(c.school.hiddenIssue) && week(c.school.hiddenIssue.createdWeek)))) &&
     new Set(p.children.map((c) => c.id)).size === p.children.length &&
     ["home", "paid"].includes(p.carePlan) && Number.isInteger(p.careOwedThisMonth) && p.careOwedThisMonth >= 0 && p.careOwedThisMonth <= 4500 && Number.isInteger(p.coveredUntil) && p.coveredUntil >= 0 &&
     Number.isInteger(p.missedCareWeeks) && p.missedCareWeeks >= 0 && p.missedCareWeeks <= 8 && week(p.lastWeek) &&
@@ -60,6 +83,18 @@ export function childStage(state, child) {
   if (age <= 14) return "Erken ergenlik (12–14)";
   if (age <= 17) return "Geç ergenlik (15–17)";
   return "Yetişkinliğe geçiş (18+)";
+}
+/**
+ * Çocuğun kendi geniş yönelimi. Okul karnesinin başka adla tekrarı değildir:
+ * asıl sinyal oyuncunun birlikte kurduğu etkinlik bağlılığı, ardından okul
+ * dışındaki yük göstergeleridir. Tamamen deterministiktir.
+ */
+export function childFutureLean(child) {
+  const school = child?.school || {};
+  if (school.extracurricular) return "education";
+  if ((school.socialPressure || 0) >= 6 || (school.attendancePressure || 0) >= 6) return "work";
+  if ((school.issues || []).some((item) => item.status !== "resolved")) return "work";
+  return "undecided";
 }
 export function childAcademicStanding(child) {
   const school = child.school || {};
@@ -113,6 +148,16 @@ function record(state, kind, text, personId) {
   addMemory(state, text, "important");
   if (personId) addNpcMemory(state, personId, text, kind);
 }
+/**
+ * Çocuk başına konu soğuması. Eşik bir kez aşıldığında aynı konuşmanın her
+ * hafta yeniden planlanmasını engeller; süre dolduğunda konu yeniden doğabilir.
+ */
+function throttleChild(state, child, kind, weeks) {
+  const key = `child_${kind}_${child.id}`;
+  if (state.time.absoluteWeek < (state.events.cooldowns[key] || 0)) return false;
+  state.events.cooldowns[key] = state.time.absoluteWeek + weeks;
+  return true;
+}
 function schedule(state, kind, delay, payload = {}, eventId = null, hidden = false) {
   if (state.openCases.some((c) => c.type === "parenting-followup" && c.payload.kind === kind && c.payload.childId === payload.childId && c.status !== "resolved")) return false;
   const chain = PARENTING_CHAINS[kind];
@@ -146,23 +191,50 @@ export function processParenthoodWeek(state) {
     const pressure = p.missedCareWeeks > 0 ? 1 : 0;
     school.attendancePressure = Math.min(12, school.attendancePressure + pressure);
     if (age >= 12 && p.missedCareWeeks > 1) school.socialPressure = Math.min(12, school.socialPressure + 1);
-    if (school.attendancePressure >= 8) schedule(state, "attendance", 2, { childId: child.id, playerKnown: true });
-    if (age >= 12 && school.socialPressure >= 8) schedule(state, "peer", 2, { childId: child.id, playerKnown: true });
-    if (age >= 12 && age <= 17 && school.socialPressure >= 6 && !school.hiddenIssue && !state.openCases.some(x => x.payload?.kind === "autonomy" && x.payload.childId === child.id && x.status !== "resolved")) {
-      school.hiddenIssue = { kind: "privacy", status: "active", knownToPlayer: false, createdWeek: state.time.absoluteWeek };
+    // Eşik aşıldığında konuşma her hafta yeniden planlanmamalı: baskı yüksek
+    // kaldığı sürece aynı uyarı sürekli tekrarlanıyordu. Çocuk başına soğuma
+    // süresi olayın kendi cooldown'ıyla aynı ölçekte tutulur.
+    if (school.attendancePressure >= 8 && throttleChild(state, child, "attendance", 24)) schedule(state, "attendance", 2, { childId: child.id, playerKnown: true });
+    if (age >= 12 && school.socialPressure >= 8 && throttleChild(state, child, "peer", 24)) schedule(state, "peer", 2, { childId: child.id, playerKnown: true });
+    // C06 A EVRESİ — GİZLİ. Konu gerçekten var olur ama oyuncu bilmez: sır
+    // knownBy boş yaratılır, vaka gizli kuyrukta bekler ve `child_autonomy_probe`
+    // bilerek bir event tanımı değildir; böylece bu evrede oyuncuya hiçbir karar
+    // sunulamaz (enqueueEvent tanımsız event'i kuyruğa almaz).
+    // Ergenlikte kendine ait bir alan olması olağandır: 13 yaşında bir kez
+    // kendiliğinden, ayrıca sosyal baskı biriktiğinde tekrar doğabilir. Çocuk
+    // başına soğuma süresi yeni ve ayrı bir konunun yıllar sonra doğmasına izin
+    // verirken haftalık tekrarı engeller.
+    if (age >= 12 && age <= 17 && (age >= 13 || school.socialPressure >= 6) && !school.hiddenIssue &&
+        !state.openCases.some(x => x.payload?.kind === "autonomy" && x.payload.childId === child.id && x.status !== "resolved") &&
+        throttleChild(state, child, "autonomy", 96)) {
+      const issueId = `child-autonomy-${child.id}-${state.time.absoluteWeek}`;
+      createSecret(state, { id: issueId, type: "privacy", summary: `${child.name} kendine ait bir konuyu şimdilik paylaşmıyor.`, relatedPeople: [child.otherParentId], knownBy: [] });
+      school.hiddenIssue = { id: issueId, kind: "privacy", status: "hidden", createdWeek: state.time.absoluteWeek };
       schedule(state, "autonomy", 2, { childId: child.id, playerKnown: false }, "child_autonomy_probe", true);
     }
-    if (age >= 12 && age <= 17 && school.issues.some(i => i.status !== "resolved") && child.relationship.tension >= 20) schedule(state, "conflict", 2, { childId: child.id, playerKnown: true }, "child_relationship_conflict");
-    if (age >= 6 && age <= 17 && !school.extracurricular && [6, 12, 15].includes(age)) schedule(state, "activity", 2, { childId: child.id, playerKnown: true }, "child_activity_choice");
+    if (age >= 12 && age <= 17 && school.issues.some(i => i.status !== "resolved") && child.relationship.tension >= 20 && throttleChild(state, child, "conflict", 24)) schedule(state, "conflict", 2, { childId: child.id, playerKnown: true }, "child_relationship_conflict");
+    // Etkinlik önerisi geçiş yaşında bir kez sorulur. Soğuma olmadan, teklif
+    // reddedildiği her hafta yeniden planlanıyor ve aynı soru yıl boyunca
+    // onlarca kez geliyordu.
+    if (age >= 6 && age <= 17 && !school.extracurricular && [6, 12, 15].includes(age) && throttleChild(state, child, "activity", 96))
+      schedule(state, "activity", 2, { childId: child.id, playerKnown: true }, "child_activity_choice");
   }
 }
 export function processParenthoodCases(state) {
   const p = state.parenthood;
   for (const item of state.openCases) {
-    if (item.type === "parenting-followup" && item.payload?.kind === "autonomy" && item.status === "pending" && item.expiresWeek !== null && state.time.absoluteWeek >= item.dueWeek) {
+    // C06 B EVRESİ — AÇILMA. Yalnız gizli sonda vakası terfi eder; devam vakası
+    // (`child_autonomy_followup`) da kind "autonomy" taşıdığı için burada eventId
+    // eşleşmesi şart: aksi halde devam vakası tekrar açılma olayına dönüşür ve
+    // her turda güven kazandıran bir döngü oluşur.
+    if (item.type === "parenting-followup" && item.eventId === "child_autonomy_probe" && item.status === "pending" && state.time.absoluteWeek >= item.dueWeek) {
       const child = p.children.find(c => c.id === item.payload.childId);
-      if (child?.school?.hiddenIssue) child.school.hiddenIssue.knownToPlayer = true;
-      item.eventId = "child_autonomy_disclosure"; item.payload.playerKnown = true; item.expiresWeek = state.time.absoluteWeek + 12;
+      const issue = child?.school?.hiddenIssue;
+      if (isHiddenIssueShape(issue)) {
+        const secret = state.secrets.find((entry) => entry.id === issue.id);
+        if (secret && !secret.knownBy.includes("player")) { secret.knownBy.push("player"); secret.status = "exposed"; secret.exposedWeek = state.time.absoluteWeek; }
+        item.eventId = "child_autonomy_disclosure"; item.payload.playerKnown = true; item.expiresWeek = state.time.absoluteWeek + 12;
+      } else item.status = "resolved";
     }
   }
   for (const item of state.openCases) {
@@ -186,7 +258,12 @@ export function processParenthoodCases(state) {
       if (!child.stageMark.transitions.some(t => t.stage === stage)) child.stageMark.transitions.push(milestone);
       if (state.time.absoluteWeek === child.bornWeek || [6, 12, 15, 18].includes(age)) record(state, `child-stage-${child.id}-${age}`, `${child.name}: ${stage} dönemine geçti.`, child.otherParentId);
       if ([6, 12, 15].includes(age)) schedule(state, "school", 2, { childId: child.id, transition: true }, "child_school_transition");
-    if (age === 18) child.trajectory = childAcademicStanding(child) === "iyi" ? "education-focused" : child.relationship.trust >= 60 ? "undecided" : "work-focused";
+      // 18 yaş devri: konuşulmuş bir yönelim varsa o taşınır. Konuşma hiç
+      // olmadıysa (eski kayıtlar dahil) eski deterministik yedek korunur.
+      if (age === 18) child.trajectory = child.futurePreference === "education" ? "education-focused"
+        : child.futurePreference === "work" ? "work-focused"
+        : child.futurePreference === "undecided" ? "undecided"
+        : childAcademicStanding(child) === "iyi" ? "education-focused" : child.relationship.trust >= 60 ? "undecided" : "work-focused";
       if (age === 15) schedule(state, "future", 2, { childId: child.id, playerKnown: true }, "child_future_discussion");
     }
     if (age >= 6 && age <= 17) {
@@ -201,7 +278,13 @@ export function parenthoodSummary(state) {
   const pregnancy = p?.pregnancy;
   return {
     pregnancy: pregnancy ? pregnancy.phase === "trying" ? "Çocuk için denemeyi seçtiniz; henüz gebelik bilgisi yok." : state.time.absoluteWeek - pregnancy.startWeek < 20 ? "Gebelik biliniyor; hazırlık dönemi." : "Gebelik ilerliyor; doğum ve bakım düzeni yaklaşıyor." : "",
-    children: (p?.children || []).map((c) => `${c.name} · ${childAge(state, c)} yaş · ${childStage(state, c)} · okul: ${childAcademicStanding(c)}${c.school?.hiddenIssue?.knownToPlayer ? " · bilinen özel konu" : ""}`),
+    // Oyuncuya yalnız meşru olarak öğrendiği şey görünür; sır kimliği, durumu
+    // veya vaka kimliği hiçbir zaman dışarı verilmez.
+    children: (p?.children || []).map((c) => {
+      const known = isChildIssueKnown(state, c) ? state.secrets.find((entry) => entry.id === c.school.hiddenIssue.id) : null;
+      const future = FUTURE_PREFERENCES.includes(c.futurePreference) ? ` · gelecek yönelimi: ${FUTURE_LABELS[c.futurePreference]}` : "";
+      return `${c.name} · ${childAge(state, c)} yaş · ${childStage(state, c)} · okul: ${childAcademicStanding(c)}${known ? ` · ${known.summary}` : ""}${future}`;
+    }),
     care: needsParentCare(state) ? careCovered(state) ? "Bu haftanın bakım düzeni karşılanıyor." : "Bakım bu hafta bir aktivite ister; karşılanmazsa toparlanman zorlaşır." : "",
     alignment: planningAlignment(state),
   };
@@ -210,20 +293,34 @@ export function parenthoodYearSummary(state, startWeek, endWeek) {
   const births = state.parenthood.children.filter(c => c.bornWeek >= startWeek && c.bornWeek <= endWeek).map(c => `${c.name} bu yıl doğdu.`);
   const stages = state.household.history.filter(h => h.week >= startWeek && h.week <= endWeek && String(h.kind).startsWith("child-stage")).map(h => h.text);
   const school = state.parenthood.children.filter(c => childAge(state,c) >= 6 && childAge(state,c) <= 17 && (c.school?.issues || []).some(i => i.status !== "resolved")).map(c => `${c.name}: okul desteği gerekiyor.`);
-  return { ...parenthoodSummary(state), births, stages, school };
+  // Yıl dosyası yalnız yaşanmış ve oyuncunun bildiği sonuçları taşır: bu
+  // kayıtlar ancak açılma/kapanış konuşmasından sonra yazıldığı için gizli ve
+  // çözülmemiş bir konu buraya hiçbir koşulda sızmaz.
+  const privacy = state.household.history.filter(h => h.week >= startWeek && h.week <= endWeek && String(h.kind).startsWith("child-autonomy")).map(h => h.text);
+  const future = state.household.history.filter(h => h.week >= startWeek && h.week <= endWeek && String(h.kind).startsWith("child-future")).map(h => h.text);
+  const direction = state.parenthood.children.filter(c => c.trajectory && childAge(state, c) === 18).map(c => `${c.name}: ${TRAJECTORY_LABELS[c.trajectory] || c.trajectory}`);
+  return { ...parenthoodSummary(state), births, stages, school, privacy, future, direction };
 }
 export function parentChoiceAvailability(state, definition, choice, source) {
-  if (["wait", "private", "later"].includes(choice.id)) return { ok: true };
+  if (["wait", "private", "later", "space"].includes(choice.id)) return { ok: true };
   if (definition.id !== "parent_planning" && (!source || source.status === "resolved" || source.eventId !== definition.id || state.time.absoluteWeek < source.dueWeek)) return { ok: false, reason: "Bu görüşmenin açık ve zamanı gelmiş bir kaydı yok." };
   if (["parent_confirm", "parent_birth", "parent_preparation"].includes(definition.id) && (!state.parenthood.pregnancy || source?.payload.pregnancyId !== state.parenthood.pregnancy.id)) return { ok: false, reason: "Bu gebelik kaydı artık geçerli değil." };
   if (definition.id === "parent_confirm" && state.parenthood.pregnancy?.phase !== "trying") return { ok: false, reason: "Deneme aşaması zaten tamamlandı." };
   if (["parent_birth", "parent_preparation"].includes(definition.id) && state.parenthood.pregnancy?.phase !== "known") return { ok: false, reason: "Bu aşama için bilinen bir gebelik yok." };
   if (["parent_care_review", "parent_budget_review"].includes(definition.id) && !needsParentCare(state)) return { ok: false, reason: "Bu bakım dönemine uygun çocuk yok." };
+  // Bilmediğin bir konuya cevap veremezsin: açılma yanıtı yalnız sır meşru
+  // yoldan öğrenildikten sonra seçilebilir.
+  if (definition.id === "child_autonomy_disclosure") {
+    const child = state.parenthood.children.find((item) => item.id === source?.payload?.childId);
+    if (!child || !isChildIssueKnown(state, child)) return { ok: false, reason: "Bu konu hakkında henüz bildiğin bir şey yok." };
+  }
   if (["parent_planning", "parent_planning_review"].includes(definition.id) && !familyContext(state)) return { ok: false, reason: "Önce ortak yaşam ve aile planlama niyetini konuşmalısınız." };
   if (choice.id.startsWith("try_") && !canTryParenthood(state)) return { ok: false, reason: "Ortak istek, uygun ilişki ve bakım kapasitesi henüz yok. Son doğumdan sonra iki yıllık aralık gerekir." };
-  if (!["confirm", "birth"].includes(choice.id) && state.weekly.used >= getWeeklyActivityLimit(state)) return { ok: false, reason: "Bu görüşme haftalık bir aktivite ister." };
+  if (!["confirm", "birth", "space"].includes(choice.id) && state.weekly.used >= getWeeklyActivityLimit(state)) return { ok: false, reason: "Bu görüşme haftalık bir aktivite ister." };
   const cost = choice.id === "prepare" ? 500 : choice.id === "studio" && state.household.homeId !== "studio" ? getHomeById("studio").moveCost : 0;
-  if (state.finances.balance < cost) return { ok: false, reason: "Bu seçim için bütçe yetersiz." };
+  // Bütçe yalnız gerçekten para isteyen seçimleri kısıtlar. Aksi halde bakiye
+  // eksiye düştüğünde ücretsiz bir konuşma bile seçilemez hale geliyordu.
+  if (cost > 0 && state.finances.balance < cost) return { ok: false, reason: "Bu seçim için bütçe yetersiz." };
   return { ok: true };
 }
 export function resolveParentChoice(state, definition, choiceId, source) {
@@ -232,13 +329,23 @@ export function resolveParentChoice(state, definition, choiceId, source) {
   if (source) source.status = "resolved";
   if (["private", "later"].includes(choiceId)) {
     if (id === "parent_preparation" || id === "parent_housing_review") adjustHealth(state, { stress: 2 });
+    // Bilinen bir konuyu ertelemek onu kaybetmek değildir: yanıt fırsatı ileri
+    // bir haftaya taşınır, bilgi durumu olduğu gibi kalır.
+    if (id === "child_autonomy_disclosure" && source?.payload?.childId) schedule(state, "autonomy", 3, { childId: source.payload.childId }, "child_autonomy_disclosure");
+    // Okul dönemi desteğini sürekli ertelemek devam düzenine yansır. Bakım
+    // yükü yalnız okul öncesi yaşta ölçüldüğü için, okul çağındaki bir çocuğun
+    // devam baskısının tek gerçek kaynağı budur.
+    if (id === "child_school_transition" && source?.payload?.childId) {
+      const child = p.children.find((item) => item.id === source.payload.childId);
+      if (child?.school) child.school.attendancePressure = Math.min(12, child.school.attendancePressure + 3);
+    }
     return;
   }
   if (choiceId === "wait") {
     if (id === "parent_planning") schedule(state, "planning", 12);
     return;
   }
-  if (!["confirm", "birth"].includes(choiceId)) { state.weekly.used += 1; state.weekly.selectedIds.push(`parent:${id}`); }
+  if (!["confirm", "birth", "space"].includes(choiceId)) { state.weekly.used += 1; state.weekly.selectedIds.push(`parent:${id}`); }
   if (["parent_planning", "parent_planning_review"].includes(id)) {
     const partnerId = state.social.currentPartnerNpcId;
     if (choiceId === "no") { state.household.union.familyPlan.intent = "no"; record(state, "parent-decision", "Şimdilik çocuk sahibi olma yoluna girmemeyi seçtin.", partnerId); }
@@ -313,13 +420,47 @@ export function resolveParentChoice(state, definition, choiceId, source) {
     if (id === "child_peer_concern") { school.socialPressure = choiceId === "support" ? Math.max(0, school.socialPressure - 3) : Math.min(12, school.socialPressure + 1); record(state, `peer-${child.id}`, `${child.name} sosyal çevresi hakkında bir konuşma yaptınız.`, child.otherParentId); return; }
     if (id === "child_relationship_conflict") { child.relationship.tension = Math.min(100, child.relationship.tension + (choiceId === "listen" ? 0 : 3)); child.relationship.trust = Math.max(0, child.relationship.trust + (choiceId === "listen" ? 2 : -2)); record(state, `child-conflict-${child.id}`, `${child.name} ile bir anlaşmazlığı konuştunuz.`, child.otherParentId); schedule(state, "conflict", 4, { childId: child.id }, "child_conflict_repair"); return; }
     if (id === "child_conflict_repair") { if (choiceId === "repair") { child.relationship.trust = Math.min(100, child.relationship.trust + 3); child.relationship.tension = Math.max(0, child.relationship.tension - 4); } record(state, `child-repair-${child.id}`, `${child.name} ile anlaşmazlığın ardından yeniden konuştunuz.`, child.otherParentId); return; }
-    if (id === "child_autonomy_disclosure") { if (!school.hiddenIssue) school.hiddenIssue = { kind: "privacy", status: "active", knownToPlayer: false, createdWeek: state.time.absoluteWeek }; if (choiceId === "listen") { school.hiddenIssue.knownToPlayer = true; child.relationship.trust = Math.min(100, child.relationship.trust + 3); } else child.relationship.tension = Math.min(100, child.relationship.tension + 3); record(state, `child-autonomy-${child.id}`, `${child.name} ile mahremiyet ve karar alanı üzerine konuştunuz.`, child.otherParentId); schedule(state, "autonomy", 4, { childId: child.id }, "child_autonomy_followup"); return; }
-    if (id === "child_autonomy_followup") { record(state, `child-autonomy-followup-${child.id}`, `${child.name} ile karar alanını yeniden değerlendirdiniz.`, child.otherParentId); return; }
+    // Yanıt yalnız meşru bilgi üzerine verilir; konu gizliyken bu dal hiç
+    // çalışmaz (uygunluk denetimi de ayrıca engeller) ve geriye dönük konu
+    // yaratılmaz.
+    if (id === "child_autonomy_disclosure") {
+      if (!isChildIssueKnown(state, child)) return;
+      school.hiddenIssue.status = "disclosed";
+      if (choiceId === "listen") child.relationship.trust = Math.min(100, child.relationship.trust + 3);
+      else child.relationship.tension = Math.min(100, child.relationship.tension + 3);
+      record(state, `child-autonomy-${child.id}`, choiceId === "listen" ? `${child.name} kendine ait konuyu paylaştı; dinlemeyi seçtin.` : `${child.name} kendine ait konuyu paylaştı; sınırı korumayı seçtin.`, child.otherParentId);
+      schedule(state, "autonomy", 4, { childId: child.id }, "child_autonomy_followup");
+      return;
+    }
+    // Kapanış: sır çözülür, yuva boşalır. Böylece dangling vaka kalmaz ve
+    // ilerleyen yıllarda yeni ve ayrı bir mahremiyet konusu doğabilir.
+    if (id === "child_autonomy_followup") {
+      if (isHiddenIssueShape(school.hiddenIssue)) { resolveSecret(state, school.hiddenIssue.id); school.hiddenIssue = null; }
+      record(state, `child-autonomy-followup-${child.id}`, `${child.name} ile karar alanını yeniden değerlendirdiniz.`, child.otherParentId);
+      return;
+    }
     if (id === "child_other_parent_contact") { record(state, `child-contact-${child.id}`, `${child.name} için diğer ebeveynle iletişim düzenini sürdürdünüz.`, child.otherParentId); schedule(state, "contact", 4, { childId: child.id }, "child_contact_followup"); return; }
     if (id === "child_contact_followup") { record(state, `child-contact-followup-${child.id}`, `${child.name} için diğer ebeveynle temasın devamını değerlendirdiniz.`, child.otherParentId); return; }
     if (id === "child_activity_choice") { if (choiceId === "join") { school.extracurricular = { name: "kurs", monthlyCost: 450 }; transact(state, -450, "Çocuk etkinliği başlangıcı", "parenting"); schedule(state, "activity", 12, { childId: child.id }, "child_activity_review"); } return; }
     if (id === "child_activity_review") { if (choiceId === "stop") school.extracurricular = null; record(state, `child-activity-${child.id}`, `${child.name} için etkinlik düzenini gözden geçirdiniz.`, child.otherParentId); return; }
-    if (id === "child_future_discussion") { child.futurePreference = childAcademicStanding(child) === "iyi" ? "education" : child.relationship.trust < 45 ? "work" : "undecided"; if (choiceId === "support") child.relationship.trust = Math.min(100, child.relationship.trust + 2); if (choiceId === "push") child.relationship.tension = Math.min(100, child.relationship.tension + 3); record(state, `child-future-${child.id}`, `${child.name} ile geleceğe dair yönelimleri konuştunuz.`, child.otherParentId); return; }
+    // Çocuğun kendi yönelimi önce gelir. Oyuncu 15–17 arasında etkilidir ama
+    // mutlak değildir: karşı yöne itmek yalnız güçlü ve gergin olmayan bir
+    // ilişkide tutar, aksi halde yönelim değişmez ve gerilim artar.
+    if (id === "child_future_discussion") {
+      const lean = childFutureLean(child);
+      const relationship = child.relationship;
+      let text = `${child.name} kendi yönelimini anlattı; alan tanımayı seçtin.`;
+      if (choiceId === "support") { child.futurePreference = lean; relationship.trust = Math.min(100, relationship.trust + 3); text = `${child.name} kendi yönelimini anlattı; destekledin.`; }
+      else if (choiceId === "push") {
+        const opposite = lean === "education" ? "work" : "education";
+        const persuaded = relationship.trust >= 65 && relationship.tension <= 35;
+        child.futurePreference = persuaded ? opposite : lean;
+        relationship.tension = Math.min(100, relationship.tension + (persuaded ? 2 : 6));
+        text = persuaded ? `${child.name} ile başka bir yönü konuştunuz; ikna oldu.` : `${child.name} ile başka bir yönü konuştunuz; kendi bildiğini okudu.`;
+      } else child.futurePreference = lean;
+      record(state, `child-future-${child.id}`, text, child.otherParentId);
+      return;
+    }
   }
 }
 const choice = (id, label) => ({ id, label, effects: {} });
@@ -335,16 +476,23 @@ export const PARENTING_EVENTS = [
   event("parent_budget_review", "Çocuk giderleri ve zaman", "Ücretli bakım çocuk başına aylık ₺1.500 ekler; evde bakım haftalık aktivite ister. Bu tercihler gelir yaratmaz.", [choice("later", "Mevcut düzeni sürdür"), choice("home", "Bakımı kendi zamanımla karşıla · bir aktivite"), choice("paid", "Ücretli bakım düzeni seç · bir aktivite")]),
   event("parent_family_support", "Anne'yle bakım sınırları", "Doğum haberini Anne'yle paylaşabilir, ne kadar yardımın mümkün olduğunu konuşabilirsin. Haber kendiliğinden aileye yayılmaz.", [choice("private", "Şimdilik paylaşma"), choice("tell", "Haberi ve yardım ihtiyacını konuş · bir aktivite")]),
   event("parent_housing_review", "Bakım için yer açmak", "Mevcut evde ortak alan ve mahremiyet sınırlı. Daha bağımsız alan gerçek taşınma masrafı ve farklı aylık gider demektir.", [choice("later", "Mevcut evde kal"), choice("studio", "Stüdyoya taşın · bir aktivite")]),
-  event("child_school_transition", "Çocuğun okul dönemi", "Yeni okul dönemi için destek ve zaman ayırmayı seçebilirsin.", [choice("support", "Destek ol · bir aktivite"), choice("later", "Şimdilik ertele")], s => s.parenthood.children.some(c => childAge(s,c) >= 6 && childAge(s,c) <= 17)),
+  // Geçiş olayı yalnız gerçek geçiş yaşlarında uygundur. Genel "okul çağındaki
+  // çocuk var" koşulu 12 yıl boyunca her cooldown sonunda tekrar açılıyor ve
+  // aynı konuşmayı onlarca kez üretiyordu.
+  event("child_school_transition", "Çocuğun okul dönemi", "Yeni okul dönemi için destek ve zaman ayırmayı seçebilirsin.", [choice("support", "Destek ol · bir aktivite"), choice("later", "Şimdilik ertele")]),
   event("child_attendance_concern", "Okuldan gelen uyarı", "Çocuğun devam düzeniyle ilgili bir sorun görünür oldu.", [choice("support", "Birlikte düzen kur · bir aktivite"), choice("ignore", "Şimdilik ertele")]),
   event("child_peer_concern", "Sosyal çevre kaygısı", "Çocuğun sosyal uyumuyla ilgili konuşmak gerekiyor.", [choice("support", "Dinle ve destek ol · bir aktivite"), choice("ignore", "Şimdilik ertele")]),
   event("child_relationship_conflict", "Çocukla anlaşmazlık", "Önemli bir kararda çocuğunla aynı düşünmüyorsunuz.", [choice("listen", "Dinle · bir aktivite"), choice("insist", "Israr et · bir aktivite")]),
-  event("child_autonomy_disclosure", "Ergenlikte mahremiyet", "Çocuğun bazı kararları kendisinin almak istediğini söylüyor.", [choice("listen", "Alan aç ve dinle · bir aktivite"), choice("insist", "Sınırı koru · bir aktivite")]),
+  // Ücretsiz erteleme şart: iki karar hakkı da harcanmışken açılan bir olayın
+  // hiçbir seçilebilir yanıtı kalmazsa hafta ilerleyemez ve oyun kilitlenir.
+  event("child_autonomy_disclosure", "Ergenlikte mahremiyet", "Çocuğun bazı kararları kendisinin almak istediğini söylüyor.", [choice("listen", "Alan aç ve dinle · bir aktivite"), choice("insist", "Sınırı koru · bir aktivite"), choice("later", "Şimdilik bekle")]),
   event("child_other_parent_contact", "Diğer ebeveynle temas", "Ayrı hanelerde yaşayan ebeveynler için planlı temas zamanı geldi.", [choice("support", "Teması kolaylaştır · bir aktivite"), choice("later", "Bu hafta ertele")], s => s.parenthood.children.some(c => childAge(s,c) >= 6 && c.otherParentId && s.household.union?.separatedSince)),
   event("child_activity_choice", "Bir etkinlik seçeneği", "Çocuğun için zaman ve bütçe gerektiren bir etkinlik seçeneği var.", [choice("join", "Katılımı başlat · bir aktivite"), choice("later", "Şimdilik bekle")]),
   event("child_conflict_repair", "Çocukla yeniden konuşmak", "Anlaşmazlığın ardından ilişkiyi onarmak için bir fırsat var.", [choice("repair", "Yeniden konuş · bir aktivite"), choice("later", "Şimdilik bekle")]),
   event("child_autonomy_followup", "Ergenlik konuşmasının devamı", "Mahremiyet ve karar alanı üzerine önceki konuşmayı yeniden değerlendirebilirsin.", [choice("listen", "Dinlemeye devam et · bir aktivite"), choice("later", "Şimdilik bekle")]),
   event("child_activity_review", "Etkinlik düzenini gözden geçir", "Çocuğun etkinliğinin zaman ve bütçe yükü yeniden değerlendirilebilir.", [choice("continue", "Sürdür"), choice("stop", "Sonlandır · bir aktivite")]),
   event("child_contact_followup", "Diğer ebeveyn teması", "Ayrı haneler arasındaki temasın nasıl sürdüğünü değerlendirebilirsin.", [choice("support", "Teması sürdür · bir aktivite"), choice("later", "Şimdilik bekle")]),
-  event("child_future_discussion", "Gelecek üzerine konuşma", "Ergenlik döneminde eğitim, çalışma veya biraz daha zaman tanımak üzerine konuşabilirsiniz.", [choice("support", "Tercihini destekle · bir aktivite"), choice("push", "Başka bir yolu öner · bir aktivite"), choice("later", "Zaman tanı")]),
+  // "Alan tanı" gerçek bir sonuçtur, erteleme değil: bu yüzden ayrı bir seçim
+  // kimliği taşır, haftalık hak harcamaz ve konuşmayı kapatır.
+  event("child_future_discussion", "Gelecek üzerine konuşma", "Ergenlik döneminde eğitim, çalışma veya biraz daha zaman tanımak üzerine konuşabilirsiniz.", [choice("support", "Tercihini destekle · bir aktivite"), choice("push", "Başka bir yolu öner · bir aktivite"), choice("space", "Kendi alanını tanı")]),
 ];
