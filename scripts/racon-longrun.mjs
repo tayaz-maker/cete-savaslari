@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { loadGame } from './racon-harness.mjs';
 
 // Production actions only. Initial seed/origin are scenario configuration.
-export function runRaconLife(kind='balanced',seed=4242,days=730) {
+export function runRaconLife(kind='balanced',seed=4242,days=730,exportSave=false) {
  const g=loadGame();g.win.__raconSeedSabit=seed;
  const ev=g.ev;ev('UI.pendingLakap="Uzun hayat";act("origin",{id:"koy"});act("night",{id:"kahve"});UI.fastJob=true;');
  const max={jobs:0,inbox:0,calendar:0,evidence:0,history:0,peopleMods:0,men:0,dosya:0};let jobs=0,appointments=0;
@@ -46,7 +46,7 @@ export function runRaconLife(kind='balanced',seed=4242,days=730) {
  }
  assert.equal(ev('!!UI.sahne'),false,'no stuck scene');
  assert.ok(max.history<=240);assert.ok(max.jobs<=47);assert.ok(max.inbox<=300,JSON.stringify(max));
- return {kind,seed,jobs,appointments,max,checkpoints,final:ev('({week:S.week,day:S.day,stage:S.stage,kasa:S.kasa,own:ownN(),end:S.flags.oyunSonu,seed:S.seed})')};
+ return {kind,seed,jobs,appointments,max,checkpoints,...(exportSave?{save:ev("exportText()")}:{}),final:ev('({week:S.week,day:S.day,stage:S.stage,kasa:S.kasa,own:ownN(),end:S.flags.oyunSonu,seed:S.seed})')};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const report=['balanced','aggressive','passive'].map(k=>{const a=runRaconLife(k);assert.deepEqual(runRaconLife(k),a,'repeat '+k);return a;});

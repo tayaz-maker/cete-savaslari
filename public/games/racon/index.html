@@ -244,7 +244,7 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
 .yardim-back ul{margin:0 0 8px;padding-left:18px;color:var(--ink-dim);line-height:1.5}
 .yardim-back li{margin:0 0 4px}
 .yardim-back .acts{margin-top:18px;position:sticky;bottom:0;background:var(--surface);padding-top:10px}
-.help-toggle{position:relative}
+.help-toggle{position:relative;min-width:44px}
 #rotate .rb{letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;font-size:14px}
 #rotate p{margin:0;color:var(--ink-dim)}
 .origin{display:flex;flex-direction:column;gap:8px}
@@ -415,6 +415,10 @@ html,body{font-size:14px}
 @media(max-width:540px){
   .cols,.split2col,.shop-grid,.map,.cal{grid-template-columns:minmax(0,1fr)}
   .stage{padding:10px}
+  .top .help-toggle,#save-status{display:none}
+  .top{gap:4px}
+  .top .btn{padding:8px}
+  .top .btn.primary{min-width:90px}
   .acts>.btn{flex:1 1 140px}
   .btn.emir{width:100%}
   .menu-card input,.menu-card textarea,.plan select{font-size:16px}
@@ -436,6 +440,7 @@ html,body{font-size:14px}
     <div class="brand">Racon Manager</div>
     <div class="meta" id="top-meta"></div>
     <div class="spacer"></div>
+    <button type="button" class="btn ghost" data-act="menu" data-go="home">Menü</button>
     <button type="button" class="btn ghost" data-act="save">Kaydet</button>
     <span id="save-status" role="status"></span>
     <button type="button" class="btn ghost help-toggle" data-act="yardim-ac" aria-label="Nasıl oynanır">?</button>
@@ -454,6 +459,7 @@ html,body{font-size:14px}
     <div class="card menu-card">
       <div class="brand">Racon Manager</div>
       <p class="tag">Adamlar ölür. İsim kalır.</p>
+      <p id="menu-feedback" role="status" class="dim" hidden></p>
       <div id="menu-home" class="stack">
         <p id="menu-err" class="dim" hidden></p>
         <button type="button" class="btn primary" data-act="menu" data-go="nick">Yeni oyun</button>
@@ -846,6 +852,7 @@ html,body{font-size:14px}
   function actionReason(code, p) {
     p = p || {};
     if (!S) return code === "ilerlet" || code === "save" ? "Önce bir hayat başlat." : "";
+    if(code==="ilerlet"&&(S.busy||UI.modal))return "İşlem tamamlanıyor; açık kararı sonuçlandır.";
     if (S.flags.oyunSonu && ["menu", "copy", "load", "silok", "yardim-ac", "yardim-kapat", "save", "nav", "navdetay", "side", "new-confirm", "new-cancel"].indexOf(code) < 0) return "Bu hayatın defteri kapandı.";
     if(S.flags.oyunSonu&&code==="nav")return "Bu hayat sona erdi; sonuç ve menü açık.";
     if (UI.sahne && ["job-emir", "job-tamam", "rnd-karar", "save", "yardim-ac", "yardim-kapat", "side"].indexOf(code) < 0) return "Önce açık sahneyi tamamla.";
@@ -912,14 +919,17 @@ html,body{font-size:14px}
   }
   function feedback(text) {
     UI.feedback = text;
-    if(UI.mode!=="play"){var err=document.getElementById("menu-err");if(err){err.textContent=text;err.hidden=false;}}
+    if(UI.mode!=="play"){var err=document.getElementById("menu-feedback");if(err){err.textContent=text;err.hidden=false;}}
     var el=document.getElementById("feedback");
     if(el){el.textContent=text;el.hidden=!text;}
   }
   function decorateActions() {
     document.querySelectorAll("button[data-act]").forEach(function(el){
+      el.querySelectorAll(".action-reason").forEach(function(note){note.remove();});
+      if(el.dataset.ruleDisabled==="1"){el.disabled=false;el.title="";delete el.dataset.ruleDisabled;}
       var reason=actionReason(el.dataset.act,el.dataset);
-      if(reason){el.disabled=true;el.title=reason;
+      if(reason){el.disabled=true;el.title=reason;el.dataset.ruleDisabled="1";
+        if(el.closest(".top")) return;
         var note=document.createElement("small");note.className="action-reason";note.textContent=reason;el.appendChild(note);}
     });
   }
@@ -4302,6 +4312,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       "<span>₺" + S.kasa.toLocaleString("tr-TR") + "</span>" +
       (delay ? '<span class="pill bad">!' + delay + " gecikmiş</span>" : "");
     document.getElementById("btn-ilerlet").disabled = !!S.busy || UI.sahne || !!(S && S.flags && S.flags.oyunSonu);
+    document.getElementById("btn-ilerlet").textContent = UI.sahne ? "Sahne sürüyor" : S.flags.oyunSonu ? "Defter kapandı" : "İLERLET";
   }
 
   function drawSide() {
@@ -4317,7 +4328,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         "<h3>" + esc(up(st.ad)) + "</h3>" +
         '<p class="dim">' + esc(STREET_NOTE[st.id] || "") + "</p>" +
         '<p class="dim">sahip: ' + (st.sahip === "sen" ? "sen" : st.sahip === "rakip" ? "rakip" : "—") + "</p>" +
-        barrow("Heat", st.heat, 100, "heat") +
+        barrow("Baskı", st.heat, 100, "heat") +
         '<div class="acts"><button type="button" class="btn" data-act="nav" data-id="isler">Bu sokakta iş planla</button>' +
         (st.sahip === "bos" ? '<button type="button" class="btn" data-act="tut" data-id="' + st.id + '"' + (S.kasa < 4500 ? " disabled" : "") + ">Tut · ₺4.500</button>" : "") +
         "</div></div>";
@@ -4580,7 +4591,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var sBand = scoutBand("street", s.id);
       var heatHtml = (s.sahip === "rakip" && sBand < 2)
         ? '<p class="dim">heat: bilinmiyor</p>'
-        : barrow("Heat", s.heat, 100, "heat");
+        : barrow("Baskı", s.heat, 100, "heat");
       var ince = '<div class="ince2"><span title="sadakat">S ' + Math.round(num(s.sadakatMahalle, 50)) +
         '</span><span title="terör">T ' + Math.round(num(s.terorMahalle, 0)) + "</span></div>";
       var komsu = (s.komsular || []).map(function (kid) { var k = streetBy(kid); return k ? k.ad : ""; }).filter(Boolean).join(", ");
@@ -4588,7 +4599,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var uyariTxt = (num(s.muhurLeft, 0) > 0 ? '<p class="minus">mühürlü · iş planlanamaz</p>' : "") +
         (s.sivilUyari ? '<p class="minus">sivil araç dolaşıyor</p>' : "");
       var hafizaTxt = (s.hafiza || []).slice(-3).map(function (h) { return '<p class="dim">H' + h.week + " · " + esc(h.text) + "</p>"; }).join("");
-      var dikeyTxt = s.dikey ? '<p class="dim">site: ' + esc(s.dikey.site) + " · heat kata sızar</p>" : "";
+      var dikeyTxt = s.dikey ? '<p class="dim">site: ' + esc(s.dikey.site) + " · baskı kata sızar</p>" : "";
       return '<button type="button" class="st ' + own + (s.id === pale ? " pale" : "") + '" data-act="street" data-id="' + s.id + '"><h4>' + esc(up(s.ad)) + "</h4><p class=\"dim\">" + esc(STREET_NOTE[s.id] || "") + "</p><p class=\"dim\">sahip: " + ownTxt + " · saygı " + num(s.saygiPuan, 0) + "</p>" + heatHtml + ince +
         (komsu ? '<p class="dim">komşu: ' + esc(komsu) + "</p>" : "") + yumusakTxt + uyariTxt + hafizaTxt + dikeyTxt + "</button>";
     }).join("") + "</div>" + drawKose();
@@ -4701,7 +4712,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       '<select id="job-kind" aria-label="İş türü">' + kinds + "</select>" +
       '<button type="button" class="btn primary" data-act="planla">Planla</button></div>' +
       esTxt +
-      '<p class="dim">Adam seç</p><div class="acts">' + (checks || '<span class="dim">Adam yok.</span>') + "</div>" +
+      '<p class="dim">Adam seç</p><div class="acts">' + (checks || '<span class="dim">Müsait adam yok; ekip görevli veya dinleniyor.</span>') + "</div>" +
       '<p class="dim">' + expectWords(kind) + "</p></div>" +
       '<div class="card"><h3>Kuyruk</h3>' + q + "</div>";
   }

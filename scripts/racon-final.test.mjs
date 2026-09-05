@@ -120,3 +120,9 @@ test('all twelve domain views render current state without invalid text; no fake
 test('completed work creates fatigue at the real daily transition',()=>{const g=game();const j=plan(g);finish(g,j.id);const before=g.ev('S.men[0].yorgunluk');day(g);assert.ok(g.ev('S.men[0].yorgunluk')>before);});
 
 test('appointment selection does not silently replace an empty or saved crew',()=>{const g=game();g.ev('UI.randevuMen=[];');assert.equal(g.ev('randevuKadro().length'),0);g.ev('UI.randevuMen=[S.men[0].id];UI.sahne=true;UI.rnd={calId:"fixture",adim:2,bekle:true,lines:[],havuz:[],son:[]};writeSave();S=loadSave();enterPlay();');assert.deepEqual(g.ev('UI.randevuMen'),g.ev('[S.men[0].id]'));});
+
+test('repeated decoration cannot grow buttons or leave save disabled after starting',()=>{
+ const g=game();let notes=[];const el={dataset:{act:'save'},disabled:false,title:'',querySelectorAll:()=>notes,closest:()=>null,appendChild(n){n.remove=()=>{notes=notes.filter(x=>x!==n);};notes.push(n);}};
+ g.document.querySelectorAll=()=>[el];g.ev('S=null;decorateActions();decorateActions();');assert.equal(notes.length,1);assert.equal(el.disabled,true);
+ g.ev('blank("Yeni");decorateActions();');assert.equal(notes.length,0);assert.equal(el.disabled,false);
+});
