@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="12">
+<meta name="smb-rev" content="13">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -1521,6 +1521,7 @@ button:disabled { opacity: .35; }
     add(ops, btn("Ret", "tno"));
   }
   function submitTrade() {
+    if (!S || S.wait !== "roll" || !S.trade || S.trade.from !== S.turn) return;
     var t = S.trade;
     if (!tradeOk(t)) return;
     if (isAi(t.to)) {
@@ -1561,6 +1562,7 @@ button:disabled { opacity: .35; }
     renderOffer();
   }
   function acceptTrade() {
+    if (!S || S.wait !== "offer" || !S.trade) return;
     var t = S.trade;
     if (!t || !tradeOk(t)) { S.trade = null; S.wait = "roll"; persist(); paint(); closeSheet(); return; }
     applyTrade(t);
@@ -1572,7 +1574,8 @@ button:disabled { opacity: .35; }
     closeSheet();
   }
   function rejectTrade() {
-    if (S.trade) log(who(S.trade.to) + " reddetti.");
+    if (!S || !S.trade || (S.wait !== "roll" && S.wait !== "offer")) return;
+    log(S.wait === "offer" ? who(S.trade.to) + " reddetti." : who(S.trade.from) + " takastan vazgeçti.");
     S.trade = null;
     S.wait = "roll";
     persist(); paint();
@@ -1862,6 +1865,7 @@ button:disabled { opacity: .35; }
     if (code === "toffer") { submitTrade(); return; }
     if (code === "aup") { if (S.wait === "auc" && S.auc && !isAi(S.auc.turn)) aucRaise(S.auc.turn); return; }
     if (code === "aun") { if (S.wait === "auc" && S.auc && !isAi(S.auc.turn)) aucFold(S.auc.turn); return; }
+    if (/^(tsel|tgg|ttk|tgc|ttc):/.test(code) && (!S.trade || S.wait !== "roll" || S.trade.from !== S.turn)) return;
     if (code.indexOf("tsel:") === 0) {
       if (S.trade) { S.trade.to = +code.slice(5); S.trade.take = []; persist(); renderTrade(); }
       return;

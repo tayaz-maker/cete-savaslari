@@ -27,3 +27,5 @@ test("Hanedan: retreat keeps the chosen room consequence in actual awarded loot"
 
 test('Bükücü: stale auction clicks cannot bid or fold for the computer',()=>{const g=b();g.ev('act("cpu");S.pos[0]=1;S.wait="buy";act("gec");before=JSON.stringify(S.auc);act("aup");act("aun")');assert.equal(g.ev('JSON.stringify(S.auc)===before'),true);});
 test('Bükücü: hotseat trade identifies the real giver and receiver',()=>{const g=b();g.ev('S.turn=1;act("trade")');const walk=n=>[n,...n.children.flatMap(walk)];assert.deepEqual(walk(g.doc.getElementById('sheet')).filter(n=>n.tagName==='H3').map(n=>n.textContent),[g.ev('who(S.trade.from)'),g.ev('who(S.trade.to)')]);});
+
+test('Bükücü: stale trade responses cannot skip payment or reopen a resolved deal',()=>{const g=b();g.ev('act("trade");S.wait="pay";before=JSON.stringify(S);act("tno");act("tyes");act("toffer")');assert.equal(g.ev('JSON.stringify(S)===before'),true);g.ev('S.wait="roll";act("tno");before=JSON.stringify(S);act("tno");act("tyes")');assert.equal(g.ev('JSON.stringify(S)===before'),true);});
