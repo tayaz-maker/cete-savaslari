@@ -88,6 +88,9 @@ export function getNextCareerStep(state) {
 }
 
 export function promoteCareer(state) {
+  // Sert kural: işsiz oyuncu terfi edemez. Terfi görüşmesi işten sonra
+  // sonuçlansa bile bu kapı kapalıdır.
+  if (state?.career?.jobId === null) return { ok: false, reason: "İşsizken üst pozisyona geçilemez." };
   const next = getNextCareerStep(state);
   if (!next) return { ok: false, reason: "Şu an uygun bir üst pozisyon yok." };
   const previous = getJobById(state.career.jobId);
@@ -103,6 +106,48 @@ export function promoteCareer(state) {
   addMemory(state, `${next.title} pozisyonuna geçtin.`, "important");
   return { ok: true, job: next };
 }
+
+/** Performans değerlendirmesinde işin devam etmesi için gereken alt sınır. */
+export const CAREER_RISK_PERFORMANCE = 30;
+
+/**
+ * Gerçek işsizlik. Yalnız aktif bir iş varken çalışır, geçmişe bir kez yazar;
+ * bundan sonra maaş da ek mesai de kapanır.
+ */
+export function endEmployment(state, { label, type = "involuntary_unemployment" } = {}) {
+  const oldJob = getJobById(state?.career?.jobId);
+  if (!oldJob) return { ok: false, reason: "Sonlandırılacak aktif iş yok." };
+  const text = label || `${oldJob.title} işini kaybettin.`;
+  state.career.jobId = null;
+  state.career.weeksInRole = 0;
+  state.flags.jobSecurityRisk = null;
+  state.flags.jobSecurityRecovery = null;
+  addCareerHistory(state, { type, jobId: oldJob.id, label: text });
+  addMemory(state, text, "important");
+  return { ok: true, jobId: oldJob.id };
+}
+
+/** Geçici destek tutarının tabanı, tavanı ve adımı. Rastgelelik yok. */
+export const MONEY_RELIEF_MIN = 1000;
+export const MONEY_RELIEF_MAX = 6000;
+export const MONEY_RELIEF_STEP = 500;
+
+/**
+ * Destek tutarı gerçek nakit açığından türer: önümüzdeki ayın net yükü
+ * (gider − gelir) eksi eldeki para. Açık yoksa destek de yoktur; bu yüzden
+ * borçlanmak kalıcı servet üretemez, yalnız o ayı kapatır.
+ */
+export function getMoneyReliefAmount(state) {
+  const summary = getMonthlySummary(state);
+  const need = summary.expenses - summary.income - (state.finances?.balance || 0);
+  if (!(need > 0)) return 0;
+  const stepped = Math.ceil(need / MONEY_RELIEF_STEP) * MONEY_RELIEF_STEP;
+  return Math.min(MONEY_RELIEF_MAX, Math.max(MONEY_RELIEF_MIN, stepped));
+}
+
+/** Kayıttan gelen tutarı sınırlara oturtur; bozuk kayıt tabana düşer. */
+export const clampMoneyReliefAmount = (value) =>
+  Number.isFinite(value) ? Math.min(MONEY_RELIEF_MAX, Math.max(MONEY_RELIEF_MIN, Math.round(value))) : MONEY_RELIEF_MIN;
 
 export function updateCareerProgress(state) {
   const career = state.career;
@@ -207,6 +252,13 @@ export function quitJob(state) {
   if (!check.ok) return check;
   const oldJob = getJobById(state.career.jobId);
   state.career.jobId = null;
+  state.career.weeksInRole = 0;
+  // İstifa, bekleyen iş güvenliği değerlendirmesini konusuz bırakır: olmayan
+  // bir işten sonradan çıkarılmak mümkün olmamalı.
+  state.flags.jobSecurityRisk = null;
+  state.flags.jobSecurityRecovery = null;
+  for (const item of state.openCases)
+    if (item.type === "depth2-followup" && item.status === "pending" && item.payload?.kind === "job_security") item.status = "resolved";
   addCareerHistory(state, { type: "resigned", jobId: oldJob.id, label: `${oldJob.title} işinden ayrıldın.` });
   markWeeklyAction(state, "quit-job");
   addMemory(state, `${oldJob.title} işinden ayrıldın.`, "important");

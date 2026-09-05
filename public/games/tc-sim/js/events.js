@@ -1645,7 +1645,7 @@ export function resolveEvent(state, choiceId) {
   const adultFollowup = applyAdultLifeResolution(state, definition, choiceId);
   if (adultFollowup) scheduleSocialFollowup(state, adultFollowup);
   applyDepthResolution(state, definition, choiceId);
-  applyDepth2Resolution(state, definition, choiceId);
+  applyDepth2Resolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyDepth3Resolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   if (definition.parenting) resolveParentChoice(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   if (definition.household) resolveHouseholdChoice(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);

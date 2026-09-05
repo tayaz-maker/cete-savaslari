@@ -14,13 +14,20 @@ import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
 import { createNewGame, validateState } from "../public/games/tc-sim/js/state.js";
 import {
+  MONEY_RELIEF_MAX,
+  MONEY_RELIEF_MIN,
   acceptJobOffer,
   enrollEducation,
+  getCostOfLivingIndex,
   getHomeById,
   getJobById,
+  getMonthlyHousingCost,
+  getMonthlySummary,
   moveHome,
   stopEducation,
 } from "../public/games/tc-sim/js/life.js";
+import { JOBS } from "../public/games/tc-sim/js/catalog.js";
+import { isEligibleForJob } from "../public/games/tc-sim/js/education.js";
 import {
   advanceWeek,
   applyDecision,
@@ -261,8 +268,22 @@ export function settleBodyEvents(state, strategy = "balanced", observe = () => {
   }
 }
 
+/**
+ * İşsiz kalan oyuncu boşlukta beklemez: birkaç hafta sonra gerçek iş yolundan
+ * (teklif → bir hafta bekleme → işe başlama olayı) yeniden işe girer. Anında
+ * yedek iş yoktur; arama gerçek zaman alır ve bir aktivite hakkı harcar.
+ */
+export function trySeekWork(state, { every = 4 } = {}) {
+  if (state.career.jobId !== null || state.career.pendingJob) return false;
+  if (state.time.absoluteWeek % every !== 0) return false;
+  for (const jobId of ["specialist", "technician", "office", "courier", "market"])
+    if (acceptJobOffer(state, jobId).ok) return true;
+  return false;
+}
+
 export function playBodyWeek(state, strategy, observe = () => {}) {
   settleBodyEvents(state, strategy, observe);
+  if (trySeekWork(state)) settleBodyEvents(state, strategy, observe);
   const actions = strategy === "overworker" ? ["overtime"]
     : strategy === "low-recovery" ? ["exercise", "friend", "family"]
     : strategy === "inactive" ? []
@@ -328,8 +349,8 @@ export function settleHouseholdEvents(state, choices = {}, observe = () => {}) {
   while (state.events.active) {
     assert.ok(guard++ < 80, "Olaylar sonlanmalı");
     const definition = getEventDefinition(state.events.active.eventId);
-    observe(definition);
-    const preferred = choices[definition.id] || {
+    const configured = choices[definition.id];
+    const preferred = (typeof configured === "function" ? configured(state) : configured) || {
       cohabitation_discussion: "plan", cohabitation_move: "shared", household_adjustment: "coordinate",
       household_family_visit: "tell", marriage_discussion: "plan", marriage_commitment: "confirm",
       romantic_opportunity: "interested", partner_transition: "commit",
@@ -337,6 +358,7 @@ export function settleHouseholdEvents(state, choices = {}, observe = () => {}) {
     }[definition.id];
     const choice = definition.choices.find((item) => item.id === preferred && getEventChoiceAvailability(state, item.id).ok) || definition.choices.find((item) => getEventChoiceAvailability(state, item.id).ok);
     assert.ok(choice, `${definition.id}: uygulanabilir seçim yok (${definition.choices.map((item) => `${item.id}=${getEventChoiceAvailability(state, item.id).reason || "ok"}`).join(", ")})`);
+    observe(definition, choice);
     assert.equal(resolveEvent(state, choice.id).ok, true);
   }
 }
@@ -568,9 +590,352 @@ export function runParenthoodScenario({ noChild = false } = {}) {
     npcMemories: state.people.map(p=>p.memories.length), history: state.household.history, years: state.yearlyHistory, valid: validateState(state).ok };
 }
 
+/* ------------------------------------------------------------------ *
+ * Yetişkin çekirdek (18–35) uzun koşusu.
+ *
+ * Dört strateji tek motoru paylaşır: kurulum, olay sonuçlandırma, haftalık
+ * aktivite seçimi, kontrol noktası ölçümü ve invariant yürüyüşü ortaktır;
+ * yalnız politika değişir. Dört ayrı simülasyon kopyası yoktur.
+ *
+ *   node scripts/tc-sim-longrun.mjs adult-career
+ *   node scripts/tc-sim-longrun.mjs adult-balanced
+ *   node scripts/tc-sim-longrun.mjs adult-strained
+ *   node scripts/tc-sim-longrun.mjs adult-education
+ *   node scripts/tc-sim-longrun.mjs adult-matrix
+ * ------------------------------------------------------------------ */
+
+export const ADULT_CORE_CHECKPOINTS = [52, 156, 260, 520];
+
+/** Yıllık temel geçim gideri: konut + düzenli gider + eğitim + bakım. */
+export function annualBaselineCost(state) {
+  const summary = getMonthlySummary(state);
+  return 12 * (summary.housing + summary.otherExpenses + summary.tuition + summary.parenting);
+}
+
+/**
+ * Para tek bir TL rakamıyla değil, o anki geçim maliyetine göre ölçülür:
+ * kaç yıllık geçim cebinde duruyor. Gider indeksi yükselince de anlamlı kalır.
+ */
+export function savingsMultiple(state) {
+  const annual = annualBaselineCost(state);
+  return annual > 0 ? Number((state.finances.balance / annual).toFixed(3)) : 0;
+}
+
+const salaryOf = (jobId) => JOBS.find((item) => item.id === jobId)?.salary || 0;
+
+/** Uygun işler arasında en yüksek maaşlı olan; yalnız gerçek uygunluk kapısından geçer. */
+function bestEligibleJob(state, preference, { mustBeat = -1 } = {}) {
+  let best = null;
+  for (const jobId of preference) {
+    const job = JOBS.find((item) => item.id === jobId);
+    if (!job || job.id === state.career.jobId || job.salary <= mustBeat) continue;
+    if (!isEligibleForJob(state, job).ok) continue;
+    if (!best || job.salary > best.salary) best = job;
+  }
+  return best?.id || null;
+}
+
+const ADULT_CORE_POLICIES = {
+  "career-focused": {
+    // İş değiştirerek değil, aynı işte kalıp terfi ederek yükselir:
+    // terfi penceresi 20 hafta kıdem ve yüksek performans ister.
+    // Hizmet ailesinde kalır: teknik alan + 24 hafta hizmet deneyimi, kursla
+    // birlikte Teknik Servis Uzmanlığını gerçekten uygun hale getirir.
+    jobPreference: ["technician", "courier", "market"],
+    upgradeEvery: 12,
+    housing: [[104, "shared"]],
+    // Kariyere yatırım: kısa, çalışırken sürdürülebilir mesleki kurs teknik
+    // alanı açar ve daha iyi ücretli işi gerçekten uygun hale getirir.
+    education: { pathId: "vocational_course", intensity: "part", fromWeek: 12 },
+    choices: {
+      career_promotion_window: "accept", career_promotion_review: "advance",
+      job_security_warning: "recover", job_security_review: "recover",
+      education_path_window: "consider", education_window_followup: "pursue",
+    },
+    week(state, act) {
+      // Sürdürülebilir tempo: performans yürüyüşünün "sağlıklı hafta" eşiğinin
+      // altına düşmeden mesai yapar, sonra mutlaka toparlanır.
+      if (state.health.energy >= 40 && state.health.stress <= 62) act("overtime");
+      act("rest");
+      act("exercise");
+    },
+  },
+  balanced: {
+    // Sıradan oyuncu: çalışır, dinlenir, aileyle vakit geçirir, ara sıra
+    // mesai yapar, aşırı optimize etmez.
+    jobPreference: ["office", "courier", "market"],
+    upgradeEvery: 0,
+    housing: [[156, "shared"]],
+    education: null,
+    choices: {
+      career_promotion_window: "accept", career_promotion_review: "advance",
+      job_security_warning: "recover", job_security_review: "recover",
+      education_path_window: "work", education_window_followup: "postpone",
+    },
+    week(state, act, step) {
+      if (step % 4 === 0 && state.health.energy >= 60) act("overtime");
+      act("rest");
+      if (step % 2 === 0) act("family");
+      act("exercise");
+    },
+  },
+  "financially-strained": {
+    // Düşük ücretli işte kalır, terfiyi almaz, mesai yapmaz, aile evinden
+    // çıkmaz. Yükselen geçim gideri ve iş güvenliği riski açığı büyütür.
+    jobPreference: ["market"],
+    upgradeEvery: 0,
+    housing: [],
+    // Konut kararı sabit değil, gerçek nakit durumuna göre gider gelir:
+    // eline para geçince kendi evini dener, sıkışınca aile evine döner.
+    // Böylece ne kalıcı yoksulluk kilidi ne de bedava birikim olur.
+    adapt(state, step) {
+      if (step < 52) return;
+      const monthly = annualBaselineCost(state) / 12;
+      // Eline yeterince para geçince kendi evini dener; nakit tükenmeden,
+      // taşınma masrafını hâlâ karşılayabilecekken aile evine döner.
+      if (state.household.homeId === "family" && state.finances.balance > monthly * 4) moveHome(state, "shared");
+      else if (state.household.homeId !== "family" && state.finances.balance < 1000) moveHome(state, "family");
+    },
+    education: null,
+    choices: {
+      career_promotion_window: "decline", career_promotion_review: "steady",
+      career_responsibility_offer: "decline", career_responsibility_review: "steady",
+      job_security_warning: "push", job_security_review: "accept_risk",
+      money_relief_choice: "borrow",
+      // Ödeyebiliyorsa öder; gerçekten parası yoksa ödeyemez.
+      money_relief_due: (state) => (state.finances.balance >= (state.openCases.find((item) => item.payload?.kind === "money_relief" && item.status !== "resolved")?.payload.amount || MONEY_RELIEF_MIN) ? "repay" : "delay"),
+      education_path_window: "work", education_window_followup: "postpone",
+    },
+    week(state, act, step) {
+      act("rest");
+      if (step % 3 === 0) act("friend");
+      act("exercise");
+    },
+  },
+  "education-career": {
+    // Önce okur (kayıt ücreti + aylık harç baskısı), diploma yeni bir işi
+    // uygun hale getirir, sonra oraya geçer. Uygunluk elle yazılmaz.
+    jobPreference: ["specialist", "office", "courier", "market"],
+    upgradeEvery: 12,
+    housing: [[312, "shared"]],
+    education: { pathId: "university", intensity: "part", fromWeek: 12 },
+    choices: {
+      career_promotion_window: "accept", career_promotion_review: "advance",
+      job_security_warning: "recover", job_security_review: "recover",
+      education_path_window: "consider", education_window_followup: "pursue",
+    },
+    week(state, act, step) {
+      act("rest");
+      if (step % 5 === 0 && state.health.energy >= 60 && !state.education.active) act("overtime");
+      act("exercise");
+    },
+  },
+};
+
+const BASE_ADULT_CHOICES = {
+  career_responsibility_offer: "accept", career_responsibility_review: "advance",
+  family_expectation_window: "commit", family_expectation_followup: "kept",
+  privacy_context_event: "boundary", comparison_circle_update: "reflect",
+  secret_confrontation: "open", military_window: "defer",
+  money_relief_choice: "cut", money_relief_due: "repay",
+};
+
+export function runAdultCoreScenario(kind = "balanced", { weeks = 520 } = {}) {
+  const policy = ADULT_CORE_POLICIES[kind];
+  assert.ok(policy, `bilinmeyen yetişkin çekirdek stratejisi: ${kind}`);
+  let state = createNewGame({ name: "Deniz", profile: "balanced", now: "2027-01-01T00:00:00.000Z" });
+  const storage = new MemoryStorage();
+  const choices = { ...BASE_ADULT_CHOICES, ...policy.choices };
+
+  const checkpoints = {};
+  const observed = { costIndex: 0, performance: 0, performanceLow: 100, openCases: 0, ledger: 0, careerHistory: 0, yearFile: 0, memories: 0, npcMemories: 0, reliefAmount: 0, reliefCases: 0, securityCases: 0, balanceLow: Infinity, balanceHigh: -Infinity, savingsMultiple: 0 };
+  const counters = { promotions: 0, jobSwitches: 0, jobLosses: 0, resignations: 0, reemployments: 0, warnings: 0, reviewsPassed: 0, reviewsFired: 0, reliefBorrowed: 0, reliefRepaid: 0, reliefDefaults: 0, reliefExpired: 0, unemployedWeeks: 0, overtimeWeeks: 0 };
+  // Olaylar tarihçe sınırlarından bağımsız, tam çözüldükleri anda sayılır.
+  const observe = (definition, choice) => {
+    if (definition.id === "job_security_warning") counters.warnings += 1;
+    if (definition.id === "money_relief_choice" && choice.id === "borrow") counters.reliefBorrowed += 1;
+    if (definition.id === "money_relief_due") counters[choice.id === "repay" ? "reliefRepaid" : "reliefDefaults"] += 1;
+  };
+  const settle = () => settleHouseholdEvents(state, choices, observe);
+
+  // Eğitimin açtığı kapı: hangi işin uygunluğu diplomayla değişiyorsa o ölçülür.
+  const gateJob = JOBS.find((item) => item.id === (policy.education?.pathId === "university" ? "specialist" : "technician"));
+  const education = { enrolledWeek: null, completedWeek: null, enrollmentFee: 0, tuitionPaid: 0, eligibleBefore: null, eligibleAfter: null, transitionWeek: null, salaryBefore: null, salaryAfter: null };
+  let previousJobId = state.career.jobId;
+  let previousTuitionOwed = 0;
+  let previousReliefCaseIds = new Set();
+
+  for (let step = 0; step < weeks; step += 1) {
+    settle();
+    // Gerçek iş yolu: teklif → bir hafta bekleme → işe başlama olayı.
+    // İşsizken arama sürer; işteyken yalnız gerçekten daha iyi bir işe geçilir.
+    if (state.career.jobId === null && !state.career.pendingJob && step % 4 === 0) {
+      const target = bestEligibleJob(state, policy.jobPreference);
+      if (target) acceptJobOffer(state, target);
+    } else if (state.career.jobId !== null && policy.upgradeEvery > 0 && step % policy.upgradeEvery === 0) {
+      const target = bestEligibleJob(state, policy.jobPreference, { mustBeat: salaryOf(state.career.jobId) });
+      if (target) acceptJobOffer(state, target);
+    }
+    settle();
+    if (policy.education && !education.enrolledWeek && step >= policy.education.fromWeek && !state.education.active) {
+      const path = EDUCATION_PATHS.find((item) => item.id === policy.education.pathId);
+      const before = isEligibleForJob(state, gateJob).ok;
+      if (enrollEducation(state, policy.education.pathId, policy.education.intensity).ok) {
+        education.enrolledWeek = state.time.absoluteWeek;
+        education.enrollmentFee = path.enrollmentFee;
+        education.eligibleBefore = before;
+        education.salaryBefore = getMonthlySummary(state).salary;
+      }
+    }
+    for (const [fromWeek, homeId] of policy.housing)
+      if (step === fromWeek && state.household.homeId !== homeId) moveHome(state, homeId);
+    policy.adapt?.(state, step);
+    settle();
+
+    const act = (id) => {
+      if (canApplyDecision(state, id).ok) {
+        assert.equal(applyDecision(state, id).ok, true);
+        if (id === "overtime") counters.overtimeWeeks += 1;
+        settle();
+      }
+    };
+    policy.week(state, act, step);
+    settle();
+
+    assert.equal(advanceWeek(state).ok, true);
+    settle();
+    assert.equal(validateState(state).ok, true);
+
+    // ---- her hafta yürüyen sert kurallar ----
+    assert.ok(state.career.jobId === null || Boolean(getJobById(state.career.jobId)), "geçersiz jobId");
+    if (state.career.jobId === null) {
+      counters.unemployedWeeks += 1;
+      assert.equal(getMonthlySummary(state).salary, 0, "işsizken maaş sıfır olmalı");
+      assert.equal(canApplyDecision(state, "overtime").ok, false, "işsizken ek mesai açık olamaz");
+      assert.equal(getAvailableDecisions(state).some((item) => item.id === "overtime"), false, "işsizken ek mesai listelenmemeli");
+      assert.equal(state.flags.jobSecurityRisk ?? null, null, "işsizken risk bayrağı asılı kalmamalı");
+    }
+    // İş kimliği değişimleri tarihçe sınırından bağımsız, geçişin kendisinden okunur.
+    if (previousJobId !== state.career.jobId) {
+      const recent = state.career.history.slice(-4);
+      if (state.career.jobId === null) {
+        if (recent.some((item) => item.type === "resigned")) counters.resignations += 1;
+        else { counters.jobLosses += 1; assert.ok(recent.some((item) => item.type === "involuntary_unemployment"), "iş kaybı geçmişe bir kez yazılmalı"); }
+      } else if (previousJobId === null) counters.reemployments += 1;
+      else if (recent.some((item) => item.type === "promotion" && item.jobId === state.career.jobId)) counters.promotions += 1;
+      else counters.jobSwitches += 1;
+      previousJobId = state.career.jobId;
+    }
+    // İşsizken terfi kaydı doğamaz.
+    if (state.career.jobId === null)
+      assert.equal(state.career.history.slice(-2).some((item) => item.type === "promotion"), false, "işsiz oyuncu terfi edemez");
+
+    const reliefCases = state.openCases.filter((item) => item.payload?.kind === "money_relief" && item.status !== "resolved");
+    assert.ok(reliefCases.length <= 1, "aynı anda birden fazla açık destek dosyası olamaz");
+    for (const item of reliefCases) {
+      assert.ok(item.payload.amount >= MONEY_RELIEF_MIN && item.payload.amount <= MONEY_RELIEF_MAX, "destek tutarı sınırlar içinde olmalı");
+      observed.reliefAmount = Math.max(observed.reliefAmount, item.payload.amount);
+    }
+    const reliefIds = new Set(reliefCases.map((item) => item.id));
+    for (const id of previousReliefCaseIds)
+      if (!reliefIds.has(id) && !state.openCases.some((item) => item.id === id && item.status === "resolved")) counters.reliefExpired += 1;
+    previousReliefCaseIds = reliefIds;
+    observed.reliefCases = Math.max(observed.reliefCases, reliefCases.length);
+    const securityCases = state.openCases.filter((item) => item.payload?.kind === "job_security" && item.status !== "resolved");
+    assert.ok(securityCases.length <= 1, "aynı anda birden fazla iş güvenliği dosyası olamaz");
+    observed.securityCases = Math.max(observed.securityCases, securityCases.length);
+    counters.reviewsPassed = state.career.history.filter((item) => item.type === "security_review_passed").length;
+
+    if (state.education.tuitionOwedThisMonth === 0 && previousTuitionOwed > 0) education.tuitionPaid += previousTuitionOwed;
+    previousTuitionOwed = state.education.tuitionOwedThisMonth;
+    if (policy.education && education.enrolledWeek && !education.completedWeek && !state.education.active) {
+      education.completedWeek = state.time.absoluteWeek;
+      education.eligibleAfter = isEligibleForJob(state, gateJob).ok;
+    }
+    if (policy.education && education.completedWeek && !education.transitionWeek && state.career.jobId === gateJob.id) {
+      education.transitionWeek = state.time.absoluteWeek;
+      education.salaryAfter = getMonthlySummary(state).salary;
+    }
+
+    // ---- gözlenen sınırlar ----
+    observed.costIndex = Math.max(observed.costIndex, getCostOfLivingIndex(state));
+    observed.performance = Math.max(observed.performance, state.career.performance);
+    observed.performanceLow = Math.min(observed.performanceLow, state.career.performance);
+    observed.openCases = Math.max(observed.openCases, state.openCases.filter((item) => item.status !== "resolved").length);
+    observed.ledger = Math.max(observed.ledger, state.finances.ledger.length);
+    observed.careerHistory = Math.max(observed.careerHistory, state.career.history.length);
+    observed.yearFile = Math.max(observed.yearFile, state.yearlyHistory.length);
+    observed.memories = Math.max(observed.memories, state.memories.length);
+    observed.npcMemories = Math.max(observed.npcMemories, ...state.people.map((person) => person.memories.length));
+    observed.balanceLow = Math.min(observed.balanceLow, state.finances.balance);
+    observed.balanceHigh = Math.max(observed.balanceHigh, state.finances.balance);
+    observed.savingsMultiple = Math.max(observed.savingsMultiple, savingsMultiple(state));
+    assert.ok(state.career.performance >= 0 && state.career.performance <= 100);
+    assert.ok(getCostOfLivingIndex(state) <= 1.5);
+    assert.ok(state.finances.ledger.length <= 120);
+    assert.ok(state.career.history.length <= 40);
+    assert.ok(state.yearlyHistory.length <= 80);
+    assert.ok(state.memories.length <= 200);
+    assert.ok(state.secrets.length <= 30);
+    assert.ok(state.people.every((person) => person.memories.length <= 50));
+
+    const week = state.time.absoluteWeek;
+    if (ADULT_CORE_CHECKPOINTS.includes(week) && !checkpoints[week]) {
+      const summary = getMonthlySummary(state);
+      const job = getJobById(state.career.jobId);
+      const relief = reliefCases[0] || null;
+      checkpoints[week] = {
+        week, age: state.player.age,
+        jobId: state.career.jobId, jobTitle: job?.title || null, salary: summary.salary,
+        performance: state.career.performance, weeksInRole: state.career.weeksInRole,
+        jobSecurity: securityCases.length ? "review-pending" : state.flags.jobSecurityRisk ? "at-risk" : "stable",
+        balance: Math.round(state.finances.balance),
+        monthlyBaselineCost: summary.housing + summary.otherExpenses + summary.tuition + summary.parenting,
+        housingCost: getMonthlyHousingCost(state), costIndex: getCostOfLivingIndex(state),
+        annualBaselineCost: annualBaselineCost(state), savingsMultiple: savingsMultiple(state),
+        relief: relief ? { amount: relief.payload.amount, dueWeek: relief.dueWeek } : null,
+        education: { level: state.education.level, fields: [...state.education.fields], active: state.education.active?.pathId || null, tuitionOwedThisMonth: state.education.tuitionOwedThisMonth },
+        health: state.health.health, stress: state.health.stress, energy: state.health.energy,
+        activeOpenCases: state.openCases.filter((item) => item.status !== "resolved").length,
+        careerHistory: state.career.history.length, yearFile: state.yearlyHistory.length,
+      };
+    }
+
+    if (step % 24 === 0) {
+      assert.equal(saveGame(storage, state).ok, true);
+      const loaded = loadGame(storage);
+      assert.equal(loaded.ok, true);
+      assert.deepEqual(loaded.state.career, state.career, "kayıt/yükleme kariyeri bozmamalı");
+      assert.equal(loaded.state.finances.balance, state.finances.balance, "kayıt/yükleme kasayı bozmamalı");
+      assert.deepEqual(loaded.state.openCases, state.openCases, "kayıt/yükleme açık dosyaları bozmamalı");
+      state = loaded.state;
+    }
+  }
+
+  return {
+    kind, weeks: state.time.absoluteWeek, checkpoints, counters, observed,
+    education: policy.education ? education : null,
+    final: {
+      jobId: state.career.jobId, jobTitle: getJobById(state.career.jobId)?.title || null,
+      salary: getMonthlySummary(state).salary, performance: state.career.performance,
+      balance: Math.round(state.finances.balance), savingsMultiple: savingsMultiple(state),
+      annualBaselineCost: annualBaselineCost(state), costIndex: getCostOfLivingIndex(state),
+      home: state.household.homeId, educationLevel: state.education.level, fields: [...state.education.fields],
+    },
+    valid: validateState(state).ok,
+  };
+}
+
+export function runAdultCoreMatrix() {
+  return Object.fromEntries(["career-focused", "balanced", "financially-strained", "education-career"].map((kind) => [kind, runAdultCoreScenario(kind)]));
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 const mode = process.argv[2] || "520";
-if (mode === "child" || mode === "child-stable" || mode === "child-strained" || mode === "child-separated") {
+if (mode.startsWith("adult-")) {
+  const kind = { "adult-career": "career-focused", "adult-balanced": "balanced", "adult-strained": "financially-strained", "adult-education": "education-career" }[mode];
+  console.log(JSON.stringify(kind ? runAdultCoreScenario(kind) : runAdultCoreMatrix(), null, 2));
+} else if (mode === "child" || mode === "child-stable" || mode === "child-strained" || mode === "child-separated") {
   const kind = mode === "child" ? "stable" : mode.replace("child-", "");
   console.log(JSON.stringify(runChildScenario(kind), null, 2));
 } else if (mode === "child-matrix") {

@@ -2,13 +2,14 @@ import {
   addCareerHistory,
   addMemory,
   addNpcMemory,
+  adjustHealth,
   adjustTendency,
   appendCapped,
   recordComparisonMilestone,
   transact,
 } from "./state.js?v=5";
 import { applyRelationshipDelta } from "./social.js?v=5";
-import { promoteCareer } from "./life.js?v=5";
+import { CAREER_RISK_PERFORMANCE, clampMoneyReliefAmount, endEmployment, getMoneyReliefAmount, promoteCareer } from "./life.js?v=5";
 
 const MAX_DEPTH2_CASES = 24;
 
@@ -141,7 +142,20 @@ export function getRelationshipContext(state, personId) {
   return notes.slice(0, 2);
 }
 
-export function applyDepth2Resolution(state, definition, choiceId) {
+/** Geri ödeme penceresi kaçırıldığında da ödenmeme sonucu işler. */
+export const MONEY_RELIEF_DEFAULT_COOLDOWN = 104;
+
+function applyMoneyReliefDefault(state, reason) {
+  applyRelationshipDelta(state, "anne", { trust: -6, tension: 8 });
+  addNpcMemory(state, "anne", "Verdiği geri ödeme sözünü tutmadı.", "money_promise_broken");
+  adjustHealth(state, { stress: 6 });
+  // Tek ve sınırlı sonuç: destek kapısı normalin çok üstünde bir süre kapanır.
+  state.events.cooldowns.money_relief_choice = state.time.absoluteWeek + MONEY_RELIEF_DEFAULT_COOLDOWN;
+  addMemory(state, reason, "important");
+  resolveSecret(state, "money-shortcut");
+}
+
+export function applyDepth2Resolution(state, definition, choiceId, sourceCase = null) {
   const id = definition.id;
   if (id === "career_promotion_window") {
     if (choiceId === "accept") {
@@ -154,7 +168,12 @@ export function applyDepth2Resolution(state, definition, choiceId) {
   }
   if (id === "career_promotion_review") {
     state.flags.depth2PromotionPending = null;
-    if (choiceId === "advance") {
+    if (state.career.jobId === null) {
+      // İş güvenliği kaybı ya da istifa önce sonuçlandıysa terfi görüşmesi
+      // konusuz kalır. "İşten çıkarıldı ve terfi etti" çelişkisi olamaz.
+      addCareerHistory(state, { type: "promotion_review", label: "Terfi görüşmesi konusuz kaldı; o iş artık yok." });
+      addMemory(state, "Terfi görüşmesi konusuz kaldı; o iş artık yok.", "important");
+    } else if (choiceId === "advance") {
       const promotion = promoteCareer(state);
       state.career.performance = Math.min(100, state.career.performance + 6);
       addCareerHistory(state, { type: "promotion_review", label: promotion.ok ? "Terfi değerlendirmesini olumlu tamamladın." : "Terfi değerlendirmesinde uygun bir üst pozisyon bulunamadı." });
@@ -185,17 +204,26 @@ export function applyDepth2Resolution(state, definition, choiceId) {
     }
   }
   if (id === "money_relief_choice" && choiceId === "borrow") {
-    createSecret(state, { id: "money-shortcut", type: "money", summary: "Ay sonunu kapatmak için alınan geçici destek", relatedPeople: ["anne"], knownBy: ["player", "anne"], sourceEvent: id });
-    scheduleDepth2Followup(state, { eventId: "money_relief_due", dueWeek: state.time.absoluteWeek + 8, expiresWeek: state.time.absoluteWeek + 14, kind: "money_relief" });
-    addMemory(state, "Kısa vadeli para rahatlığı için geri ödeme sözü verdin.", "important");
+    // Tutar gerçek açıktan türer ve tam bir kez aktarılır; miktar geri ödemeye
+    // kadar açık dosyanın kendi yükünde saklanır.
+    const amount = getMoneyReliefAmount(state);
+    if (amount > 0) {
+      transact(state, amount, "Geçici aile desteği", "debt");
+      createSecret(state, { id: "money-shortcut", type: "money", summary: "Ay sonunu kapatmak için alınan geçici destek", relatedPeople: ["anne"], knownBy: ["player", "anne"], sourceEvent: id });
+      scheduleDepth2Followup(state, { eventId: "money_relief_due", dueWeek: state.time.absoluteWeek + 8, expiresWeek: state.time.absoluteWeek + 14, kind: "money_relief", payload: { amount } });
+      addMemory(state, `Ay sonunu kapatmak için ₺${amount.toLocaleString("tr-TR")} destek aldın; geri ödeme sözü verdin.`, "important");
+    } else {
+      state.flags.moneyReliefOpen = null;
+    }
   }
   if (id === "money_relief_due") {
+    const amount = clampMoneyReliefAmount(sourceCase?.payload?.amount);
     if (choiceId === "repay") {
-      transact(state, -1000, "Acil borç geri ödemesi", "debt");
-      addMemory(state, "Kısa vadeli borcunu geri ödedin.", "important");
+      transact(state, -amount, "Geçici destek geri ödemesi", "debt");
+      addMemory(state, `Aldığın ₺${amount.toLocaleString("tr-TR")} desteği geri ödedin.`, "important");
+      resolveSecret(state, "money-shortcut");
     } else {
-      applyRelationshipDelta(state, "anne", { trust: -6, tension: 8 });
-      addNpcMemory(state, "anne", "Verdiği geri ödeme sözünü tutmadı.", "money_promise_broken");
+      applyMoneyReliefDefault(state, "Aldığın geçici desteği geri ödeyemedin.");
     }
   }
   if (id === "secret_confrontation" && choiceId === "open") {
@@ -236,14 +264,25 @@ export function applyDepth2Resolution(state, definition, choiceId) {
   }
   if (id === "job_security_warning") {
     if (choiceId === "push") createSecret(state, { id: "career-warning", type: "career", summary: "İşteki yorgunluk ve performans riski", relatedPeople: [], knownBy: ["player"], sourceEvent: id });
-    scheduleDepth2Followup(state, { eventId: "job_security_review", dueWeek: state.time.absoluteWeek + 8, expiresWeek: state.time.absoluteWeek + 16, kind: "job_security" });
+    const alreadyOpen = state.openCases.some((item) => item.type === "depth2-followup" && item.status !== "resolved" && item.payload?.kind === "job_security");
+    if (state.career.jobId !== null && !alreadyOpen)
+      scheduleDepth2Followup(state, { eventId: "job_security_review", dueWeek: state.time.absoluteWeek + 8, expiresWeek: state.time.absoluteWeek + 16, kind: "job_security" });
   }
-  if (id === "job_security_review" && choiceId === "accept_risk" && state.career.jobId !== null && state.career.performance <= 30) {
-    const oldJob = state.career.jobId;
-    state.career.jobId = null;
-    state.career.weeksInRole = 0;
-    addCareerHistory(state, { type: "involuntary_unemployment", jobId: oldJob, label: "Performans düşüşü sonrası işini kaybettin." });
-    addMemory(state, "Performans düşüşü sonrası işini kaybettin.", "important");
+  if (id === "job_security_review") {
+    // Sonucu haftalar önce verilen cevap değil, değerlendirme anındaki gerçek
+    // kariyer durumu belirler. "Toparlanacağım" demek tek başına korumaz.
+    state.flags.jobSecurityRisk = null;
+    state.flags.jobSecurityRecovery = null;
+    resolveSecret(state, "career-warning");
+    if (state.career.jobId === null) {
+      addMemory(state, "İş güvenliği görüşmesi konusuz kaldı; o iş artık yok.");
+    } else if (state.career.performance > CAREER_RISK_PERFORMANCE) {
+      if (choiceId === "recover") state.career.performance = Math.min(100, state.career.performance + 3);
+      addCareerHistory(state, { type: "security_review_passed", jobId: state.career.jobId, label: "Performans değerlendirmesini geçtin; işin devam ediyor." });
+      addMemory(state, "İşteki performans değerlendirmesini geçtin.", "important");
+    } else {
+      endEmployment(state, { label: "Performans düşüşü sonrası işini kaybettin." });
+    }
   }
 }
 
@@ -260,7 +299,13 @@ export function expireDepth2Cases(state) {
       }
       if (item.payload?.kind === "money_relief") {
         state.flags.moneyReliefOpen = null;
-        addMemory(state, "Geri ödeme penceresini kaçırdın.", "important");
+        // Pencereyi kaçırmak, ödememekle aynı kapıya çıkar; aksi halde olayı
+        // görmezden gelmek bedelsiz bir kaçış yolu olurdu.
+        applyMoneyReliefDefault(state, "Geri ödeme penceresini kaçırdın.");
+      }
+      if (item.payload?.kind === "job_security") {
+        state.flags.jobSecurityRisk = null;
+        state.flags.jobSecurityRecovery = null;
       }
       if (item.payload?.kind === "education_window") {
         state.flags.educationWindowOpen = null;

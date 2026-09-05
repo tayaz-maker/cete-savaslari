@@ -1,4 +1,4 @@
-import { getNextCareerStep } from "./life.js?v=5";
+import { getMoneyReliefAmount, getNextCareerStep } from "./life.js?v=5";
 import { getStartingProfileId } from "./state.js?v=5";
 
 export const DEPTH2_EVENTS = [
@@ -54,9 +54,12 @@ export const DEPTH2_EVENTS = [
     cooldownWeeks: 60,
     title: "Kısa vadeli para rahatlığı",
     text: "Ay sonu yaklaşırken masrafları kapatmanın bir yolu var; ancak geri ödeme için tarih koyman gerekecek.",
-    condition: (state) => state.finances.balance < (state.player.tendencies?.frugality >= 60 ? 1400 : 1800) && state.household.homeId === "family" && !state.flags.moneyReliefOpen,
+    // Destek ailenin kendisinden gelir, adresten değil: aile evinde otururken
+    // ya da anneyle ilişki yeterince sağlamken açılır. Gerçek bir nakit açığı
+    // yoksa hiç açılmaz.
+    condition: (state) => state.finances.balance < (state.player.tendencies?.frugality >= 60 ? 1400 : 1800) && (state.household.homeId === "family" || state.relationships.anne >= 40) && !state.flags.moneyReliefOpen && getMoneyReliefAmount(state) > 0,
     choices: [
-      { id: "borrow", label: "Geçici borç al", effects: { money: 1000, flags: { moneyReliefOpen: true }, memory: "Ay sonunu geçirmek için geçici borç aldın.", reason: "Geçici aile borcu" } },
+      { id: "borrow", label: "Geçici destek iste", effects: { flags: { moneyReliefOpen: true }, memory: "Ay sonunu geçirmek için geçici destek istedin." } },
       { id: "cut", label: "Harcamayı kıs", effects: { health: { stress: 8 }, memory: "Ay sonunu geçirmek için harcamalarını kıstın." } },
     ],
   },
@@ -67,8 +70,8 @@ export const DEPTH2_EVENTS = [
     text: "Aldığın geçici desteğin geri ödeme tarihi geldi. Bu konuşma daha fazla ertelenemiyor.",
     condition: () => false,
     choices: [
-      { id: "repay", label: "₺1.000 geri öde", effects: { health: { stress: 2 }, flags: { moneyReliefOpen: null }, memory: "Geçici borcunu geri ödedin." } },
-      { id: "delay", label: "Biraz daha süre iste", effects: { health: { stress: 5 }, flags: { moneyReliefOpen: null }, memory: "Geçici borcun geri ödemesini erteledin." } },
+      { id: "repay", label: "Aldığın desteği geri öde", effects: { health: { stress: 2 }, flags: { moneyReliefOpen: null }, memory: "Aldığın geçici desteği geri ödedin." } },
+      { id: "delay", label: "Geri ödeyemeyeceğini söyle", effects: { health: { stress: 5 }, flags: { moneyReliefOpen: null }, memory: "Aldığın geçici desteği geri ödeyemedin." } },
     ],
   },
   {

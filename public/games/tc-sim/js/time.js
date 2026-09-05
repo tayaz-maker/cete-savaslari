@@ -59,6 +59,8 @@ export const DECISIONS = [
     id: "overtime",
     title: "Ek mesai yap",
     detail: "+₺1.250 · enerji −16 · stres +12 · aralıksız sürerse azalır",
+    // Ek mesai bir işin uzantısıdır: iş yoksa mesai de yoktur.
+    contextual: (state) => state.career.jobId !== null,
     apply(state) {
       const streak = state.flags.overtimeStreak || 0;
       transact(state, getOvertimePay(streak), "Ek mesai", "work");
@@ -243,8 +245,8 @@ export const DECISIONS = [
 const CORE_DECISION_IDS = new Set(["overtime", "rest", "exercise"]);
 
 export function getAvailableDecisions(state) {
-  return DECISIONS.filter(
-    (decision) => CORE_DECISION_IDS.has(decision.id) || decision.contextual?.(state),
+  return DECISIONS.filter((decision) =>
+    decision.contextual ? decision.contextual(state) : CORE_DECISION_IDS.has(decision.id),
   );
 }
 
@@ -254,6 +256,7 @@ export function canApplyDecision(state, decisionId) {
   if (decisionId === "parent-plan" && !decision.contextual(state)) return { ok: false, reason: "Yeni bir niyet görüşmesi için uygun bağlam yok." };
   if (decisionId === "parent-budget" && !decision.contextual(state)) return { ok: false, reason: "Yeni bir bakım bütçesi görüşmesi için uygun bağlam yok." };
   if (decisionId === "parent-care" && !needsParentCare(state)) return { ok: false, reason: "Bu bakım döneminde hanende çocuk yok." };
+  if (decisionId === "overtime" && state.career.jobId === null) return { ok: false, reason: "Ek mesai için aktif bir iş gerekiyor." };
   if (decisionId === "overtime" && parentingOvertimeBlocked(state)) return { ok: false, reason: "Biriken bakım sorumluluğu için önce bu haftaya zaman ayırmalısın." };
   if (decisionId === "body-care" && !decision.contextual(state)) return { ok: false, reason: "Şu anda bakım gerektiren bilinen bir durum yok." };
   if (state.events.active) return { ok: false, reason: "Önce açık olayı sonuçlandır." };
