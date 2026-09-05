@@ -382,4 +382,11 @@ export function expireDepth2Cases(state) {
       addMemory(state, "Bir yaşam fırsatının süresi doldu; karar vermek için geç kaldın.");
     }
   }
+  // Sonuçlanmış gecikmeli dosyalar olay geçmişinin yerine geçmez. Yakın dönem
+  // hata ayıklama bağlamını koru, onlarca yıllık yaşamda openCases'i büyütme.
+  state.openCases = state.openCases.filter((item) =>
+    item.type !== "depth2-followup" ||
+    item.status !== "resolved" ||
+    state.time.absoluteWeek - (item.dueWeek || item.createdWeek || 0) <= 24,
+  );
 }
