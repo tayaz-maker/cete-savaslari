@@ -21,14 +21,23 @@ test("production TC SIM loads one coherent, current module graph", () => {
   }
 });
 
-test("service worker never serves a stale TC SIM module before the network", () => {
+test("service worker never serves a stale module-game asset before the network", () => {
   const source = readFileSync(join(root, "public/sw.js"), "utf8");
   assert.ok(source.includes('const CACHE = "cete-offline-v2"'));
-  assert.ok(source.includes('url.pathname.startsWith("/games/tc-sim/")'));
-  const tcBranch = source.indexOf("if (isTcSimAsset(url))");
+  // TC SIM ve TLab Classics oyunlarinin hepsi native ES module grafigidir;
+  // dordu de stale-while-revalidate dalindan ONCE network-first islenmeli.
+  for (const prefix of [
+    "/games/tc-sim/",
+    "/games/labirent/",
+    "/games/peg-solitaire/",
+    "/games/satranc/",
+  ]) {
+    assert.ok(source.includes(`"${prefix}"`), `${prefix} module-game listesinde olmali`);
+  }
+  const moduleBranch = source.indexOf("if (isModuleGameAsset(url))");
   const staleBranch = source.indexOf("if (isAsset(url))");
-  assert.ok(tcBranch > 0 && tcBranch < staleBranch);
-  assert.ok(source.slice(tcBranch, staleBranch).includes("networkFirst(req)"));
+  assert.ok(moduleBranch > 0 && moduleBranch < staleBranch);
+  assert.ok(source.slice(moduleBranch, staleBranch).includes("networkFirst(req)"));
 });
 
 test("mobile TC SIM navigation remains horizontally usable and tappable", () => {

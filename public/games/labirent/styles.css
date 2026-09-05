@@ -1,0 +1,478 @@
+/* Labirent — TLab Edition
+ * TarikLab özgün arayüzü. Görsel yön: teknik çizim / plan paftası.
+ * Sıcak koyu TarikLab zemini üzerine soğuk mavi bir "ozalit" aksanı.
+ */
+
+/* --- TLab Classics ortak katman --- */
+:root {
+  --bg: #080706;
+  --surface: #100d0b;
+  --elevated: #191512;
+  --fg: #efe8de;
+  --muted: #c4b8ac;
+  --subtle: #9a9086;
+  --border: #221d19;
+  --danger: #c45c4a;
+  --ok: #7a9a7e;
+  --font-sans: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Labirent'e özgü kimlik: ozalit mavisi */
+  --accent: #6fb6cf;
+  --accent-dim: #3d6f80;
+  --accent-glow: rgba(111, 182, 207, 0.22);
+  --wall: #4d6570;
+  --trail: rgba(111, 182, 207, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  /* Plan paftası dokusu: yalnız CSS, görsel dosya yok. */
+  background-image:
+    linear-gradient(rgba(111, 182, 207, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(111, 182, 207, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.shell {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100dvh;
+}
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.family-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.readout div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.readout dt {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.readout dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.plate {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+}
+
+/* Pafta köşe işaretleri — teknik çizim hissi, saf CSS */
+.plate::before,
+.plate::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--accent-dim);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.plate::before {
+  top: 6px;
+  left: 6px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.plate::after {
+  right: 6px;
+  bottom: 6px;
+  border-left: 0;
+  border-top: 0;
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+}
+
+.wall {
+  stroke: var(--wall);
+  stroke-width: 1.6;
+  stroke-linecap: square;
+}
+
+.frame {
+  fill: none;
+  stroke: var(--accent-dim);
+  stroke-width: 2.4;
+}
+
+.trail-line {
+  fill: none;
+  stroke: var(--trail);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.1 5;
+}
+
+.exit-ring {
+  fill: none;
+  stroke: var(--ok);
+  stroke-width: 1.8;
+}
+
+.exit-core {
+  fill: var(--ok);
+}
+
+.runner {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+  transition: transform 90ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button,
+select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled),
+select:hover {
+  border-color: var(--accent-dim);
+}
+
+button:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #0b1418;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 12px 0 14px;
+  min-height: 44px;
+}
+
+.field label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  white-space: nowrap;
+}
+
+.field select,
+.field input {
+  background: transparent;
+  border: 0;
+  min-height: 40px;
+  padding: 0 4px 0 0;
+  color: var(--fg);
+  font: inherit;
+  min-width: 0;
+  width: 100%;
+}
+
+.field input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field input:focus-visible {
+  outline: none;
+}
+
+.result-body .field {
+  width: 100%;
+}
+
+.result-body .field span {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+/* Yön tuşları — dokunmatik için, klavyeye ek */
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  grid-template-rows: repeat(3, 56px);
+  gap: 6px;
+  justify-content: center;
+  margin: 2px auto 0;
+}
+
+.dpad button {
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+}
+
+.dpad button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dpad .up {
+  grid-area: 1 / 2;
+}
+.dpad .left {
+  grid-area: 2 / 1;
+}
+.dpad .right {
+  grid-area: 2 / 3;
+}
+.dpad .down {
+  grid-area: 3 / 2;
+}
+
+.dpad-hub {
+  grid-area: 2 / 2;
+  display: grid;
+  place-items: center;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.seed-line {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+.best-line {
+  color: var(--subtle);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+details.help {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+details.help summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+details.help ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.credit {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--subtle);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+/* Sonuç kartı */
+dialog.result {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--fg);
+  padding: 0;
+  width: min(92vw, 380px);
+  max-height: 86dvh;
+  overflow: auto;
+}
+
+dialog.result::backdrop {
+  background: rgba(8, 7, 6, 0.78);
+}
+
+.result-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-grade {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.result-stats div {
+  background: var(--elevated);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.result-actions button {
+  flex: 1 1 130px;
+}
+
+@media (max-width: 400px) {
+  .readout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .readout dd {
+    font-size: 0.95rem;
+  }
+  .title {
+    font-size: 1.35rem;
+  }
+  .dpad {
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(3, 52px);
+  }
+}
+
+@media (min-width: 900px) {
+  .shell {
+    max-width: 720px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runner {
+    transition: none;
+  }
+}

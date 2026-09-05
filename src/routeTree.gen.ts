@@ -10,14 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CeteSavaslariRouteImport } from './routes/cete-savaslari'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
-import { Route as CeteSavaslariRouteImport } from './routes/cete-savaslari'
 import { Route as OynaSlugRouteImport } from './routes/oyna.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CeteSavaslariRoute = CeteSavaslariRouteImport.update({
+  id: '/cete-savaslari',
+  path: '/cete-savaslari',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -30,11 +35,6 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CeteSavaslariRoute = CeteSavaslariRouteImport.update({
-  id: '/cete-savaslari',
-  path: '/cete-savaslari',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OynaSlugRoute = OynaSlugRouteImport.update({
   id: '/oyna/$slug',
   path: '/oyna/$slug',
@@ -43,39 +43,55 @@ const OynaSlugRoute = OynaSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cete-savaslari': typeof CeteSavaslariRoute
   '/oyna/$slug': typeof OynaSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cete-savaslari': typeof CeteSavaslariRoute
   '/oyna/$slug': typeof OynaSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cete-savaslari': typeof CeteSavaslariRoute
   '/reset-password': typeof ResetPasswordRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cete-savaslari': typeof CeteSavaslariRoute
   '/oyna/$slug': typeof OynaSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari' | '/oyna/$slug'
+  fullPaths:
+    | '/'
+    | '/cete-savaslari'
+    | '/reset-password'
+    | '/auth/callback'
+    | '/oyna/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari' | '/oyna/$slug'
-  id: '__root__' | '/' | '/reset-password' | '/auth/callback' | '/cete-savaslari' | '/oyna/$slug'
+  to:
+    | '/'
+    | '/cete-savaslari'
+    | '/reset-password'
+    | '/auth/callback'
+    | '/oyna/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/cete-savaslari'
+    | '/reset-password'
+    | '/auth/callback'
+    | '/oyna/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CeteSavaslariRoute: typeof CeteSavaslariRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
-  CeteSavaslariRoute: typeof CeteSavaslariRoute
   OynaSlugRoute: typeof OynaSlugRoute
 }
 
@@ -86,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cete-savaslari': {
+      id: '/cete-savaslari'
+      path: '/cete-savaslari'
+      fullPath: '/cete-savaslari'
+      preLoaderRoute: typeof CeteSavaslariRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -102,13 +125,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cete-savaslari': {
-      id: '/cete-savaslari'
-      path: '/cete-savaslari'
-      fullPath: '/cete-savaslari'
-      preLoaderRoute: typeof CeteSavaslariRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/oyna/$slug': {
       id: '/oyna/$slug'
       path: '/oyna/$slug'
@@ -121,9 +137,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CeteSavaslariRoute: CeteSavaslariRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   AuthCallbackRoute: AuthCallbackRoute,
-  CeteSavaslariRoute: CeteSavaslariRoute,
   OynaSlugRoute: OynaSlugRoute,
 }
 export const routeTree = rootRouteImport
