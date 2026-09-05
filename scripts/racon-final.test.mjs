@@ -118,3 +118,5 @@ test('all twelve domain views render current state without invalid text; no fake
 });
 
 test('completed work creates fatigue at the real daily transition',()=>{const g=game();const j=plan(g);finish(g,j.id);const before=g.ev('S.men[0].yorgunluk');day(g);assert.ok(g.ev('S.men[0].yorgunluk')>before);});
+
+test('appointment selection does not silently replace an empty or saved crew',()=>{const g=game();g.ev('UI.randevuMen=[];');assert.equal(g.ev('randevuKadro().length'),0);g.ev('UI.randevuMen=[S.men[0].id];UI.sahne=true;UI.rnd={calId:"fixture",adim:2,bekle:true,lines:[],havuz:[],son:[]};writeSave();S=loadSave();enterPlay();');assert.deepEqual(g.ev('UI.randevuMen'),g.ev('[S.men[0].id]'));});

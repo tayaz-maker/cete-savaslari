@@ -21,7 +21,7 @@ export function runRaconLife(kind='balanced',seed=4242,days=730) {
    ev('S.jobs.filter(function(j){return j.phase!=="done"&&j.prepLeft===0&&jobReason(j);}).forEach(function(j){act("job-cancel",{id:j.id});});');
    const due=ev('S.calendar.filter(function(c){return c.strip==="randevu"&&c.status==="bekler"&&c.week===S.week&&c.day===S.day;}).map(function(c){return c.id;})');
    for(const id of due)if(!ev(`actionReason("randevu-git",{id:"${id}"})`)){
-     ev(`act("randevu-git",{id:"${id}",tarz:"racon"});`);
+     ev(`act("randevu-git",{id:"${id}",tarz:"kapi"});`);
      for(let n=0;n<30&&ev('!!UI.rnd');n++)ev('if(UI.rnd.bekle)act("rnd-karar",{k:"konus"});else rndTick();');
      appointments++;
    }

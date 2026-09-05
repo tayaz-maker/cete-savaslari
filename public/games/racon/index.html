@@ -1626,7 +1626,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     o.kind = "racon_v1";
     o.scene = UI.sahne ? { jobId:UI.jobId, jobLog:UI.jobLog||[], jobQueue:UI.jobQueue||[],
       jobOrders:UI.jobOrders||[], jobWait:!!UI.jobWait, jobDone:!!UI.jobDone,
-      jobSummary:UI.jobSummary||null, rnd:UI.rnd||null } : null;
+      jobSummary:UI.jobSummary||null, rnd:UI.rnd||null, randevuMen:UI.randevuMen||null } : null;
     o.savedAt = Date.now();
     return o;
   }
@@ -3878,7 +3878,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var hazir = S.men.filter(function (m) { return availableMan(m); });
     if (!UI.randevuMen) return hazir;
     var sec = hazir.filter(function (m) { return UI.randevuMen.indexOf(m.id) >= 0; });
-    return sec.length ? sec : hazir;
+    return sec;
   }
   function kadroGucu(list, tarzId) {
     var t = TARZ[tarzId] || TARZ.kapi;
@@ -4242,7 +4242,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     if (S && !S.flags.bugun) writeBugun();
     if(S.scene){
       var scene=S.scene; UI.sahne=true;
-      Object.keys(scene).forEach(function(k){if(["jobId","jobLog","jobQueue","jobOrders","jobWait","jobDone","jobSummary","rnd"].indexOf(k)>=0) UI[k]=scene[k];});
+      Object.keys(scene).forEach(function(k){if(["jobId","jobLog","jobQueue","jobOrders","jobWait","jobDone","jobSummary","rnd","randevuMen"].indexOf(k)>=0) UI[k]=scene[k];});
       S.scene=null;
       S.screen=UI.rnd?"olaylar":"isler";
       if(UI.rnd&&!UI.rnd.bekle) UI.rndTimer=setTimeout(rndTick,120);
