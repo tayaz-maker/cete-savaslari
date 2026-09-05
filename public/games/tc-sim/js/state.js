@@ -1,10 +1,10 @@
-import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=5";
-import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=5";
-import { normalizeHousehold, HOUSEHOLD_HISTORY_LIMIT, neutralUnion, FAMILY_INTENTS } from "./household.js?v=5";
-import { ensureBodyState } from "./body-systems.js?v=5";
-import { getHomeById, getJobById } from "./catalog.js?v=5";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=5";
-import { isEducationLevel, isValidActiveEducation } from "./education.js?v=5";
+import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=6";
+import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=6";
+import { normalizeHousehold, HOUSEHOLD_HISTORY_LIMIT, neutralUnion, FAMILY_INTENTS } from "./household.js?v=6";
+import { ensureBodyState } from "./body-systems.js?v=6";
+import { getHomeById, getJobById } from "./catalog.js?v=6";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=6";
+import { isEducationLevel, isValidActiveEducation } from "./education.js?v=6";
 
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;

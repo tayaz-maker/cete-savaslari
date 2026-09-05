@@ -1,7 +1,7 @@
-import { addNpcMemory, addMemory, adjustHealth } from "./state.js?v=5";
-import { applyRelationshipDelta } from "./social.js?v=5";
-import { createSecret, transferSecret, isSecretKnownTo } from "./depth2-systems.js?v=5";
-import { HEALTH_CHAIN_REGISTRY, acknowledgeBodyWarning, getBodyCareContext, getKnownBodyConditions, reassessBodyCondition, scheduleHealthChain } from "./body-systems.js?v=5";
+import { addNpcMemory, addMemory, adjustHealth } from "./state.js?v=6";
+import { applyRelationshipDelta } from "./social.js?v=6";
+import { createSecret, transferSecret, isSecretKnownTo } from "./depth2-systems.js?v=6";
+import { HEALTH_CHAIN_REGISTRY, acknowledgeBodyWarning, getBodyCareContext, getKnownBodyConditions, reassessBodyCondition, scheduleHealthChain } from "./body-systems.js?v=6";
 
 const choice = (id, label, stress = 0) => ({ id, label, effects: { health: { stress } } });
 const delayed = (id, chainId, title, text) => ({ id, chainId, title, text, condition: () => false, choices: [choice("review", "Durumu değerlendir")] });

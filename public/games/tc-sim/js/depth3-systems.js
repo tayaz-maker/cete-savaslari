@@ -3,8 +3,8 @@ import {
   addNpcMemory,
   addCareerHistory,
   appendCapped,
-} from "./state.js?v=5";
-import { applyRelationshipDelta, getPerson, markMeaningfulContact } from "./social.js?v=5";
+} from "./state.js?v=6";
+import { applyRelationshipDelta, getPerson, markMeaningfulContact } from "./social.js?v=6";
 
 const MAX_FAVORS = 30;
 const MAX_EVIDENCE = 60;

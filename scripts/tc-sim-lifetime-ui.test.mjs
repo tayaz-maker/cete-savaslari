@@ -37,6 +37,7 @@ test("all twelve real UI screens render with routed controls; moving/saving/week
   const inventory = {};
   for (const nav of NAVIGATION_ITEMS) {
     ui.click(ui.find("view", nav.view));
+    assert.equal(ui.find("view", nav.view).attrs["aria-current"], "page", `${nav.label}: click did not activate its real view`);
     const buttons = ui.root.elements.filter(e => e.tag === "button");
     inventory[nav.view] = buttons.length;
     for (const b of buttons) assert.ok(b.disabled || b.listeners.click || b.attrs.type === "submit", `${nav.view}: unrouted ${JSON.stringify(b.attrs)}`);

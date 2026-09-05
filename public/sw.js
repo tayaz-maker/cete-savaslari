@@ -1,7 +1,7 @@
 /* Çete Savaşları — kalıcı çevrimdışı.
  * İlk online ziyarette kabuk + asset cache'lenir. Sonra uçak modu çalışır.
  */
-const CACHE = "cete-offline-v1";
+const CACHE = "cete-offline-v2";
 const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -42,6 +42,10 @@ function isAsset(url) {
   );
 }
 
+function isTcSimAsset(url) {
+  return url.pathname.startsWith("/games/tc-sim/");
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -55,6 +59,14 @@ self.addEventListener("fetch", (event) => {
   if (bypass(url)) return;
 
   if (req.mode === "navigate") {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+  // TC SIM is a native module graph. Returning a cached module before its
+  // matching imports can mix different deployments and leave rendered
+  // controls without the current app listeners. Online loads therefore use
+  // one coherent deployment; the cache remains the offline fallback.
+  if (isTcSimAsset(url)) {
     event.respondWith(networkFirst(req));
     return;
   }
@@ -115,4 +127,3 @@ self.addEventListener("notificationclick", (event) => {
       }),
   );
 });
-

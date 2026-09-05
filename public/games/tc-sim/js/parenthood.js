@@ -1,7 +1,7 @@
-import { addMemory, addNpcMemory, appendCapped, adjustHealth, getWeeklyActivityLimit, transact } from "./state.js?v=5";
-import { getRelationship, applyRelationshipDelta } from "./social.js?v=5";
-import { getMonthlySummary, relocateHome, getHomeById } from "./life.js?v=5";
-import { createSecret, transferSecret, isSecretKnownTo, resolveSecret } from "./depth2-systems.js?v=5";
+import { addMemory, addNpcMemory, appendCapped, adjustHealth, getWeeklyActivityLimit, transact } from "./state.js?v=6";
+import { getRelationship, applyRelationshipDelta } from "./social.js?v=6";
+import { getMonthlySummary, relocateHome, getHomeById } from "./life.js?v=6";
+import { createSecret, transferSecret, isSecretKnownTo, resolveSecret } from "./depth2-systems.js?v=6";
 
 export const PARENTING_CHAINS = Object.freeze({
   planning: { id: "CHN-P01", eventId: "parent_planning_review" },
