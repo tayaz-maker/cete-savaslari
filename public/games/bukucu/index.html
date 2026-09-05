@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
-<meta name="smb-rev" content="10">
+<meta name="smb-rev" content="11">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -155,6 +155,9 @@ button:disabled { opacity: .35; }
   button { transition: none; }
   .fly { transition: none; }
 }
+
+/* Release layout: readable deed, scrollable decisions, no clipped short-screen menu. */
+*{box-sizing:border-box}#menu{justify-content:flex-start;padding-top:max(24px,env(safe-area-inset-top))}#menu h1{margin-top:12px}#sheet{max-width:900px;margin:auto}#bar button{min-height:44px;font-size:.75rem}#log{white-space:normal;line-height:1.35;max-height:3.9em;overflow:auto}#deed{overflow:auto}#deed .kv em{white-space:normal;overflow:visible}#acts{gap:8px;flex-wrap:wrap}#acts button{min-width:110px;line-height:1.3;padding:8px}#sheet .ops{flex-wrap:wrap}#sheet .trow .ops button{font-size:.8rem;min-height:44px}.trow,.cashrow,.endrow,.kv{overflow-wrap:anywhere;min-width:0}button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}button:disabled{cursor:not-allowed}#deed .grid{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:430px){#mid,#dock{padding-left:10px;padding-right:10px}#sheet{padding:12px}#ring{flex:45 1 0}#side{flex:55 1 0}#sheet .trow{flex-wrap:wrap}#deed h1{font-size:1.25rem}}@media(min-width:768px){#app{max-width:1440px}#menu{max-width:560px}.endcard{padding:18px}#deed .grid,#deed .rows{font-size:.9rem}}@media(max-height:500px){#menu .sub{margin-bottom:12px}#sheet{padding-top:10px}#side{overflow:auto}#dock{flex-shrink:0}}
 </style>
 </head>
 <body>
@@ -353,9 +356,14 @@ button:disabled { opacity: .35; }
     return (p + 1) + ". oyuncuya";
   }
 
+  function gameRandom(){
+    if(!S) return Math.random();
+    S.rng=((S.rng || 193731) + 0x6D2B79F5)>>>0;
+    var t=S.rng;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;
+  }
   function shuffle(a) {
     var i, j, t;
-    for (i = a.length - 1; i > 0; i--) { j = (Math.random() * (i + 1)) | 0; t = a[i]; a[i] = a[j]; a[j] = t; }
+    for (i = a.length - 1; i > 0; i--) { j = (gameRandom() * (i + 1)) | 0; t = a[i]; a[i] = a[j]; a[j] = t; }
     return a;
   }
   function ids(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
@@ -442,6 +450,18 @@ button:disabled { opacity: .35; }
   }
   function migrate(data) {
     if (!data || data.v !== 1) return null;
+    if(!Array.isArray(data.cash) || data.cash.some(function(x){return !Number.isFinite(x)||x<0;}))return null;
+    var size=data.cash.length;
+    if(!Number.isInteger(data.turn)||data.turn<0||data.turn>=size)return null;
+    if(!Array.isArray(data.own)||data.own.length!==40||data.own.some(function(x){return !Number.isInteger(x)||x < -1 || x>=size;}))return null;
+    for(var field of ["pos","jail","miss","cik","dead","bld","sen","rD","rX","iD","iX","held"]){if(data[field] && !Array.isArray(data[field]))return null;}
+    if(data.pos && data.pos.some(function(x){return !Number.isInteger(x)||x<0||x>=40;}))return null;
+    if(data.bld && (data.bld.length!==40 || data.bld.some(function(x){return !Number.isInteger(x)||x<0||x>4;})))return null;
+    if(data.sen && (data.sen.length!==40 || data.sen.some(function(x){return x!==0&&x!==1;})))return null;
+    if(data.wait && ["roll","jail","pass","buy","own","ok","pay","card","auc","offer","end"].indexOf(data.wait)<0)return null;
+    if(data.wait==="auc" && !data.auc || data.wait==="offer" && !data.trade)return null;
+    data.rng=Number.isInteger(data.rng)?data.rng>>>0:193731;
+
     if (!data.cash || data.cash.length < 2 || data.cash.length > 4) return null;
     data.n = data.n || data.cash.length;
     if (data.n < 2 || data.n > 4) return null;
@@ -470,6 +490,7 @@ button:disabled { opacity: .35; }
     if (!data.rX) data.rX = [];
     if (!data.iX) data.iX = [];
     if (!data.held) data.held = [];
+    var assigned=Array(data.n).fill(0);data.held.forEach(function(h){if(!Number.isInteger(h.p)){h.p=data.cik.findIndex(function(n,i){return assigned[i]<n;});}if(h.p>=0)assigned[h.p]++;});
     if (!data.uBoost) data.uBoost = 0;
     if (data.trade === undefined) data.trade = null;
     if (data.auc === undefined) data.auc = null;
@@ -499,6 +520,7 @@ button:disabled { opacity: .35; }
       return;
     }
     paint();
+    if(S.rollPending && S.win==null){doRoll(S.turn);return;}
     if (view === "play" && S.win == null) {
       if (S.wait === "auc" || isAi(S.turn)) kickAi();
     }
@@ -539,9 +561,11 @@ button:disabled { opacity: .35; }
   window.addEventListener("beforeunload", function () { persist(); });
 
   function later(fn) {
-    var ms = 450 + Math.random() * 250;
+    var activeState=S;
+    var ms = 500;
     aiT = setTimeout(function () {
       aiT = 0;
+      if(S!==activeState)return;
       if (document.hidden) { aiHold = fn; persist(); return; }
       fn();
     }, ms);
@@ -562,12 +586,13 @@ button:disabled { opacity: .35; }
   function holdCik(p, kind, id) {
     S.cik[p] += 1;
     if (!S.held) S.held = [];
-    S.held.push({ k: kind, id: id });
+    S.held.push({ p:p, k: kind, id: id });
   }
   function spendCik(p) {
     if (S.cik[p] <= 0) return false;
     S.cik[p] -= 1;
-    var h = S.held && S.held.length ? S.held.pop() : null;
+    var hi = S.held ? S.held.findIndex(function(h){return h.p===p;}) : -1;
+    var h = hi>=0 ? S.held.splice(hi,1)[0] : null;
     if (h) discard(h.k, h.id);
     S.jail[p] = 0; S.miss[p] = 0;
     return true;
@@ -578,7 +603,7 @@ button:disabled { opacity: .35; }
     return h + Math.ceil(h * 0.1);
   }
   function senetTile(p, i) {
-    if (S.own[i] !== p || S.sen[i]) return 0;
+    if (S.own[i] !== p || S.sen[i] || groupHasBld(i)) return 0;
     S.sen[i] = 1;
     var addn = (SQ[i][2] / 2) | 0;
     S.cash[p] += addn;
@@ -596,7 +621,7 @@ button:disabled { opacity: .35; }
   function cheapestOwned(p) {
     var best = -1, bestR = 1e9, bestP = -1;
     for (var i = 0; i < 40; i++) {
-      if (S.own[i] !== p || S.sen[i] || !SQ[i][2]) continue;
+      if (S.own[i] !== p || S.sen[i] || !SQ[i][2] || groupHasBld(i)) continue;
       var r = landRent(i);
       if (SQ[i][1] === "T") r = (RENT[SQ[i][0]] || [0])[0];
       if (r < bestR || (r === bestR && SQ[i][2] > bestP)) { best = i; bestR = r; bestP = SQ[i][2]; }
@@ -616,11 +641,10 @@ button:disabled { opacity: .35; }
     if (!alive(p)) return;
     if (!S.dead) S.dead = zeros(nP());
     S.dead[p] = 1;
-    S.pend = null;
-    S.card = null;
-    S.extra = 0;
+    if(p===S.turn){S.pend = null;S.card = null;S.extra = 0;}
     if (creditor >= 0 && alive(creditor)) S.cash[creditor] += Math.max(0, S.cash[p]);
     S.cash[p] = 0;
+    if(S.held){S.held.filter(function(h){return h.p===p;}).forEach(function(h){discard(h.k,h.id);});S.held=S.held.filter(function(h){return h.p!==p;});}S.cik[p]=0;
     var i;
     for (i = 0; i < 40; i++) if (S.own[i] === p) S.bld[i] = 0;
     for (i = 0; i < 40; i++) {
@@ -667,9 +691,7 @@ button:disabled { opacity: .35; }
     return S.bld[i] === mx;
   }
   function doRaze(p, i) {
-    if (!canRazeTile(p, i) && S.own[i] === p && S.bld[i] > 0) {
-      /* auto-chain may call razeTarget which already checks even rule */
-    }
+    if (!canRazeTile(p,i))return 0;
     if (S.own[i] !== p || S.bld[i] <= 0) return 0;
     var v = houseValue(i);
     S.bld[i] -= 1;
@@ -737,6 +759,7 @@ button:disabled { opacity: .35; }
     var a = []; for (var i = 0; i < 40; i++) if (canBuildTile(p, i)) a.push(i); return a;
   }
   function doBuild(p, i) {
+    if(!canBuildTile(p,i))return;
     var t = sq(i); S.cash[p] -= BUILD_COST[t.g]; S.bld[i] += 1;
     log(who(p) + " " + LVL[S.bld[i] + 1] + " dikti: " + t.name + ".");
   }
@@ -776,6 +799,7 @@ button:disabled { opacity: .35; }
   }
 
   function walkTo(p, dest, collect, then) {
+    var activeState = S;
     var from = S.pos[p];
     var path = [];
     var x = from;
@@ -798,6 +822,7 @@ button:disabled { opacity: .35; }
     var step = Math.max(12, Math.min(28, (180 / path.length) | 0));
     var n = 0;
     function tick() {
+      if(S!==activeState)return;
       visPawn[p] = path[n];
       drawRing();
       n++;
@@ -896,7 +921,7 @@ button:disabled { opacity: .35; }
     }
     else if (a === "take") {
       others = living().filter(function (q) { return q !== p; });
-      for (gi = 0; gi < others.length; gi++) if (!payTo(others[gi], n, p)) return;
+      for (gi = 0; gi < others.length; gi++) {payTo(others[gi], n, p); if(S.win!=null)return;}
       log(who(p) + " herkesten " + tl(n) + (senSoz(p) ? " aldın." : " aldı."));
     }
     else if (a === "cik") { holdCik(p, kind, id); log(who(p) + " çıkış kartı aldı."); return "hold"; }
@@ -922,7 +947,7 @@ button:disabled { opacity: .35; }
     else if (a === "nearK") { discard(kind, id); S.card = null; persist(); walkTo(p, nearest(p, "K", 1), true, function () { afterLand(p); }); return "moved"; }
     else if (a === "nearU") {
       discard(kind, id); S.card = null;
-      S.dice = [1 + (Math.random() * 6 | 0), 1 + (Math.random() * 6 | 0)];
+      S.dice = [1 + (gameRandom() * 6 | 0), 1 + (gameRandom() * 6 | 0)];
       S.uBoost = 1;
       persist();
       walkTo(p, nearest(p, "U", 1), true, function () { afterLand(p); });
@@ -1001,9 +1026,13 @@ button:disabled { opacity: .35; }
 
   function doRoll(p) {
     if (busy || S.win != null) return;
-    var d1 = 1 + (Math.random() * 6) | 0;
-    var d2 = 1 + (Math.random() * 6) | 0;
+    var activeState=S;
+    var d1 = S.rollPending ? S.rollPending[0] : 1 + (gameRandom() * 6) | 0;
+    var d2 = S.rollPending ? S.rollPending[1] : 1 + (gameRandom() * 6) | 0;
+    S.rollPending=[d1,d2];persist();
     function commit() {
+      if(S!==activeState)return;
+      S.rollPending=null;
       S.dice = [d1, d2];
       var sum = d1 + d2;
       var dbl = d1 === d2;
@@ -1056,6 +1085,7 @@ button:disabled { opacity: .35; }
     rolling = true;
     var t0 = Date.now();
     function tick() {
+      if(S!==activeState)return;
       rollShow = [1 + (Math.random() * 6) | 0, 1 + (Math.random() * 6) | 0];
       drawRing();
       if (Date.now() - t0 < 350) { requestAnimationFrame(tick); return; }
@@ -1069,7 +1099,7 @@ button:disabled { opacity: .35; }
 
   function buy(p) {
     var i = S.pos[p], t = sq(i);
-    if (S.own[i] >= 0 || S.cash[p] < t.price) return false;
+    if (["T","K","U"].indexOf(t.kind)<0 || S.own[i] >= 0 || S.cash[p] < t.price) return false;
     S.cash[p] -= t.price; S.own[i] = p;
     buzz(20); sndCash();
     log(who(p) + " " + accOf(t.name) + (senSoz(p) ? " aldın." : " aldı."));
@@ -1323,7 +1353,7 @@ button:disabled { opacity: .35; }
     else a.push(i);
   }
   function tradeOk(t) {
-    if (!t) return false;
+    if (!t || !alive(t.from) || !alive(t.to) || t.from===t.to || !Number.isInteger(t.giveCash) || !Number.isInteger(t.takeCash) || t.giveCash<0 || t.takeCash<0 || new Set(t.give).size!==t.give.length || new Set(t.take).size!==t.take.length) return false;
     if (!t.give.length && !t.take.length && !t.giveCash && !t.takeCash) return false;
     if (t.giveCash > S.cash[t.from] || t.takeCash > S.cash[t.to]) return false;
     var i, k;
@@ -1347,6 +1377,7 @@ button:disabled { opacity: .35; }
     return false;
   }
   function applyTrade(t) {
+    if(!tradeOk(t))return false;
     var i, k;
     for (i = 0; i < t.give.length; i++) S.own[t.give[i]] = t.to;
     for (i = 0; i < t.take.length; i++) S.own[t.take[i]] = t.from;
@@ -1697,6 +1728,8 @@ button:disabled { opacity: .35; }
     var body = sheetHead("MENÜ");
     var m = add(body, el("div", { cls: "menu" }));
     add(m, btn("Oyuna dön", "close", true));
+    add(m, btn("Kaydet", "save"));
+    add(m, btn("Yeni oyun", "new"));
     add(m, btn("Nasıl oynanır", "rules"));
     add(m, btn("Tahtayı büyüt", "big"));
     add(m, btn("Ana menü", "quit"));
@@ -1741,10 +1774,10 @@ button:disabled { opacity: .35; }
         var cr = canRazeTile(p, a[i]);
         var rb = add(ops, btn("Sök · +" + tl(houseValue(a[i])), "sök:" + a[i]));
         if (!cr) { rb.disabled = true; rb.setAttribute("aria-disabled", "true"); }
-        if (S.bld[a[i]] > 0) {
+        if (groupHasBld(a[i])) {
           var sb = add(ops, btn("Senetle", "sen:" + a[i]));
           sb.disabled = true; sb.setAttribute("aria-disabled", "true");
-          add(box, el("div", { cls: "why", text: "Üzerinde bina var" }));
+          add(box, el("div", { cls: "why", text: "Önce semtteki binaları sök" }));
         } else if (!S.sen[a[i]]) {
           add(ops, btn("Senetle · +" + tl((t.price / 2) | 0), "sen:" + a[i]));
         } else {
@@ -1807,11 +1840,13 @@ button:disabled { opacity: .35; }
       try { bootState(JSON.parse(raw)); } catch (e) { wipe(); view = "menu"; paintMenu(); }
       return;
     }
-    if (code === "new") { wipe(); view = "menu"; closeSheet(); paintMenu(); return; }
+    if (code === "new") { var body=sheetHead("Yeni oyun");add(body,el("p",{text:"Mevcut oyun kaydı silinecek. Yeni masaya geçilsin mi?"}));add(body,btn("Vazgeç","close"));add(body,btn("Yeni masa","new-confirm"));return;}
+    if(code==="new-confirm"){wipe();view="menu";closeSheet();paintMenu();return;}
+    if(code==="save"){persist();var body=sheetHead("Kayıt");add(body,el("p",{text:mem?"Cihaz kaydı kullanılamıyor. Oyun yalnız bu oturumda tutuluyor.":"Oyun bu cihazda kaydedildi. Menüden Devam ile açabilirsin."}));return;}
     if (code === "rules") { openRules(); return; }
     if (code === "pause") { openPause(); return; }
     if (code === "big") { openBig(); return; }
-    if (code === "quit") { closeSheet(); wipe(); view = "menu"; paintMenu(); return; }
+    if (code === "quit") { persist();stopAi();closeSheet();view="menu";paintMenu();return; }
     if (code === "close") { closeSheet(); if (S && S.wait === "offer" && S.trade && !isAi(S.trade.to)) return; return; }
     if (!S) return;
     if (code === "peekoff") { peek = -1; paint(); return; }
@@ -1859,7 +1894,7 @@ button:disabled { opacity: .35; }
     }
     if (code.indexOf("sen:") === 0) {
       i = +code.slice(4);
-      if (busy || isAi(S.turn) || S.wait !== "roll" || S.own[i] !== S.turn || S.bld[i] > 0 || S.sen[i]) return;
+      if (busy || isAi(S.turn) || S.wait !== "roll" || S.own[i] !== S.turn || groupHasBld(i) || S.sen[i]) return;
       senetTile(S.turn, i);
       log(who(S.turn) + " " + SQ[i][0] + " senetledi.");
       persist(); paint(); openTapu(); return;
@@ -1922,8 +1957,9 @@ button:disabled { opacity: .35; }
       persist(); paint();
       return;
     }
-    if (code === "bitir") { finishTurn(S.turn); return; }
+    if (code === "bitir") { if(S.wait==="own" || S.wait==="ok")finishTurn(S.turn); return; }
     if (code === "ok" || code === "tamam") {
+      if(["pass","card","ok","own"].indexOf(S.wait)<0)return;
       if (S.wait === "pass") {
         S.wait = S.jail[S.turn] ? "jail" : "roll";
         persist(); paint();

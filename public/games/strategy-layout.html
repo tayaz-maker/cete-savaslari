@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Hanedan / Bükücü · düzen kontrolü</title>
+<style>body{margin:0;background:#181512;color:#f6efe2;font:14px system-ui}header{padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}button,select{min-height:44px;font:inherit;background:#362f27;color:inherit;border:1px solid #82705a;border-radius:6px;padding:8px}main{overflow:auto;padding:8px}iframe{display:block;border:1px solid #82705a;box-sizing:content-box}output{white-space:pre-wrap;padding:12px;display:block}a{color:#d7b07a}</style></head>
+<body><header><b>Hanedan / Bükücü · düzen kontrolü</b><label>Oyun <select id="gameChoice"><option value="hanedan/index.html">Hanedan</option><option value="bukucu/index.html">Son Mahalle Bükücü</option></select></label><label>Oyun alanı <select id="size"><option>320×568</option><option>360×640</option><option>375×667</option><option selected>390×844</option><option>430×932</option><option>768×1024</option><option>1024×768</option><option>1280×720</option><option>1366×768</option><option>1440×900</option><option>1920×1080</option><option>844×390</option></select></label><button id="measure">Düzeni ölç</button><button id="reload">Oyunu yeniden yükle</button><a href="hanedan/index.html">Normal oyun</a></header>
+<main><iframe id="game" title="Hanedan / Bükücü" src="hanedan/index.html" width="390" height="844"></iframe></main><output id="result" aria-live="polite">Oyun normal kayıt alanını kullanır. Boyut değişimi kaydı veya oyun durumunu değiştirmez. Bu kontrol dokunmatik cihaz taklidi değildir; gerçek oyun belgesini seçilen genişlikte çizer.</output>
+<script>
+const game=document.getElementById('game'),size=document.getElementById('size'),result=document.getElementById('result');
+document.getElementById('gameChoice').addEventListener('change',e=>{game.src=e.target.value;});
+size.addEventListener('change',()=>{const [w,h]=size.value.split('×');game.width=w;game.height=h;});
+document.getElementById('reload').addEventListener('click',()=>{game.src=document.getElementById('gameChoice').value;});
+document.getElementById('measure').addEventListener('click',()=>{
+ const d=game.contentDocument;if(!d){result.textContent='Oyun belgesi henüz açılmadı.';return;}
+ const visible=e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden';
+ const buttons=[...d.querySelectorAll('button')].filter(visible),nav=[...d.querySelectorAll('#tabs button')].filter(visible);
+ const out={width:d.documentElement.clientWidth,height:d.documentElement.clientHeight,pageOverflow:d.documentElement.scrollWidth>d.documentElement.clientWidth+1,nav:nav.length,enabledButtons:buttons.filter(e=>!e.disabled).length,smallTargets:buttons.filter(e=>{const r=e.getBoundingClientRect();return r.width<40||r.height<40;}).map(e=>e.textContent.trim()),wideCards:[...d.querySelectorAll('.card,.grid2,#deed,.trow,.endcard')].filter(visible).filter(e=>e.scrollWidth>e.clientWidth+2).map(e=>e.textContent.trim().slice(0,60)),brokenText:/\b(?:undefined|NaN|\[object Object\])\b/.test(d.body.innerText)};
+ result.textContent=JSON.stringify(out,null,2);
+});
+</script></body></html>
