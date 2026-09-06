@@ -270,6 +270,16 @@ export function applyTick(s: WorldSlice): WorldSlice {
 
   if ((p.saglikIzi ?? 0) > 0) p.saglikIzi = Math.max(0, p.saglikIzi - 1);
 
+  if (p.crewBusy) {
+    const busy = { ...p.crewBusy };
+    for (const id of Object.keys(busy)) {
+      const left = Math.max(0, (busy[id as keyof typeof busy] ?? 0) - 1);
+      if (left === 0) delete busy[id as keyof typeof busy];
+      else busy[id as keyof typeof busy] = left;
+    }
+    p.crewBusy = busy;
+  }
+
   p.buzz = Math.max(0, (p.buzz ?? 0) - 1);
   p.high = Math.max(0, (p.high ?? 0) - 1);
 
@@ -367,6 +377,10 @@ export function applyTick(s: WorldSlice): WorldSlice {
           r.cash += take;
           p.health = clamp(p.health - randInt(6, 16), 1, HEALTH_MAX);
           p.saglikIzi = Math.max(p.saglikIzi ?? 0, 8);
+          p.turf = {
+            ...p.turf,
+            [r.hood]: clamp((p.turf[r.hood] ?? 0) - randInt(3, 8), 0, 100),
+          };
           logs = pushLog(
             logs,
             p,

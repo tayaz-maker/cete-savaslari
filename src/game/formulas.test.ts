@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { hydratePlayer } from "./data.ts";
+import { hydratePlayer, turfHaraçHourly } from "./data.ts";
 import {
   applyXp,
+  freeCrew,
   jailChance,
   jobSuccessChance,
+  missionCrewBlock,
+  missionCrewNeed,
   playerCombat,
   RISK_DMG,
   xpToNext,
@@ -56,4 +59,23 @@ test("playerCombat sultangazi ve tetik ekler", () => {
   const plain = playerCombat(p({ neighborhood: "eyup", level: 3 }));
   const sg = playerCombat(p({ neighborhood: "sultangazi", level: 3, crew: ["tetik"] }));
   assert.ok(sg.atk > plain.atk);
+});
+
+test("riskli işler serbest ekip ister", () => {
+  assert.equal(missionCrewNeed("Düşük"), 0);
+  assert.equal(missionCrewNeed("Orta"), 1);
+  assert.equal(missionCrewNeed("Kritik"), 2);
+  const empty = p({ crew: [] });
+  assert.match(missionCrewBlock(empty, "Orta"), /adam/);
+  assert.equal(missionCrewBlock(empty, "Düşük"), "");
+  const ready = p({ crew: ["gozcu", "tetik"], crewBusy: { gozcu: 3 } });
+  assert.deepEqual(freeCrew(ready), ["tetik"]);
+  assert.equal(missionCrewBlock(ready, "Orta"), "");
+  assert.match(missionCrewBlock(ready, "Kritik"), /2/);
+});
+
+test("yüksek heat semt haraçını kısar", () => {
+  const cold = p({ jobsDone: 2, isi: 6, turf: { eyup: 80, tarlabasi: 0, kadikoy: 0, sultangazi: 0 } });
+  const hot = p({ jobsDone: 2, isi: 80, turf: { eyup: 80, tarlabasi: 0, kadikoy: 0, sultangazi: 0 } });
+  assert.ok(turfHaraçHourly(hot) < turfHaraçHourly(cold));
 });

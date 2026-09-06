@@ -64,10 +64,14 @@ import {
 } from "./data";
 import {
   applyXp,
+  assignCrewTicks,
   energyMax,
+  freeCrew,
   jailChance,
   jobSuccessChance,
   lakap,
+  missionCrewBlock,
+  missionCrewNeed,
   playerCombat,
   RISK_DMG,
   staminaMax,
@@ -395,11 +399,21 @@ export const useGame = create<GameState>()(
           (id) => !player.inventory.includes(id),
         );
         if (missing.length) return;
+        const crewBlock = missionCrewBlock(player, mission.risk);
+        if (crewBlock) return;
 
         let next = {
           ...player,
           energy: player.energy - cost,
         };
+        const need = missionCrewNeed(mission.risk);
+        if (need > 0) {
+          const picked = freeCrew(player).slice(0, need);
+          const busy = { ...(player.crewBusy ?? {}) };
+          const ticks = assignCrewTicks(mission.risk);
+          for (const id of picked) busy[id] = ticks;
+          next = { ...next, crewBusy: busy };
+        }
         let logs = s.logs;
         const chance = jobSuccessChance(player, mission.risk, mission.id);
         const success = Math.random() < chance;
@@ -457,7 +471,12 @@ export const useGame = create<GameState>()(
           );
           logs = maybeLevelNotes(next, xp.notes, logs);
           if ((next.tutorialStep ?? 0) === 0) next = { ...next, tutorialStep: 1 };
-          set({ player: next, logs, savedAt: Date.now() });
+          const rivals = s.rivals.map((r) =>
+            r.alive && r.hood === next.neighborhood && r.hospitalTicks === 0
+              ? { ...r, revengeTicks: Math.max(r.revengeTicks ?? 0, randInt(6, 16)) }
+              : r,
+          );
+          set({ player: next, rivals, logs, savedAt: Date.now() });
           return;
         }
 
@@ -863,7 +882,8 @@ export const useGame = create<GameState>()(
         const home = hood === player.neighborhood;
         const gain = (home ? 16 : 12) + Math.random() * 8;
         const after = Math.round(clamp(cur + gain, 0, 100) * 10) / 10;
-        const loot = turfPressCash(hood, after);
+        const lootRaw = turfPressCash(hood, after);
+        const loot = Math.round(lootRaw * ((player.isi ?? 0) >= 70 ? 0.7 : (player.isi ?? 0) >= 45 ? 0.85 : 1));
         let extra = 0;
         let note = "";
         if (cur < 50 && after >= 50) {

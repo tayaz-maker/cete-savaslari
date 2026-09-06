@@ -966,6 +966,7 @@ export function hydratePlayer(raw: Partial<Player> & Pick<Player, "name" | "neig
 		eventCooldown: raw.eventCooldown ?? 0,
 		isi: Math.max(0, Math.min(100, raw.isi ?? 6)),
 		crew: Array.isArray(raw.crew) ? (raw.crew as CrewId[]) : [],
+		crewBusy: raw.crewBusy && typeof raw.crewBusy === "object" ? raw.crewBusy : {},
 		turf,
 		bank: noGrind ? 0 : Math.max(0, raw.bank ?? 0),
 		bankAcc: noGrind ? 0 : Math.max(0, raw.bankAcc ?? 0),
@@ -1087,6 +1088,8 @@ export function turfHaraçHourly(player: Player) {
 		n += piece;
 	});
 	if (player.crew.includes("tahsil")) n *= 1.15;
+	if ((player.isi ?? 0) >= 70) n *= 0.72;
+	else if ((player.isi ?? 0) >= 45) n *= 0.88;
 	return Math.round(n);
 }
 export function turfHourlyOf(player: Player, id: NeighborhoodId) {

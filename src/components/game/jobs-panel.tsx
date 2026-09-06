@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { canAct } from "@/game/clock";
 import { CONTRACT_MAP, ITEM_MAP, JOB_TIERS, jobEnergyCost } from "@/game/data";
-import { jobSuccessChance } from "@/game/formulas";
+import { jobSuccessChance, missionCrewBlock, missionCrewNeed } from "@/game/formulas";
 import { useGame } from "@/game/store";
 import type { Player, Risk } from "@/game/types";
 import { formatTRY } from "@/lib/utils";
@@ -54,7 +54,9 @@ export function JobsPanel({ player }: { player: Player }) {
               );
               const cost = jobEnergyCost(player, m.energyCost);
               const noEnergy = player.energy < cost;
-              const disabled = blocked || noEnergy || missing.length > 0;
+              const crewNeed = missionCrewNeed(m.risk);
+              const crewNote = missionCrewBlock(player, m.risk);
+              const disabled = blocked || noEnergy || missing.length > 0 || Boolean(crewNote);
               const chance = Math.round(
                 jobSuccessChance(player, m.risk, m.id) * 100,
               );
@@ -81,6 +83,7 @@ export function JobsPanel({ player }: { player: Player }) {
                     </span>
                     <span>+{m.xpGain} XP</span>
                     <span>Şans %{chance}</span>
+                    {crewNeed ? <span>{crewNeed} adam</span> : null}
                   </div>
                   {missing.length > 0 ? (
                     <p className="mt-2 text-xs text-warn">
@@ -88,6 +91,7 @@ export function JobsPanel({ player }: { player: Player }) {
                       {missing.map((id) => ITEM_MAP[id]?.name ?? id).join(", ")}
                     </p>
                   ) : null}
+                  {crewNote ? <p className="mt-2 text-xs text-warn">{crewNote}</p> : null}
                   <Button
                     className="mt-4"
                     disabled={disabled}

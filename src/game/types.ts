@@ -202,6 +202,7 @@ export interface Player {
   eventCooldown: number;
   isi: number;
   crew: CrewId[];
+  crewBusy: Partial<Record<CrewId, number>>;
   turf: Record<NeighborhoodId, number>;
   bank: number;
   bankAcc: number;

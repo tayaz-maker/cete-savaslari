@@ -1,6 +1,6 @@
 import { clamp } from "@/lib/utils";
 import { HEALTH_MAX, ITEM_MAP } from "./data";
-import type { NeighborhoodId, Player, Risk, ShopItem } from "./types";
+import type { CrewId, NeighborhoodId, Player, Risk, ShopItem } from "./types";
 
 
 export function xpToNext(level: number) {
@@ -78,6 +78,8 @@ export function jobSuccessChance(player: Player, risk: Risk, missionId: string) 
   p += clamp((player.turf?.[player.neighborhood] ?? 0) / 280, 0, 0.14);
   if ((player.buzz ?? 0) >= 3) p -= 0.07;
   if ((player.high ?? 0) >= 1) p -= 0.03;
+  const extra = Math.max(0, freeCrew(player).length - missionCrewNeed(risk));
+  p += clamp(extra * 0.04, 0, 0.08);
   return clamp(p, 0.08, 0.96);
 }
 
@@ -88,6 +90,34 @@ export function jailChance(player: Player, risk: Risk) {
   if (player.crew?.includes("gozcu")) p *= 0.82;
   if (player.crew?.includes("avukat")) p *= 0.75;
   return clamp(p, 0.04, 0.92);
+}
+
+export function missionCrewNeed(risk: Risk) {
+  if (risk === "Düşük") return 0;
+  if (risk === "Orta" || risk === "Yüksek") return 1;
+  return 2;
+}
+
+export function freeCrew(player: Player): CrewId[] {
+  const busy = player.crewBusy ?? {};
+  return (player.crew ?? []).filter((id) => (busy[id] ?? 0) <= 0);
+}
+
+export function missionCrewBlock(player: Player, risk: Risk) {
+  const need = missionCrewNeed(risk);
+  const free = freeCrew(player).length;
+  if (free >= need) return "";
+  if (need === 0) return "";
+  return need === 1
+    ? "Bu iş için serbest bir adam gerekir."
+    : `Bu iş için ${need} serbest adam gerekir.`;
+}
+
+export function assignCrewTicks(risk: Risk) {
+  if (risk === "Kritik" || risk === "Çok Yüksek") return 8;
+  if (risk === "Yüksek") return 6;
+  if (risk === "Orta") return 4;
+  return 2;
 }
 
 export function equippedBonuses(player: Player) {
