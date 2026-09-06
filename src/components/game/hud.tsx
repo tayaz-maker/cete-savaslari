@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { AccountPanel } from "@/components/game/account-panel";
 import { Button } from "@/components/ui/button";
+import { HelpPanel } from "@/components/game/help-panel";
 import { ResetConfirm } from "@/components/game/reset-confirm";
 import { StatBar } from "@/components/game/stat-bar";
 import { formatClock, formatTicksAsMinutes } from "@/game/clock";
@@ -136,6 +137,7 @@ export function Hud({
         ) : null}
 
         <div className="order-4 flex flex-wrap items-center gap-2 md:order-3">
+          <HelpPanel triggerClassName={CTRL_BTN} />
           <Button variant="ghost" className={CTRL_BTN} onClick={toggleHiz}>
             Hız ×{hiz}
           </Button>
