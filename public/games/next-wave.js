@@ -580,8 +580,6 @@ function panelHtml(id, state) {
       const e = ENDINGS[state.flags.ending];
       return `<article><h2>${h(e.title)}</h2><p>${h(e.text)}</p><p>Keşif ${state.discoveredItems.length} · mahremiyet ${state.privacyPressure}</p></article>`;
     }
-    const app = state.ui?.app || "messages";
-    const app = state.ui?.app || "messages";
     const threads = state.threads
       .map((t) => {
         const c = state.contacts.find((x) => x.id === t.contactId);
