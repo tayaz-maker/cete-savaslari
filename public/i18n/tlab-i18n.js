@@ -118,6 +118,44 @@
     "Savaşı başlat": "Start battle",
     "Kayıt yerleri": "Save slots",
     "Yeni bir kayıt başlat.": "Start a new save.",
+    // TC SIM: navigation, primary controls, new-game gate, save/status text.
+    "Yaşam Yönetimi": "Life Management",
+    "ANA SAYFA": "HOME",
+    "BEN": "ME",
+    "TAKVİM": "CALENDAR",
+    "PARA": "MONEY",
+    "İŞ": "WORK",
+    "EĞİTİM": "EDUCATION",
+    "KİŞİLER": "PEOPLE",
+    "AİLE / İLİŞKİLER": "FAMILY / RELATIONS",
+    "EV": "HOUSE",
+    "BEDEN": "BODY",
+    "GEÇMİŞ": "HISTORY",
+    "YIL DOSYASI": "YEAR FILE",
+    "Oyun bölümleri": "Game sections",
+    "Yaşam raporu": "Life report",
+    "Haftayı ilerlet": "Advance the week",
+    "İsim": "Name",
+    "Kimlik": "Identity",
+    "Belirtmek istemiyorum": "Prefer not to say",
+    "Kadın": "Woman",
+    "Erkek": "Man",
+    "Başlangıç profili": "Starting profile",
+    "Dengeli": "Balanced",
+    "Hırslı": "Ambitious",
+    "Sosyal": "Social",
+    "Aile ortamı": "Family background",
+    "Maddi başlangıç": "Financial start",
+    "Eğitim geçmişi": "Education background",
+    "Sosyal çevre": "Social circle",
+    "Askerlik durumu": "Military status",
+    "Bu yaşamda yükümlülük yok": "No obligation in this life",
+    "Yükümlülük var": "Has an obligation",
+    "Başlangıç dönemi": "Starting era",
+    "Bu slota yeni hayat": "New life in this slot",
+    "Otomatik kaydedildi.": "Autosaved.",
+    "Elle kaydedildi.": "Saved manually.",
+    "Sakin bir hafta geçti.": "A quiet week passed.",
     "Toplantı Gecesi": "Meeting Night",
     "İncele": "Inspect",
     "Politika": "Policy",
@@ -334,7 +372,7 @@
     },
     {
       title: "Progress",
-      body: "Work earns XP and rank; each rank has its own moniker. A season lasts 28 days and season score accumulates. Buy districts and grow corners for regular tribute.",
+      body: "Work earns XP and rank; each rank has its own moniker. A season lasts 14 days and season score accumulates. Buy districts and grow corners for regular tribute.",
     },
     {
       title: "Risk and loss",
@@ -439,7 +477,7 @@
       /* ignore */
     }
     applyHtmlLang();
-    listeners.forEach((fn) => {
+    [...listeners].forEach((fn) => {
       try {
         fn(lang);
       } catch {
@@ -455,6 +493,15 @@
   function onLang(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
+  }
+
+  if (typeof root.addEventListener === "function") {
+    root.addEventListener("storage", (event) => {
+      if (event.key !== KEY && event.key !== null) return;
+      let next = "tr";
+      try { next = root.localStorage.getItem(KEY); } catch { /* TR fallback */ }
+      setLang(next);
+    });
   }
 
   function t(key, fallback) {

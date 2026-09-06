@@ -1,3 +1,4 @@
+import { useLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { canAct } from "@/game/clock";
@@ -14,6 +15,8 @@ function riskVariant(risk: Risk) {
 }
 
 export function JobsPanel({ player }: { player: Player }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const doJob = useGame((s) => s.doJob);
   const blocked = !canAct(player);
   const contract = player.contractId
@@ -25,24 +28,23 @@ export function JobsPanel({ player }: { player: Player }) {
       {contract ? (
         <section className="rounded-2xl bg-surface p-4 shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-accent)_35%,transparent)]">
           <p className="text-[0.7rem] font-medium tracking-[0.22em] text-accent uppercase">
-            Sözleşme · {contract.npc}
+            {en ? "Contract" : "Sözleşme"} · {contract.npc}
           </p>
           <p className="mt-2 text-sm text-fg">{contract.text}</p>
           <p className="mt-2 font-mono text-xs tabular-nums text-muted">
-            İcraatı bitir, +{formatTRY(contract.bonus)} bonus. Yarın biter.
+            {en ? `Complete the marked job for a ${formatTRY(contract.bonus)} bonus. Expires tomorrow.` : `İcraatı bitir, +${formatTRY(contract.bonus)} bonus. Yarın biter.`}
           </p>
         </section>
       ) : null}
       {player.jobsDone < 3 ? (
         <p className="text-sm text-muted">
-          Çaylak defteri: önce pavyon çıkışı, sonra tombala. Mermi yetmezse
-          saati geçir.
+          {en ? "Start with the first low-risk job. Recruit a free crew member for riskier jobs. Pass time to recover energy." : "Çaylak defteri: önce pavyon çıkışı, sonra tombala. Mermi yetmezse saati geçir."}
         </p>
       ) : null}
       {JOB_TIERS.map((tier) => (
         <section key={tier.tier}>
           <p className="text-[0.7rem] font-medium tracking-[0.22em] text-muted uppercase">
-            Kademe {tier.tier}
+            {en ? "Tier" : "Kademe"} {tier.tier}
           </p>
           <h2 className="mt-1 font-display text-2xl font-semibold">
             {tier.title}
@@ -71,33 +73,33 @@ export function JobsPanel({ player }: { player: Player }) {
                       {m.name}
                     </h3>
                     <div className="flex gap-1.5">
-                      {marked ? <Badge variant="ok">Sözleşme</Badge> : null}
-                      <Badge variant={riskVariant(m.risk)}>{m.risk}</Badge>
+                      {marked ? <Badge variant="ok">{en ? "Contract" : "Sözleşme"}</Badge> : null}
+                      <Badge variant={riskVariant(m.risk)}>{en ? ({Düşük: "Low", Orta: "Medium", Yüksek: "High", "Çok Yüksek": "Very high", Kritik: "Critical"}[m.risk]) : m.risk}</Badge>
                     </div>
                   </div>
                   <p className="mt-2 text-sm text-muted">{m.desc}</p>
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs tabular-nums text-subtle">
-                    <span>Mermi {cost}</span>
+                    <span>{en ? "Energy" : "Mermi"} {cost}</span>
                     <span>
                       {formatTRY(m.rewardCashMin)}–{formatTRY(m.rewardCashMax)}
                     </span>
                     <span>+{m.xpGain} XP</span>
-                    <span>Şans %{chance}</span>
-                    {crewNeed ? <span>{crewNeed} adam</span> : null}
+                    <span>{en ? "Chance" : "Şans"} %{chance}</span>
+                    {crewNeed ? <span>{crewNeed} {en ? "crew" : "adam"}</span> : null}
                   </div>
                   {missing.length > 0 ? (
                     <p className="mt-2 text-xs text-warn">
-                      Gerekli:{" "}
+                      {en ? "Required:" : "Gerekli:"}{" "}
                       {missing.map((id) => ITEM_MAP[id]?.name ?? id).join(", ")}
                     </p>
                   ) : null}
-                  {crewNote ? <p className="mt-2 text-xs text-warn">{crewNote}</p> : null}
+                  {crewNote ? <p className="mt-2 text-xs text-warn">{en ? `Requires ${crewNeed} available crew. Busy crew cannot join.` : crewNote}</p> : null}
                   <Button
                     className="mt-4"
                     disabled={disabled}
                     onClick={() => doJob(m.id)}
                   >
-                    İcraata çık
+                    {en ? "Take job" : "İcraata çık"}
                   </Button>
                 </li>
               );

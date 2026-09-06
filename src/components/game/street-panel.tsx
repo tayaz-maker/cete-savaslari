@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ import type { Player } from "@/game/types";
 import { formatTRY } from "@/lib/utils";
 
 export function StreetPanel({ player }: { player: Player }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const rivals = useGame((s) => s.rivals);
   const attackRival = useGame((s) => s.attackRival);
   const putBounty = useGame((s) => s.putBounty);
@@ -39,12 +42,13 @@ export function StreetPanel({ player }: { player: Player }) {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="font-display text-2xl font-semibold">Semt</h2>
+        <h2 className="font-display text-2xl font-semibold">{en ? "Turf" : "Semt"}</h2>
         <p className="mt-1 text-sm text-muted">
-          Köşeyi bas, nakit haraç anında cebine. Yüzde yükseldikçe iş, saldırı
-          ve saatlik gelir açılır. Toplam haraç{" "}
+          {en
+            ? "Press a corner, cash haraç lands instantly. Higher percentage unlocks jobs, attack and hourly income. Total haraç"
+            : "Köşeyi bas, nakit haraç anında cebine. Yüzde yükseldikçe iş, saldırı ve saatlik gelir açılır. Toplam haraç"}{" "}
           <span className="font-mono text-fg">{formatTRY(totalHarac)}</span>
-          /saat.
+          {en ? "/hour." : "/saat."}
         </p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {NEIGHBORHOODS.map((n) => {
@@ -61,7 +65,7 @@ export function StreetPanel({ player }: { player: Player }) {
                     {n.name}
                     {home ? (
                       <span className="ml-2 text-xs font-medium tracking-wide text-accent uppercase">
-                        ev
+                        {en ? "home" : "ev"}
                       </span>
                     ) : null}
                   </h3>
@@ -70,7 +74,8 @@ export function StreetPanel({ player }: { player: Player }) {
                   </span>
                 </div>
                 <p className="mt-1 font-mono text-xs tabular-nums text-fg">
-                  {formatTRY(hour)}/saat · tavan {formatTRY(HOOD_HARAÇ[n.id])}
+                  {formatTRY(hour)}
+                  {en ? "/hour" : "/saat"} · {en ? "cap" : "tavan"} {formatTRY(HOOD_HARAÇ[n.id])}
                 </p>
                 <p className="mt-1 text-xs text-muted">{turfPerkLine(pct)}</p>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-elevated">
@@ -84,7 +89,9 @@ export function StreetPanel({ player }: { player: Player }) {
                   disabled={turfBlocked || pct >= 100}
                   onClick={() => pressTurf(n.id)}
                 >
-                  Köşeyi bas · {TURF_STAMINA} racon · nakit haraç
+                  {en
+                    ? `Press the corner · ${TURF_STAMINA} racon · instant cash`
+                    : `Köşeyi bas · ${TURF_STAMINA} racon · nakit haraç`}
                 </Button>
               </li>
             );
@@ -93,9 +100,11 @@ export function StreetPanel({ player }: { player: Player }) {
       </section>
 
       <section>
-        <h2 className="font-display text-2xl font-semibold">Çete</h2>
+        <h2 className="font-display text-2xl font-semibold">{en ? "Crew" : "Çete"}</h2>
         <p className="mt-1 text-sm text-muted">
-          Üç adam yeter. Maaş saatlik kesilir; yoksa kasa yer.
+          {en
+            ? "Three men are enough. Wages are cut hourly; unpaid, they hit the cash box."
+            : "Üç adam yeter. Maaş saatlik kesilir; yoksa kasa yer."}
         </p>
         <ul className="mt-4 grid gap-3 md:grid-cols-3">
           {CREW.map((c) => {
@@ -114,7 +123,7 @@ export function StreetPanel({ player }: { player: Player }) {
                 </p>
                 <p className="mt-2 text-sm text-muted">{c.perk}</p>
                 <p className="mt-2 font-mono text-xs tabular-nums text-subtle">
-                  Giriş {formatTRY(c.hire)} · saat {formatTRY(c.wage)} · itibar{" "}
+                  {en ? "Hire" : "Giriş"} {formatTRY(c.hire)} · {en ? "hour" : "saat"} {formatTRY(c.wage)} · {en ? "reputation" : "itibar"}{" "}
                   {c.itibar}
                 </p>
                 {mine ? (
@@ -123,7 +132,7 @@ export function StreetPanel({ player }: { player: Player }) {
                     variant="ghost"
                     onClick={() => fireCrew(c.id)}
                   >
-                    Defterden sil
+                    {en ? "Cut loose" : "Defterden sil"}
                   </Button>
                 ) : (
                   <Button
@@ -131,7 +140,7 @@ export function StreetPanel({ player }: { player: Player }) {
                     disabled={cant}
                     onClick={() => hireCrew(c.id)}
                   >
-                    Al
+                    {en ? "Hire" : "Al"}
                   </Button>
                 )}
               </li>
@@ -141,10 +150,11 @@ export function StreetPanel({ player }: { player: Player }) {
       </section>
 
       <section>
-        <h2 className="font-display text-2xl font-semibold">Sokak</h2>
+        <h2 className="font-display text-2xl font-semibold">{en ? "Street" : "Sokak"}</h2>
         <p className="mt-1 text-sm text-muted">
-          Racon kes. Kazanırsan cebini boşalt — kasa durur. Zenginse sorgu
-          odasına çek.
+          {en
+            ? "Take him down. If you win, empty his pockets — the cash box stays put. If he's rich, put him on the list."
+            : "Racon kes. Kazanırsan cebini boşalt — kasa durur. Zenginse sorgu odasına çek."}
         </p>
         <ul className="mt-5 grid gap-3 lg:grid-cols-2">
           {rivals.map((r) => {
@@ -160,18 +170,18 @@ export function StreetPanel({ player }: { player: Player }) {
                       {r.name}
                     </h3>
                     <p className="text-xs tracking-wide text-muted uppercase">
-                      {r.title} · kıdem {r.level}
+                      {r.title} · {en ? "level" : "kıdem"} {r.level}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {r.bounty > 0 ? (
-                      <Badge variant="bad">Ödül {formatTRY(r.bounty)}</Badge>
+                      <Badge variant="bad">{en ? "Bounty" : "Ödül"} {formatTRY(r.bounty)}</Badge>
                     ) : null}
-                    {down ? <Badge variant="warn">Klinik</Badge> : null}
+                    {down ? <Badge variant="warn">{en ? "Clinic" : "Klinik"}</Badge> : null}
                   </div>
                 </div>
                 <p className="mt-2 font-mono text-xs tabular-nums text-subtle">
-                  {formatTRY(r.cash)} · can {Math.max(0, r.health)}
+                  {formatTRY(r.cash)} · {en ? "health" : "can"} {Math.max(0, r.health)}
                   {down ? ` · ${formatTicksAsMinutes(r.hospitalTicks)}` : ""}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -179,7 +189,7 @@ export function StreetPanel({ player }: { player: Player }) {
                     disabled={blocked || down}
                     onClick={() => attackRival(r.id)}
                   >
-                    Racon kes
+                    {en ? "Take him down" : "Racon kes"}
                   </Button>
                   {r.bounty > 0 ? (
                     <Button
@@ -187,14 +197,14 @@ export function StreetPanel({ player }: { player: Player }) {
                       disabled={blocked || down}
                       onClick={() => huntBounty(r.id)}
                     >
-                      Topuktan vur
+                      {en ? "Collect the bounty" : "Topuktan vur"}
                     </Button>
                   ) : null}
                   <Button
                     variant="ghost"
                     onClick={() => setBountyId(bountyId === r.id ? null : r.id)}
                   >
-                    Listeye yaz
+                    {en ? "Put on the list" : "Listeye yaz"}
                   </Button>
                 </div>
                 {bountyId === r.id ? (
@@ -216,7 +226,7 @@ export function StreetPanel({ player }: { player: Player }) {
                         setBountyId(null);
                       }}
                     >
-                      Koy
+                      {en ? "Set" : "Koy"}
                     </Button>
                   </div>
                 ) : null}

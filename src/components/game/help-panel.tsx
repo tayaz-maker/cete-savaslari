@@ -28,7 +28,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "İlerleme",
-    body: "İş yaptıkça XP kazanıp kıdem (level) atlarsın; her kıdemin kendi lakabı vardır. Sezon 28 gün sürer, sezon skoru birikir. Semt satın alıp köşe büyüterek düzenli haraç geliri kurarsın.",
+    body: "İş yaptıkça XP kazanıp kıdem (level) atlarsın; her kıdemin kendi lakabı vardır. Sezon 14 gün sürer, sezon skoru birikir. Semt satın alıp köşe büyüterek düzenli haraç geliri kurarsın.",
   },
   {
     title: "Risk ve kayıp",
