@@ -334,7 +334,7 @@
     },
     {
       title: "Progress",
-      body: "Work earns XP and rank; each rank has its own moniker. A season lasts 28 days and season score accumulates. Buy districts and grow corners for regular tribute.",
+      body: "Work earns XP and rank; each rank has its own moniker. A season lasts 14 days and season score accumulates. Buy districts and grow corners for regular tribute.",
     },
     {
       title: "Risk and loss",
