@@ -1,5 +1,6 @@
 const NS='tariklab.nextwave.',VERSION=1;
 export const seeds=(n)=>{let x=n>>>0;return()=>((x=x*1664525+1013904223>>>0)/4294967296)};
+export const rng=seeds;
 export const clamp=(n,a=0,b=100)=>Math.max(a,Math.min(b,n));
 export const implementationRate=(s)=>clamp((s.institutions||[]).reduce((a,x)=>a+x.capacity,0)/Math.max(1,(s.institutions||[]).length));
 const defs={
