@@ -435,13 +435,15 @@ export function applyAction(id, s, action) {
     }
     pushHist(s, { type: "meeting", proposal: proposal.id, accepted: vote.accepted });
   } else if (id === "son-100-gun" && action === "advance") {
-    // Day 100 is the end of the run. Without the guard the final report stayed
-    // on screen while further presses kept advancing the day counter (101 -> 121)
-    // and kept missing obligations after the game was over.
-    if (!s.flags.finalReport) {
-      if (s.actionsRemaining > 0) applySonAction(s, "work");
-      sonAdvanceDay(s);
-    }
+    // Explicit "skip to next day": forfeits any unused action(s) for today.
+    // This used to also sneak in one free "work" action before advancing, so
+    // every "advance" press (which is what the UI's only action button sent)
+    // silently consumed the day's first action AND ended the day in the same
+    // click - the two-actions-per-day contract could never be exercised.
+    // Day 100 is the end of the run. Without the finalReport guard the final
+    // report stayed on screen while further presses kept advancing the day
+    // counter (101 -> 121) and kept missing obligations after the game was over.
+    if (!s.flags.finalReport) sonAdvanceDay(s);
   } else if (id === "son-100-gun" && action.startsWith("act:")) {
     if (s.actionsRemaining > 0 && !s.flags.finalReport) applySonAction(s, action.slice(4));
     if (s.actionsRemaining === 0 && !s.flags.finalReport) sonAdvanceDay(s);
@@ -735,6 +737,10 @@ function render(id, draft) {
       applyAction(id, state, "discover:" + (next?.id || "clue_" + state.discoveredItems.length));
     } else if (id === "tc-sim-devlet") applyAction(id, state, "policy");
     else if (id === "hayat") applyAction(id, state, "major-choice");
+    // "act:work" spends one of today's two action slots and only advances the
+    // day itself once both are used (see applyAction's act: handler) - unlike
+    // plain "advance", which is the explicit skip-the-rest-of-today button.
+    else if (id === "son-100-gun") applyAction(id, state, "act:work");
     else applyAction(id, state, "advance");
     show();
     persist();
