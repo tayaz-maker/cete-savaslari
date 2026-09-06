@@ -147,6 +147,29 @@ body {
 .advanced {
   margin-top: 12px;
 }
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.setup-choice {
+  display: grid;
+  gap: 5px;
+  min-height: 80px;
+  text-align: left;
+}
+.setup-choice.is-picked {
+  border-color: var(--accent);
+  background: #263024;
+}
+.setup-summary {
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: #0b1215;
+}
 @media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -174,6 +197,7 @@ body {
     flex: 0 0 auto;
   }
   .agenda,
+  .setup-grid,
   .decision-grid,
   .institution-grid,
   .data-grid {

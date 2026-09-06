@@ -1,14 +1,28 @@
 import { MAJORS } from "../next-wave.js";
 import { CHAPTERS } from "../next-wave/hayat-data.js";
 import {
+  bindFrontMenu,
   bindSavePanel,
   bootGame,
   escapeHtml as h,
+  frontMenu,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
 
 const root = document.body;
+const screens = [
+  ["decisions", "KARARLAR", "DECISIONS"],
+  ["me", "BEN", "ME"],
+  ["path", "YOL", "PATH"],
+  ["money", "PARA", "MONEY"],
+  ["people", "İNSANLAR", "PEOPLE"],
+  ["home", "EV", "HOME"],
+  ["shadows", "UZUN GÖLGE", "LONG SHADOW"],
+  ["history", "GEÇMİŞ", "HISTORY"],
+];
+let view = "menu";
+let draftName = "";
 
 function currentEvent(state) {
   if (state.flags.majorTurn === state.turn) {
@@ -79,61 +93,127 @@ const choiceCopy = {
   ],
 };
 
-function draw(session) {
-  const state = session.state;
-  if (!state) {
-    root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="life-head"><div><p class="eyebrow">${t("18 YAŞ · BÖLÜM I", "AGE 18 · CHAPTER I")}</p><h1>HAYAT</h1><p class="muted">${t("Her haftayı değil, yıllar sonra hatırlanacak dönüm noktalarını yaşayacaksın.", "You will live the turning points remembered years later, not every ordinary week.")}</p></div></section><section class="card"><h2>${t("İlk sayfa", "The first page")}</h2><p>${t("Cebinde ₺1.000, enerjin yerinde, önünde başkasının yazmadığı bir hayat var. Seçimler hemen sonuç verir; bazıları Uzun Gölge bırakır.", "You have ₺1,000, enough energy, and a life no one else has written. Choices have immediate results; some leave a Long Shadow.")}</p><button id="start" type="button">${t("HAYATA BAŞLA", "BEGIN LIFE")}</button></section></main>`;
-    root.querySelector("#start").addEventListener("click", () => session.start());
-    bindSavePanel(root, session);
-    return;
-  }
+function setup(session) {
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell card"><p class="eyebrow">${t("YENİ HAYAT", "NEW LIFE")}</p><h1>HAYAT</h1><p>${t("18 yaşındasın. Önündeki yol kararlarınla biçimlenecek; bazı kararlar yıllar sonra Uzun Gölge olarak dönecek.", "You are 18. Decisions will shape your path; some return years later as a Long Shadow.")}</p><label for="player-name">${t("Adın", "Your name")}</label><input id="player-name" maxlength="28" autocomplete="off" value="${h(draftName)}" placeholder="${t("Adını yaz", "Enter your name")}"><div class="setup-summary"><span>${t("Başlangıç yaşı", "Starting age")} <b>18</b></span><span>${t("Nakit", "Cash")} <b>₺1.000</b></span><span>${t("Enerji / Beden", "Energy / Health")} <b>100 / 100</b></span></div><div class="setup-actions"><button id="cancel-setup" class="secondary" type="button">${t("GERİ", "BACK")}</button><button id="confirm-start" type="button" ${draftName.trim() ? "" : "disabled"}>${t("HAYATA BAŞLA", "BEGIN LIFE")}</button></div></section></main>`;
+  const input = root.querySelector("#player-name");
+  input.addEventListener("input", () => {
+    draftName = input.value;
+    root.querySelector("#confirm-start").disabled = !draftName.trim();
+  });
+  root.querySelector("#cancel-setup").addEventListener("click", () => {
+    session.cancelNew();
+    view = "menu";
+    draw(session);
+  });
+  root.querySelector("#confirm-start").addEventListener("click", () => {
+    if (!draftName.trim()) return;
+    session.commitNew({
+      configure: (state) => {
+        state.playerName = draftName.trim().slice(0, 28);
+        state.ui = { ...state.ui, screen: "decisions" };
+      },
+    });
+  });
+}
+
+function panel(state) {
+  const screen = state.ui?.screen || "decisions";
   const event = currentEvent(state);
   const decided = state.flags.majorTurn === state.turn;
-  const chapter = CHAPTERS.find((item) => item.id === state.chapter) || CHAPTERS[0];
   const open = state.shadows.filter((shadow) => shadow.status === "open");
-  const resolved = state.shadows.filter((shadow) => shadow.status === "resolved");
-  root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">HAYAT · ${state.age}</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="life-head"><div><p class="eyebrow">${state.age} ${t("YAŞ", "YEARS OLD")}</p><h1>HAYAT</h1></div><div class="chapter">${t("BÖLÜM", "CHAPTER")} ${state.chapter} · ${h(chapter.name)}<br><small>${t("Enerji", "Energy")} ${state.resources.energy} · ₺${state.resources.money} · ${t("Beden", "Health")} ${state.resources.health}</small></div></section>
-    <section class="life-grid"><aside class="card"><p class="eyebrow">${t("HAYAT ÇİZGİSİ", "LIFE LINE")}</p><div class="timeline">${state.decisionsLog
-      .slice(-6)
-      .map(
-        (decision) =>
-          `<div class="life-point"><b>${18 + Math.floor(decision.turn / 4)}</b><span>${h(decision.title)}<br><small class="muted">${h(decision.choice)}</small></span></div>`,
-      )
-      .join(
-        "",
-      )}<div class="life-point now"><b>${state.age}</b><span>${t("Şimdi", "Now")}</span></div></div></aside>
-      <section class="card turning"><p class="eyebrow">${decided ? t("SEÇİM YAPILDI", "CHOICE MADE") : t("BU DÖNEMİN DÖNÜM NOKTASI", "THIS CHAPTER'S TURNING POINT")}</p><h2>${h(event.title)}</h2><p>${h(event.text)}</p>${
-        decided
-          ? `<p><strong>${t("Bu karar deftere yazıldı.", "This choice is now in the diary.")}</strong> ${open.some((shadow) => shadow.event === event.id) ? t("Bir Uzun Gölge kaldı; ne zaman döneceğini bilmiyorsun.", "A Long Shadow remains; you do not know when it will return.") : ""}</p><button type="button" id="next" class="life-next">${t("SONRAKİ DÖNEM", "NEXT PASSAGE")}</button>`
-          : `<div class="choice-grid">${choicesFor(event)
-              .map((choice) => {
-                const copy = choiceCopy[choice] || [
-                  choice,
-                  "Sonucu şimdi, gölgesi sonra",
-                  choice,
-                  "The result now; the shadow later",
-                ];
-                return `<button type="button" class="choice" data-choice="${h(choice)}"><strong>${h(t(copy[0], copy[2]))}</strong><br><small>${h(t(copy[1], copy[3]))}</small></button>`;
-              })
-              .join("")}</div>`
-      }</section>
-      <aside class="card shadows"><p class="eyebrow">${t("UZUN GÖLGELER", "LONG SHADOWS")}</p><div class="shadow-list">${open.map((shadow) => `<div class="shadow"><strong>${h(shadow.category)}</strong><br>${t("Doğduğu yaş", "Born at age")} ${shadow.createdAt} · ${t("açık", "open")}</div>`).join("") || `<p>${t("Henüz açık gölge yok.", "No open shadow yet.")}</p>`}${resolved
-        .slice(-3)
+  if (screen === "decisions")
+    return `<section class="active-panel decision-surface"><p class="eyebrow">${decided ? t("KARAR VERİLDİ", "DECISION MADE") : t("ANA KARAR", "MAIN DECISION")}</p><h2>${h(event.title)}</h2><p>${h(event.text)}</p>${
+      decided
+        ? `<div class="result-card"><strong>${t("Karar işlendi.", "Decision recorded.")}</strong><p>${open.some((shadow) => shadow.event === event.id) ? t("Bir Uzun Gölge doğdu. Ne zaman döneceği gizli.", "A Long Shadow was born. Its return remains hidden.") : t("Bu karar açık gölge bırakmadı.", "This decision left no open shadow.")}</p></div><button id="next" type="button">${t("SONRAKİ DÖNEM", "NEXT PASSAGE")}</button>`
+        : `<div class="choice-grid">${choicesFor(event)
+            .map((choice) => {
+              const c = choiceCopy[choice] || [
+                choice,
+                "Sonucu şimdi, gölgesi sonra",
+                choice,
+                "Result now; shadow later",
+              ];
+              return `<button type="button" class="choice" data-choice="${h(choice)}"><strong>${h(t(c[0], c[2]))}</strong><small>${h(t(c[1], c[3]))}</small></button>`;
+            })
+            .join("")}</div>`
+    }</section>`;
+  if (screen === "me")
+    return `<section class="active-panel"><p class="eyebrow">${t("BEN", "ME")}</p><h2>${h(state.playerName || t("İsimsiz", "Unnamed"))}</h2><div class="management-grid"><article><span>${t("Yaş", "Age")}</span><b>${state.age}</b></article><article><span>${t("Enerji", "Energy")}</span><b>${state.resources.energy}</b></article><article><span>${t("Beden", "Health")}</span><b>${state.resources.health}</b></article></div></section>`;
+  if (screen === "path")
+    return `<section class="active-panel"><p class="eyebrow">${t("YOL", "PATH")}</p><h2>${h(CHAPTERS.find((c) => c.id === state.chapter)?.name || String(state.chapter))}</h2><p>${t("Verdiğin ana kararlar yolunu ve açılan seçenekleri belirler.", "Main decisions determine your path and the options that open.")}</p><div class="result-feed">${
+      state.decisionsLog
+        .slice(-5)
+        .reverse()
+        .map((d) => `<div><b>${h(d.title)}</b><span>${h(d.choice)}</span></div>`)
+        .join("") || `<p>${t("Henüz karar yok.", "No decisions yet.")}</p>`
+    }</div></section>`;
+  if (screen === "money")
+    return `<section class="active-panel"><p class="eyebrow">${t("PARA", "MONEY")}</p><div class="management-grid"><article><span>${t("Nakit", "Cash")}</span><b>₺${state.resources.money}</b></article><article><span>${t("Kariyer", "Career")}</span><b>${state.resources.career || 0}</b></article></div></section>`;
+  if (screen === "people")
+    return `<section class="active-panel"><p class="eyebrow">${t("İNSANLAR", "PEOPLE")}</p><div class="management-grid">${
+      (state.relationships || [])
         .map(
-          (shadow) =>
-            `<div class="shadow resolved"><strong>${h(shadow.category)}</strong><br>${h(shadow.text)}</div>`,
+          (relationship) =>
+            `<article><span>${h(relationship.id)}</span><b>${Math.round(relationship.value)}</b></article>`,
         )
-        .join("")}</div></aside></section>
-    <section class="archive">${state.history
-      .slice(-6)
+        .join("") ||
+      `<p>${t("Bağlar kararlarla oluşacak.", "Bonds will form through decisions.")}</p>`
+    }</div></section>`;
+  if (screen === "home")
+    return `<section class="active-panel"><p class="eyebrow">${t("EV", "HOME")}</p><h2>${h(state.home || t("Başlangıç evi", "Starting home"))}</h2><p>${t("Barınma ve aile kararlarının sonuçları burada görünür.", "Housing and family decisions appear here.")}</p></section>`;
+  if (screen === "shadows")
+    return `<section class="active-panel"><p class="eyebrow">${t("UZUN GÖLGE", "LONG SHADOW")}</p>${open.map((s) => `<article class="shadow"><strong>${h(s.category)}</strong><p>${t("Açık · dönüş zamanı bilinmiyor", "Open · return time unknown")}</p></article>`).join("") || `<p>${t("Henüz açık gölge yok.", "No open shadow yet.")}</p>`}</section>`;
+  return `<section class="active-panel"><p class="eyebrow">${t("GEÇMİŞ", "HISTORY")}</p><div class="result-feed">${
+    state.history
+      .slice(-12)
       .reverse()
       .map(
         (row) =>
-          `<span>${row.type === "major" ? t("Dönüm noktası", "Turning point") : t("Gölge döndü", "Shadow returned")} · ${h(row.title || row.text || row.choice || "")}</span>`,
+          `<div><b>${h(row.type)}</b><span>${h(row.title || row.text || row.choice || "")}</span></div>`,
       )
-      .join(
-        "",
-      )}</section><p class="notice">${h(session.notice)}</p><details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Her bölümde merkezi dönüm noktasındaki gerçek seçeneklerden birini seç. Aynı dönüm noktası iki kez alınamaz. Seçim bir Uzun Gölge doğurabilir; yaşı ilerlettikçe gölge uygun zamanda arşive geri döner.", "Choose one real option at the chapter's central turning point. A turning point cannot be taken twice. A choice may create a Long Shadow; as life advances it returns to the archive when eligible.")}</p></details><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
+      .join("") || `<p>${t("Kayıt henüz boş.", "The record is empty.")}</p>`
+  }</div></section>`;
+}
+
+function draw(session) {
+  const state = session.state;
+  if (!state) {
+    if (view === "setup") return setup(session);
+    root.innerHTML = frontMenu(session, {
+      title: "HAYAT",
+      eyebrow: t("BİR YAŞAM YÖNETİM OYUNU", "A LIFE MANAGEMENT GAME"),
+      pitch: t(
+        "Dönüm noktalarını yönet; seçimlerinin yıllar sonra dönen gölgeleriyle yaşa.",
+        "Manage turning points and live with choices whose shadows return years later.",
+      ),
+      slotSummary: (s) =>
+        `${h(s.playerName || t("İsimsiz", "Unnamed"))} · ${s.age} ${t("yaş", "years")} · ${t("Bölüm", "Chapter")} ${s.chapter}`,
+    });
+    bindFrontMenu(root, session, {
+      onNew: () => {
+        draftName = "";
+        view = "setup";
+        draw(session);
+      },
+    });
+    return;
+  }
+  const screen = state.ui?.screen || "decisions";
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">HAYAT</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="life-hud"><div><p class="eyebrow">${h(state.playerName || t("İsimsiz", "Unnamed"))}</p><h1>${state.age} ${t("YAŞ", "YEARS")}</h1></div><div class="hud-metrics"><span>₺${state.resources.money}</span><span>${t("Enerji", "Energy")} ${state.resources.energy}</span><span>${t("Beden", "Health")} ${state.resources.health}</span><span>${t("Bölüm", "Chapter")} ${state.chapter}</span></div></section><section class="life-management"><nav class="life-nav" aria-label="${t("Hayat bölümleri", "Life sections")}">${screens.map((item) => `<button type="button" data-screen="${item[0]}" class="${screen === item[0] ? "is-active" : ""}">${t(item[1], item[2])}</button>`).join("")}</nav><div>${panel(state)}<section class="result-feed live-log"><p class="eyebrow">${t("CANLI SONUÇ AKIŞI", "LIVE RESULT FEED")}</p>${
+    state.history
+      .slice(-4)
+      .reverse()
+      .map(
+        (row) =>
+          `<div><b>${h(row.type)}</b><span>${h(row.title || row.choice || row.text || "")}</span></div>`,
+      )
+      .join("") || `<p>${t("İlk kararını bekliyor.", "Waiting for your first decision.")}</p>`
+  }</section></div></section><p class="notice">${h(session.notice)}</p><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
+  root
+    .querySelectorAll("[data-screen]")
+    .forEach((button) =>
+      button.addEventListener("click", () => session.setUI("screen", button.dataset.screen)),
+    );
   root
     .querySelectorAll("[data-choice]")
     .forEach((button) =>

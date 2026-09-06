@@ -119,6 +119,7 @@ const defs = {
     screens: ["Hayat", "Karar", "Gölgeler", "Geçmiş"],
     initial: () => ({
       meta: { version: 1, id: "hayat" },
+      playerName: "İsimsiz",
       age: 18,
       chapter: 1,
       turn: 1,
@@ -134,7 +135,7 @@ const defs = {
       openCases: [],
       history: [],
       flags: {},
-      ui: { screen: "Hayat" },
+      ui: { screen: "decisions" },
     }),
   },
   "kayip-telefon": {
@@ -197,7 +198,17 @@ export function validate(s, id) {
   return true;
 }
 export function normalize(id, raw) {
-  return validate(raw, id) ? raw : raw ? null : create(id);
+  if (!validate(raw, id)) return raw ? null : create(id);
+  if (id === "hayat") {
+    raw.playerName =
+      typeof raw.playerName === "string" && raw.playerName.trim()
+        ? raw.playerName.trim().slice(0, 28)
+        : "İsimsiz";
+    raw.ui ||= {};
+    const screens = ["decisions", "me", "path", "money", "people", "home", "shadows", "history"];
+    if (!screens.includes(raw.ui.screen)) raw.ui.screen = "decisions";
+  }
+  return raw;
 }
 
 function rel(s, key, d) {

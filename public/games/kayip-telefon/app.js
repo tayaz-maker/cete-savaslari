@@ -1,8 +1,10 @@
 import { APPS, CONTACTS, DISCOVERABLES, ENDINGS } from "../next-wave.js";
 import {
+  bindFrontMenu,
   bindSavePanel,
   bootGame,
   escapeHtml as h,
+  frontMenu,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
@@ -18,20 +20,58 @@ const appCopy = {
   files: ["Dosyalar", "Files", "⌁"],
   voice: ["Ses Kayıtları", "Voice", "◉"],
 };
+let view = "menu";
+
+function slotSummary(state) {
+  const ending = state.flags.ending ? ` · ${t("dosya kapandı", "case closed")}` : "";
+  return `${state.discoveredItems.length} ${t("keşif", "discoveries")} · ${t("mahremiyet", "privacy")} ${state.privacyPressure}/100${ending}`;
+}
+
+function menu(session) {
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header>${frontMenu(
+    session,
+    {
+      kicker: t("BULUNAN CİHAZ", "FOUND DEVICE"),
+      title: "KAYIP TELEFON",
+      pitch: t(
+        "Bir telefon bulundu. İçindeki hayat sana ait değil.",
+        "A phone was found. The life inside does not belong to you.",
+      ),
+      summary: slotSummary,
+      help: t(
+        "Açık uygulamalardaki öğeleri incele. Her dokunuş bulgu üretirken mahremiyet bedelini artırabilir. Telefonu istediğin an iade edebilirsin.",
+        "Inspect items in unlocked apps. Every touch may create evidence and increase the privacy cost. You may return the phone at any time.",
+      ),
+    },
+  )}</main>`;
+  bindFrontMenu(root, session, {
+    onNew: () => {
+      view = "setup";
+      session.render();
+    },
+  });
+}
+
+function setup(session) {
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell phone-wrap"><div class="lockscreen"><div class="lock-time">21:14</div><p class="eyebrow">1 ${t("BİLDİRİM", "NOTIFICATION")}</p><h1>${t("Bu telefon senin değil.", "This phone is not yours.")}</h1><p>${t("Telefonu sokakta buldun. İstediğin an iade edebilirsin. Daha çok kurcalamak daha fazla bilgi verir; mahremiyet bedelini de büyütür.", "You found the phone on the street. You may return it at any time. Looking deeper reveals more and raises the privacy cost.")}</p><div class="setup-actions"><button type="button" id="cancel-setup">${t("GERİ", "BACK")}</button><button type="button" id="confirm-start" class="primary">${t("TELEFONU AÇ", "OPEN PHONE")}</button></div></div></section></main>`;
+  root.querySelector("#cancel-setup").addEventListener("click", () => {
+    session.cancelNew();
+    view = "menu";
+    session.render();
+  });
+  root.querySelector("#confirm-start").addEventListener("click", () => session.commitNew());
+}
 
 function draw(session) {
   const state = session.state;
   if (!state) {
-    root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="phone-wrap"><div class="lockscreen"><div class="lock-time">21:14</div><p class="eyebrow">1 ${t("BİLDİRİM", "NOTIFICATION")}</p><h1>KAYIP TELEFON</h1><p>${t("Bu telefon senin değil. Her dokunuş daha fazla bilgi ve daha fazla mahremiyet ihlali.", "This phone is not yours. Every touch reveals more and violates more privacy.")}</p><button type="button" id="start">${t("TELEFONU AÇ", "OPEN PHONE")}</button></div></section></main>`;
-    root.querySelector("#start").addEventListener("click", () => session.start());
-    bindSavePanel(root, session);
-    return;
+    return view === "setup" ? setup(session) : menu(session);
   }
   const ending = state.flags.ending && ENDINGS[state.flags.ending];
   const active = state.ui?.app || "messages";
   const items = DISCOVERABLES.filter((item) => item.app === active);
   const threads = state.threads || [];
-  root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">KAYIP TELEFON</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="phone-wrap"><div class="phone"><div class="phone-status"><span>21:14</span><span>${t("SAHİBİ BİLİNMİYOR", "OWNER UNKNOWN")}</span><span class="privacy">${t("MAHREMİYET", "PRIVACY")} ${state.privacyPressure}/100</span></div>${
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">KAYIP TELEFON</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="phone-wrap"><div class="phone"><div class="phone-status"><span>21:14</span><span>${t("SAHİBİ BİLİNMİYOR", "OWNER UNKNOWN")}</span><span class="privacy">${t("MAHREMİYET", "PRIVACY")} ${state.privacyPressure}/100</span></div>${
     ending
       ? `<section class="ending"><div><p class="eyebrow">${t("TELEFON İADE EDİLDİ", "PHONE RETURNED")}</p><h1>${h(ending.title)}</h1><p>${h(ending.text)}</p><p>${t("Keşif", "Discoveries")} ${state.discoveredItems.length} · ${t("mahremiyet baskısı", "privacy pressure")} ${state.privacyPressure}</p></div></section>`
       : `<div class="phone-grid"><nav class="app-dock" aria-label="${t("Telefon uygulamaları", "Phone apps")}">${APPS.map(

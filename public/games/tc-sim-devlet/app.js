@@ -1,8 +1,18 @@
-import { PERIODS, POLICIES, POLICIES_2002, implementationRate } from "../next-wave.js";
 import {
+  ALT_PRESETS,
+  DOCTRINES,
+  PERIODS,
+  POLICIES,
+  POLICIES_2002,
+  hydrateDevlet,
+  implementationRate,
+} from "../next-wave.js";
+import {
+  bindFrontMenu,
   bindSavePanel,
   bootGame,
   escapeHtml as h,
+  frontMenu,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
@@ -20,8 +30,11 @@ const nav = [
   ["files", "DOSYALAR", "FILES"],
   ["history", "GEÇMİŞ", "HISTORY"],
   ["year", "YIL DOSYASI", "YEAR FILE"],
-  ["periods", "DÖNEMLER", "PERIODS"],
+  ["period-file", "DÖNEM DOSYASI", "PERIOD FILE"],
 ];
+let view = "menu";
+let setupDraft = { era: null, mode: null, goal: null, doctrine: null, alt: null };
+const legacyPeriodScreen = "periods";
 const conf = (state, key) => Math.round((state.known?.[key]?.confidence || 0) * 100);
 const agendaOf = (state) =>
   [
@@ -121,15 +134,10 @@ function screenHtml(state) {
         .join("") ||
       `<p>${t("İlk yıl kapanınca ekonomi, kurum, toplum ve dosya özeti burada mühürlenir.", "When the first year closes, economy, institutions, society and files are sealed here.")}</p>`
     }</section>`;
-  return `<section class="card"><p class="eyebrow">${t("DÖNEMLER", "PERIODS")}</p><h2>2002–2005 · ${t("Önerilen çekirdek", "Recommended core")}</h2><button type="button" data-era="2002">${t("2002–05 DEVLETİNİ DEVRAL", "TAKE THE 2002–05 STATE")}</button><details class="advanced"><summary>${t("Deneysel / gelişmiş dönemler", "Experimental / advanced periods")}</summary><div class="decision-grid">${Object.values(
-    PERIODS,
-  )
-    .filter((period) => period.id !== "2002")
-    .map(
-      (period) =>
-        `<button type="button" data-era="${h(period.id)}"><strong>${h(period.name)}</strong><br><small>${h(period.theme)}</small></button>`,
-    )
-    .join("")}</div></details></section>`;
+  if (screen === legacyPeriodScreen)
+    return screenHtml({ ...state, ui: { ...state.ui, screen: "period-file" } });
+  const period = PERIODS[state.eraId];
+  return `<section class="card"><p class="eyebrow">${t("DÖNEM DOSYASI", "PERIOD FILE")}</p><h2>${h(period?.name || state.eraId)}</h2><p>${h(period?.theme || t("Seçili devlet dönemi", "Selected state period"))}</p><div class="data-grid"><article class="report-card"><span>${t("Devlet biçimi", "State form")}</span><strong>${h(state.form)}</strong></article><article class="report-card"><span>${t("Kampanya", "Campaign")}</span><strong>${state.scenario?.campaign ? t("Büyük", "Grand") : t("Dönem", "Period")}</strong></article></div></section>`;
 }
 
 function decisionCards(state, pool) {
@@ -138,12 +146,99 @@ function decisionCards(state, pool) {
   return `<div class="decision-grid">${pool.map((policy) => `<button type="button" class="decision ${picked.includes(policy.id) ? "is-picked" : ""}" data-policy="${h(policy.id)}" ${remaining <= 0 || picked.includes(policy.id) ? "disabled" : ""}><strong>${h(policy.name)}</strong><span>${h(policy.intent)}</span><small>${t("Kurum", "Institution")}: ${h(policy.inst)} · ${t("kapasite ihtiyacı", "capacity need")} ${policy.capacityNeed} · ${t("maliyet", "cost")} ${policy.cost}</small></button>`).join("")}</div>`;
 }
 
+const setupReady = () =>
+  Boolean(
+    setupDraft.era &&
+    setupDraft.mode &&
+    setupDraft.doctrine &&
+    (setupDraft.era !== "grand" || setupDraft.goal) &&
+    (setupDraft.era !== "alternatif" || setupDraft.alt),
+  );
+const setupChoice = (field, value, title, detail = "") =>
+  `<button type="button" class="setup-choice ${setupDraft[field] === value ? "is-picked" : ""}" data-setup-field="${field}" data-setup-value="${h(value)}"><strong>${h(title)}</strong><small>${h(detail)}</small></button>`;
+
+function setupScreen(session) {
+  const period = setupDraft.era === "grand" ? PERIODS["1923"] : PERIODS[setupDraft.era];
+  const doctrine = DOCTRINES.find((item) => item.id === setupDraft.doctrine);
+  const alt = ALT_PRESETS.find((item) => item.id === setupDraft.alt);
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell card"><p class="eyebrow">${t("DEVLET KURULUŞ DOSYASI", "STATE INTAKE FILE")}</p><h1>TC SIM: DEVLET</h1><h2>1 · ${t("DÖNEM", "PERIOD")}</h2><div class="setup-grid">${Object.values(
+    PERIODS,
+  )
+    .map((item) => setupChoice("era", item.id, item.name, item.theme))
+    .join(
+      "",
+    )}${setupChoice("era", "grand", "1923–2030", t("Büyük kampanya", "Grand campaign"))}</div>${setupDraft.era ? `<h2>2 · ${t("OYUN MODU", "GAME MODE")}</h2><div class="setup-grid">${setupChoice("mode", setupDraft.era === "grand" ? "grand" : "period", setupDraft.era === "grand" ? t("Büyük Kampanya", "Grand Campaign") : t("Dönem Kampanyası", "Period Campaign"), period?.name || "")}</div>` : ""}${setupDraft.era === "grand" ? `<h2>3 · ${t("HEDEF MODU", "GOAL MODE")}</h2><div class="setup-grid">${setupChoice("goal", "open", t("Hedefsiz", "Open-ended"), t("Serbest devlet aklı", "Free statecraft"))}${setupChoice("goal", "doctrine", t("Doktrin hedefli", "Doctrine target"), t("Doktrin devlet DNA'sını değiştirir", "Doctrine changes state DNA"))}</div>` : ""}${
+    setupDraft.mode
+      ? `<h2>4 · ${t("DOKTRİN", "DOCTRINE")}</h2><div class="setup-grid">${setupChoice("doctrine", "none", t("Doktrin yok", "No doctrine"), t("Başlangıç DNA'sını korur", "Keeps starting DNA"))}${DOCTRINES.map(
+          (item) =>
+            setupChoice(
+              "doctrine",
+              item.id,
+              item.name,
+              Object.entries(item.prefer)
+                .map(([key, value]) => `${key} ${value > 0 ? "+" : ""}${value}`)
+                .join(" · "),
+            ),
+        ).join("")}</div>`
+      : ""
+  }${setupDraft.era === "alternatif" ? `<h2>5 · ${t("ALTERNATİF PRESET", "ALTERNATIVE PRESET")}</h2><div class="setup-grid">${ALT_PRESETS.map((item) => setupChoice("alt", item.id, item.name, item.form || "")).join("")}</div>` : ""}${setupReady() ? `<section class="setup-summary"><p class="eyebrow">${t("DEVLET DOSYASI", "STATE FILE")}</p><h2>${h(period?.name || "1923–2030")}</h2><p>${t("Mod", "Mode")}: <b>${h(setupDraft.mode)}</b> · ${t("Hedef", "Goal")}: <b>${h(setupDraft.goal || "period")}</b> · ${t("Doktrin", "Doctrine")}: <b>${h(doctrine?.name || t("Yok", "None"))}</b>${alt ? ` · ${h(alt.name)}` : ""}</p><p>${t("Başlangıç ekonomisi", "Starting economy")}: ${t("Enflasyon", "Inflation")} %${period?.economy?.inflation} · ${t("Hazine", "Treasury")} ${period?.economy?.treasury}</p></section>` : ""}<div class="setup-actions"><button type="button" id="cancel-setup" class="secondary">${t("GERİ", "BACK")}</button><button type="button" id="confirm-start" ${setupReady() ? "" : "disabled"}>${t("DEVLETİ DEVRAL", "TAKE THE STATE")}</button></div></section></main>`;
+  root.querySelectorAll("[data-setup-field]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const field = button.dataset.setupField;
+      setupDraft[field] = button.dataset.setupValue;
+      if (field === "era") {
+        setupDraft.mode = setupDraft.era === "grand" ? "grand" : "period";
+        setupDraft.goal = setupDraft.era === "grand" ? null : "period";
+        setupDraft.doctrine = null;
+        setupDraft.alt = null;
+      }
+      setupScreen(session);
+    }),
+  );
+  root.querySelector("#cancel-setup").addEventListener("click", () => {
+    session.cancelNew();
+    view = "menu";
+    draw(session);
+  });
+  root.querySelector("#confirm-start").addEventListener("click", () => {
+    if (!setupReady()) return;
+    const options = {
+      campaign: setupDraft.mode === "grand",
+      doctrine: setupDraft.doctrine === "none" ? undefined : setupDraft.doctrine,
+      alt: setupDraft.alt || undefined,
+    };
+    session.commitNew({
+      factory: () => hydrateDevlet(setupDraft.era === "grand" ? "1923" : setupDraft.era, options),
+      configure: (state) => {
+        state.scenario.mode = setupDraft.mode;
+        state.scenario.goalMode = setupDraft.goal;
+        state.ui.screen = "home";
+      },
+    });
+  });
+}
+
 function draw(session) {
   const state = session.state;
   if (!state) {
-    root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="state-head"><div><p class="eyebrow">${t("ÖNERİLEN DÖNEM · 2002–2005", "RECOMMENDED PERIOD · 2002–2005")}</p><h1>TC SIM: DEVLET</h1><p class="muted">${t("Aylık gündem. İki ana karar. Kurum uygulaması. Sana ulaşan rapor hiçbir zaman gerçeğin tamamı değil.", "Monthly agenda. Two main decisions. Institutional implementation. The report reaching you is never the whole truth.")}</p></div></section><section class="card"><h2>${t("Devlet merkezini devral", "Take the state center")}</h2><p>${t("2002 krizi sonrasında hazine dar, enflasyon yüksek, kurum kapasitesi parçalı. Bu çekirdek deneyim 2002–05 için tamamlandı.", "After the 2002 crisis the treasury is tight, inflation high and institutional capacity fragmented. This core experience is complete for 2002–05.")}</p><button type="button" id="start">${t("DEVLETİ DEVRAL", "TAKE THE STATE")}</button><details class="advanced"><summary>${t("Deneysel / gelişmiş dönemler", "Experimental / advanced periods")}</summary><p>${t("1923, 1950, 1980, Günümüz, Alternatif ve büyük kampanya mevcut motoru korur; ana shipping deneyimi değildir.", "1923, 1950, 1980, Present, Alternative and the grand campaign remain available in the engine; they are not the primary shipping experience.")}</p></details></section></main>`;
-    root.querySelector("#start").addEventListener("click", () => session.start());
-    bindSavePanel(root, session);
+    if (view === "setup") return setupScreen(session);
+    root.innerHTML = frontMenu(session, {
+      title: "TC SIM: DEVLET",
+      eyebrow: t("4000 YILLIK DEVLET AKLI", "4,000 YEARS OF STATECRAFT"),
+      pitch: t(
+        "Aylık gündem, iki ana karar, kurum uygulaması ve asla tam olmayan bilgi.",
+        "Monthly agenda, two main decisions, institutional implementation and never-complete information.",
+      ),
+      slotSummary: (s) =>
+        `${s.time?.year || "—"}/${String(s.time?.month || 1).padStart(2, "0")} · ${h(PERIODS[s.eraId]?.name || s.eraId)}`,
+    });
+    bindFrontMenu(root, session, {
+      onNew: () => {
+        setupDraft = { era: null, mode: null, goal: null, doctrine: null, alt: null };
+        view = "setup";
+        draw(session);
+      },
+    });
     return;
   }
   const screen = state.ui?.screen || "home";
@@ -158,11 +253,6 @@ function draw(session) {
     .querySelectorAll("[data-policy]")
     .forEach((button) =>
       button.addEventListener("click", () => session.act(`policy:${button.dataset.policy}`)),
-    );
-  root
-    .querySelectorAll("[data-era]")
-    .forEach((button) =>
-      button.addEventListener("click", () => session.act(`era:${button.dataset.era}`)),
     );
   root.querySelector("#advance").addEventListener("click", () => session.act("advance"));
   bindSavePanel(root, session);

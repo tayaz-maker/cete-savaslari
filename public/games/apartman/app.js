@@ -1,14 +1,59 @@
 import { PROPOSALS, RESIDENTS } from "../next-wave.js";
 import {
+  bindFrontMenu,
   bindSavePanel,
   bootGame,
   escapeHtml as h,
+  frontMenu,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
 
 const root = document.body;
 const money = (n) => new Intl.NumberFormat("tr-TR").format(Math.round(n));
+let view = "menu";
+
+function slotSummary(state) {
+  return t(
+    `${state.week}. hafta · ₺${money(state.finance.cash)} kasa · ${state.issues.filter((issue) => issue.status === "acik").length} açık mesele`,
+    `Week ${state.week} · ₺${money(state.finance.cash)} cash · ${state.issues.filter((issue) => issue.status === "acik").length} open issues`,
+  );
+}
+
+function menu(session) {
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header>${frontMenu(
+    session,
+    {
+      kicker: t("YÖNETİCİ DOSYASI", "MANAGER FILE"),
+      title: "YUNUS APARTMANI",
+      pitch: t(
+        "Bir bina, on altı daire, bitmeyen meseleler.",
+        "One building, sixteen flats, issues that never end.",
+      ),
+      summary: slotSummary,
+      help: t(
+        "Meseleyi seç, dosyayı hazırla, Toplantı Gecesi'nde tek teklifi oylat ve haftayı kapat.",
+        "Choose an issue, prepare its file, vote one proposal on Meeting Night, then close the week.",
+      ),
+    },
+  )}</main>`;
+  bindFrontMenu(root, session, {
+    onNew: () => {
+      view = "setup";
+      session.render();
+    },
+  });
+}
+
+function setup(session) {
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell card"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>YUNUS APARTMANI</h1><p>${t("1978 yapımı, 16 daire. Anahtar, ilan panosu ve hesap defteri sana geçecek.", "Built in 1978, sixteen flats. The keys, notice board and ledger will pass to you.")}</p><div class="apt-metrics"><span class="pill">16 ${t("sakin", "residents")}</span><span class="pill">₺12.000 ${t("kasa", "cash")}</span><span class="pill">₺2.400 ${t("aidat", "dues")}</span><span class="pill">72/100 ${t("bina", "building")}</span><span class="pill">5 ${t("açık mesele", "open issues")}</span></div><div class="setup-actions"><button type="button" id="cancel-setup">${t("GERİ", "BACK")}</button><button type="button" id="confirm-start" class="primary">${t("YÖNETİMİ DEVRAL", "TAKE MANAGEMENT")}</button></div></section></main>`;
+  root.querySelector("#cancel-setup").addEventListener("click", () => {
+    session.cancelNew();
+    view = "menu";
+    session.render();
+  });
+  root.querySelector("#confirm-start").addEventListener("click", () => session.commitNew());
+}
 
 function issueCard(issue, state) {
   const people = (issue.parties || [])
@@ -26,12 +71,7 @@ function issueCard(issue, state) {
 function draw(session) {
   const state = session.state;
   if (!state) {
-    root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header>
-      <section class="apt-head"><div><p class="eyebrow">${t("Yönetici odası · ilan panosu", "Manager office · notice board")}</p><h1>YUNUS APARTMANI</h1><p class="muted">${t("1978 yapımı · 16 daire · ilk gün kasada ₺12.000", "Built in 1978 · 16 flats · ₺12,000 opening cash")}</p></div></section>
-      <section class="card"><h2>${t("Anahtar ve defter sende.", "The keys and ledger are yours.")}</h2><p>${t("Meseleleri önceliklendir, iki hazırlık yap, toplantıda teklifini oylat ve haftayı kapat.", "Prioritize issues, make two preparations, put a proposal to vote, then close the week.")}</p><button id="start" type="button">${t("YÖNETİME BAŞLA", "TAKE MANAGEMENT")}</button></section><p class="notice">${h(session.notice)}</p></main>`;
-    root.querySelector("#start").addEventListener("click", () => session.start());
-    bindSavePanel(root, session);
-    return;
+    return view === "setup" ? setup(session) : menu(session);
   }
 
   const open = state.issues.filter((issue) => issue.status === "acik");
@@ -40,7 +80,7 @@ function draw(session) {
     .map((id) => state.residents.find((resident) => resident.id === id))
     .filter(Boolean);
   const meetingDone = state.flags.meetingWeek === state.week;
-  root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">APARTMAN · ${t("YÖNETİCİ DEFTERİ", "MANAGER LEDGER")}</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header>
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">APARTMAN · ${t("YÖNETİCİ DEFTERİ", "MANAGER LEDGER")}</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header>
     <section class="apt-head"><div><p class="eyebrow">${state.week}. ${t("HAFTA", "WEEK")}</p><h1>${t("Yönetici Masası", "Manager Desk")}</h1></div><div class="apt-metrics"><span class="pill metric">${t("Kasa", "Cash")} ₺${money(state.finance.cash)}</span><span class="pill metric">${t("Aidat", "Dues")} ₺${money(state.finance.dues)}</span><span class="pill">${t("Bina", "Building")} ${state.building.condition}/100</span></div></section>
     <section class="apt-board"><aside class="card"><p class="eyebrow">${t("BİNA", "BUILDING")}</p><div class="building-list">${state.building.parts.map((part) => `<div class="building-row"><span>${h(part.name)}</span><b>${Math.round(part.condition)}</b><div class="meter"><i style="--value:${part.condition}%"></i></div></div>`).join("")}</div></aside>
       <section class="card desk"><p class="eyebrow">${t("BUGÜNÜN MESELELERİ", "TODAY'S ISSUES")}</p><div class="issue-list">${

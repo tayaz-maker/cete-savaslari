@@ -93,6 +93,79 @@ p {
   background: var(--panel, #121514);
   padding: 16px;
 }
+.front-menu {
+  width: min(620px, 100%);
+  margin: clamp(28px, 8vh, 90px) auto 0;
+  padding: clamp(18px, 4vw, 30px);
+}
+.front-menu__heading h1 {
+  margin-bottom: 0.45rem;
+  font-size: clamp(2rem, 7vw, 4.2rem);
+  line-height: 0.98;
+}
+.slot-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 22px 0 10px;
+}
+.slot-card {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+.slot-card span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.slot-card.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.slot-summary {
+  min-height: 2.4rem;
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+.front-menu__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.front-menu__actions .primary {
+  background: color-mix(in srgb, var(--accent) 28%, var(--button));
+  font-weight: 800;
+}
+.front-menu__help {
+  margin-top: 12px;
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  color: var(--muted);
+}
+.setup-shell {
+  width: min(980px, 100%);
+  margin: 22px auto 0;
+}
+.setup-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 9px;
+  margin-top: 14px;
+}
+.setup-actions .primary {
+  margin-left: auto;
+  min-width: min(300px, 60%);
+  background: color-mix(in srgb, var(--accent) 28%, var(--button));
+  font-weight: 850;
+}
+.global-chrome {
+  display: flex;
+}
+.embedded .global-chrome,
+.embedded .topbar {
+  display: none;
+}
 .muted {
   color: var(--muted, #aeb7b2);
 }
@@ -198,6 +271,26 @@ p {
   }
   .save-row > :first-child {
     grid-column: 1 / -1;
+  }
+  .front-menu {
+    margin-top: 12px;
+  }
+  .slot-picker {
+    grid-template-columns: 1fr;
+  }
+  .slot-card {
+    grid-template-columns: 1fr auto;
+  }
+  .front-menu__actions,
+  .setup-actions {
+    grid-template-columns: 1fr;
+  }
+  .setup-actions {
+    display: grid;
+  }
+  .setup-actions .primary {
+    width: 100%;
+    min-width: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {

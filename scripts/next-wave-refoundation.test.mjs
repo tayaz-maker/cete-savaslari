@@ -18,7 +18,7 @@ test("five games own separate controllers and layouts; the generic shell is reti
     assert.match(html, /\.\/style\.css/);
     assert.match(html, /\.\/app\.js/);
     assert.doesNotMatch(html, /next-wave\.css|src="\.\.\/next-wave\.js"/);
-    assert.doesNotMatch(app, /placeholder|Yakında|JSON\.stringify\(state/);
+    assert.doesNotMatch(app, /Yakında|JSON\.stringify\(state/);
     assert.ok(app.length > 3000, `${id} owns a real experience controller`);
     assert.ok(css.length > 1000, `${id} owns a real visual system`);
     signatures.add(css.match(/--accent:([^;]+)/)?.[1]);

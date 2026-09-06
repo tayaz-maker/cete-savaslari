@@ -84,7 +84,8 @@ test("Next Wave language rerender preserves game and screen without an extra sav
     const game = bootGame("apartman", (api) =>
       snapshots.push({ state: structuredClone(api.state), lang }),
     );
-    game.start();
+    assert.equal(game.beginNew(), true);
+    assert.equal(game.commitNew(), true);
     game.setUI("screen", "Toplantı");
     const before = structuredClone(game.state);
     const writesBeforeLanguageChanges = writes.length;
