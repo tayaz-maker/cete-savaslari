@@ -48,6 +48,15 @@ export const MAJORS = [
   { id: "old-debt", chapter: 5, domain: "money", title: "Eski kefalet", text: "İsim unutulmamış.", shadow: "money", choice: "restructure" },
   { id: "health-ignore", chapter: 5, domain: "body", title: "Kontrolü ertele", text: "Rapor bekler.", shadow: "body", choice: "delay" },
   { id: "mentor-ask", chapter: 2, domain: "friendship", title: "Eski hoca aradı", text: "Referans mı, yük mü?", shadow: "friendship", choice: "help" },
+  { id: "first-contract", chapter: 1, domain: "work", title: "İlk sigortalı iş", text: "Asgari. Öğrenimle çakışır.", shadow: "career", choice: "work" },
+  { id: "cousin-abroad", chapter: 2, domain: "migration", title: "Kuzen dışarı çağırdı", text: "Vize belirsiz, ağ kopar.", shadow: "migration", choice: "abroad" },
+  { id: "side-loan", chapter: 2, domain: "money", title: "İhtiyaç kredisi", text: "Nakit şimdi, taksit yıllarca.", shadow: "money", choice: "restructure" },
+  { id: "civic-duty", chapter: 3, domain: "duty", title: "Seçim sandığı / yokluk", text: "Bir gün. İş aynı gün teslim ister.", shadow: "duty", choice: "show" },
+  { id: "burn-warn", chapter: 3, domain: "body", title: "Hekim uyarı", text: "Tempo veya tahlil.", shadow: "body", choice: "slow" },
+  { id: "network-ask", chapter: 4, domain: "network", title: "Eski müdür aradı", text: "İş çıkar, borç da çıkar.", shadow: "network", choice: "help" },
+  { id: "regret-call", chapter: 4, domain: "regret", title: "Aranmayan numara", text: "Beş yıl sessizlik.", shadow: "regret", choice: "call" },
+  { id: "ambition-pause", chapter: 5, domain: "ambition", title: "Tempo kes", text: "Unvan durur, nefes döner.", shadow: "ambition", choice: "slow" },
+  { id: "second-city", chapter: 5, domain: "migration", title: "İkinci şehir teklifi", text: "Aile burada, iş orada.", shadow: "migration", choice: "move" },
 ];
 
 export const SHADOWS = [
@@ -64,4 +73,12 @@ export const SHADOWS = [
   { category: "network", delay: 3, good: "Eski bir isim iş çıkardı.", bad: "Çevre inceldi, kapı kapandı.", mix: "Selam var, iş yok." },
   { category: "regret", delay: 5, good: "Geç arama yine de tuttu.", bad: "Sessizlik kalıcı oldu.", mix: "Konuşuldu, eski hale dönmedi." },
   { category: "migration", delay: 4, good: "Göç ağın yerine yenisini kurdu.", bad: "İki şehirde de yarım kaldın.", mix: "Adres değişti, aidiyet tartışmalı." },
+  { category: "health-habit", delay: 3, good: "Erken düzen sonra krizden çıkardı.", bad: "Ertelenen kontrol fatura kesti.", mix: "Tempo düştü, rapor duruyor." },
+  { category: "civic", delay: 5, good: "O günkü duruş bir kapı açtı.", bad: "Yokluğun dosyada kaldı.", mix: "İsim var, mesafe de var." },
+  { category: "skill", delay: 3, good: "Gece kursu unvan değil iş getirdi.", bad: "Sertifika dosyada unutuldu.", mix: "Bilgi var, yer yok." },
+  { category: "kin-money", delay: 4, good: "Verdiğin tutar kapıyı açık tuttu.", bad: "Hesap soğuk duruyor.", mix: "Yardım edildi, söz bitti." },
+  { category: "lease", delay: 2, good: "O kira kararı seni taşınabilir bıraktı.", bad: "Sözleşme seni bağladı.", mix: "Adres duruyor, hareket kısıtlı." },
+  { category: "tempo", delay: 3, good: "Kesilen tempo ilişkiyi tuttu.", bad: "Hız, çevreyi eledi.", mix: "İş var, akşam yok." },
+  { category: "return-home", delay: 4, good: "Dönüş ağı yeniledi.", bad: "Memleket dar geldi.", mix: "Yakınlık var, iş yok." },
+  { category: "second-chance", delay: 5, good: "Eski numara yine açıldı.", bad: "Arama geç kaldı.", mix: "Konuşuldu, yol ayrı." },
 ];

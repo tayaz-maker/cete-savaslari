@@ -54,6 +54,7 @@ export const DISCOVERABLES = [
   { id: "voice_3", app: "voice", title: "Ses: 'anneme söyleme'", text: "Leyla hattı değil. Mert'in tonuna yakın.", tags: ["mert"], corroborates: ["t5"] },
   { id: "file_map", app: "files", title: "Konum kaydı: Moda iskele", text: "Takvim 21:00, foto 23:14. Aralık açık.", tags: ["naz"], contradicts: ["cal_naz"] },
   { id: "deleted_ali", app: "messages", title: "Silinmiş: Ali 'cuma değil'", text: "Ses kaydıyla aynı cümle.", tags: ["ali"], corroborates: ["voice_2"] },
+  { id: "lock_note", app: "notes", title: "Not: kilit deseni", text: "Ekran şifresi taslağı. Açmak ayrı ihlal.", tags: ["privacy"], pressure: 16, requires: ["note_pin"] },
 ];
 
 export const ENDINGS = {
@@ -61,4 +62,5 @@ export const ENDINGS = {
   thorough: { id: "thorough", title: "Bilinçli müdahale", text: "Yeterince gördün. Sahibini veya aileyi, her şeyi dökmeden uyarabilirsin." },
   reckless: { id: "reckless", title: "Sızdırılmış hayat", text: "Çok derin indin. Bilgi sende, sonuç başkasında." },
   witness: { id: "witness", title: "Tanık iadesi", text: "Çelişkileri gördün, özel dosyaya girmedin. Aileye tek cümle yeter." },
+  family: { id: "family", title: "Aileye tek cümle", text: "Seyahat ve suskunluk yeter. Şifreye ve kimliğe dokunmadın." },
 };

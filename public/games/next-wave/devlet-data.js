@@ -243,6 +243,10 @@ export const POLICIES = {
     { id: "social-relief", name: "Hane rahatlatma", inst: "maliye", intent: "Kısa rıza, orta vadede disiplin riski.", cost: 10, inflation: 3, trust: 6, capacityNeed: 40, dna: { paternalism: 2, socialState: 2 } },
     { id: "security-posture", name: "İç güvenlik duruşu", inst: "ordu", intent: "Kapasite kayması, sivil reform temposu yavaşlar.", cost: 7, inflation: 0, trust: -2, capacityNeed: 60, dna: { security: 3 } },
     { id: "tax-admin", name: "Vergi idaresi sıkılaştırma", inst: "maliye", intent: "Kayıt dışına baskı; şikayet artar.", cost: 3, inflation: -1, trust: -4, capacityNeed: 50, dna: { nationalEconomy: 2 } },
+    { id: "local-gov", name: "Yerel yönetim yasası", inst: "belediye", intent: "Belediye yetkisi genişler; merkez-yerel sürtünme artar.", cost: 6, inflation: 1, trust: 2, capacityNeed: 46, dna: { localAutonomy: 3, centralization: -1 } },
+    { id: "kamu-ihale", name: "Kamu ihale disiplini", inst: "maliye", intent: "Kâğıt şeffaflık; yüklenici alışkanlığı direnir.", cost: 4, inflation: 0, trust: 1, capacityNeed: 48, dna: { institutionalism: 2 } },
+    { id: "egitim-reform", name: "Müfredat / YÖK temposu", inst: "maarif", intent: "Metin değişir, sınıf geç değişir.", cost: 5, inflation: 0, trust: 1, capacityNeed: 44, dna: { socialState: 2 } },
+    { id: "dis-politika", name: "Komşu hat / Kıbrıs dosyası", inst: "ordu", intent: "Dış masa iç reform takvimini iter.", cost: 6, inflation: 0, trust: -1, capacityNeed: 58, dna: { security: 2, openness: 1 } },
   ],
   gunumuz: [
     { id: "deprem-pay", name: "Afet onarım payı", inst: "belediye", intent: "Kısa rıza, uzun kasa; kalite denetlenmezse hayalet dosya açılır.", cost: 12, inflation: 2, trust: 3, capacityNeed: 50, dna: { paternalism: 2, socialState: 2 } },
@@ -295,6 +299,9 @@ export const EVENTS = {
     { id: "e05-impl", year: 2005, month: 3, title: "Uygulama açığı raporu", text: "Kâğıt üzerindeki uyum, taşra biriminde takılır.", provenance: "A", confidence: "med", domain: "admin" },
     { id: "e03-unemp", year: 2003, month: 10, title: "İşsizlik yapışkan", text: "Büyüme döner, istihdam gecikir.", provenance: "A", confidence: "med", domain: "labor" },
     { id: "e04-region", year: 2004, month: 9, title: "Bölgesel tempo farkı", text: "Marmara kredi yer, Doğu kamu işi bekler.", provenance: "A", confidence: "med", domain: "region" },
+    { id: "e02-local", year: 2002, month: 9, title: "Belediye seçim ısısı", text: "Yerel rıza merkez programını zorlar.", provenance: "A", confidence: "med", domain: "admin" },
+    { id: "e04-imf-exit", year: 2004, month: 2, title: "Program çıkış konuşması", text: "Dış çapa gevşer; disiplin alışkanlığı test edilir.", provenance: "T", confidence: "high", domain: "fiscal" },
+    { id: "e05-credit-heat", year: 2005, month: 6, title: "Hane kredi ısısı", text: "İç talep büyür. Kırılganlık ertelenmiş durur.", provenance: "A", confidence: "med", domain: "banking" },
   ],
   gunumuz: [
     { id: "eg-kira", month: 3, title: "Kira yenileme dalgası", text: "Hane planı bir yıla sığmaz. Resmi ortalama gizler.", provenance: "S", confidence: "med", domain: "housing" },

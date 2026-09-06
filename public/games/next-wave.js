@@ -20,7 +20,7 @@ export const implementationRate = (s) => {
 };
 
 import { SYSTEMS, RESIDENTS, ISSUES, ISSUE_TEMPLATES, MEETINGS, PROPOSALS } from "./next-wave/apartman-data.js";
-import { SCENARIOS, MILESTONES, ACTIONS as A100 } from "./next-wave/son100-data.js";
+import { SCENARIOS, MILESTONES, ACTIONS as A100, EVENTS as SON_EVENTS } from "./next-wave/son100-data.js";
 import { MAJORS, SHADOWS } from "./next-wave/hayat-data.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
 import { PERIODS, POLICIES_2002, EVENTS_2002, COHORTS, REGIONS, GRAND_HOOKS, POLICIES, EVENTS as DEVLET_EVENTS } from "./next-wave/devlet-data.js";
@@ -59,13 +59,13 @@ const defs = {
         parts: SYSTEMS.map((x) => ({ id: x.id, name: x.name, condition: x.condition })),
       },
       finance: { cash: 12000, dues: 2400, arrears: 1800 },
-      residents: RESIDENTS.map((r) => ({ ...r })),
+      residents: RESIDENTS.map((r) => ({ ...r, memory: [] })),
       issues: ISSUES.map((i) => ({ ...i })),
       meetings: MEETINGS.map((m) => m.id),
       lastMeeting: null,
       openCases: [],
       history: [],
-      flags: { meeting: false, cheapPatch: 0 },
+      flags: { meeting: false, cheapPatch: 0, cheapCount: 0, duesHikes: 0, financeWeek: 0 },
       ui: { screen: "Genel" },
     }),
   },
@@ -84,11 +84,14 @@ const defs = {
         resources: { ...sc.resources },
         relationships: Object.entries(sc.relations).map(([id, value]) => ({ id, value })),
         obligations: sc.obligations.map((o) => ({ ...o, status: "open" })),
+        opportunities: [
+          { id: SON_EVENTS[0].id, title: SON_EVENTS[0].title, expiresOn: 1 + (SON_EVENTS[0].window || 3), choices: SON_EVENTS[0].choices, domain: SON_EVENTS[0].domain, status: "open" },
+        ],
         goalProgress: { money: 0, relationship: 0, health: 0, work: 0 },
         missed: [],
         openCases: [],
         history: [],
-        flags: { milestones: [], finalReport: false },
+        flags: { milestones: [], finalReport: false, workStreak: 0 },
         ui: { screen: "Durum" },
       };
     },
@@ -175,6 +178,7 @@ function rel(s, key, d) {
 function apartmanVote(s, proposal) {
   const cheap = proposal.id === "cheap-patch";
   const wait = proposal.id === "wait";
+  const hike = proposal.id === "raise-dues";
   let yes = 0;
   let no = 0;
   for (const r of s.residents) {
@@ -183,6 +187,9 @@ function apartmanVote(s, proposal) {
     if (!r.owner) score -= 0.1;
     if (cheap) score += r.satisfaction < 55 ? 0.25 : -0.15;
     if (wait) score += r.pays ? -0.2 : 0.15;
+    if (hike) score += r.owner ? -0.1 : -0.35;
+    if ((r.memory || []).includes("cheap-patch") && cheap) score -= 0.35;
+    if ((r.memory || []).includes("raise-dues") && hike) score -= 0.5;
     if (s.issues.some((i) => (i.parties || []).includes(r.id))) score += 0.2;
     if (score >= 0) yes += 1;
     else no += 1;
@@ -190,28 +197,81 @@ function apartmanVote(s, proposal) {
   return { yes, no, accepted: yes > no };
 }
 
+function applyApartmanProposal(s, proposal, meetingType) {
+  const vote = apartmanVote(s, proposal);
+  s.flags.meeting = true;
+  s.lastMeeting = { type: meetingType, proposal: proposal.id, ...vote, week: s.week };
+  for (const r of s.residents) {
+    r.memory = (r.memory || []).concat(proposal.id).slice(-6);
+  }
+  const financeOnce = s.flags.financeWeek !== s.week;
+  if (vote.accepted) {
+    if (financeOnce) {
+      s.finance.cash -= proposal.cash || 0;
+      s.flags.financeWeek = s.week;
+    }
+    s.building.condition = clamp(s.building.condition + (proposal.condition || 0));
+    const targetSys = proposal.id === "raise-dues" ? null : s.issues.find((i) => i.status === "acik" && i.system)?.system || "asansor";
+    const part = targetSys && s.building.parts.find((p) => p.id === targetSys);
+    if (part) part.condition = clamp(part.condition + (proposal.condition || 0));
+    if (proposal.id === "cheap-patch") {
+      s.flags.cheapPatch = 3;
+      s.flags.cheapSystem = targetSys || "asansor";
+      s.flags.cheapCount = (s.flags.cheapCount || 0) + 1;
+    }
+    if (proposal.id === "raise-dues") {
+      s.finance.dues += proposal.duesDelta || 350;
+      s.flags.duesHikes = (s.flags.duesHikes || 0) + 1;
+      for (const r of s.residents) r.satisfaction = clamp(r.satisfaction - (r.pays ? 8 : 4));
+    }
+    if (proposal.id === "durable-maintenance") {
+      s.issues = s.issues.map((i) => (i.status === "acik" && i.system === (targetSys || "asansor") ? { ...i, status: "kapali" } : i));
+    }
+    if (proposal.id === "cheap-patch") {
+      s.issues = s.issues.map((i) => (i.status === "acik" && i.system === "asansor" ? { ...i, status: "kapali" } : i));
+    }
+    s.openCases.push({ id: "followup_" + s.week, kind: "inspection", due: s.week + 2, system: targetSys || "asansor" });
+  }
+  pushHist(s, { type: "meeting", proposal: proposal.id, accepted: vote.accepted, yes: vote.yes, no: vote.no });
+  return vote;
+}
+
 function tickApartman(s) {
   s.week += 1;
   const paid = s.residents.filter((r) => r.pays).length;
   s.finance.cash += Math.round((s.finance.dues * paid) / s.residents.length);
   s.finance.arrears += Math.round((s.finance.dues * (s.residents.length - paid)) / s.residents.length);
+  const cheapSys = s.flags.cheapSystem || "asansor";
   for (const p of s.building.parts) {
-    p.condition = clamp(p.condition - (s.flags.cheapPatch > 0 && p.id === "asansor" ? 3 : 1), 0, 100);
+    const extra = s.flags.cheapPatch > 0 && p.id === cheapSys ? 2 + (s.flags.cheapCount || 0) : 0;
+    p.condition = clamp(p.condition - (1 + extra), 0, 100);
   }
   s.building.condition = clamp(Math.round(s.building.parts.reduce((a, p) => a + p.condition, 0) / s.building.parts.length));
   if (s.flags.cheapPatch > 0) {
     s.flags.cheapPatch -= 1;
     if (s.flags.cheapPatch === 0) {
+      const sys = cheapSys;
       s.issues.push({
-        id: "cb_asansor_" + s.week,
+        id: "cb_" + sys + "_" + s.week,
         type: "bakım",
-        system: "asansor",
-        title: "Ucuz asansör yaması tutmadı",
+        system: sys,
+        title: sys === "asansor" ? "Ucuz asansör yaması tutmadı" : "Ucuz yama tutmadı",
         status: "acik",
         severity: 4,
       });
-      pushHist(s, { type: "callback", text: "Ucuz asansör bakımı ikinci haftada ses yaptı." });
+      pushHist(s, { type: "callback", text: "Ucuz asansör bakımı ikinci haftada ses yaptı.", system: sys });
+      const remember = s.residents.filter((r) => (r.memory || []).includes("cheap-patch"));
+      for (const r of remember) r.satisfaction = clamp(r.satisfaction - 5);
     }
+  }
+  if ((s.flags.duesHikes || 0) >= 2 && !s.flags.duesRevolt) {
+    s.flags.duesRevolt = true;
+    for (const r of s.residents) {
+      if (r.pays && r.satisfaction < 50) r.pays = false;
+      r.satisfaction = clamp(r.satisfaction - 6);
+    }
+    s.issues.push({ id: "aidat-isyan-" + s.week, type: "aidat", title: "Aidat isyanı: liste asılsın deniyor", status: "acik", severity: 4 });
+    pushHist(s, { type: "callback", text: "Üst üste aidat artışı ödemeyi durdurdu." });
   }
   for (const c of s.openCases.slice()) {
     if (typeof c.due === "number" && c.due <= s.week) {
@@ -240,6 +300,20 @@ function applySonAction(s, actId) {
   if (act.money && act.money > 0) s.goalProgress.money += act.money;
   if (act.id === "rest") s.goalProgress.health += 2;
   if (act.risk) s.flags.risk = (s.flags.risk || 0) + act.risk;
+  if (act.id === "work") s.flags.workStreak = (s.flags.workStreak || 0) + 1;
+  else s.flags.workStreak = 0;
+  if ((s.flags.workStreak || 0) >= 4) {
+    rel(s, "friend", -4);
+    rel(s, "family", -3);
+    s.resources.hope = clamp(s.resources.hope - 3);
+    s.resources.energy = clamp(s.resources.energy - 4);
+  }
+  const hit = (s.opportunities || []).find((o) => o.status === "open" && (o.choices || []).includes(act.id));
+  if (hit) {
+    hit.status = "done";
+    s.resources.hope = clamp(s.resources.hope + 2);
+    pushHist(s, { type: "opportunity", id: hit.id, result: "caught" });
+  }
   if (act.id === "pay" || act.id === "min") {
     const ob = s.obligations.find((o) => o.status === "open");
     if (ob) {
@@ -249,6 +323,24 @@ function applySonAction(s, actId) {
   }
   s.actionsRemaining = Math.max(0, s.actionsRemaining - 1);
   pushHist(s, { type: "act", id: act.id, day: s.day });
+}
+
+function seedOpportunity(s) {
+  s.opportunities = s.opportunities || [];
+  const used = new Set(s.opportunities.map((o) => o.id));
+  const next = SON_EVENTS.find((e) => !used.has(e.id)) || SON_EVENTS[s.day % SON_EVENTS.length];
+  if (!next) return;
+  const openCount = s.opportunities.filter((o) => o.status === "open").length;
+  if (openCount >= 2) return;
+  s.opportunities.push({
+    id: next.id + "_" + s.day,
+    src: next.id,
+    title: next.title,
+    expiresOn: s.day + (next.window || 3),
+    choices: next.choices.slice(),
+    domain: next.domain,
+    status: "open",
+  });
 }
 
 function sonAdvanceDay(s) {
@@ -268,6 +360,17 @@ function sonAdvanceDay(s) {
       }
     }
   }
+  for (const op of s.opportunities || []) {
+    if (op.status === "open" && op.expiresOn <= s.day) {
+      op.status = "expired";
+      s.missed.push(op.id);
+      s.resources.hope = clamp(s.resources.hope - 3);
+      if (op.domain === "friend") rel(s, "friend", -5);
+      if (op.domain === "family") rel(s, "family", -4);
+      if (op.domain === "work") rel(s, "work", -3);
+      pushHist(s, { type: "opportunity", id: op.id, result: "expired" });
+    }
+  }
   if (s.obligations.filter((o) => o.status === "open").length < 2 && s.remainingDays > 8) {
     s.obligations.push({
       id: "wave_" + s.day,
@@ -278,31 +381,50 @@ function sonAdvanceDay(s) {
       status: "open",
     });
   }
+  if (s.day % 4 === 0) seedOpportunity(s);
   for (const m of MILESTONES) {
     if (s.remainingDays === m && !(s.flags.milestones || []).includes(m)) {
       s.flags.milestones = (s.flags.milestones || []).concat(m);
       pushHist(s, { type: "milestone", left: m });
     }
   }
-  if (s.remainingDays === 0) s.flags.finalReport = true;
+  if (s.remainingDays === 0) {
+    s.flags.finalReport = true;
+    s.flags.report = {
+      money: s.resources.money,
+      energy: s.resources.energy,
+      hope: s.resources.hope,
+      missed: s.missed.slice(),
+      goals: { ...s.goalProgress },
+      workStreakMax: s.flags.workStreak || 0,
+      caught: (s.opportunities || []).filter((o) => o.status === "done").length,
+      expired: (s.opportunities || []).filter((o) => o.status === "expired").length,
+    };
+  }
   pushHist(s, { type: "day", day: s.day });
 }
 
 function hayatApplyChoice(s, choiceKey) {
-  const chapterEvents = MAJORS.filter((m) => m.chapter === s.chapter);
-  const ev = chapterEvents[s.turn % Math.max(1, chapterEvents.length)] || MAJORS[0];
+  const used = new Set((s.decisionsLog || []).map((d) => d.event));
+  const chapterEvents = MAJORS.filter((m) => m.chapter === s.chapter && !used.has(m.id));
+  const pool = chapterEvents.length ? chapterEvents : MAJORS.filter((m) => m.chapter === s.chapter);
+  const ev = pool[s.turn % Math.max(1, pool.length)] || MAJORS[0];
   const choice = choiceKey || ev.choice || "ambition";
   s.decisionsLog.push({ turn: s.turn, choice, event: ev.id, title: ev.title });
   const tmpl = SHADOWS.find((x) => x.category === ev.shadow) || SHADOWS.find((x) => x.category === "career");
-  s.shadows.push({
-    id: "shadow_" + s.turn,
-    category: tmpl.category,
-    createdAt: s.age,
-    eligibleFrom: s.age + (tmpl.delay || 3),
-    status: "open",
-    choice,
-    event: ev.id,
-  });
+  const openSame = s.shadows.some((x) => x.category === tmpl.category && x.status === "open");
+  if (!openSame && s.flags.shadowTurn !== s.turn) {
+    s.flags.shadowTurn = s.turn;
+    s.shadows.push({
+      id: "shadow_" + s.turn + "_" + tmpl.category,
+      category: tmpl.category,
+      createdAt: s.age,
+      eligibleFrom: s.age + (tmpl.delay || 3),
+      status: "open",
+      choice,
+      event: ev.id,
+    });
+  }
   if (choice === "ambition" || choice === "work" || choice === "grind") {
     s.resources.money += 400;
     s.resources.energy -= 15;
@@ -373,10 +495,12 @@ function unlockPhoneApps(s) {
 }
 
 function phoneDiscover(s, item) {
+  if (s.flags.ending) return;
   if (s.discoveredItems.includes(item)) return;
+  const spec = DISCOVERABLES.find((d) => d.id === item);
+  if (spec?.requires && spec.requires.some((r) => !s.discoveredItems.includes(r))) return;
   s.discoveredItems.push(item);
   s.clues.push(item);
-  const spec = DISCOVERABLES.find((d) => d.id === item);
   const extra = spec?.pressure || 8;
   s.privacyPressure = clamp(s.privacyPressure + extra);
   s.ownerRisk = clamp(s.ownerRisk + (spec?.tags?.includes("privacy") ? 10 : 3));
@@ -389,8 +513,11 @@ function phoneDiscover(s, item) {
 
 function phoneEnding(s) {
   const pressure = s.privacyPressure;
-  const sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass"].includes(x));
+  const sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass", "lock_note"].includes(x));
+  const travel = s.discoveredItems.some((x) => ["photo_ticket", "photo_bag", "cal_bus"].includes(x));
+  const family = s.discoveredItems.includes("call_leyla") || s.discoveredItems.includes("clue_0");
   if (s.corroboration.length >= 3 && pressure < 70 && !sawId) return "witness";
+  if (family && travel && !sawId && pressure < 55) return "family";
   return pressure < 20 ? "minimal" : pressure < 60 ? "thorough" : "reckless";
 }
 
@@ -406,34 +533,14 @@ export function applyAction(id, s, action) {
   if (!s) return null;
   if (typeof action !== "string") return s;
   if (id === "apartman" && action === "meeting") {
-    const proposal = s.flags.cheapPatch >= 0 && s.finance.cash < 2000 ? PROPOSALS[1] : PROPOSALS[0];
-    const vote = apartmanVote(s, proposal);
-    s.flags.meeting = true;
-    s.lastMeeting = { type: s.finance.arrears > 2500 ? "aidat-krizi" : "butce", proposal: proposal.id, ...vote, week: s.week };
-    if (vote.accepted) {
-      s.finance.cash -= proposal.cash;
-      s.building.condition = clamp(s.building.condition + proposal.condition);
-      const elev = s.building.parts.find((p) => p.id === "asansor");
-      if (elev) elev.condition = clamp(elev.condition + proposal.condition);
-      if (proposal.id === "cheap-patch") s.flags.cheapPatch = 3;
-      s.issues = s.issues.filter((x) => x.id !== "i1");
-      s.openCases.push({ id: "followup1", kind: "inspection", due: s.week + 2 });
-    }
-    pushHist(s, { type: "meeting", proposal: proposal.id, accepted: vote.accepted, yes: vote.yes, no: vote.no });
+    const proposal = s.finance.cash < 2000 ? PROPOSALS[1] : PROPOSALS[0];
+    const kind = s.finance.arrears > 2500 ? "aidat-krizi" : "butce";
+    applyApartmanProposal(s, proposal, kind);
   } else if (id === "apartman" && action === "advance") {
     tickApartman(s);
   } else if (id === "apartman" && action.startsWith("proposal:")) {
     const proposal = PROPOSALS.find((p) => p.id === action.slice(9)) || PROPOSALS[0];
-    const vote = apartmanVote(s, proposal);
-    s.flags.meeting = true;
-    s.lastMeeting = { type: "acil-onarim", proposal: proposal.id, ...vote, week: s.week };
-    if (vote.accepted) {
-      s.finance.cash -= proposal.cash;
-      s.building.condition = clamp(s.building.condition + proposal.condition);
-      if (proposal.id === "cheap-patch") s.flags.cheapPatch = 3;
-      s.issues = s.issues.map((i) => (i.status === "acik" && i.system === "asansor" ? { ...i, status: "kapali" } : i));
-    }
-    pushHist(s, { type: "meeting", proposal: proposal.id, accepted: vote.accepted });
+    applyApartmanProposal(s, proposal, proposal.id === "raise-dues" ? "aidat-krizi" : "acil-onarim");
   } else if (id === "son-100-gun" && action === "advance") {
     // Explicit "skip to next day": forfeits any unused action(s) for today.
     // This used to also sneak in one free "work" action before advancing, so
@@ -456,6 +563,11 @@ export function applyAction(id, s, action) {
       resources: { ...sc.resources },
       relationships: Object.entries(sc.relations).map(([id, value]) => ({ id, value })),
       obligations: sc.obligations.map((o) => ({ ...o, status: "open" })),
+      opportunities: [
+        { id: SON_EVENTS[1].id, title: SON_EVENTS[1].title, expiresOn: 1 + (SON_EVENTS[1].window || 3), choices: SON_EVENTS[1].choices, domain: SON_EVENTS[1].domain, status: "open" },
+      ],
+      missed: [],
+      flags: { milestones: [], finalReport: false, workStreak: 0 },
     });
   } else if (id === "hayat" && action === "major-choice") {
     hayatApplyChoice(s, "ambition");
@@ -466,8 +578,10 @@ export function applyAction(id, s, action) {
   } else if (id === "kayip-telefon" && action.startsWith("discover:")) {
     phoneDiscover(s, action.slice(9));
   } else if (id === "kayip-telefon" && action === "return") {
-    s.flags.ending = phoneEnding(s);
-    pushHist(s, { type: "ending", ending: s.flags.ending });
+    if (!s.flags.ending) {
+      s.flags.ending = phoneEnding(s);
+      pushHist(s, { type: "ending", ending: s.flags.ending });
+    }
   } else if (id === "tc-sim-devlet" && action === "policy") {
     devletPolicy(s, "imf-sba");
   } else if (id === "tc-sim-devlet" && action.startsWith("policy:")) {
@@ -503,7 +617,7 @@ export function applyAction(id, s, action) {
   return s;
 }
 
-export { defs, SYSTEMS, MEETINGS, SCENARIOS, MAJORS, DISCOVERABLES, PERIODS, POLICIES_2002, ENDINGS, APPS, ISSUE_TEMPLATES, hydrateDevlet, tickDevletN, DOCTRINES, ALT_PRESETS, POLICIES, finiteState, GUNUMUZ_BASELINE, SHADOWS, CONTACTS, RESIDENTS };
+export { defs, SYSTEMS, MEETINGS, SCENARIOS, MAJORS, DISCOVERABLES, PERIODS, POLICIES_2002, ENDINGS, APPS, ISSUE_TEMPLATES, hydrateDevlet, tickDevletN, DOCTRINES, ALT_PRESETS, POLICIES, finiteState, GUNUMUZ_BASELINE, SHADOWS, CONTACTS, RESIDENTS, SON_EVENTS, PROPOSALS };
 
 function h(s) {
   // Every replacement here used to map a character to itself, so the whole
@@ -559,10 +673,15 @@ function panelHtml(id, state) {
   }
   if (id === "son-100-gun") {
     if (state.flags.finalReport) {
-      return `<article><h2>Yüz gün bitti</h2><p>Nakit ${state.resources.money} · umut ${state.resources.hope} · enerji ${state.resources.energy}</p><p>Kaçırılan yüküm: ${state.missed.join(", ") || "yok"}</p><p>Senaryo: ${h(state.scenarioId)}</p></article>`;
+      const rep = state.flags.report || {};
+      return `<article><h2>Yüz gün bitti</h2><p>Nakit ${state.resources.money} · umut ${state.resources.hope} · enerji ${state.resources.energy}</p><p>Kaçırılan yüküm: ${state.missed.join(", ") || "yok"}</p><p>Yakalanan fırsat ${rep.caught || 0} · kaçan pencere ${rep.expired || 0}</p><p>Senaryo: ${h(state.scenarioId)}</p></article>`;
     }
     if (screen === "Yüküm") {
       return `<article><h2>Yüküm</h2><ul>${state.obligations.map((o) => `<li>${h(o.title)} · ${o.status} · ${o.due}</li>`).join("")}</ul></article>`;
+    }
+    if (screen === "Fırsat") {
+      const ops = state.opportunities || [];
+      return `<article><h2>Fırsat pencereleri</h2><ul>${ops.map((o) => `<li>${h(o.title)} · ${o.status} · son gün ${o.expiresOn || "—"}</li>`).join("") || "<li>Açık pencere yok.</li>"}</ul></article>`;
     }
     return `<article><h2>${h(screen)}</h2><p>Kalan ${state.remainingDays} gün · bugün ${state.actionsRemaining} hareket · ${h(state.scenarioId)}</p><p>Enerji ${state.resources.energy} · nakit ${state.resources.money} · umut ${state.resources.hope}</p><ul>${state.obligations
       .filter((o) => o.status === "open")

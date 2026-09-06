@@ -107,4 +107,5 @@ export const PROPOSALS = [
   { id: "durable-maintenance", label: "Pahalı ama kalıcı bakım", cash: 1800, condition: 12, trust: 4, risk: -18 },
   { id: "cheap-patch", label: "Ucuz yama", cash: 600, condition: 5, trust: 8, risk: 22 },
   { id: "wait", label: "Ertele, izle", cash: 0, condition: -4, trust: -6, risk: 12 },
+  { id: "raise-dues", label: "Aidat artır", cash: 0, condition: 0, trust: -10, risk: 8, duesDelta: 350 },
 ];

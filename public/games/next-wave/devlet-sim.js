@@ -164,9 +164,12 @@ function applyDnaDelta(s, delta) {
 }
 
 export function applyPolicy(s, policyId) {
+  const stamp = s.time.year + "-" + s.time.month;
+  if (s.flags.policyMonth === stamp) return s;
   const pool = policiesOf(s.eraId);
   const p = pool.find((x) => x.id === policyId) || pool[0];
   if (!p) return s;
+  s.flags.policyMonth = stamp;
   const inst = s.institutions.find((i) => i.id === p.inst);
   const cap = inst ? inst.capacity : 50;
   const rate = clamp((cap / Math.max(30, p.capacityNeed)) * 70 - (s.entropy || 0) * 0.1);
