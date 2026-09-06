@@ -1,4 +1,4 @@
-import { processLifetimeWeek } from "./lifetime.js?v=8";
+import { processLifetimeWeek } from "./lifetime.js?v=9";
 import {
   needsParentCare,
   canRequestParentPlanning,
@@ -7,8 +7,8 @@ import {
   parentingOvertimeBlocked,
   processParenthoodWeek,
   parenthoodYearSummary,
-} from "./parenthood.js?v=8";
-import { getHouseholdSummary } from "./household.js?v=8";
+} from "./parenthood.js?v=9";
+import { getHouseholdSummary } from "./household.js?v=9";
 import {
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
@@ -22,26 +22,26 @@ import {
   isCriticalHealth,
   transact,
   updateRelationship,
-} from "./state.js?v=8";
-import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=8";
-import { activateNextEvent, processDueOpenCases } from "./events.js?v=8";
-import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=8";
-import { processWealthMonthEnd, netWorth } from "./wealth.js?v=8";
-import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=8";
+} from "./state.js?v=9";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=9";
+import { activateNextEvent, processDueOpenCases } from "./events.js?v=9";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=9";
+import { processWealthMonthEnd, netWorth } from "./wealth.js?v=9";
+import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=9";
 import {
   getReputationContext,
   processNpcMilestones,
   syncPeerMilestones,
   updatePerceivedIdentity,
-} from "./depth3-systems.js?v=8";
+} from "./depth3-systems.js?v=9";
 import {
   processLongTermBody,
   getBodyYearSummary,
   getHealthPriorityReflection,
-} from "./body-systems.js?v=8";
-import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=8";
+} from "./body-systems.js?v=9";
+import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=9";
 
-import { getPlayerVisibleOpenCases } from "./calendar.js?v=8";
+import { getPlayerVisibleOpenCases } from "./calendar.js?v=9";
 
 /** Ek mesai: ilk haftalar tam öder, aralıksız sürdükçe getirisi düşer ve yükü artar. */
 export const OVERTIME_BASE_PAY = 1250;

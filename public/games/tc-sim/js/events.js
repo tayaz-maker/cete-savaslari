@@ -1,6 +1,6 @@
-import { LIFETIME_EVENTS, resolveAdultChoice } from "./lifetime.js?v=8";
-import { PARENTING_EVENTS, resolveParentChoice, processParenthoodCases } from "./parenthood.js?v=8";
-import { HOUSEHOLD_EVENTS, resolveHouseholdChoice, processHouseholdCases, canDiscussHousehold, householdChoiceAvailability } from "./household.js?v=8";
+import { LIFETIME_EVENTS, resolveAdultChoice } from "./lifetime.js?v=9";
+import { PARENTING_EVENTS, resolveParentChoice, processParenthoodCases } from "./parenthood.js?v=9";
+import { HOUSEHOLD_EVENTS, resolveHouseholdChoice, processHouseholdCases, canDiscussHousehold, householdChoiceAvailability } from "./household.js?v=9";
 import {
   addEventHistory,
   addCareerHistory,
@@ -10,9 +10,9 @@ import {
   getStartingProfileId,
   transact,
   updateRelationship,
-} from "./state.js?v=8";
-import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js?v=8";
-import { getPathById, isEligibleForJob } from "./education.js?v=8";
+} from "./state.js?v=9";
+import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js?v=9";
+import { getPathById, isEligibleForJob } from "./education.js?v=9";
 import {
   applyRelationshipDelta,
   becomePartner,
@@ -29,15 +29,15 @@ import {
   resolveSocialObligation,
   scheduleSocialFollowup,
   setRomanticInterest,
-} from "./social.js?v=8";
-import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=8";
-import { REALISM_EVENTS, applyRealismResolution } from "./realism-events.js?v=8";
-import { DEPTH_EVENTS, applyDepthResolution, expireDepthCases } from "./depth-events.js?v=8";
-import { DEPTH2_EVENTS } from "./depth2-events.js?v=8";
-import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secrets, transferSecret } from "./depth2-systems.js?v=8";
-import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=8";
-import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=8";
-import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=8";
+} from "./social.js?v=9";
+import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=9";
+import { REALISM_EVENTS, applyRealismResolution } from "./realism-events.js?v=9";
+import { DEPTH_EVENTS, applyDepthResolution, expireDepthCases } from "./depth-events.js?v=9";
+import { DEPTH2_EVENTS } from "./depth2-events.js?v=9";
+import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secrets, transferSecret } from "./depth2-systems.js?v=9";
+import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=9";
+import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=9";
+import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=9";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&

@@ -3,10 +3,10 @@ import {
   getRelationshipStage,
   hasNpcMemory,
   scheduleSocialFollowup,
-} from "./social.js?v=8";
-import { getJobById, getPlayerLifeStage } from "./life.js?v=8";
-import { createFavor, recordReputationEvidence } from "./depth3-systems.js?v=8";
-import { createSecret, transferSecret } from "./depth2-systems.js?v=8";
+} from "./social.js?v=9";
+import { getJobById, getPlayerLifeStage } from "./life.js?v=9";
+import { createFavor, recordReputationEvidence } from "./depth3-systems.js?v=9";
+import { createSecret, transferSecret } from "./depth2-systems.js?v=9";
 
 const friendish = (state, id) =>
   ["friend", "close", "partner"].includes(getRelationshipStage(state, id));

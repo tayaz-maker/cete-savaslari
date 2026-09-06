@@ -1,7 +1,7 @@
-import { eligibleSuccessors } from "./lifetime.js?v=8";
-import { getHomeById, getJobById } from "./catalog.js?v=8";
-import { getEducationLevelLabel } from "./education.js?v=8";
-import { BACKGROUND_OPTIONS } from "./state.js?v=8";
+import { eligibleSuccessors } from "./lifetime.js?v=9";
+import { getHomeById, getJobById } from "./catalog.js?v=9";
+import { getEducationLevelLabel } from "./education.js?v=9";
+import { BACKGROUND_OPTIONS } from "./state.js?v=9";
 const escape = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,

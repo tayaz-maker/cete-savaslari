@@ -1,6 +1,6 @@
-import { addMemory, addNpcMemory, addCareerHistory } from "./state.js?v=8";
-import { getHomeById, getNextCareerStep, promoteCareer } from "./life.js?v=8";
-import { applyRelationshipDelta } from "./social.js?v=8";
+import { addMemory, addNpcMemory, addCareerHistory } from "./state.js?v=9";
+import { getHomeById, getNextCareerStep, promoteCareer } from "./life.js?v=9";
+import { applyRelationshipDelta } from "./social.js?v=9";
 
 const followup = (state, eventId, payload, delay = 4, expires = 8) => {
   const id = `depth-${eventId}-${state.time.absoluteWeek}`;

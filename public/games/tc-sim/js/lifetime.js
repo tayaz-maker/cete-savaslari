@@ -1,6 +1,6 @@
-import { createNewGame, addMemory, transact, clamp, adjustHealth } from "./state.js?v=8";
-import { childAge, childStage, childAcademicStanding } from "./parenthood.js?v=8";
-import { netWorth, neutralWealth } from "./wealth.js?v=8";
+import { createNewGame, addMemory, transact, clamp, adjustHealth } from "./state.js?v=9";
+import { childAge, childStage, childAcademicStanding } from "./parenthood.js?v=9";
+import { netWorth, neutralWealth } from "./wealth.js?v=9";
 
 export const LIFE_REPORT_LIMIT = 8;
 export const CLOSED_LIFE_CASE_LIMIT = 128;

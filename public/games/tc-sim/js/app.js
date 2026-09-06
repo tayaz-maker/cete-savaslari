@@ -1,11 +1,11 @@
-import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=8";
+import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, SPENDING,
   getWealthActionAvailability, applyWealthAction, netWorth,
-} from "./wealth.js?v=8";
-import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=8";
-import { parenthoodSummary } from "./parenthood.js?v=8";
-import { getHouseholdSummary } from "./household.js?v=8";
+} from "./wealth.js?v=9";
+import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=9";
+import { parenthoodSummary } from "./parenthood.js?v=9";
+import { getHouseholdSummary } from "./household.js?v=9";
 import {
   WEEKS_PER_MONTH,
   BACKGROUND_OPTIONS,
@@ -15,23 +15,23 @@ import {
   getWeeklyActivityLimit,
   isCriticalHealth,
   setYearlyPriorities,
-} from "./state.js?v=8";
-import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=8";
-import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=8";
+} from "./state.js?v=9";
+import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=9";
+import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=9";
 import {
   getChoiceEffectSummary,
   getEventDefinition,
   getEventChoiceAvailability,
   resolveEvent,
-} from "./events.js?v=8";
-import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=8";
-import { getBodyEventContext } from "./body-events.js?v=8";
+} from "./events.js?v=9";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=9";
+import { getBodyEventContext } from "./body-events.js?v=9";
 import {
   getBodyRiskSummary,
   getKnownBodyConditions,
   getBodyCareContext,
-} from "./body-systems.js?v=8";
-import { clearSaves, loadGame, saveGame } from "./save.js?v=8";
+} from "./body-systems.js?v=9";
+import { clearSaves, loadGame, saveGame } from "./save.js?v=9";
 import {
   HOMES,
   JOBS,
@@ -51,7 +51,7 @@ import {
   quitJob,
   stopEducation,
   PRIVACY_CONTEXT,
-} from "./life.js?v=8";
+} from "./life.js?v=9";
 import {
   EDUCATION_PATHS,
   JOB_FAMILY_LABELS,
@@ -64,9 +64,9 @@ import {
   getIntensityLabel,
   getPathDurationWeeks,
   isEligibleForJob,
-} from "./education.js?v=8";
-import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=8";
-import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=8";
+} from "./education.js?v=9";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=9";
 import {
   RELATIONSHIP_STAGES,
   SOCIAL_ROLE_LABELS,
@@ -77,9 +77,10 @@ import {
   getPersonalDebt,
   getRelationship,
   getRelationshipStage,
-} from "./social.js?v=8";
-import { getRelationshipContext } from "./depth2-systems.js?v=8";
-import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=8";
+} from "./social.js?v=9";
+import { getRelationshipContext } from "./depth2-systems.js?v=9";
+import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=9";
+import { renderHelpModal } from "./help.js?v=9";
 
 const app = document.querySelector("#app");
 let state = null;
@@ -89,6 +90,8 @@ let activeView = "dashboard";
 let selectedPersonId = "mehmet";
 // Haftanın başındaki durum. Yalnız bu oturumda, bellekte tutulur; save'e yazılmaz.
 let weekStartSnapshot = null;
+// Nasıl Oynanır modalı yalnız görüntü durumudur; save/state'e hiç yazılmaz.
+let helpOpen = false;
 
 const money = (value) =>
   new Intl.NumberFormat("tr-TR", {
@@ -1027,14 +1030,15 @@ function render() {
       <header class="game-topbar">
         <div class="game-brand"><strong>TC SIM</strong><span>Yaşam Yönetimi</span></div>
         <div class="top-meta"><span><b>${escapeText(state.player.name)}</b> · ${state.player.age}</span><span>${state.time.year} / ${state.time.month}. ay / H${state.time.weekOfMonth}</span><span class="top-money">${money(state.finances.balance)}</span></div>
-        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
+        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="help-open" aria-haspopup="dialog">? Nasıl Oynanır</button><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>
       <div class="game-body">
         <nav class="side-nav" aria-label="Oyun bölümleri">${terminal ? "Yaşam raporu" : renderNav()}</nav>
         <section class="workspace">${workspace}</section>
       </div>
       ${renderEvent()}
-      <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık.</footer>
+      ${helpOpen ? renderHelpModal() : ""}
+      <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.</footer>
     </main>`;
 
   document.querySelectorAll("[data-successor]").forEach(button => button.addEventListener("click", () => {
@@ -1163,6 +1167,14 @@ function render() {
     persist();
     render();
   });
+  document.querySelector("#help-open")?.addEventListener("click", () => {
+    helpOpen = true;
+    render();
+  });
+  document.querySelector("#help-close")?.addEventListener("click", () => {
+    helpOpen = false;
+    render();
+  });
   document.querySelector("#save-game").addEventListener("click", () => {
     persist("Elle kaydedildi.");
     render();
@@ -1181,5 +1193,12 @@ function render() {
     render();
   });
 }
+
+window.addEventListener?.("keydown", (event) => {
+  if (event.key === "Escape" && helpOpen) {
+    helpOpen = false;
+    render();
+  }
+});
 
 render();

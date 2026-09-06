@@ -8,7 +8,7 @@ import {
   isCriticalHealth,
   transact,
   updateRelationship,
-} from "./state.js?v=8";
+} from "./state.js?v=9";
 
 export const RELATIONSHIP_STAGES = {
   acquaintance: "Tanışık",

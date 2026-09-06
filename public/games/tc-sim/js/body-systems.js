@@ -1,4 +1,4 @@
-import { appendCapped, addMemory } from "./state.js?v=8";
+import { appendCapped, addMemory } from "./state.js?v=9";
 
 const MAX_CONDITIONS = 8;
 const EXPOSURES = ["overwork", "underRecovery", "inactivity"];
