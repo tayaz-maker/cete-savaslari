@@ -2843,6 +2843,7 @@ button:disabled { opacity: .35; }
     m.setAttribute("data-len", tmpLen);
     m.setAttribute("data-lvl", tmpLvl);
     m.setAttribute("data-snd", sndPref() ? "1" : "0");
+    add(m, el("a", { href: "/", cls: "hint", text: "← Oyunlar", style: "display:inline-block;text-decoration:none" }));
     add(m, el("h1", { text: "SON MAHALLE BÜKÜCÜ" }));
     add(m, el("p", { cls: "sub", text: "İstanbul tapusu. Semti tutan büker." }));
     add(m, el("p", { cls: "hint", text: "Kayıt yerleri" }));
