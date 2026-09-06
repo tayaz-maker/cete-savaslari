@@ -153,7 +153,18 @@ export function useLang() {
       document.documentElement.lang = next;
     };
     document.addEventListener("tlab-language", onChange);
-    return () => document.removeEventListener("tlab-language", onChange);
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === LANG_KEY || ev.key === null) {
+        const next = readLang();
+        setLangState(next);
+        document.documentElement.lang = next;
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      document.removeEventListener("tlab-language", onChange);
+      window.removeEventListener("storage", onStorage);
+    };
   }, [lang]);
   const setLang = (next: Lang) => {
     writeLang(next);

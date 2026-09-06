@@ -439,7 +439,7 @@
       /* ignore */
     }
     applyHtmlLang();
-    listeners.forEach((fn) => {
+    [...listeners].forEach((fn) => {
       try {
         fn(lang);
       } catch {
@@ -455,6 +455,15 @@
   function onLang(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
+  }
+
+  if (typeof root.addEventListener === "function") {
+    root.addEventListener("storage", (event) => {
+      if (event.key !== KEY && event.key !== null) return;
+      let next = "tr";
+      try { next = root.localStorage.getItem(KEY); } catch { /* TR fallback */ }
+      setLang(next);
+    });
   }
 
   function t(key, fallback) {

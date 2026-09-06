@@ -671,7 +671,10 @@ function panelHtml(id, state) {
   return `<article><pre>${h(JSON.stringify(state, null, 2))}</pre></article>`;
 }
 
-function render(id) {
+let releaseLanguageListener;
+
+function render(id, draft) {
+  releaseLanguageListener?.();
   let active = +(localStorage.getItem(NS + id + ".active") || 1);
   const slots = [1, 2, 3].map((n) => {
     try {
@@ -680,7 +683,7 @@ function render(id) {
       return null;
     }
   });
-  let state = slots[active - 1];
+  let state = draft === undefined ? slots[active - 1] : draft;
   const d = defs[id];
   const nav = (d.screens || ["Durum"]).map((x) => `<button type="button" data-screen="${h(x)}">${h(loc(x))}</button>`).join("");
   document.body.innerHTML = `<main>
@@ -791,6 +794,7 @@ function render(id) {
     };
   });
   show();
+  if (I18) releaseLanguageListener = I18.onLang(() => render(id, state));
 }
 
 function loc(text) {
@@ -816,10 +820,5 @@ if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
     const id = document.body.dataset.game;
     render(id);
-    const I = window.tlabI18n;
-    if (I && !window.__nwLangBound) {
-      window.__nwLangBound = true;
-      I.onLang(() => render(id));
-    }
   });
 }
