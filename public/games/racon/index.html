@@ -1810,14 +1810,6 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     return n;
   }
   function manName(m) { return m.lakap ? m.ad + ' "' + m.lakap + '"' : m.ad; }
-  function delayedN() {
-    var now = S.week * 7 + S.day;
-    return S.calendar.filter(function (c) {
-      if (c.status === "bitti" || c.status === "kacirildi") return false;
-      var when = (c.week || 0) * 7 + (c.day || 0);
-      return when > 0 && when < now;
-    }).length;
-  }
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
   function fmtPara(n) {
     var s = Math.abs(Math.round(n)).toLocaleString("tr-TR");
@@ -4344,12 +4336,10 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function drawTop() {
     if (!S) { document.getElementById("top-meta").innerHTML = ""; return; }
     var dc = S.dosya >= 75 ? "is-danger" : S.dosya >= 40 ? "is-heat" : "";
-    var delay = delayedN();
     document.getElementById("top-meta").innerHTML =
       "<span>FATİH</span><span>H" + S.week + " · " + DAYS[S.day - 1] + "</span>" +
       '<span class="' + dc + '">DOSYA <b>' + Math.round(S.dosya) + "%</b></span>" +
-      "<span>₺" + S.kasa.toLocaleString("tr-TR") + "</span>" +
-      (delay ? '<span class="pill bad">!' + delay + " gecikmiş</span>" : "");
+      "<span>₺" + S.kasa.toLocaleString("tr-TR") + "</span>";
     document.getElementById("btn-ilerlet").disabled = !!S.busy || UI.sahne || !!(S && S.flags && S.flags.oyunSonu);
     document.getElementById("btn-ilerlet").textContent = UI.sahne ? "Sahne sürüyor" : S.flags.oyunSonu ? "Defter kapandı" : "İLERLET";
   }

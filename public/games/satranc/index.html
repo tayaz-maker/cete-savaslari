@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#080706" />
     <meta
       name="description"
-      content="Satranç — TLab Edition. İki oyunculu klasik satranç: rok, geçerken alma, terfi, şah, mat ve pat kuralları eksiksiz; özgün TarikLab tahtası ve taş seti."
+      content="Satranç — TLab Edition. Bilgisayara karşı veya iki oyunculu klasik satranç: rok, geçerken alma, terfi, şah, mat ve pat kuralları eksiksiz; özgün TarikLab tahtası ve taş seti."
     />
     <title>Satranç | TLab</title>
-    <link rel="stylesheet" href="./styles.css?v=1" />
+    <link rel="stylesheet" href="./styles.css?v=2" />
   </head>
   <body>
     <main class="shell">
@@ -19,6 +19,7 @@
         <span class="family-tag">TLab Classics</span>
       </header>
 
+      <p class="note" id="game-settings">İki oyuncu</p>
       <div class="taken" id="taken-top">
         <span class="who">Siyahın aldıkları</span>
       </div>
@@ -37,6 +38,7 @@
 
       <div class="controls">
         <button type="button" id="new-game" class="primary">Yeni oyun</button>
+        <button type="button" id="restart">Yeniden başlat</button>
         <button type="button" id="undo" disabled>Geri al</button>
         <button type="button" id="flip">Tahtayı çevir</button>
       </div>
@@ -56,7 +58,11 @@
           <li>Rok, geçerken alma ve piyon terfisi desteklenir; terfide taşı sen seçersin.</li>
           <li>Şahını tehdide açan hamleler oynanamaz.</li>
           <li>Beraberlik olarak pat, yetersiz materyal ve elli hamle kuralı uygulanır.</li>
-          <li>İki oyuncu aynı cihazda sırayla oynar; bilgisayar rakip yoktur.</li>
+          <li>İki oyuncu aynı cihazda oynar. Bilgisayara karşı modunda Beyaz, Siyah veya Rastgele seçebilirsin.</li>
+          <li>Kolay bazen zayıf hamle seçer. Orta kısa taktikleri hesaplar. Zor daha derin arar ve taş değişimlerini inceler; profesyonel motor değildir.</li>
+          <li>Bilgisayar düşünürken tahta bekler; Geri al, Yeni oyun ve Yeniden başlat aramayı iptal eder.</li>
+          <li>Geri al, bilgisayar modunda son hamleni ve bilgisayarın yanıtını geri alır. İki oyuncuda tek hamleyi alır.</li>
+          <li>Yeniden başlat aynı ayarları korur. Yeni oyun mod, zorluk ve renk seçimini açar. Tahtayı çevir yalnız görünümü değiştirir.</li>
         </ul>
       </details>
 
@@ -66,6 +72,21 @@
         Klasik oyun kuralları üzerindeki hak iddiası bu bildirimin kapsamı dışındadır.
       </footer>
     </main>
+
+    <dialog id="setup" aria-labelledby="setup-title">
+      <form id="setup-form" class="dialog-body">
+        <h2 id="setup-title">Yeni oyun</h2>
+        <label for="mode">Oyun modu</label>
+        <select id="mode"><option value="two">İki Oyuncu</option><option value="computer">Bilgisayara Karşı</option></select>
+        <div id="computer-settings" hidden>
+          <label for="difficulty">Zorluk</label>
+          <select id="difficulty"><option value="easy">Kolay</option><option value="medium" selected>Orta</option><option value="hard">Zor</option></select>
+          <label for="color">Oynayacağın renk</label>
+          <select id="color"><option value="w">Beyaz</option><option value="b">Siyah</option><option value="random">Rastgele</option></select>
+        </div>
+        <button type="submit" class="primary">Oyuna başla</button>
+      </form>
+    </dialog>
 
     <dialog id="promotion">
       <form method="dialog" class="dialog-body">
@@ -81,13 +102,13 @@
         <p class="note" id="result-note"></p>
         <p class="note" id="result-summary"></p>
         <div class="dialog-actions">
-          <button type="submit" value="again" class="primary">Yeni oyun</button>
+          <button type="submit" value="again" class="primary">Yeniden başlat</button>
           <button type="submit" value="close">Tahtayı incele</button>
         </div>
       </form>
     </dialog>
 
     <noscript>Satranç için JavaScript açık olmalıdır.</noscript>
-    <script type="module" src="./js/app.js?v=1"></script>
+    <script type="module" src="./js/app.js?v=2"></script>
   </body>
 </html>

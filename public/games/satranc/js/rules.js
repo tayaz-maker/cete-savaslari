@@ -477,3 +477,9 @@ export function perft(game, depth) {
   }
   return nodes;
 }
+
+/** Search only: candidate must come from legalMoves; always restore, even on cancellation. */
+export function visitMove(game, candidate, visit) {
+  const previous = applyInternal(game, candidate);
+  try { return visit(); } finally { undoInternal(game, previous); }
+}
