@@ -31,7 +31,7 @@ import {
   getKnownBodyConditions,
   getBodyCareContext,
 } from "./body-systems.js?v=9";
-import { clearSaves, loadGame, saveGame } from "./save.js?v=9";
+import { clearSaves, loadGame, saveGame, listSlots, loadSlot, setActiveSlot, getActiveSlot } from "./save.js?v=9";
 import {
   HOMES,
   JOBS,
@@ -219,12 +219,20 @@ function persist(message = "Otomatik kaydedildi.") {
 }
 
 function startScreen(loadResult) {
+  const slots = listSlots(localStorage);
+  const active = getActiveSlot(localStorage);
   app.innerHTML = `
     <main class="start-wrap">
       <section class="start-card" aria-labelledby="start-title">
         <h1 id="start-title">TC SIM</h1>
         <p>18 yaşında, İstanbul'da aile evinde başlayan küçük bir hayat. Her hafta yalnız iki önemli karar verebilirsin.</p>
-        ${loadResult.ok ? `<div class="continue-box"><strong>${escapeText(loadResult.state.player.name)} · ${loadResult.state.time.year}, ${loadResult.state.time.month}. ay</strong><button class="button button-primary" id="continue-game">Devam et</button></div>` : `<p class="result">${escapeText(loadResult.message)}</p>`}
+        <div class="slot-row" role="group" aria-label="Kayıt yerleri">${slots
+          .map(
+            (item) =>
+              `<button class="button button-quiet slot-btn ${item.slot === active ? "is-current" : ""}" data-slot="${item.slot}">Slot ${item.slot}${item.empty ? " · boş" : ` · ${escapeText(item.name || "kayıt")}`}</button>`,
+          )
+          .join("")}</div>
+        ${loadResult.ok ? `<div class="continue-box"><strong>${escapeText(loadResult.state.player.name)} · ${loadResult.state.time.year}, ${loadResult.state.time.month}. ay</strong><button class="button button-primary" id="continue-game">Slot ${active} devam</button></div>` : `<p class="result">${escapeText(loadResult.message)}</p>`}
         <form id="new-game-form" class="form-grid">
           <label>İsim<input name="name" maxlength="40" value="Deniz" required /></label>
           <label>Kimlik<select name="gender"><option value="unspecified">Belirtmek istemiyorum</option><option value="woman">Kadın</option><option value="man">Erkek</option></select></label>
@@ -251,10 +259,18 @@ function startScreen(loadResult) {
             .join("")}</select></label>
           <label>Askerlik durumu<select name="militaryApplicable"><option value="false">Bu yaşamda yükümlülük yok</option><option value="true">Yükümlülük var</option></select></label>
           <label>Başlangıç dönemi<select name="eraId" disabled>${ERAS.map((era) => `<option value="${era.id}" ${era.id === PRESENT_DAY_ERA_ID ? "selected" : ""}>${escapeText(era.title)} · aktif</option>`).join("")}</select><small>Diğer dönemler daha sonra eklenecek.</small></label>
-          <button class="button button-primary" type="submit">Yeni hayat başlat</button>
+        <button class="button button-primary" type="submit">Bu slota yeni hayat</button>
         </form>
       </section>
     </main>`;
+
+  document.querySelectorAll("[data-slot]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const slot = Number(button.getAttribute("data-slot"));
+      const result = loadSlot(localStorage, slot);
+      startScreen(result);
+    });
+  });
 
   document.querySelector("#continue-game")?.addEventListener("click", () => {
     state = loadResult.state;
@@ -1030,7 +1046,7 @@ function render() {
       <header class="game-topbar">
         <div class="game-brand"><strong>TC SIM</strong><span>Yaşam Yönetimi</span></div>
         <div class="top-meta"><span><b>${escapeText(state.player.name)}</b> · ${state.player.age}</span><span>${state.time.year} / ${state.time.month}. ay / H${state.time.weekOfMonth}</span><span class="top-money">${money(state.finances.balance)}</span></div>
-        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><button class="button button-quiet" id="help-open" aria-haspopup="dialog">? Nasıl Oynanır</button><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
+        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><span class="slot-mini">Slot ${getActiveSlot(localStorage)}</span><button class="button button-quiet" id="help-open" aria-haspopup="dialog">? Nasıl Oynanır</button><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>
       <div class="game-body">
         <nav class="side-nav" aria-label="Oyun bölümleri">${terminal ? "Yaşam raporu" : renderNav()}</nav>

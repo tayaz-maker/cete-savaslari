@@ -21,7 +21,6 @@ import { useGame } from "@/game/store";
 import { useGameClock } from "@/game/use-game-clock";
 import type { TabId } from "@/game/types";
 import { askPushOnce, pingStreetIfHidden } from "@/lib/notify";
-import { useSupabaseUser } from "@/lib/supabase-session";
 import { cn } from "@/lib/utils";
 
 const MePanel = lazy(() =>
@@ -96,9 +95,8 @@ export function GameShell({
   const [logOpen, setLogOpen] = useState(false);
   const swipe = useRef<{ x: number; y: number; fromUi: boolean } | null>(null);
 
-  const { user, verified } = useSupabaseUser();
   useGameClock(Boolean(player));
-  useSaveSync(Boolean(user) && verified);
+  useSaveSync(false);
 
   useEffect(() => {
     const p = useGame.getState().player;

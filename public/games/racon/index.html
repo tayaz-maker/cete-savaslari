@@ -463,6 +463,12 @@ html,body{font-size:14px}
       <p id="menu-feedback" role="status" class="dim" hidden></p>
       <div id="menu-home" class="stack">
         <p id="menu-err" class="dim" hidden></p>
+        <p class="dim" style="font-size:0.75rem">Kayıt yerleri</p>
+        <div class="row" id="racon-slots" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn" data-act="slot" data-id="1">Slot 1</button>
+          <button type="button" class="btn" data-act="slot" data-id="2">Slot 2</button>
+          <button type="button" class="btn" data-act="slot" data-id="3">Slot 3</button>
+        </div>
         <button type="button" class="btn primary" data-act="menu" data-go="nick">Yeni oyun</button>
         <button type="button" class="btn" id="btn-devam" data-act="menu" data-go="play">Devam</button>
         <button type="button" class="btn" data-act="menu" data-go="yedek">Yedek</button>
@@ -661,6 +667,35 @@ html,body{font-size:14px}
   var KIND_TR = { kamera: "kamera", iz: "iz", tanik: "tanık", sinyal: "sinyal", ihbar: "ihbar" };
   var KEY = "racon_v1";
   var BAK = "racon_v1_bak";
+  var SLOT = 1;
+  function bindRaconSlot(n) {
+    n = n === 2 || n === 3 ? n : 1;
+    SLOT = n;
+    KEY = "tariklab::racon:" + n;
+    BAK = "tariklab::racon:" + n + ":bak";
+    try { localStorage.setItem("tariklab::racon:active", String(n)); } catch (e) {}
+  }
+  function migrateRaconSlots() {
+    var flag = "tariklab::racon:legacy-migrated";
+    var existing = null, flagged = null;
+    try { existing = localStorage.getItem("tariklab::racon:1"); } catch (e) {}
+    try { flagged = localStorage.getItem(flag); } catch (e) {}
+    if (existing || flagged === "1") {
+      var a = 1;
+      try { a = +localStorage.getItem("tariklab::racon:active"); } catch (e) {}
+      bindRaconSlot(a);
+      if (flagged !== "1") try { localStorage.setItem(flag, "1"); } catch (e) {}
+      return;
+    }
+    var raw = null, bak = null;
+    try { raw = localStorage.getItem("racon_v1"); } catch (e) {}
+    try { bak = localStorage.getItem("racon_v1_bak"); } catch (e) {}
+    if (raw) try { localStorage.setItem("tariklab::racon:1", raw); } catch (e) {}
+    if (bak) try { localStorage.setItem("tariklab::racon:1:bak", bak); } catch (e) {}
+    try { localStorage.setItem(flag, "1"); } catch (e) {}
+    bindRaconSlot(1);
+  }
+  migrateRaconSlots();
   var SELL_RATE = 0.55;
   var SHOP = [
     { id: "w101", kind: "silah", ad: "Çakı", fiyat: 0, atk: 2, def: 0, nam: 0, desc: "Emanet. Cebe sığar, iş görür." },
@@ -1647,6 +1682,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       var cur = localStorage.getItem(KEY);
       if (cur && parseSave(cur)) { try { localStorage.setItem(BAK, cur); } catch (e) {} }
       localStorage.setItem(KEY, JSON.stringify(dumpSave()));
+      if (SLOT === 1) {
+        try { localStorage.setItem("racon_v1", JSON.stringify(dumpSave())); } catch (e2) {}
+      }
       var status=document.getElementById("save-status"); if(status) status.textContent="Kaydedildi";
       return true;
     } catch (e) { feedback("Kayıt yazılamadı. Yedek ekranından metni kopyalayıp sakla; bu sayfayı kapatma."); return false; }
@@ -5057,6 +5095,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     else { err.hidden = true; err.textContent = ""; }
     var devam = document.getElementById("btn-devam");
     if (devam) devam.disabled = !S;
+    var slotBtns = document.querySelectorAll("#racon-slots [data-act=slot]");
+    slotBtns.forEach(function (btn) {
+      var n = +btn.getAttribute("data-id");
+      var raw = null;
+      try { raw = localStorage.getItem("tariklab::racon:" + n); } catch (e) {}
+      btn.textContent = "Slot " + n + (raw ? " · dolu" : " · boş");
+      btn.classList.toggle("pick", SLOT === n);
+    });
     drawTop();
     drawNav();
     drawSide();
@@ -5084,6 +5130,16 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     if(code==="new-cancel"){closeModal();render();return;}
     if(code==="new-confirm"){closeModal();UI.mode="menu";showMenu("nick");render();return;}
+    if (code === "slot") {
+      var n = +payload.id;
+      if (S) writeSave();
+      bindRaconSlot(n);
+      S = loadSave();
+      UI.mode = "menu";
+      showMenu("home");
+      render();
+      return;
+    }
     if (code === "menu") {
       if(payload.go==="nick"&&S){openModal("Yeni oyun mevcut kaydın yerine geçer. Önce Yedek ekranından kopya alabilirsin. Yeni bir hayat başlatılsın mı?",[{label:"Vazgeç",act:"new-cancel",ghost:true},{label:"Yeni hayat",act:"new-confirm",danger:true}]);render();return;}
       if (payload.go === "play") {

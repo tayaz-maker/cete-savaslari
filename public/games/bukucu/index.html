@@ -185,6 +185,35 @@ button:disabled { opacity: .35; }
 (function () {
   "use strict";
   var KEY = "smb.v1";
+  var SLOT = 1;
+  function bindBukucuSlot(n) {
+    n = n === 2 || n === 3 ? n : 1;
+    SLOT = n;
+    KEY = "tariklab::bukucu:" + n;
+    try { localStorage.setItem("tariklab::bukucu:active", String(n)); } catch (e) {}
+  }
+  function migrateBukucuSlots() {
+    var flag = "tariklab::bukucu:legacy-migrated";
+    var existing = null;
+    try { existing = localStorage.getItem("tariklab::bukucu:1"); } catch (e) {}
+    var flagged = null;
+    try { flagged = localStorage.getItem(flag); } catch (e) {}
+    if (existing || flagged === "1") {
+      var a = 1;
+      try { a = +localStorage.getItem("tariklab::bukucu:active"); } catch (e) {}
+      bindBukucuSlot(a);
+      if (flagged !== "1") try { localStorage.setItem(flag, "1"); } catch (e) {}
+      return;
+    }
+    var raw = null;
+    try { raw = localStorage.getItem("smb.v1"); } catch (e) {}
+    if (raw) {
+      try { localStorage.setItem("tariklab::bukucu:1", raw); } catch (e) {}
+    }
+    try { localStorage.setItem(flag, "1"); } catch (e) {}
+    bindBukucuSlot(1);
+  }
+  migrateBukucuSlots();
   var COL = {
     kahverengi: "#B8743C", acik_mavi: "#6FB3DC", pembe: "#E09BB8", turuncu: "#F08C2E",
     kirmizi: "#D94A38", sari: "#E0C04C", yesil: "#3FA86A", koyu_mavi: "#3B74C4"
@@ -432,7 +461,7 @@ button:disabled { opacity: .35; }
     if (!S) return;
     var raw = JSON.stringify(S);
     if (mem) { mem[KEY] = raw; return; }
-    try { localStorage.setItem(KEY, raw); }
+    try { localStorage.setItem(KEY, raw); if (SLOT === 1) localStorage.setItem("smb.v1", raw); }
     catch (e) { mem = {}; mem[KEY] = raw; }
   }
   function loadRaw() {
@@ -1844,7 +1873,15 @@ button:disabled { opacity: .35; }
     if (code === "len:short") { tmpLen = "short"; paintMenu(); return; }
     if (code === "len:long") { tmpLen = "long"; paintMenu(); return; }
     if (code === "snd") { setSndPref(!sndPref()); paintMenu(); return; }
-    if (code === "cont") {
+    if (code.indexOf("slot:") === 0) {
+      var sn = +code.slice(5);
+      if (S) persist();
+      bindBukucuSlot(sn);
+      S = null;
+      view = "menu";
+      paintMenu();
+      return;
+    }
       closeSheet();
       var raw = loadRaw(); if (!raw) return;
       try { bootState(JSON.parse(raw)); } catch (e) { wipe(); view = "menu"; paintMenu(); }
@@ -2807,6 +2844,15 @@ button:disabled { opacity: .35; }
     m.setAttribute("data-snd", sndPref() ? "1" : "0");
     add(m, el("h1", { text: "SON MAHALLE BÜKÜCÜ" }));
     add(m, el("p", { cls: "sub", text: "İstanbul tapusu. Semti tutan büker." }));
+    add(m, el("p", { cls: "hint", text: "Kayıt yerleri" }));
+    var slotRow = add(m, el("div", { cls: "row" }));
+    [1, 2, 3].forEach(function (n) {
+      var rawN = null;
+      try { rawN = localStorage.getItem("tariklab::bukucu:" + n); } catch (e) {}
+      var filled = false;
+      if (rawN) { try { JSON.parse(rawN); filled = true; } catch (e) { filled = false; } }
+      add(slotRow, el("button", { text: "Slot " + n + (filled ? " · dolu" : " · boş"), "data-act": "slot:" + n, cls: SLOT === n ? "pick" : "" }));
+    });
     var st = add(m, el("div", { cls: "stack" }));
     var raw = loadRaw();
     var ok = false;

@@ -587,6 +587,20 @@ select:focus-visible {
   color: var(--muted);
   line-height: 1.5;
 }
+.slot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.slot-btn.is-current {
+  border-color: var(--accent);
+}
+.slot-mini {
+  color: var(--muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
 .form-grid {
   display: grid;
   gap: 12px;

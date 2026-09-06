@@ -4,6 +4,56 @@ import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
 
 export const SAVE_KEY = "tc-sim-save";
 export const BACKUP_KEY = "tc-sim-save-backup";
+export const SLOT_GAME_ID = "tc-sim";
+const SLOT_COUNT = 3;
+
+function slotKey(slot) {
+  return `tariklab::${SLOT_GAME_ID}:${slot}`;
+}
+function backupKey(slot) {
+  return `tariklab::${SLOT_GAME_ID}:${slot}:bak`;
+}
+function activeKey() {
+  return `tariklab::${SLOT_GAME_ID}:active`;
+}
+
+export function isSlotIndex(value) {
+  return value === 1 || value === 2 || value === 3;
+}
+
+export function getActiveSlot(storage) {
+  const raw = Number(storage.getItem(activeKey()));
+  return isSlotIndex(raw) ? raw : 1;
+}
+
+export function setActiveSlot(storage, slot) {
+  if (!isSlotIndex(slot)) return false;
+  storage.setItem(activeKey(), String(slot));
+  return true;
+}
+
+function migrateLegacyOnce(storage) {
+  const flag = `tariklab::${SLOT_GAME_ID}:legacy-migrated`;
+  if (storage.getItem(flag) === "1") return;
+  if (storage.getItem(slotKey(1))) {
+    storage.setItem(flag, "1");
+    return;
+  }
+  const legacy = storage.getItem(SAVE_KEY);
+  if (legacy) {
+    storage.setItem(slotKey(1), legacy);
+    const bak = storage.getItem(BACKUP_KEY);
+    if (bak) storage.setItem(backupKey(1), bak);
+    setActiveSlot(storage, 1);
+  }
+  storage.setItem(flag, "1");
+}
+
+function currentKeys(storage) {
+  migrateLegacyOnce(storage);
+  const slot = getActiveSlot(storage);
+  return { slot, primary: slotKey(slot), backup: backupKey(slot) };
+}
 
 function mergeLegacy(raw) {
   const base = createNewGame({
@@ -124,13 +174,18 @@ export function saveGame(storage, state) {
   if (!validation.ok)
     return { ok: false, message: `Kayıt doğrulanamadı: ${validation.errors.join("; ")}` };
   try {
-    const current = storage.getItem(SAVE_KEY);
-    if (current && deserializeState(current).ok) storage.setItem(BACKUP_KEY, current);
+    const keys = currentKeys(storage);
+    const current = storage.getItem(keys.primary);
+    if (current && deserializeState(current).ok) storage.setItem(keys.backup, current);
     const copy = structuredClone(state);
     copy.meta.updatedAt = new Date().toISOString();
     const serialized = JSON.stringify(copy);
-    storage.setItem(SAVE_KEY, serialized);
-    return { ok: true, message: "Oyun kaydedildi.", bytes: new Blob([serialized]).size };
+    storage.setItem(keys.primary, serialized);
+    if (keys.slot === 1) {
+      storage.setItem(SAVE_KEY, serialized);
+      if (current && deserializeState(current).ok) storage.setItem(BACKUP_KEY, current);
+    }
+    return { ok: true, message: `Slot ${keys.slot} kaydedildi.`, bytes: new Blob([serialized]).size, slot: keys.slot };
   } catch {
     return {
       ok: false,
@@ -140,32 +195,55 @@ export function saveGame(storage, state) {
 }
 
 export function loadGame(storage) {
-  const primary = deserializeState(storage.getItem(SAVE_KEY));
+  const keys = currentKeys(storage);
+  const primary = deserializeState(storage.getItem(keys.primary));
   if (primary.ok)
     return {
       ...primary,
       source: "primary",
-      message: primary.migrated ? "Eski kayıt güncellenerek açıldı." : "Kayıt yüklendi.",
+      slot: keys.slot,
+      message: primary.migrated ? "Eski kayıt güncellenerek açıldı." : `Slot ${keys.slot} yüklendi.`,
     };
-  const backup = deserializeState(storage.getItem(BACKUP_KEY));
+  const backup = deserializeState(storage.getItem(keys.backup));
   if (backup.ok)
-    return { ...backup, source: "backup", message: "Ana kayıt bozuktu; son sağlam yedek açıldı." };
+    return { ...backup, source: "backup", slot: keys.slot, message: "Ana kayıt bozuktu; son sağlam yedek açıldı." };
   return {
     ok: false,
     source: "none",
+    slot: keys.slot,
     message:
-      storage.getItem(SAVE_KEY) || storage.getItem(BACKUP_KEY)
+      storage.getItem(keys.primary) || storage.getItem(keys.backup)
         ? "Kayıt bozuk; yeni oyun güvenle başlatılabilir."
         : "Henüz kayıt yok.",
   };
 }
 
+export function loadSlot(storage, slot) {
+  if (!isSlotIndex(slot)) return { ok: false, message: "Geçersiz slot." };
+  setActiveSlot(storage, slot);
+  return loadGame(storage);
+}
+
 export function clearSaves(storage) {
   try {
-    storage.removeItem(SAVE_KEY);
-    storage.removeItem(BACKUP_KEY);
+    const keys = currentKeys(storage);
+    storage.removeItem(keys.primary);
+    storage.removeItem(keys.backup);
     return true;
   } catch {
     return false;
   }
+}
+
+export function listSlots(storage) {
+  migrateLegacyOnce(storage);
+  return [1, 2, 3].map((slot) => {
+    const loaded = deserializeState(storage.getItem(slotKey(slot)));
+    return {
+      slot,
+      empty: !loaded.ok,
+      name: loaded.ok ? loaded.state.player?.name : null,
+      week: loaded.ok ? loaded.state.time?.absoluteWeek : null,
+    };
+  });
 }

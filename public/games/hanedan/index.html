@@ -98,6 +98,7 @@ svg.face { display:block; flex:0 0 auto; }
   var KEY = "cete_hanedan_v2";
   var KEY_BAK = "cete_hanedan_bak";
   var KEY_OLD = "cete_hanedan_v1";
+  var SLOT = 1;
   var SAVE_KIND = "tlab-hanedan";
   var TABS = [
     ["sehir", "Şehir"],
@@ -399,6 +400,31 @@ svg.face { display:block; flex:0 0 auto; }
     if (memStore) delete memStore[k];
     try { localStorage.removeItem(k); } catch (e) {}
   }
+  function bindHanedanSlot(n) {
+    n = n === 2 || n === 3 ? n : 1;
+    SLOT = n;
+    KEY = "tariklab::hanedan:" + n;
+    KEY_BAK = "tariklab::hanedan:" + n + ":bak";
+    lsSet("tariklab::hanedan:active", String(n));
+  }
+  function migrateHanedanSlots() {
+    var flag = "tariklab::hanedan:legacy-migrated";
+    if (lsGet("tariklab::hanedan:1") || lsGet(flag) === "1") {
+      var a = +lsGet("tariklab::hanedan:active");
+      bindHanedanSlot(a === 2 || a === 3 ? a : 1);
+      if (!lsGet(flag)) lsSet(flag, "1");
+      return;
+    }
+    var raw = lsGet("cete_hanedan_v2") || lsGet("cete_hanedan_v1");
+    if (raw) {
+      lsSet("tariklab::hanedan:1", raw);
+      var bak = lsGet("cete_hanedan_bak");
+      if (bak) lsSet("tariklab::hanedan:1:bak", bak);
+    }
+    lsSet(flag, "1");
+    bindHanedanSlot(1);
+  }
+  migrateHanedanSlots();
   function yearOf(data) {
     return 1977 + (data && data.season ? data.season : 1);
   }
@@ -507,6 +533,7 @@ svg.face { display:block; flex:0 0 auto; }
     var cur = lsGet(KEY);
     if (cur && cur !== raw && parseSave(cur) !== "corrupt") lsSet(KEY_BAK, cur);
     var ok = lsSet(KEY, raw);
+    if (SLOT === 1) lsSet("cete_hanedan_v2", raw);
     if (ok === "quota" && S) {
       if (S.archive && S.archive.length > 4) S.archive = S.archive.slice(0, 4);
       if (S.kronik && S.kronik.length > 80) S.kronik = S.kronik.slice(0, 80);
@@ -1677,7 +1704,7 @@ svg.face { display:block; flex:0 0 auto; }
     var p = code.split(":");
     var k = p[0];
     var a = p.slice(1).join(":");
-    var readOnly = ["save","close","title","menu","tab","man","haber","export","import","doimport","copy","font","wipe","wipe2","load","resume","new","demir","home","mode","setupgo","drafttog","draftsee","draftok","draftforce","help"];
+    var readOnly = ["save","close","title","menu","tab","man","haber","export","import","doimport","copy","font","wipe","wipe2","load","resume","new","demir","home","mode","setupgo","drafttog","draftsee","draftok","draftforce","help","slot"];
     if(S && S.over && readOnly.indexOf(k)<0){toast("Defter kapandı. Yeni hanedan kurabilir veya kaydı inceleyebilirsin.");return;}
     if(reader && ["rnext","rback","silent"].indexOf(k)<0 && readOnly.indexOf(k)<0){toast("Önce açık baskını tamamla.");return;}
     if(k==="save"){toast(saveNow()?"Kayıt güncel.":"Kayıt yazılamadı; yedek al.");return;}
@@ -1686,6 +1713,15 @@ svg.face { display:block; flex:0 0 auto; }
     if (k === "close") { closeSheet(); return; }
     if (k === "help") { openHelp(); return; }
     if (k === "title") { bootTitle(); return; }
+    if (k === "slot") {
+      if (S) saveNow();
+      bindHanedanSlot(+a);
+      S = null;
+      reader = null;
+      view = "title";
+      paint();
+      return;
+    }
     if (k === "new") { startNew(a || "klasik"); return; }
     if (k === "demir") { startNew("demir"); return; }
     if (k === "setupgo") {
@@ -1983,6 +2019,17 @@ svg.face { display:block; flex:0 0 auto; }
       add(main, el("p", { cls: "serif", text: "Bir çeteyi yaşayan bir İstanbul’da yönet. Her fikstür bir baskındır. Her adam o baskında ölebilir. Her sezon deftere yazılır." }));
       add(main, el("p", { cls: "serif", text: "Altı kademeli lig. Kırk sekiz rakip. Taht’ı tutan şehri tutar." }));
       add(main, el("p", { cls: "serif", text: "Soru efsane çıkıp çıkmayacağı değil. Çetenin efsane çıkaracak kadar yaşayıp yaşamayacağı." }));
+      add(main, el("p", { cls: "kicker", text: "Kayıt yerleri" }));
+      var slots = add(main, el("div", { cls: "grid2" }));
+      [1, 2, 3].forEach(function (n) {
+        var raw = lsGet("tariklab::hanedan:" + n);
+        var parsed = raw ? parseSave(raw) : null;
+        var label = "Slot " + n;
+        if (parsed && parsed !== "corrupt") label += " · " + (parsed.name || "kayıt");
+        else if (parsed === "corrupt") label += " · bozuk";
+        else label += " · boş";
+        add(slots, el("button", { cls: SLOT === n ? "primary" : "", text: label, "data-act": "slot:" + n }));
+      });
       var disk = (S && S.run) ? S : loadSave();
       var st = add(main, el("div", { cls: "stack" }));
       if (disk === "corrupt") {

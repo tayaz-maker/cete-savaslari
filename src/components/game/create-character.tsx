@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Disclaimer } from "@/components/game/disclaimer";
+import { SaveSlotsPanel } from "@/components/game/save-slots-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NEIGHBORHOODS } from "@/game/data";
@@ -10,6 +11,7 @@ import { cn, unlockUi } from "@/lib/utils";
 export function CreateCharacter() {
   const [name, setName] = useState("");
   const [hood, setHood] = useState<NeighborhoodId>("eyup");
+  const activeSlot = useGame((s) => s.activeSlot) || 1;
 
   useEffect(() => {
     unlockUi();
@@ -20,12 +22,14 @@ export function CreateCharacter() {
       <p className="text-[0.7rem] font-medium tracking-[0.28em] text-muted uppercase">
         Dosya aç
       </p>
-      <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">
-        İsmin, semtin, raconun
-      </h1>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-4xl font-semibold tracking-tight">
+          İsmin, semtin, raconun
+        </h1>
+        <SaveSlotsPanel />
+      </div>
       <p className="mt-3 max-w-md text-sm text-muted">
-        Cebin boş iner. Oturarak ₺ basmaz — iş, köşe, emlak. Lakap sonradan
-        birikir.
+        Hesap gerekmez. Slot {activeSlot} bu cihazda tutulur. Cebin boş iner.
       </p>
 
       <label className="mt-8 block text-xs font-medium tracking-wide text-muted uppercase">

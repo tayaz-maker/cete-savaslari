@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { AccountPanel } from "@/components/game/account-panel";
+import { SaveSlotsPanel } from "@/components/game/save-slots-panel";
 import { Button } from "@/components/ui/button";
 import { HelpPanel } from "@/components/game/help-panel";
 import { ResetConfirm } from "@/components/game/reset-confirm";
@@ -188,7 +188,7 @@ export function Hud({
             <Chip label="Son kayıt" value={lastSaveLabel(savedAt)} />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <AccountPanel />
+            <SaveSlotsPanel />
             <span className="md:hidden">
               <ResetConfirm />
             </span>
