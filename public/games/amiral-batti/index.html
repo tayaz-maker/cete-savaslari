@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Amiral Battı | TLab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a href="/">← Oyunlar</a>
+        <span>TLab Classics</span>
+      </header>
+      <section class="hero">
+        <p class="eyebrow">Amiral Battı</p>
+        <h1>Izgarada filo.</h1>
+        <p id="status">Yerleşim</p>
+        <p id="record" class="muted"></p>
+      </section>
+      <div class="toolbar">
+        <label>Zorluk
+          <select id="diff">
+            <option value="kolay">Kolay</option>
+            <option value="orta" selected>Orta</option>
+            <option value="zor">Zor</option>
+          </select>
+        </label>
+        <label>Mod
+          <select id="mode">
+            <option value="cpu" selected>Bilgisayara karşı</option>
+            <option value="hotseat">Sırayla (aynı cihaz)</option>
+          </select>
+        </label>
+        <button type="button" id="new">Yeni oyun</button>
+        <button type="button" id="help-open">Nasıl oynanır</button>
+      </div>
+      <div id="fleet-line" class="fleet"></div>
+      <p id="play-hint" class="muted"></p>
+      <p id="place-note" class="note" hidden></p>
+      <div id="place-bar" class="toolbar">
+        <button type="button" id="rotate">Döndür (R)</button>
+        <button type="button" id="auto">Kendin yerleştir</button>
+        <button type="button" id="reset-fleet">Filoyu sıfırla</button>
+        <button type="button" id="start">Savaşı başlat</button>
+      </div>
+      <section id="arena" class="arena"></section>
+      <ol id="log" class="log"></ol>
+      <footer>
+        © 2026 TarikLab. Tüm hakları saklıdır. Klasik oyun kuralları üzerindeki hak iddiası bu bildirimin kapsamı dışındadır.
+        · Tarık Halil Ayaz
+      </footer>
+    </main>
+    <dialog id="help">
+      <h2>Nasıl oynanır</h2>
+      <p>10×10 ızgara. Filo: Amiral 5, Kruvazör 4, Fırkateyn 3, Korvet 3, Karakol 2. Yatay veya dikey; üst üste binmez. Gemiler birbirine değebilir.</p>
+      <p>Tur başına bir atış. İsabet, ıska, gemi battı. Rakibin bütün filosu batarsa oyun biter.</p>
+      <p>Kolay rastgele-benzer hedefler. Orta isabet sonrası komşuya döner. Zor kalan gemi boylarına göre yoğunluk hesaplar. Motor rakip gemilerin yerini okumaz.</p>
+      <p>Kayıt bu tarayıcıda tutulur; yarıda kalan maç devam eder.</p>
+      <button type="button" id="help-close">Kapat</button>
+    </dialog>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

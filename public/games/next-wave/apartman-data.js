@@ -1,0 +1,96 @@
+/** Apartman content — named residents, systems, issues, meetings. */
+export const SYSTEMS = [
+  { id: "asansor", name: "Asansör", condition: 48 },
+  { id: "cati", name: "Çatı", condition: 61 },
+  { id: "su", name: "Su / Tesisat", condition: 55 },
+  { id: "elektrik", name: "Elektrik", condition: 70 },
+  { id: "isitma", name: "Isıtma", condition: 58 },
+  { id: "temizlik", name: "Temizlik", condition: 64 },
+  { id: "guvenlik", name: "Güvenlik", condition: 52 },
+  { id: "otopark", name: "Otopark", condition: 67 },
+];
+
+export const RESIDENTS = [
+  { id: "r0", name: "Hasan Korkmaz", floor: 1, owner: true, influence: 72, pays: true, satisfaction: 58, bloc: "eski" },
+  { id: "r1", name: "Sevim Yıldız", floor: 1, owner: true, influence: 64, pays: true, satisfaction: 62, bloc: "eski" },
+  { id: "r2", name: "Murat Demir", floor: 2, owner: false, influence: 41, pays: false, satisfaction: 44, bloc: "kiraci" },
+  { id: "r3", name: "Elif Şahin", floor: 2, owner: true, influence: 55, pays: true, satisfaction: 70, bloc: "yeni" },
+  { id: "r4", name: "Kemal Arslan", floor: 3, owner: true, influence: 80, pays: true, satisfaction: 51, bloc: "eski" },
+  { id: "r5", name: "Ayşe Güler", floor: 3, owner: false, influence: 36, pays: true, satisfaction: 66, bloc: "kiraci" },
+  { id: "r6", name: "Okan Yılmaz", floor: 4, owner: true, influence: 48, pays: false, satisfaction: 38, bloc: "gecikme" },
+  { id: "r7", name: "Nuran Çelik", floor: 4, owner: true, influence: 59, pays: true, satisfaction: 73, bloc: "yeni" },
+  { id: "r8", name: "Barış Koç", floor: 5, owner: false, influence: 33, pays: true, satisfaction: 57, bloc: "kiraci" },
+  { id: "r9", name: "Fatma Aksoy", floor: 5, owner: true, influence: 68, pays: true, satisfaction: 49, bloc: "eski" },
+  { id: "r10", name: "Cemal Usta", floor: 0, owner: false, influence: 28, pays: true, satisfaction: 54, bloc: "dukkan" },
+  { id: "r11", name: "Leyla Erdoğan", floor: 6, owner: true, influence: 46, pays: false, satisfaction: 42, bloc: "gecikme" },
+];
+
+export const ISSUES = [
+  { id: "i1", type: "bakım", system: "asansor", title: "Asansör ses yapıyor", status: "acik", severity: 3, cheapFails: true },
+  { id: "i2", type: "gürültü", system: null, title: "4. kat gece tadilat", status: "acik", severity: 2, parties: ["r6", "r7"] },
+  { id: "i3", type: "aidat", system: null, title: "İki daire aidat biriktirdi", status: "acik", severity: 3, parties: ["r2", "r6"] },
+  { id: "i4", type: "cati", system: "cati", title: "Çatı deresi tıkalı", status: "acik", severity: 2, cheapFails: true },
+  { id: "i5", type: "su", system: "su", title: "2. kat kolon sızıntısı", status: "acik", severity: 3 },
+];
+
+export const ISSUE_TEMPLATES = [
+  { id: "asansor-ariza", type: "bakım", system: "asansor", title: "Asansör kat arasında kaldı", severity: 4, cheapFails: true },
+  { id: "asansor-ruhsat", type: "bakım", system: "asansor", title: "Asansör periyodik kontrol yaklaşıyor", severity: 2 },
+  { id: "cati-akar", type: "cati", system: "cati", title: "Üst kat tavana su işledi", severity: 3, cheapFails: true },
+  { id: "cati-izolasyon", type: "cati", system: "cati", title: "İzolasyon teklifi geldi", severity: 2 },
+  { id: "su-kazan", type: "su", system: "su", title: "Kazan dairesi nem", severity: 2 },
+  { id: "su-sayac", type: "su", system: "su", title: "Ortak sayaç okuma tartışması", severity: 1 },
+  { id: "elektrik-pano", type: "elektrik", system: "elektrik", title: "Pano ısınması", severity: 3, cheapFails: true },
+  { id: "elektrik-kablo", type: "elektrik", system: "elektrik", title: "Bodrum kablo keçeleşti", severity: 2 },
+  { id: "isitma-paylasim", type: "isitma", system: "isitma", title: "Kalorifer pay ölçer itirazı", severity: 2 },
+  { id: "isitma-kazan", type: "isitma", system: "isitma", title: "Kazan verimi düştü", severity: 3 },
+  { id: "temizlik-kapici", type: "temizlik", system: "temizlik", title: "Kapıcı nöbeti tartışması", severity: 2 },
+  { id: "temizlik-cop", type: "temizlik", system: "temizlik", title: "Çöp odası kokusu", severity: 1 },
+  { id: "guvenlik-kamera", type: "güvenlik", system: "guvenlik", title: "Kamera kaydı isteniyor", severity: 2 },
+  { id: "guvenlik-kapi", type: "güvenlik", system: "guvenlik", title: "Kapı kilidi gevşedi", severity: 2 },
+  { id: "otopark-yer", type: "otopark", system: "otopark", title: "Misafir yeri kavgası", severity: 2, parties: ["r4", "r8"] },
+  { id: "otopark-cizik", type: "otopark", system: "otopark", title: "Otoparkta çizik ihbarı", severity: 1 },
+  { id: "gurultu-gece", type: "gürültü", title: "Gece müzik şikâyeti", severity: 2 },
+  { id: "gurultu-tadilat", type: "gürültü", title: "Hafta sonu kırıcı sesi", severity: 2 },
+  { id: "hayvan", type: "hayvan", title: "Merdiven boşluğunda kedi mama kabı", severity: 1 },
+  { id: "kargo", type: "kargo", title: "Kurye kapıda bekletiliyor", severity: 1 },
+  { id: "tasinma", type: "hasar", title: "Taşınma asansörü çizdi", severity: 2, system: "asansor" },
+  { id: "kiraci-mal", type: "aidat", title: "Ev sahibi aidatı kiracıya yıkmış", severity: 3 },
+  { id: "dukkan-baca", type: "dukkan", title: "Zemin kat ocak kokusu", severity: 2, parties: ["r10"] },
+  { id: "ortak-salon", type: "ortak", title: "Ortak salon düğün tartışması", severity: 1 },
+  { id: "aidat-gecikme", type: "aidat", title: "Aidat listesi asıldı, isim tartışması", severity: 3 },
+  { id: "yakıt-avans", type: "isitma", system: "isitma", title: "Kış yakıt avansı", severity: 3 },
+  { id: "dis-cephe", type: "tadilat", title: "Dış cephe teklifi", severity: 4 },
+  { id: "yangin-merdiven", type: "güvenlik", system: "guvenlik", title: "Yangın merdiveni kilitli", severity: 3 },
+  { id: "su-kesinti", type: "su", system: "su", title: "Şebeke kesintisinde depo boş", severity: 2 },
+  { id: "internet-kablo", type: "ortak", title: "Çatıdaki çanak/kablo karmaşası", severity: 1, system: "cati" },
+  { id: "cocuk-bahce", type: "ortak", title: "Bahçede top oynamak yasak mı", severity: 1 },
+  { id: "sigara-merdiven", type: "ortak", title: "Merdiven boşluğunda sigara", severity: 1 },
+  { id: "komsu-borc", type: "aidat", title: "Eski yönetici defteri eksik", severity: 3 },
+  { id: "klima-su", type: "su", title: "Klima gideri alt daireye akıyor", severity: 2 },
+  { id: "asansor-masraf", type: "bakım", system: "asansor", title: "Asansör yedek parça faturası", severity: 3 },
+  { id: "cam-kirik", type: "hasar", title: "Merdiven camı çatladı", severity: 1 },
+  { id: "jenerator", type: "elektrik", system: "elektrik", title: "Jeneratör bakımı gecikti", severity: 2 },
+  { id: "bina-sigorta", type: "finans", title: "Bina sigortası yenileme", severity: 2 },
+  { id: "yonetici-secim", type: "secim", title: "Güvenoyu fısıltısı", severity: 3 },
+  { id: "kedi-besleme", type: "hayvan", title: "Kapı önünde mama kavgası", severity: 1 },
+  { id: "terlik-gürültü", type: "gürültü", title: "Üst kat topuk sesi", severity: 1 },
+  { id: "balkon-izgara", type: "ortak", title: "Balkonda mangal şikâyeti", severity: 2 },
+  { id: "kuyu-su", type: "su", system: "su", title: "Hidrofor gece çalışıyor", severity: 2 },
+  { id: "site-karsilastirma", type: "aidat", title: "Yandaki site aidatı daha düşük", severity: 1 },
+];
+
+export const MEETINGS = [
+  { id: "butce", name: "Olağan bütçe toplantısı", cost: 0 },
+  { id: "acil-onarim", name: "Acil onarım", cost: 2800 },
+  { id: "aidat-krizi", name: "Aidat krizi", cost: 400 },
+  { id: "anlasmazlik", name: "Sakin anlaşmazlığı", cost: 200 },
+  { id: "guvenoyu", name: "Güvenoyu / seçim", cost: 0 },
+  { id: "buyuk-tadilat", name: "Büyük tadilat kararı", cost: 6400 },
+];
+
+export const PROPOSALS = [
+  { id: "durable-maintenance", label: "Pahalı ama kalıcı bakım", cash: 1800, condition: 12, trust: 4, risk: -18 },
+  { id: "cheap-patch", label: "Ucuz yama", cash: 600, condition: 5, trust: 8, risk: 22 },
+  { id: "wait", label: "Ertele, izle", cash: 0, condition: -4, trust: -6, risk: 12 },
+];

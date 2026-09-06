@@ -51,6 +51,9 @@ const MODULE_GAME_PATHS = [
   "/games/labirent/",
   "/games/peg-solitaire/",
   "/games/satranc/",
+  "/games/amiral-batti/",
+  "/games/next-wave.js",
+  "/games/next-wave/",
 ];
 
 function isModuleGameAsset(url) {

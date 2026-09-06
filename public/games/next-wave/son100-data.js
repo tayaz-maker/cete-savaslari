@@ -1,0 +1,102 @@
+/** Son 100 Gün — scenarios, events, obligations, milestones. */
+export const SCENARIOS = [
+  {
+    id: "financial-recovery",
+    name: "Borç toparlanması",
+    goal: "Kira ve kartı ödeyip nakit yastık bırak",
+    resources: { energy: 70, money: 1200, hope: 55 },
+    relations: { family: 48, friend: 52, work: 50 },
+    obligations: [
+      { id: "rent", title: "Kira", due: 8, cost: 900, domain: "home" },
+      { id: "card", title: "Kredi kartı asgari", due: 12, cost: 450, domain: "money" },
+    ],
+  },
+  {
+    id: "family-care",
+    name: "Aile bakımı",
+    goal: "Annene bakarken işini kaybetme",
+    resources: { energy: 58, money: 1800, hope: 48 },
+    relations: { family: 62, friend: 40, work: 44 },
+    obligations: [
+      { id: "clinic", title: "Kontrol randevusu", due: 6, cost: 200, domain: "family" },
+      { id: "rent", title: "Kira", due: 10, cost: 850, domain: "home" },
+    ],
+  },
+  {
+    id: "career-window",
+    name: "İş penceresi",
+    goal: "Teklif kapanmadan yerini sağlamlaştır",
+    resources: { energy: 64, money: 900, hope: 62 },
+    relations: { family: 40, friend: 46, work: 58 },
+    obligations: [
+      { id: "portfolio", title: "Portfolyo teslimi", due: 9, cost: 0, domain: "work" },
+      { id: "rent", title: "Kira", due: 11, cost: 800, domain: "home" },
+    ],
+  },
+  {
+    id: "health-reset",
+    name: "Beden hesabı",
+    goal: "Çökmeden düzeni kur",
+    resources: { energy: 42, money: 1500, hope: 40 },
+    relations: { family: 50, friend: 55, work: 38 },
+    obligations: [
+      { id: "sleep", title: "Uyku borcu", due: 4, cost: 0, domain: "health" },
+      { id: "rent", title: "Kira", due: 9, cost: 880, domain: "home" },
+    ],
+  },
+];
+
+export const MILESTONES = [75, 50, 25, 10, 3, 0];
+
+export const EVENTS = [
+  { id: "overtime", domain: "work", title: "Mesai teklifi", text: "Akşam iki saat fazla. Nakit var, ev bekler.", choices: ["work", "family"] },
+  { id: "cheap-fix", domain: "home", title: "Musluk akıyor", text: "Bantla idare mi, tamirci mi?", choices: ["cheap", "proper"] },
+  { id: "job-call", domain: "work", title: "İşe alım aradı", text: "Yarın 10:00. SGK evrakı aynı saatte.", choices: ["interview", "paperwork"] },
+  { id: "rest-or-deadline", domain: "health", title: "Cuma çöküşü", text: "Yatmak mı, teslim mi?", choices: ["rest", "work"] },
+  { id: "friend-ask", domain: "friend", title: "Eski arkadaş", text: "Bir akşam ayırabilir misin? Uzun zamandır yoksun.", choices: ["friend", "work"] },
+  { id: "mom-call", domain: "family", title: "Anne aradı", text: "Kontrole yalnız gitmek istemiyor.", choices: ["family", "work"] },
+  { id: "card-interest", domain: "money", title: "Kart kesimi", text: "Asgari öde, kalan şişer.", choices: ["pay", "min"] },
+  { id: "neighbor", domain: "home", title: "Komşu kapıda", text: "Su faturası ortak çıktı, pay tartışması.", choices: ["talk", "avoid"] },
+  { id: "course", domain: "self", title: "Ücretsiz kurs kotası", text: "Bu hafta kapanıyor.", choices: ["learn", "rest"] },
+  { id: "shift-swap", domain: "work", title: "Vardiya değişimi", text: "Pazar sabahı. Aile kahvaltısı aynı gün.", choices: ["work", "family"] },
+  { id: "dentist", domain: "health", title: "Diş sızlıyor", text: "İlaçla geçiştir veya randevu al.", choices: ["cheap", "proper"] },
+  { id: "bus-pass", domain: "money", title: "Aylık kart", text: "Peşin al, günlük daha pahalı.", choices: ["pay", "delay"] },
+  { id: "ex-text", domain: "friend", title: "Eski sevgili yazdı", text: "Kısa bir cevap yeter belki.", choices: ["friend", "avoid"] },
+  { id: "boss-praise", domain: "work", title: "Patron fark etti", text: "Bir proje daha istiyor.", choices: ["work", "rest"] },
+  { id: "market", domain: "money", title: "Pazar alışverişi", text: "İndirim var ama yürümek yorucu.", choices: ["pay", "rest"] },
+  { id: "evrak", domain: "bureaucracy", title: "Nüfus kuyruğu", text: "Numara sabah bitiyor.", choices: ["paperwork", "work"] },
+  { id: "kiraci-warning", domain: "home", title: "Ev sahibi mesajı", text: "Gecikme faizi konuşuldu.", choices: ["pay", "talk"] },
+  { id: "night-bus", domain: "health", title: "Son metrobüs", text: "Kaçırırsan taksi.", choices: ["rest", "pay"] },
+  { id: "sideline", domain: "money", title: "Ek iş teklifi", text: "Hafta sonu kargo. Sırt ağrır.", choices: ["work", "rest"] },
+  { id: "wedding", domain: "friend", title: "Düğün zarfı", text: "Gitmezsen unutulursun, gidersen kart sızlar.", choices: ["friend", "pay"] },
+  { id: "sleep-debt", domain: "health", title: "Üç saat uyku", text: "Bugün hiçbir şey tutmaz.", choices: ["rest", "work"] },
+  { id: "tax-letter", domain: "bureaucracy", title: "PTT'den tebligat", text: "İmza bugün.", choices: ["paperwork", "delay"] },
+  { id: "cousin-loan", domain: "family", title: "Kuzen borç istedi", text: "Küçük tutar, büyük hatıra.", choices: ["family", "money"] },
+  { id: "gym-trial", domain: "self", title: "Spor deneme", text: "İlk hafta bedava.", choices: ["learn", "rest"] },
+  { id: "power-cut", domain: "home", title: "Elektrik kesildi", text: "Buzdolabı, deadline, karanlık.", choices: ["home", "work"] },
+  { id: "offer-expire", domain: "work", title: "Teklif 48 saat", text: "Pencere kapanıyor.", choices: ["interview", "delay"] },
+  { id: "rain-leak", domain: "home", title: "Tavan terledi", text: "Kova mı, usta mı?", choices: ["cheap", "proper"] },
+  { id: "payday", domain: "money", title: "Maaş yattı", text: "Kart mı kira mı yastık mı?", choices: ["pay", "save"] },
+  { id: "silent-friend", domain: "friend", title: "Mesajlar okundu", text: "Üç gündür dönüş yok — sen de susma.", choices: ["friend", "avoid"] },
+  { id: "clinic-wait", domain: "family", title: "Hastane sırası", text: "Öğleden sonra bitti.", choices: ["family", "work"] },
+];
+
+export const ACTIONS = [
+  { id: "work", label: "İş / mesai", energy: -18, money: 280, hope: -2, work: 6, family: -3 },
+  { id: "family", label: "Aile", energy: -10, money: -40, hope: 4, family: 8, work: -2 },
+  { id: "friend", label: "İlişki", energy: -8, money: -60, hope: 5, friend: 8, work: -1 },
+  { id: "rest", label: "Dinlen", energy: 22, money: 0, hope: 3, work: -2 },
+  { id: "pay", label: "Öde", energy: -4, money: -200, hope: 2 },
+  { id: "cheap", label: "Ucuz çözüm", energy: -6, money: -50, hope: -1, risk: 1 },
+  { id: "proper", label: "Düzgün çözüm", energy: -12, money: -220, hope: 3, risk: 0 },
+  { id: "interview", label: "Fırsata git", energy: -14, money: -30, hope: 6, work: 8 },
+  { id: "paperwork", label: "Evrak", energy: -10, money: -20, hope: -1 },
+  { id: "talk", label: "Konuş", energy: -6, money: 0, hope: 2, family: 2 },
+  { id: "avoid", label: "Ertele", energy: 4, money: 0, hope: -4, risk: 1 },
+  { id: "learn", label: "Kendine zaman", energy: -8, money: 0, hope: 5 },
+  { id: "delay", label: "Ertele", energy: 2, money: 0, hope: -3, risk: 1 },
+  { id: "min", label: "Asgari öde", energy: -2, money: -80, hope: -2, risk: 1 },
+  { id: "save", label: "Yastık", energy: 0, money: 0, hope: 2 },
+  { id: "home", label: "Eve bak", energy: -8, money: -40, hope: 1 },
+  { id: "money", label: "Parayı tut", energy: 0, money: 40, hope: -2, family: -4 },
+];

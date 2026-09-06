@@ -31,6 +31,7 @@ test("service worker never serves a stale module-game asset before the network",
     "/games/labirent/",
     "/games/peg-solitaire/",
     "/games/satranc/",
+    "/games/amiral-batti/",
   ]) {
     assert.ok(source.includes(`"${prefix}"`), `${prefix} module-game listesinde olmali`);
   }

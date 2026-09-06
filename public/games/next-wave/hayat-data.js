@@ -1,0 +1,51 @@
+/** Hayat — 18–35 chapters, major events, Long Shadow templates. */
+export const CHAPTERS = [
+  { id: 1, name: "Çıkış", ages: [18, 21] },
+  { id: 2, name: "İlk çatı", ages: [22, 25] },
+  { id: 3, name: "Sıkışma", ages: [26, 29] },
+  { id: 4, name: "Hesap", ages: [30, 32] },
+  { id: 5, name: "Gölge", ages: [33, 35] },
+];
+
+export const MAJORS = [
+  { id: "uni-stay", chapter: 1, domain: "education", title: "Üniversiteye devam", text: "Bölümü bitirmek dört yıl daha. Aile bekler, şehir pahalı.", shadow: "education", choice: "school" },
+  { id: "uni-leave", chapter: 1, domain: "education", title: "Okulu bırak, işe gir", text: "Maaş şimdi. Diploma sonra belki.", shadow: "education", choice: "work" },
+  { id: "army-wait", chapter: 1, domain: "duty", title: "Askeri ertele", text: "Pencere açık ama kapanır.", shadow: "duty", choice: "delay" },
+  { id: "first-rent", chapter: 1, domain: "housing", title: "İlk ev", text: "Evden çık. Aidat, depozito, sessizlik.", shadow: "housing", choice: "leave" },
+  { id: "stay-home", chapter: 1, domain: "housing", title: "Evde kal", text: "Birikim olur. Oda senin değil.", shadow: "housing", choice: "stay" },
+  { id: "first-love", chapter: 1, domain: "romance", title: "Ciddileş", text: "İki hayat aynı evde denenecek.", shadow: "romance", choice: "commit" },
+  { id: "keep-loose", chapter: 1, domain: "romance", title: "Bağlanma", text: "Kimseye söz yok.", shadow: "romance", choice: "free" },
+  { id: "help-family", chapter: 1, domain: "family", title: "Aileye para", text: "Kardeşin üniversite. Senin yastığın iner.", shadow: "family", choice: "give" },
+  { id: "job-safe", chapter: 2, domain: "work", title: "Kadrolu teklif", text: "Düşük zam, yüksek güvenlik.", shadow: "career", choice: "safe" },
+  { id: "job-risk", chapter: 2, domain: "work", title: "Startup / taşra şantiye", text: "Pay veya prim. Söz yok.", shadow: "career", choice: "ambition" },
+  { id: "friend-crisis", chapter: 2, domain: "friendship", title: "Arkadaş borç istedi", text: "İade belirsiz.", shadow: "friendship", choice: "help" },
+  { id: "move-city", chapter: 2, domain: "housing", title: "Başka şehre taşın", text: "Ağ kopar, maaş artar.", shadow: "housing", choice: "move" },
+  { id: "side-hustle", chapter: 2, domain: "money", title: "Ek iş", text: "Akşamlar biter.", shadow: "money", choice: "grind" },
+  { id: "save-first", chapter: 2, domain: "money", title: "Sıkı birikim", text: "Düğün, tatil, merhaba yok.", shadow: "money", choice: "save" },
+  { id: "breakup", chapter: 3, domain: "romance", title: "Ayrılık eşiği", text: "Alışkanlık mı, ev mi?", shadow: "romance", choice: "split" },
+  { id: "marry", chapter: 3, domain: "romance", title: "Resmileş", text: "Aileler, konut, zaman.", shadow: "romance", choice: "marry" },
+  { id: "parent-sick", chapter: 3, domain: "family", title: "Anne/baba hastalandı", text: "Şehir değiştirmek gerekebilir.", shadow: "family", choice: "return" },
+  { id: "promote", chapter: 3, domain: "work", title: "Yükselme", text: "Ekip, mesai, unvan.", shadow: "career", choice: "ambition" },
+  { id: "quit", chapter: 3, domain: "work", title: "İstifa et", text: "İtibar riski, nefes.", shadow: "career", choice: "leave" },
+  { id: "debt-restructure", chapter: 3, domain: "money", title: "Borç yapılandır", text: "Faiz iner, süre uzar.", shadow: "money", choice: "restructure" },
+  { id: "child-talk", chapter: 4, domain: "family", title: "Çocuk konuşması", text: "Zaman, para, uyku.", shadow: "family", choice: "yes" },
+  { id: "house-loan", chapter: 4, domain: "housing", title: "Konut kredisi", text: "Yirmi yıl. Şehir bağlar.", shadow: "housing", choice: "buy" },
+  { id: "rent-keep", chapter: 4, domain: "housing", title: "Kirada kal", text: "Hareket serbest. Kök yok.", shadow: "housing", choice: "rent" },
+  { id: "old-friend", chapter: 4, domain: "friendship", title: "Eski arkadaş aradı", text: "Krizde. Sen varsın.", shadow: "friendship", choice: "show" },
+  { id: "health-scare", chapter: 4, domain: "body", title: "Kontrol sonucu", text: "Erken yakalandı. Tempo değişir.", shadow: "body", choice: "slow" },
+  { id: "career-peak", chapter: 5, domain: "work", title: "Teklif: başka ülke", text: "Aile burada kalır.", shadow: "career", choice: "abroad" },
+  { id: "settle", chapter: 5, domain: "ambition", title: "Burada kök sal", text: "Yükselme yavaşlar.", shadow: "career", choice: "root" },
+  { id: "forgive", chapter: 5, domain: "regret", title: "Eski kırgınlık", text: "Aramak geç mi?", shadow: "romance", choice: "call" },
+];
+
+export const SHADOWS = [
+  { category: "education", delay: 3, good: "Eski ders notun bir mülakatta işe yaradı.", bad: "Diplomasızlık kapıyı kapattı.", mix: "İş var, unvan yok — okul konuşuluyor." },
+  { category: "career", delay: 3, good: "O riskli iş, şimdi referans.", bad: "Tempo ilişkinin altını oydu.", mix: "Unvan geldi, uyku gitmedi." },
+  { category: "family", delay: 4, good: "Aile o günü unutmadı, kapı açık.", bad: "Yokluğun bir cümle olarak kaldı.", mix: "Güven var, hesap da var." },
+  { category: "romance", delay: 3, good: "O bağ sonra sığınak oldu.", bad: "Suskunluk geri döndü.", mix: "Konuşuluyor, tam değil." },
+  { category: "friendship", delay: 4, good: "O borç krizinde seni aradı, bu kez o duruyor.", bad: "Defter kapanmış.", mix: "Selam var, sır yok." },
+  { category: "housing", delay: 3, good: "O evden çıkış kendi düzenini kurdu.", bad: "Taşınma hasarı hâlâ ödeniyor.", mix: "Adres var, kök tartışmalı." },
+  { category: "money", delay: 3, good: "O birikim kapı açtı.", bad: "Faiz sessiz şişti.", mix: "Nakit var, esneklik yok." },
+  { category: "duty", delay: 4, good: "Erteleme penceresi yetti.", bad: "Tarih çakıştı, iş kaçtı.", mix: "Halloldu, iz bıraktı." },
+  { category: "body", delay: 2, good: "Erken tempo kesişi tuttu.", bad: "İhmal fatura kesti.", mix: "Düzen var, eski hız yok." },
+];

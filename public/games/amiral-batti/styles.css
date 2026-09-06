@@ -1,0 +1,102 @@
+:root {
+  --bg: #071018;
+  --ink: #d7ece8;
+  --muted: #8aa8a4;
+  --line: #1c3438;
+  --sea: #0b1c24;
+  --glass: #123038;
+  --hit: #d27a4a;
+  --miss: #3d5c66;
+  --ship: #7eb8a4;
+  --preview: #c9b36a;
+  --accent: #7fd0c3;
+  font-family: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
+  display: grid;
+  gap: 12px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+a { color: var(--accent); }
+.eyebrow {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin: 0;
+}
+h1 { margin: 0.2rem 0; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+.muted { color: var(--muted); margin: 0; }
+.toolbar, .fleet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+label { font-size: 0.85rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+select, button {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--ink);
+  font: inherit;
+  padding: 0 12px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+.ship-btn.on { border-color: var(--accent); }
+.ship-btn.set { opacity: 0.85; }
+.note { color: #e0b07a; margin: 0; }
+.arena {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 860px) {
+  .arena { grid-template-columns: 1fr 1fr; }
+}
+.board-wrap { background: var(--sea); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.board-label { margin: 0 0 8px; font-size: 0.85rem; color: var(--muted); }
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+}
+.cell {
+  aspect-ratio: 1;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 3px;
+  background: #0e2430;
+  border: 1px solid #244048;
+}
+.cell.ship { background: var(--ship); border-color: #9fd4c4; }
+.cell.preview { background: var(--preview); }
+.cell.miss { background: var(--miss); }
+.cell.hit { background: var(--hit); }
+.cell.sunk { background: #6b2e24; }
+.log { color: var(--muted); font-size: 0.88rem; padding-left: 1.1rem; }
+footer { color: var(--muted); font-size: 0.78rem; }
+dialog {
+  background: #0d1c22;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-width: 28rem;
+}
+@media (max-width: 420px) {
+  .cell { min-height: 24px; }
+  main { padding: 10px 8px 32px; }
+}

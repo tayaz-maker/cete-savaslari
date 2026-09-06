@@ -99,7 +99,7 @@ test("Racon Manager kilitli kalır: mevcut yardım/menü mantığı bozulmamış
 });
 
 test("TLab Classics telif satırları hâlâ tutarlı ve tam isim kullanıyor", () => {
-  for (const game of ["labirent", "peg-solitaire", "satranc"]) {
+  for (const game of ["labirent", "peg-solitaire", "satranc", "amiral-batti"]) {
     const html = read(`public/games/${game}/index.html`);
     assert.match(html, /© 2026 TarikLab\. Tüm hakları saklıdır\./);
     assert.match(html, /Tarık Halil Ayaz/);

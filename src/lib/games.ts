@@ -12,6 +12,7 @@ export const HTML5_SLUGS = [
   "labirent",
   "peg-solitaire",
   "satranc",
+  "amiral-batti",
   "racon",
   "tc-sim",
   "apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet",
@@ -87,6 +88,14 @@ export const GAMES: CatalogGame[] = [
     status: "live",
     href: "/oyna/satranc",
     icon: "satranc",
+  },
+  {
+    slug: "amiral-batti",
+    title: "Amiral Battı",
+    subtitle: "Izgarada filo. İsabet, ıska, battı.",
+    status: "live",
+    href: "/oyna/amiral-batti",
+    icon: "amiral",
   },
   {
     slug: "hayat",
