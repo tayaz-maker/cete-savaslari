@@ -145,9 +145,20 @@ kanıtlanır: başlangıç konumunda 4 derinliğe kadar (197.281 düğüm) ve ro
 ile geçerken almayı zorlayan "Kiwipete" konumunda 3 derinliğe kadar
 (97.862 düğüm) bilinen referans değerleriyle birebir eşleşir.
 
-**Not:** Önceki sürümdeki bilgisayar rakip (minimax) kaldırılmıştır; yeni
-sürüm aynı cihazda iki oyunculudur ve arayüz bunu açıkça söyler. Bu,
-desteklenmeyen bir özelliğin varmış gibi sunulmamasıdır.
+**Bilgisayar rakip:** `js/ai.js`, `js/ai-worker.js` ve `js/opponent.js`
+TarikLab için bağımsız yazılmıştır; eski motor/kütüphane geri eklenmemiştir.
+İki oyuncu modu korunur. Kolay 1 ply / 1.000 düğüm, Orta 2 ply / 6.000
+ düğüm, Zor 4 ply / 24.000 düğüm bütçesi kullanır. Zor ayrıca en fazla 4
+ply taş değişimi/şah kaçışı arar. Alpha-beta, hamle sıralama ve tamamlanmış
+iterasyon sonucu kullanılır. Bütçe zaman yerine düğüm sayısı olduğundan
+aynı konum, ayar ve seed aynı sonucu verir. Arama Worker'dadır;
+yeniden başlatma/ayarlar/geri alma Worker'ı sonlandırıp nesil token'ını
+geçersiz kılar. Harici motor, ağ servisi veya Elo iddiası yoktur.
+
+`scripts/tlab-satranc-ai.test.mjs`: yasallık, taktikler, mat, promotion,
+özel hamleler, determinism, node budget, gerçek arayüz işleyicilerinde
+iptal/undo/flip ve üç deterministic selfplay eşleşmesi. Zor'un bulduğu
+zorunlu iki hamlede matı Orta bulamaz; fark yalnız seviye etiketi değildir.
 
 ---
 

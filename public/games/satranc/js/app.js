@@ -17,9 +17,15 @@ import {
   pieceAt,
   status,
   undo as undoMove,
-} from "./rules.js?v=1";
+} from "./rules.js?v=2";
 import { PIECE_NAMES, pieceLabel, pieceSvg } from "./pieces.js?v=1";
 
+import { humanColor, seeded } from "./ai.js?v=2";
+import { Opponent } from "./opponent.js?v=2";
+const opponent = new Opponent(() => new Worker(new URL('./ai-worker.js?v=2', import.meta.url), { type: 'module' }));
+let mode = 'two', difficulty = 'medium', color = WHITE, seed = 4242;
+let thinking = false;
+let configuring = false;
 const el = (id) => document.getElementById(id);
 const boardEl = el("board");
 const statusEl = el("status");
@@ -95,13 +101,15 @@ function render() {
       "aria-label",
       piece ? `${square}, ${pieceLabel(piece.type, piece.color)}` : `${square}, boş`,
     );
-    button.disabled = finished && !piece;
+    button.disabled = thinking || configuring || finished;
+    button.setAttribute("aria-disabled", String(button.disabled));
   }
 
   renderTaken("taken-top", flipped ? captured.b : captured.w, flipped ? WHITE : BLACK);
   renderTaken("taken-bottom", flipped ? captured.w : captured.b, flipped ? BLACK : WHITE);
   renderMoves();
-  el("undo").disabled = game.history.length === 0;
+  el("undo").disabled = game.history.length === 0 || (mode === 'computer' && color === BLACK && game.history.length === 1);
+  boardEl.setAttribute('aria-busy', String(thinking));
 }
 
 /** `list` alınan taş tipleridir; `by` onları alan tarafın rengidir. */
@@ -152,7 +160,10 @@ function setStatus(text, detail) {
 function refreshStatus(extra) {
   const state = status(game);
   if (state.over) {
+    opponent.cancel();
+    thinking = false;
     finished = true;
+    render();
     setStatus(state.text, extra);
     showResult(state);
     return;
@@ -200,6 +211,7 @@ function commitMove(from, to, promotion) {
   clearSelection();
   render();
   refreshStatus(`Son hamle: ${result.san}`);
+  scheduleComputer();
 }
 
 function askPromotion(from, to) {
@@ -220,7 +232,7 @@ function askPromotion(from, to) {
 }
 
 function handleSquare(index) {
-  if (finished) return;
+  if (finished || thinking || configuring || pendingPromotion || (mode === 'computer' && game.turn !== color)) return;
 
   if (selected !== null && legalTargets.includes(index)) {
     const piece = pieceAt(game, selected);
@@ -257,6 +269,7 @@ boardEl.addEventListener("click", (event) => {
 });
 
 promotionDialog.addEventListener("close", () => {
+  if (promotionDialog.open) return;
   const choice = promotionDialog.returnValue;
   const pending = pendingPromotion;
   pendingPromotion = null;
@@ -266,10 +279,39 @@ promotionDialog.addEventListener("close", () => {
 });
 
 resultDialog.addEventListener("close", () => {
-  if (resultDialog.returnValue === "again") newGame();
+  if (resultDialog.returnValue === "again") { resultDialog.returnValue = ""; newGame(); }
 });
 
+function cancelPending() {
+  opponent.cancel();
+  thinking = false;
+  pendingPromotion = null;
+  promotionDialog.close();
+  resultDialog.returnValue = '';
+  resultDialog.close();
+}
+
+function scheduleComputer() {
+  if (mode !== 'computer' || game.turn === color || finished || configuring || thinking) return;
+  if (status(game).over) { refreshStatus(); return; }
+  thinking = true;
+  clearSelection();
+  render();
+  setStatus('Bilgisayar düşünüyor…');
+  opponent.start(game, difficulty, seeded(seed + game.history.length), (result) => {
+    thinking = false;
+    if (finished || configuring || game.turn === color) return;
+    if (result.move) commitMove(result.move.from, result.move.to, result.move.promotion);
+    else { render(); refreshStatus(); }
+  }, () => {
+    thinking = false;
+    render();
+    setStatus('Bilgisayar başlatılamadı.', 'Yeniden başlatmayı veya iki oyuncu modunu seç.');
+  });
+}
+
 function newGame() {
+  cancelPending();
   const fresh = createGame();
   game.board = fresh.board;
   game.turn = fresh.turn;
@@ -283,12 +325,39 @@ function newGame() {
   finished = false;
   render();
   setStatus("Beyaz oynayacak.", "Yeni oyun.");
+  scheduleComputer();
 }
 
-el("new-game").addEventListener("click", newGame);
+function openSetup() {
+  cancelPending();
+  configuring = true;
+  clearSelection();
+  render();
+  el('setup').showModal();
+}
+el("new-game").addEventListener("click", openSetup);
+el('restart').addEventListener('click', newGame);
+el('setup').addEventListener('cancel', (event) => event.preventDefault());
+el('setup-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  mode = el('mode').value;
+  difficulty = el('difficulty').value;
+  seed = seeded(seed);
+  color = humanColor(el('color').value, seed);
+  flipped = mode === 'computer' && color === BLACK;
+  configuring = false;
+  el('setup').close();
+  el('game-settings').textContent = mode === 'two' ? 'İki oyuncu' : `Bilgisayara karşı · ${el('difficulty').selectedOptions[0].textContent} · Sen: ${color === WHITE ? 'Beyaz' : 'Siyah'}`;
+  newGame();
+});
+el('mode').addEventListener('change', () => {
+  el('computer-settings').hidden = el('mode').value !== 'computer';
+});
 
 el("undo").addEventListener("click", () => {
+  cancelPending();
   const result = undoMove(game);
+  if (result.ok && mode === 'computer' && game.turn !== color && game.history.length) undoMove(game);
   if (!result.ok) {
     setStatus(status(game).text, result.reason);
     return;
@@ -304,9 +373,10 @@ el("undo").addEventListener("click", () => {
 el("flip").addEventListener("click", () => {
   flipped = !flipped;
   render();
-  setStatus(status(game).text, flipped ? "Tahta siyahın gözünden." : "Tahta beyazın gözünden.");
+  setStatus(thinking ? "Bilgisayar düşünüyor…" : status(game).text, flipped ? "Tahta siyahın gözünden." : "Tahta beyazın gözünden.");
 });
 
 buildBoard();
 render();
 setStatus("Beyaz oynayacak.");
+openSetup();
