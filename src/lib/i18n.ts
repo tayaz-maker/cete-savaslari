@@ -32,14 +32,16 @@ const EN: Record<string, string> = {
   "cete.ageBtn": "I am 18 or older",
   "cete.openFile": "Open a file",
   "cete.createTitle": "Your name, hood, racon",
-  "cete.createBody": "No account needed. Slot {n} stays on this device. You arrive with empty pockets.",
+  "cete.createBody":
+    "No account needed. Slot {n} stays on this device. You arrive with empty pockets.",
   "cete.name": "Name",
   "cete.hood": "Neighborhood",
   "cete.street": "Hit the street",
   "cete.locked": "The game locked up",
   "cete.lockedBody": "The save is still there. Continue without refreshing.",
   "cete.slotsTitle": "Three save slots",
-  "cete.slotsBody": "No account needed. Each slot stays separate on this device. A full slot is not overwritten without asking.",
+  "cete.slotsBody":
+    "No account needed. Each slot stays separate on this device. A full slot is not overwritten without asking.",
   "cete.saveDone": "Save complete.",
   "cete.saveDeleted": "Save deleted.",
   "cete.saveFail": "Could not finish. The save may be corrupt, or the device is blocking storage.",
@@ -70,9 +72,16 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
     title: "Apartman: Apartman Yöneticisi",
     subtitle: "One building, dozens of people, issues that do not end.",
   },
-  "kayip-telefon": { title: "Kayıp Telefon", subtitle: "A phone is lost. The life inside it surfaces." },
-  "son-100-gun": { title: "Son 100 Gün", subtitle: "The last hundred days. Every choice weighs more." },
-  "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "Four thousand years of state mind." },
+  "kayip-telefon": {
+    title: "Kayıp Telefon",
+    subtitle: "A phone is lost. The life inside it surfaces.",
+  },
+  "son-100-gun": {
+    title: "Son 100 Gün",
+    subtitle: "The last hundred days. Every choice weighs more.",
+  },
+  "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
+  ihtilal: { title: "İhtilâl", subtitle: "Elections are won. Power is not kept." },
 };
 
 export const CETE_HELP_EN = [
@@ -135,8 +144,13 @@ export function writeLang(next: Lang) {
   }
 }
 
-export function translate(lang: Lang, key: string, fallback: string, vars?: Record<string, string | number>) {
-  let out = lang === "en" ? EN[key] ?? fallback : fallback;
+export function translate(
+  lang: Lang,
+  key: string,
+  fallback: string,
+  vars?: Record<string, string | number>,
+) {
+  let out = lang === "en" ? (EN[key] ?? fallback) : fallback;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v));
   }
