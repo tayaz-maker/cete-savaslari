@@ -1,5 +1,5 @@
 import { clamp } from "@/lib/utils";
-import { HEALTH_MAX, ITEM_MAP } from "./data";
+import { CREW_MAP, HEALTH_MAX, ITEM_MAP } from "./data";
 import type { CrewId, NeighborhoodId, Player, Risk, ShopItem } from "./types";
 
 
@@ -100,7 +100,7 @@ export function missionCrewNeed(risk: Risk) {
 
 export function freeCrew(player: Player): CrewId[] {
   const busy = player.crewBusy ?? {};
-  return (player.crew ?? []).filter((id) => (busy[id] ?? 0) <= 0);
+  return [...new Set(player.crew ?? [])].filter((id) => Object.hasOwn(CREW_MAP, id) && (busy[id] ?? 0) <= 0);
 }
 
 export function missionCrewBlock(player: Player, risk: Risk) {
@@ -191,4 +191,3 @@ export function refillCaps(player: Player) {
     health: clamp(player.health, 0, HEALTH_MAX),
   };
 }
-

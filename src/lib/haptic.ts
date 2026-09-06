@@ -2,7 +2,11 @@ const KEY = "cete-haptic";
 
 export function hapticEnabled() {
   if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(KEY) !== "0";
+  try {
+    return window.localStorage.getItem(KEY) !== "0";
+  } catch {
+    return false;
+  }
 }
 
 export function setHaptic(on: boolean) {

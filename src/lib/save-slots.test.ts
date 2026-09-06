@@ -71,3 +71,24 @@ test("corrupt JSON does not poison sibling slots", () => {
   assert.equal(parseSlotEnvelope(readSlotRaw(storage, "cete", 1)), null);
   assert.equal(parseSlotEnvelope(readSlotRaw(storage, "cete", 2))?.ok, true);
 });
+
+test("existing slot seals migration and deletion cannot resurrect legacy", () => {
+  const storage = new MemoryStorage();
+  storage.setItem("legacy", '{"player":{"name":"old"}}');
+  storage.setItem(slotKey("cete", 1), '{"player":{"name":"new"}}');
+  migrateLegacyToSlot1(storage, "cete", ["legacy"]);
+  clearSlot(storage, "cete", 1);
+  assert.equal(migrateLegacyToSlot1(storage, "cete", ["legacy"]).migrated, false);
+  assert.equal(readSlotRaw(storage, "cete", 1), null);
+  assert.equal(migrateLegacyToSlot1(storage, "hanedan", ["legacy"]).migrated, true);
+});
+
+test("corrupt legacy is skipped and quota preserves previous slot", () => {
+  const storage = new MemoryStorage();
+  storage.setItem("legacy", "{bad");
+  assert.equal(migrateLegacyToSlot1(storage, "cete", ["legacy"]).migrated, false);
+  storage.setItem(slotKey("cete", 2), '{"old":true}');
+  storage.setItem = () => { throw new DOMException("Full", "QuotaExceededError"); };
+  assert.deepEqual(writeSlotRaw(storage, "cete", 2, '{}'), { ok: false, reason: "quota" });
+  assert.equal(readSlotRaw(storage, "cete", 2), '{"old":true}');
+});

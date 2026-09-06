@@ -24,12 +24,21 @@ export function backupSlotKey(gameId: string, slot: SlotIndex) {
 }
 
 export function readActiveSlot(storage: SlotStorage, gameId: string): SlotIndex {
-  const raw = Number(storage.getItem(activeSlotKey(gameId)));
-  return isSlotIndex(raw) ? raw : 1;
+  try {
+    const raw = Number(storage.getItem(activeSlotKey(gameId)));
+    return isSlotIndex(raw) ? raw : 1;
+  } catch {
+    return 1;
+  }
 }
 
 export function writeActiveSlot(storage: SlotStorage, gameId: string, slot: SlotIndex) {
-  storage.setItem(activeSlotKey(gameId), String(slot));
+  try {
+    storage.setItem(activeSlotKey(gameId), String(slot));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function readSlotRaw(storage: SlotStorage, gameId: string, slot: SlotIndex) {
@@ -67,8 +76,8 @@ export function writeSlotRaw(
 
 export function clearSlot(storage: SlotStorage, gameId: string, slot: SlotIndex) {
   try {
-    storage.removeItem(slotKey(gameId, slot));
     storage.removeItem(backupSlotKey(gameId, slot));
+    storage.removeItem(slotKey(gameId, slot));
     return true;
   } catch {
     return false;
@@ -86,10 +95,17 @@ export function migrateLegacyToSlot1(
   gameId: string,
   legacyKeys: string[],
 ): LegacyMigration {
-  const existing = readSlotRaw(storage, gameId, 1);
-  if (existing) return { migrated: false, alreadyPresent: true, source: null };
   const flag = `tariklab::${gameId}:legacy-migrated`;
-  if (storage.getItem(flag) === "1") return { migrated: false, alreadyPresent: false, source: null };
+  const existing = readSlotRaw(storage, gameId, 1);
+  if (existing !== null) {
+    try { storage.setItem(flag, "1"); } catch { /* best effort */ }
+    return { migrated: false, alreadyPresent: true, source: null };
+  }
+  try {
+    if (storage.getItem(flag) === "1") return { migrated: false, alreadyPresent: false, source: null };
+  } catch {
+    return { migrated: false, alreadyPresent: false, source: null };
+  }
   for (const key of legacyKeys) {
     let raw: string | null = null;
     try {
@@ -97,7 +113,7 @@ export function migrateLegacyToSlot1(
     } catch {
       raw = null;
     }
-    if (!raw) continue;
+    if (!raw || !parseSlotEnvelope(raw)) continue;
     const written = writeSlotRaw(storage, gameId, 1, raw);
     if (!written.ok) continue;
     try {

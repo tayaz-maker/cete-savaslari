@@ -922,25 +922,24 @@ export function blankTurf(_home: NeighborhoodId): Record<NeighborhoodId, number>
 	};
 }
 export function hydratePlayer(raw: Partial<Player> & Pick<Player, "name" | "neighborhood">): Player {
+	const finite = (value: unknown, fallback = 0, max = Number.MAX_SAFE_INTEGER) =>
+		typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.min(max, value)) : fallback;
+	const crew = [...new Set(Array.isArray(raw.crew) ? raw.crew.filter(id => Object.hasOwn(CREW_MAP, id)) : [])];
+	const crewBusy: Partial<Record<CrewId, number>> = {};
+	for (const id of crew) {
+		const ticks = Math.ceil(finite(raw.crewBusy?.[id], 0, 8));
+		if (ticks > 0) crewBusy[id] = ticks;
+	}
 	const neighborhood = migrateHood(raw.neighborhood);
-	const noGrind =
-		(raw.jobsDone ?? 0) === 0 &&
-		!(Array.isArray(raw.properties) && raw.properties.length) &&
-		!(raw.kose) &&
-		!(Array.isArray(raw.crew) && raw.crew.length) &&
-		!raw.horse &&
-		!raw.senet &&
-		!(raw.altin) &&
-		!(raw.usd) &&
-		!(raw.usdt);
 	const oldTurf = (raw.turf ?? {}) as Record<string, number>;
 	const turf = blankTurf(neighborhood);
-	if (!noGrind) {
+	{
 		turf.eyup = oldTurf.eyup ?? oldTurf.karakoy ?? turf.eyup;
 		turf.tarlabasi = oldTurf.tarlabasi ?? turf.tarlabasi;
 		turf.kadikoy = oldTurf.kadikoy ?? oldTurf.zeytinburnu ?? turf.kadikoy;
 		turf.sultangazi = oldTurf.sultangazi ?? turf.sultangazi;
 	}
+	for (const id of Object.keys(turf) as NeighborhoodId[]) turf[id] = finite(turf[id], 0, 100);
 	return {
 		name: raw.name,
 		neighborhood,
@@ -949,7 +948,7 @@ export function hydratePlayer(raw: Partial<Player> & Pick<Player, "name" | "neig
 		energy: raw.energy ?? 24,
 		stamina: raw.stamina ?? 14,
 		health: raw.health ?? 100,
-		cash: noGrind ? 0 : Math.max(0, raw.cash ?? 0),
+		cash: finite(raw.cash),
 		rusvet: raw.rusvet ?? 0,
 		itibar: raw.itibar ?? 0,
 		inventory: Array.isArray(raw.inventory) ? raw.inventory : ["w101"],
@@ -964,12 +963,12 @@ export function hydratePlayer(raw: Partial<Player> & Pick<Player, "name" | "neig
 		durumTick: raw.durumTick ?? 0,
 		incomeMult: hoodIncomeMult(neighborhood),
 		eventCooldown: raw.eventCooldown ?? 0,
-		isi: Math.max(0, Math.min(100, raw.isi ?? 6)),
-		crew: Array.isArray(raw.crew) ? (raw.crew as CrewId[]) : [],
-		crewBusy: raw.crewBusy && typeof raw.crewBusy === "object" ? raw.crewBusy : {},
+		isi: finite(raw.isi, 6, 100),
+		crew,
+		crewBusy,
 		turf,
-		bank: noGrind ? 0 : Math.max(0, raw.bank ?? 0),
-		bankAcc: noGrind ? 0 : Math.max(0, raw.bankAcc ?? 0),
+		bank: finite(raw.bank),
+		bankAcc: finite(raw.bankAcc),
 		senet: raw.senet ?? null,
 		contractId: raw.contractId === void 0 ? "c101" : raw.contractId,
 		contractGun: raw.contractGun ?? raw.gun ?? 1,

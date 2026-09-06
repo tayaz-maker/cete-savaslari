@@ -1,9 +1,11 @@
+import { validateSaveSlice } from "./save-validation";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { track } from "@/lib/analytics";
 import { hapticFail, hapticOk, hapticWin } from "@/lib/haptic";
 import {
   clearSlot,
+  isSlotIndex,
   migrateLegacyToSlot1,
   readActiveSlot,
   readSlotRaw,
@@ -211,6 +213,7 @@ function parseHiz(v: unknown): 1 | 2 | 4 {
 }
 
 function normalizeSlice(s: Record<string, unknown>) {
+  validateSaveSlice(s);
   const playerRaw = s.player as Player | null | undefined;
   const player =
     playerRaw && typeof playerRaw === "object"
@@ -228,7 +231,7 @@ function normalizeSlice(s: Record<string, unknown>) {
         hood: migrateHood(r.hood),
       }))
     : [];
-  const logs = Array.isArray(s.logs) ? (s.logs as LogEntry[]) : [];
+  const logs = Array.isArray(s.logs) ? (s.logs as LogEntry[]).slice(0, 40) : [];
   const market =
     s.market && typeof s.market === "object"
       ? { ...MARKET_START, ...(s.market as Market) }
@@ -246,16 +249,17 @@ function normalizeSlice(s: Record<string, unknown>) {
 
 function loadPersistedSlice() {
   if (typeof window === "undefined") return { ...emptyPersist, market: { ...MARKET_START } };
+  let slot: SlotIndex = 1;
   try {
     const storage = window.localStorage;
     migrateLegacyToSlot1(storage, "cete", [SAVE_KEY]);
-    const slot = readActiveSlot(storage, "cete");
-    const raw = readSlotRaw(storage, "cete", slot) || storage.getItem(SAVE_KEY);
-    if (!raw) return { ...emptyPersist, market: { ...MARKET_START } };
+    slot = readActiveSlot(storage, "cete");
+    const raw = readSlotRaw(storage, "cete", slot);
+    if (!raw) return { ...emptyPersist, activeSlot: slot, market: { ...MARKET_START } };
     const parsed = JSON.parse(raw) as { state?: Record<string, unknown> };
-    return normalizeSlice((parsed.state ?? parsed) as Record<string, unknown>);
+    return { ...normalizeSlice((parsed.state ?? parsed) as Record<string, unknown>), activeSlot: slot };
   } catch {
-    return { ...emptyPersist, market: { ...MARKET_START } };
+    return { ...emptyPersist, activeSlot: slot, market: { ...MARKET_START } };
   }
 }
 
@@ -854,7 +858,7 @@ export const useGame = create<GameState>()(
       fireCrew: (id) => {
         const s = get();
         const player = s.player;
-        if (!player || !player.crew.includes(id)) return;
+        if (!player || !player.crew.includes(id) || (player.crewBusy[id] ?? 0) > 0) return;
         const def = CREW_MAP[id];
         const next: Player = {
           ...player,
@@ -1699,26 +1703,23 @@ export const useGame = create<GameState>()(
         });
       },
       loadSlot: (slot) => {
-        if (typeof window === "undefined") return false;
+        if (typeof window === "undefined" || !isSlotIndex(slot)) return false;
         flushPersist();
-        writeActiveSlot(window.localStorage, "cete", slot);
-        const raw = readSlotRaw(window.localStorage, "cete", slot);
-        if (!raw) {
-          set({ ...emptyPersist, activeSlot: slot });
-          return true;
-        }
         try {
-          const parsed = JSON.parse(raw) as { state?: Record<string, unknown> };
-          const next = normalizeSlice((parsed.state ?? parsed) as Record<string, unknown>);
+          const raw = window.localStorage.getItem(slotKey("cete", slot));
+          const parsed = raw ? JSON.parse(raw) : null;
+          const slice = parsed?.state ?? parsed;
+          if (raw && (!slice || typeof slice !== "object" || Array.isArray(slice) || !("player" in slice))) return false;
+          const next = raw ? normalizeSlice(slice) : { ...emptyPersist, market: { ...MARKET_START } };
+          if (!writeActiveSlot(window.localStorage, "cete", slot)) return false;
           set({ ...next, activeSlot: slot, savedAt: Date.now() });
           return true;
         } catch {
-          set({ ...emptyPersist, activeSlot: slot });
           return false;
         }
       },
       saveToSlot: (slot) => {
-        if (typeof window === "undefined") return false;
+        if (typeof window === "undefined" || !isSlotIndex(slot)) return false;
         flushPersist();
         const s = get();
         const payload = {
@@ -1733,17 +1734,22 @@ export const useGame = create<GameState>()(
           },
           version: SAVE_VERSION,
         };
+        try {
         const written = writeSlotRaw(window.localStorage, "cete", slot, JSON.stringify(payload));
         if (!written.ok) return false;
-        writeActiveSlot(window.localStorage, "cete", slot);
+        if (!writeActiveSlot(window.localStorage, "cete", slot)) return false;
         set({ activeSlot: slot, savedAt: Date.now() });
         return true;
+        } catch { return false; }
       },
       clearPlaySlot: (slot) => {
-        if (typeof window === "undefined") return false;
+        if (typeof window === "undefined" || !isSlotIndex(slot)) return false;
+        flushPersist();
+        try {
         const ok = clearSlot(window.localStorage, "cete", slot);
-        if (get().activeSlot === slot) set({ ...emptyPersist, activeSlot: slot });
+        if (ok && get().activeSlot === slot) set({ ...emptyPersist, market: { ...MARKET_START }, activeSlot: slot });
         return ok;
+        } catch { return false; }
       },
       ackSeason: () => {
         const player = get().player;
@@ -1822,7 +1828,7 @@ export const useGame = create<GameState>()(
         },
         setItem: (_name, value) => {
           if (typeof window === "undefined") return;
-          const slot = readActiveSlot(window.localStorage, "cete");
+          const slot = useGame.getState().activeSlot;
           persistPending = { name: slotKey("cete", slot), value };
           const player = (value as { state?: { player?: unknown } })?.state
             ?.player;
@@ -1830,8 +1836,7 @@ export const useGame = create<GameState>()(
             flushPersist();
             return;
           }
-          if (persistTimer) return;
-          persistTimer = setTimeout(flushPersist, 1500);
+          flushPersist();
         },
         removeItem: () => {
           if (typeof window === "undefined") return;
@@ -1840,58 +1845,13 @@ export const useGame = create<GameState>()(
         },
       },
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<GameState>;
-        return {
-          ...current,
-          player: p.player
-            ? hydratePlayer({
-                ...p.player,
-                name: p.player.name || "İsimsiz",
-                neighborhood: migrateHood(p.player.neighborhood),
-              })
-            : current.player,
-          rivals: Array.isArray(p.rivals) ? p.rivals : current.rivals,
-          logs: Array.isArray(p.logs) ? p.logs : current.logs,
-          hiz: parseHiz(p.hiz),
-          version: SAVE_VERSION,
-          savedAt: typeof p.savedAt === "number" ? p.savedAt : Date.now(),
-          activeSlot:
-            typeof window !== "undefined"
-              ? readActiveSlot(window.localStorage, "cete")
-              : current.activeSlot,
-          market:
-            p.market && typeof p.market === "object"
-              ? { ...MARKET_START, ...p.market }
-              : current.market,
-        };
-      },
-      migrate: (persisted) => {
         try {
-          const s = (persisted ?? {}) as Record<string, unknown>;
-          const player = s.player as Player | null | undefined;
-          if (player && typeof player === "object") {
-            s.player = hydratePlayer({
-              ...player,
-              name: player.name || "İsimsiz",
-              neighborhood: migrateHood(player.neighborhood),
-            });
-          }
-          const rivals = s.rivals as Rival[] | undefined;
-          if (Array.isArray(rivals)) {
-            s.rivals = rivals.map((r) => ({
-              ...r,
-              hospitalTicks: r.hospitalTicks ?? 0,
-              hood: migrateHood(r.hood),
-            }));
-          }
-          s.hiz = parseHiz(s.hiz);
-          s.version = SAVE_VERSION;
-          if (!s.market || typeof s.market !== "object") s.market = { ...MARKET_START };
-          return s;
+          return { ...current, ...normalizeSlice(persisted as Record<string, unknown>), activeSlot: current.activeSlot };
         } catch {
-          return { ...emptyPersist };
+          return current;
         }
       },
+      migrate: (persisted) => normalizeSlice(persisted as Record<string, unknown>),
       partialize: (s) => ({
         version: s.version,
         player: s.player,
@@ -1905,4 +1865,3 @@ export const useGame = create<GameState>()(
     },
   ),
 );
-
