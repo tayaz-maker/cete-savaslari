@@ -56,6 +56,7 @@ export function HelpPanel({ triggerClassName }: { triggerClassName?: string }) {
         variant="ghost"
         className={triggerClassName}
         aria-haspopup="dialog"
+        aria-label="Nasıl Oynanır"
         onClick={() => setOpen(true)}
       >
         <HelpCircle className="size-4" />
