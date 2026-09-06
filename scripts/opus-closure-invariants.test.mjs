@@ -5,7 +5,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { hydrateDevlet, tickDevlet, tickDevletN } from "../public/games/next-wave/devlet-sim.js";
+import { hydrateDevlet, tickDevlet, tickDevletN, applyPolicy } from "../public/games/next-wave/devlet-sim.js";
 import { GRAND_HOOKS } from "../public/games/next-wave/devlet-data.js";
 import { create, applyAction, normalize } from "../public/games/next-wave.js";
 
@@ -58,6 +58,52 @@ test("DEVLET campaign history keeps the meaningful record, not month heartbeats"
   assert.equal(transitions.length, 4, "1950, 1980, 2002 and gunumuz transitions all survive to the end of the run");
   assert.deepEqual(transitions.map((t) => t.era), ["1950", "1980", "2002", "gunumuz"]);
   assert.ok(s.history.length <= 80);
+});
+
+test("DEVLET save/load is neutral at the dangerous boundaries", () => {
+  // A reload must never duplicate an effect, reroll an implementation result
+  // or replay a period transition. The engine is fully deterministic, so a
+  // round trip taken at each risky moment must produce an identical next month.
+  const roundTrip = (label, prepare) => {
+    const live = prepare();
+    const reloaded = JSON.parse(JSON.stringify(live));
+    tickDevlet(live);
+    tickDevlet(reloaded);
+    assert.equal(JSON.stringify(live), JSON.stringify(reloaded), `reload changed the next month at: ${label}`);
+  };
+
+  roundTrip("mid-run with a policy still pending", () => {
+    const s = hydrateDevlet("2002");
+    tickDevletN(s, 7);
+    // queue a policy so the save happens between intent and field result
+    applyPolicy(s, "imf-sba");
+    return s;
+  });
+
+  roundTrip("on the December year boundary", () => {
+    const s = hydrateDevlet("2002");
+    while (s.time.month !== 12) tickDevlet(s);
+    return s;
+  });
+
+  roundTrip("one month before a period transition", () => {
+    const s = hydrateDevlet("1923", { campaign: true });
+    while (!(s.time.year === 1949 && s.time.month === 12)) tickDevlet(s);
+    return s;
+  });
+
+  roundTrip("immediately after a period transition and its ghost", () => {
+    const s = hydrateDevlet("1923", { campaign: true });
+    while (s.ghosts.length === 0) tickDevlet(s);
+    return s;
+  });
+
+  // and a reload must not resurrect a finished run
+  const done = hydrateDevlet("2002");
+  tickDevletN(done, 600);
+  const revived = JSON.parse(JSON.stringify(done));
+  tickDevletN(revived, 50);
+  assert.equal(JSON.stringify(revived), JSON.stringify(done), "reloading a finished run must not restart it");
 });
 
 test("DEVLET known-confidence moves on all three reported channels", () => {
