@@ -18,6 +18,6 @@ export function PortalHome() {
     <header className="mb-12 border-b border-border pb-6"><p className="text-3xl font-semibold tracking-tight sm:text-5xl">TARIKLAB</p><p className="mt-2 text-[0.65rem] font-medium tracking-[0.35em] text-muted uppercase">Oyun Laboratuvarı</p></header>
     <section aria-labelledby="active-games"><div className="mb-5 flex items-end justify-between"><h1 id="active-games" className="text-sm font-medium uppercase tracking-[0.25em] text-muted">Oyunlar</h1><span className="text-xs text-subtle">{active.length} oynanabilir</span></div><div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">{active.map((game, i) => <GameCard key={game.slug} game={game} featured={i === 0} />)}</div></section>
     {soon.length > 0 && <section aria-labelledby="coming-soon" className="mt-14"><h2 id="coming-soon" className="mb-5 text-sm font-medium uppercase tracking-[0.25em] text-muted">Yakında</h2><div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3">{soon.map((game) => <GameCard key={game.slug} game={game} />)}</div></section>}
-    <footer className="mt-14 text-center text-xs text-subtle"><a href="/credits.html" className="hover:text-fg focus-visible:outline-2 focus-visible:outline-danger">Kaynaklar</a></footer>
+    <footer className="mt-14 text-center text-xs text-subtle"><p>© 2026 TarikLab. Tüm hakları saklıdır.</p><a href="/credits.html" className="hover:text-fg focus-visible:outline-2 focus-visible:outline-danger">Kaynaklar</a></footer>
   </main>;
 }
