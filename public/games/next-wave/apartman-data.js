@@ -23,6 +23,10 @@ export const RESIDENTS = [
   { id: "r9", name: "Fatma Aksoy", floor: 5, owner: true, influence: 68, pays: true, satisfaction: 49, bloc: "eski" },
   { id: "r10", name: "Cemal Usta", floor: 0, owner: false, influence: 28, pays: true, satisfaction: 54, bloc: "dukkan" },
   { id: "r11", name: "Leyla Erdoğan", floor: 6, owner: true, influence: 46, pays: false, satisfaction: 42, bloc: "gecikme" },
+  { id: "r12", name: "Selin Aktaş", floor: 6, owner: false, influence: 38, pays: true, satisfaction: 61, bloc: "kiraci" },
+  { id: "r13", name: "Rıza Demirtaş", floor: 7, owner: true, influence: 74, pays: true, satisfaction: 47, bloc: "eski" },
+  { id: "r14", name: "Melis Kara", floor: 7, owner: true, influence: 42, pays: false, satisfaction: 40, bloc: "gecikme" },
+  { id: "r15", name: "Hakan Uslu", floor: 0, owner: true, influence: 51, pays: true, satisfaction: 55, bloc: "dukkan" },
 ];
 
 export const ISSUES = [
@@ -78,6 +82,14 @@ export const ISSUE_TEMPLATES = [
   { id: "balkon-izgara", type: "ortak", title: "Balkonda mangal şikâyeti", severity: 2 },
   { id: "kuyu-su", type: "su", system: "su", title: "Hidrofor gece çalışıyor", severity: 2 },
   { id: "site-karsilastirma", type: "aidat", title: "Yandaki site aidatı daha düşük", severity: 1 },
+  { id: "asansor-yedek2", type: "bakım", system: "asansor", title: "Halat değişim teklifi", severity: 4, cheapFails: true },
+  { id: "cam-balkon", type: "ortak", title: "Cam balkon oylaması", severity: 2 },
+  { id: "kargo-dolap", type: "kargo", title: "Kargo dolabı yeri", severity: 1 },
+  { id: "isitma-vana", type: "isitma", system: "isitma", title: "Petek vanası sıkıştı", severity: 2 },
+  { id: "yonetici-defter", type: "finans", title: "Eski yönetici USB'si", severity: 3 },
+  { id: "kedi-disi", type: "hayvan", title: "Bahçe kedisi kısırlaştırma aidatı", severity: 1 },
+  { id: "cati-gunes", type: "cati", system: "cati", title: "Güneş paneli teklifi", severity: 3 },
+  { id: "guvenlik-kart", type: "güvenlik", system: "guvenlik", title: "Kartlı geçiş arızası", severity: 2 },
 ];
 
 export const MEETINGS = [
@@ -87,6 +99,8 @@ export const MEETINGS = [
   { id: "anlasmazlik", name: "Sakin anlaşmazlığı", cost: 200 },
   { id: "guvenoyu", name: "Güvenoyu / seçim", cost: 0 },
   { id: "buyuk-tadilat", name: "Büyük tadilat kararı", cost: 6400 },
+  { id: "kamera-oyu", name: "Kamera / KVKK tartışması", cost: 900 },
+  { id: "yakıt-toplantı", name: "Kış yakıt avansı", cost: 1800 },
 ];
 
 export const PROPOSALS = [

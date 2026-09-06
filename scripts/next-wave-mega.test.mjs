@@ -44,9 +44,9 @@ test("apartman cheap patch delayed callback", () => {
 });
 
 test("son 100 gun four scenarios and two actions per day", () => {
-  assert.equal(SCENARIOS.length, 4);
+  assert.ok(SCENARIOS.length >= 16);
   const ids = new Set(SCENARIOS.map((x) => x.id));
-  assert.equal(ids.size, 4);
+  assert.equal(ids.size, SCENARIOS.length);
   const s = create("son-100-gun");
   applyAction("son-100-gun", s, "scenario:family-care");
   assert.equal(s.scenarioId, "family-care");
@@ -110,7 +110,7 @@ test("devlet 2002 playable packs and actual/reported isolation", () => {
   assert.ok(PERIODS["1923"] && PERIODS["1950"] && PERIODS["1980"] && PERIODS["2002"]);
   assert.ok(PERIODS.gunumuz && PERIODS.alternatif);
   assert.equal(PERIODS["2002"].playable, true);
-  assert.equal(PERIODS["1923"].playable, false);
+  assert.equal(PERIODS["1923"].playable, true);
   assert.ok(POLICIES_2002.length >= 6);
   const s = create("tc-sim-devlet");
   s.actual.inflation = 80;
@@ -120,7 +120,8 @@ test("devlet 2002 playable packs and actual/reported isolation", () => {
   assert.ok(implementationRate(s) >= 0 && implementationRate(s) <= 100);
   applyAction("tc-sim-devlet", s, "era:1923");
   assert.equal(s.eraId, "1923");
-  assert.equal(s.scenario.id, "2002-2005");
+  assert.equal(s.time.year, 1923);
+  assert.equal(s.scenario.id, "1923");
 });
 
 test("identity firewall: games keep distinct signature fields", () => {

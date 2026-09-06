@@ -61,3 +61,8 @@ footer { color: #91857b; font-size: 0.8rem; padding: 10px 0; }
 @media (max-width: 420px) {
   button { flex: 1 1 44%; }
 }
+
+.era-daktilo{font-family:"Courier New",ui-monospace,monospace}
+.era-radyo article{border-color:#5a4a32}
+.era-klasor article{border-style:dashed}
+.era-dashboard .eyebrow{letter-spacing:.2em}

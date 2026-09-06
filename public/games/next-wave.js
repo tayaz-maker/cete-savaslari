@@ -6,14 +6,36 @@ export const seeds = (n) => {
 };
 export const rng = seeds;
 export const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n));
-export const implementationRate = (s) =>
-  clamp(((s.institutions || []).reduce((a, x) => a + (x.capacity || 0), 0) / Math.max(1, (s.institutions || []).length)));
+export const implementationRate = (s) => {
+  const inst = s.institutions || [];
+  const cap = inst.reduce((a, x) => a + (x.capacity || 0), 0) / Math.max(1, inst.length);
+  if (s.dna || s.entropy != null) {
+    const entropy = s.entropy || 0;
+    const heat = s.heat || 0;
+    const instDna = s.dna?.institutionalism || 50;
+    const info = s.infoQuality || 50;
+    return clamp(cap - entropy * 0.18 - heat * 0.12 + (instDna - 50) * 0.12 + (info - 50) * 0.08);
+  }
+  return clamp(cap);
+};
 
 import { SYSTEMS, RESIDENTS, ISSUES, ISSUE_TEMPLATES, MEETINGS, PROPOSALS } from "./next-wave/apartman-data.js";
 import { SCENARIOS, MILESTONES, ACTIONS as A100 } from "./next-wave/son100-data.js";
 import { MAJORS, SHADOWS } from "./next-wave/hayat-data.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
-import { PERIODS, POLICIES_2002, EVENTS_2002, COHORTS, REGIONS, GRAND_HOOKS } from "./next-wave/devlet-data.js";
+import { PERIODS, POLICIES_2002, EVENTS_2002, COHORTS, REGIONS, GRAND_HOOKS, POLICIES, EVENTS as DEVLET_EVENTS } from "./next-wave/devlet-data.js";
+import {
+  hydrateDevlet,
+  applyPolicy as devletPolicyApply,
+  tickDevlet,
+  tickDevletN,
+  applyAlt,
+  applyDoctrine,
+  finiteState,
+  DOCTRINES,
+  ALT_PRESETS,
+  GUNUMUZ_BASELINE,
+} from "./next-wave/devlet-sim.js";
 
 function pushHist(s, row) {
   s.history = (s.history || []).concat(row).slice(-80);
@@ -121,35 +143,9 @@ const defs = {
   },
   "tc-sim-devlet": {
     title: "TC SIM: DEVLET",
-    tag: "2002–2005 · Mühür Masası",
-    screens: ["Durum", "Politika", "Kurumlar", "Arşiv", "Dönemler", "Geçmiş"],
-    initial: () => {
-      const p = PERIODS["2002"];
-      return {
-        meta: { version: 1, id: "tc-sim-devlet" },
-        time: { year: 2002, month: 1, turn: 1 },
-        scenario: { id: "2002-2005" },
-        eraId: "2002",
-        actual: { inflation: p.economy.inflation, treasury: p.economy.treasury, unemployment: p.economy.unemployment },
-        reported: { inflation: p.economy.inflation, treasury: p.economy.treasury, unemployment: p.economy.unemployment },
-        known: { inflation: { confidence: 1 }, treasury: { confidence: 1 }, unemployment: { confidence: 0.6 } },
-        institutions: p.institutions.map((x) => ({ id: x.id, name: x.name, capacity: x.capacity, autonomy: x.autonomy })),
-        characters: [],
-        appointments: [],
-        cohorts: COHORTS.map((c) => ({ ...c, mood: 50 })),
-        regions: REGIONS.map((r) => ({ id: r.id, name: r.name, impl: 50 })),
-        networks: [],
-        events: [],
-        periodPacks: Object.keys(PERIODS),
-        grand: GRAND_HOOKS,
-        openCases: [],
-        archive: [],
-        implementationLog: [],
-        flags: {},
-        history: [],
-        ui: { screen: "Durum" },
-      };
-    },
+    tag: "Devlet organizması · dönemler",
+    screens: ["Durum", "Politika", "Kurumlar", "DNA", "Arşiv", "Dönemler", "Kelebekler", "Geçmiş"],
+    initial: () => hydrateDevlet("2002"),
   },
 };
 
@@ -326,12 +322,14 @@ function hayatAdvance(s) {
   if (sh) {
     sh.status = "resolved";
     const tmpl = SHADOWS.find((x) => x.category === sh.category) || SHADOWS[0];
-    const mix = (s.resources.money > 1800 ? 1 : 0) + (s.relationships[0].value > 55 ? 1 : 0);
+    const other = s.shadows.filter((x) => x.status === "resolved").length;
+    const mix = (s.resources.money > 1800 ? 1 : 0) + (s.relationships[0].value > 55 ? 1 : 0) + (other >= 2 ? 1 : 0);
     sh.outcome = mix >= 2 ? "good" : mix === 1 ? "mix" : "bad";
     sh.text = tmpl[sh.outcome === "good" ? "good" : sh.outcome === "mix" ? "mix" : "bad"];
+    if (other >= 1) sh.combined = true;
     if (sh.outcome === "good") s.resources.hope = clamp((s.resources.hope || 50) + 6);
     if (sh.outcome === "bad") s.resources.health = clamp(s.resources.health - 4);
-    pushHist(s, { type: "shadow-callback", id: sh.id, text: sh.text, outcome: sh.outcome });
+    pushHist(s, { type: "shadow-callback", id: sh.id, text: sh.text, outcome: sh.outcome, combined: !!sh.combined });
   }
 }
 
@@ -383,53 +381,19 @@ function phoneDiscover(s, item) {
   pushHist(s, { type: "discover", item });
 }
 
-function phoneEnding(pressure) {
+function phoneEnding(s) {
+  const pressure = s.privacyPressure;
+  const sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass"].includes(x));
+  if (s.corroboration.length >= 3 && pressure < 70 && !sawId) return "witness";
   return pressure < 20 ? "minimal" : pressure < 60 ? "thorough" : "reckless";
 }
 
 function devletPolicy(s, policyId) {
-  const p = POLICIES_2002.find((x) => x.id === policyId) || POLICIES_2002[0];
-  const inst = s.institutions.find((i) => i.id === p.inst);
-  const cap = inst ? inst.capacity : 50;
-  const rate = clamp((cap / Math.max(40, p.capacityNeed)) * 70);
-  s.appointments.push({ id: "policy_" + s.time.turn, kind: p.id === POLICIES_2002[0].id ? "stability" : p.id, institution: p.inst, rate });
-  s.implementationLog.push({ turn: s.time.turn, policy: p.id, rate });
-  s.flags.pendingPolicy = { id: p.id, rate, inflation: p.inflation, cost: p.cost };
-  pushHist(s, { type: "policy", turn: s.time.turn, policy: p.id });
+  return devletPolicyApply(s, policyId);
 }
 
 function devletAdvance(s) {
-  s.time.month += 1;
-  if (s.time.month > 12) {
-    s.time.month = 1;
-    s.time.year += 1;
-  }
-  s.time.turn += 1;
-  const rate = implementationRate(s) / 100;
-  const pending = s.flags.pendingPolicy;
-  const boost = pending ? pending.rate / 100 : 0;
-  s.actual.inflation = clamp(s.actual.inflation * (1 - rate * 0.08 - boost * 0.02), 0, 200);
-  if (pending) {
-    s.actual.treasury = clamp(s.actual.treasury - pending.cost + rate * 4, 0, 200);
-    s.flags.pendingPolicy = null;
-  }
-  const optimism = 0.9 + rate * 0.2;
-  s.reported.inflation = Math.round(s.actual.inflation * optimism);
-  s.reported.treasury = Math.round(s.actual.treasury * (0.95 + rate * 0.05));
-  s.known.inflation = { confidence: Math.min(1, (s.known.inflation?.confidence || 0) + 0.05) };
-  const ev = EVENTS_2002.find((e) => e.year === s.time.year && e.month === s.time.month);
-  if (ev) {
-    s.events.push({ id: ev.id, title: ev.title });
-    s.archive.push({ year: s.time.year, month: s.time.month, rate, event: ev.id, provenance: ev.provenance });
-    if (ev.domain === "prices") s.reported.inflation = Math.max(0, s.reported.inflation - 2);
-    if (ev.domain === "labor") s.actual.unemployment = clamp((s.actual.unemployment || 10) + 0.3, 0, 40);
-  } else {
-    s.archive.push({ year: s.time.year, month: s.time.month, rate });
-  }
-  if (s.time.year > 2005 || (s.time.year === 2005 && s.time.month >= 12)) {
-    s.flags.campaignEnd = true;
-  }
-  pushHist(s, { type: "month", turn: s.time.turn });
+  return tickDevlet(s);
 }
 
 export function applyAction(id, s, action) {
@@ -489,7 +453,7 @@ export function applyAction(id, s, action) {
   } else if (id === "kayip-telefon" && action.startsWith("discover:")) {
     phoneDiscover(s, action.slice(9));
   } else if (id === "kayip-telefon" && action === "return") {
-    s.flags.ending = phoneEnding(s.privacyPressure);
+    s.flags.ending = phoneEnding(s);
     pushHist(s, { type: "ending", ending: s.flags.ending });
   } else if (id === "tc-sim-devlet" && action === "policy") {
     devletPolicy(s, "imf-sba");
@@ -498,19 +462,35 @@ export function applyAction(id, s, action) {
   } else if (id === "tc-sim-devlet" && action === "advance") {
     devletAdvance(s);
   } else if (id === "tc-sim-devlet" && action.startsWith("era:")) {
-    const era = PERIODS[action.slice(4)];
-    if (era) {
-      s.eraId = era.id;
-      s.flags.eraPreview = era.id;
-      pushHist(s, { type: "era-select", era: era.id, playable: !!era.playable });
+    const eraId = action.slice(4);
+    if (PERIODS[eraId]) {
+      const keepMeta = s.meta;
+      Object.assign(s, hydrateDevlet(eraId), { meta: keepMeta });
+      pushHist(s, { type: "era-select", era: eraId, playable: true });
     }
+  } else if (id === "tc-sim-devlet" && action === "campaign:grand") {
+    const keepMeta = s.meta;
+    Object.assign(s, hydrateDevlet("1923", { campaign: true }), { meta: keepMeta });
+    pushHist(s, { type: "campaign", mode: "hedefsiz" });
+  } else if (id === "tc-sim-devlet" && action.startsWith("campaign:")) {
+    const doctrine = action.slice(9);
+    const keepMeta = s.meta;
+    Object.assign(s, hydrateDevlet("1923", { campaign: true, doctrine }), { meta: keepMeta });
+    pushHist(s, { type: "campaign", mode: "hedefli", doctrine });
+  } else if (id === "tc-sim-devlet" && action.startsWith("doctrine:")) {
+    applyDoctrine(s, action.slice(9));
+  } else if (id === "tc-sim-devlet" && action.startsWith("alt:")) {
+    const keepMeta = s.meta;
+    Object.assign(s, hydrateDevlet("alternatif", { alt: action.slice(4) }), { meta: keepMeta });
+  } else if (id === "tc-sim-devlet" && action.startsWith("tick:")) {
+    tickDevletN(s, Number(action.slice(5)) || 0);
   }
   s.history = (s.history || []).slice(-80);
   s.openCases = (s.openCases || []).slice(-40);
   return s;
 }
 
-export { defs, SYSTEMS, MEETINGS, SCENARIOS, MAJORS, DISCOVERABLES, PERIODS, POLICIES_2002, ENDINGS, APPS, ISSUE_TEMPLATES };
+export { defs, SYSTEMS, MEETINGS, SCENARIOS, MAJORS, DISCOVERABLES, PERIODS, POLICIES_2002, ENDINGS, APPS, ISSUE_TEMPLATES, hydrateDevlet, tickDevletN, DOCTRINES, ALT_PRESETS, POLICIES, finiteState, GUNUMUZ_BASELINE, SHADOWS, CONTACTS, RESIDENTS };
 
 function h(s) {
   return String(s ?? "")
@@ -565,10 +545,13 @@ function panelHtml(id, state) {
     if (state.flags.finalReport) {
       return `<article><h2>Yüz gün bitti</h2><p>Nakit ${state.resources.money} · umut ${state.resources.hope} · enerji ${state.resources.energy}</p><p>Kaçırılan yüküm: ${state.missed.join(", ") || "yok"}</p><p>Senaryo: ${h(state.scenarioId)}</p></article>`;
     }
-    return `<article><h2>${h(screen)}</h2><p>Kalan ${state.remainingDays} gün · bugün ${state.actionsRemaining} hareket</p><p>Enerji ${state.resources.energy} · nakit ${state.resources.money} · umut ${state.resources.hope}</p><ul>${state.obligations
+    if (screen === "Yüküm") {
+      return `<article><h2>Yüküm</h2><ul>${state.obligations.map((o) => `<li>${h(o.title)} · ${o.status} · ${o.due}</li>`).join("")}</ul></article>`;
+    }
+    return `<article><h2>${h(screen)}</h2><p>Kalan ${state.remainingDays} gün · bugün ${state.actionsRemaining} hareket · ${h(state.scenarioId)}</p><p>Enerji ${state.resources.energy} · nakit ${state.resources.money} · umut ${state.resources.hope}</p><ul>${state.obligations
       .filter((o) => o.status === "open")
       .map((o) => `<li>${h(o.title)} · ${o.due} gün · ${o.cost || 0} TL</li>`)
-      .join("")}</ul></article>`;
+      .join("")}</ul><p>${SCENARIOS.length} ayrı senaryo.</p></article>`;
   }
   if (id === "hayat") {
     const open = state.shadows.filter((x) => x.status === "open");
@@ -590,24 +573,47 @@ function panelHtml(id, state) {
   }
   if (id === "tc-sim-devlet") {
     const era = PERIODS[state.eraId] || PERIODS["2002"];
+    const pool = (POLICIES[state.eraId] || POLICIES_2002);
     if (screen === "Dönemler") {
-      return `<article><h2>Dönem paketleri</h2><ul>${Object.values(PERIODS)
-        .map((p) => `<li><strong>${h(p.name)}</strong> · ${p.playable ? "oynanır" : "veri paketi"} — ${h(p.theme)}</li>`)
-        .join("")}</ul><p>${h(GRAND_HOOKS.note)}</p></article>`;
+      return `<article><h2>Başlangıçlar</h2><ul>${Object.values(PERIODS)
+        .map((p) => `<li><strong>${h(p.name)}</strong> · oynanır — ${h(p.theme)}</li>`)
+        .join("")}</ul>
+        <p>Büyük kampanya ${GRAND_HOOKS.span} · ${GRAND_HOOKS.months} ay. Hedefsiz veya doktrinli.</p>
+        <p>Günümüz tabanı ${GUNUMUZ_BASELINE.year}-${String(GUNUMUZ_BASELINE.month).padStart(2, "0")} (kilitli).</p></article>`;
     }
     if (screen === "Politika") {
-      return `<article><h2>Mühür masası</h2><ul>${POLICIES_2002.map((p) => `<li>${h(p.name)} — ${h(p.intent)}</li>`).join("")}</ul></article>`;
+      return `<article><h2>Mühür masası</h2><ul>${pool.map((p) => `<li>${h(p.name)} — ${h(p.intent)}</li>`).join("")}</ul>
+        <p>Niyet ≠ sonuç. Uygulama ${implementationRate(state).toFixed(0)}.</p></article>`;
     }
     if (screen === "Kurumlar") {
-      return `<article><h2>Kurumlar</h2><ul>${state.institutions.map((i) => `<li>${h(i.name)} · kapasite ${i.capacity}</li>`).join("")}</ul><p>Uygulama oranı ${implementationRate(state).toFixed(0)}</p></article>`;
+      return `<article><h2>Kurumlar</h2><ul>${state.institutions.map((i) => `<li>${h(i.name)} · kapasite ${i.capacity} · özerklik ${i.autonomy ?? "—"}</li>`).join("")}</ul>
+        <p>Form ${h(state.form)} · entropi ${state.entropy} · ısı ${state.heat}</p></article>`;
+    }
+    if (screen === "DNA") {
+      const dna = state.dna || {};
+      return `<article><h2>Devlet DNA / refleks</h2><ul>${Object.entries(dna).map(([k, v]) => `<li>${h(k)} ${v}</li>`).join("")}</ul>
+        <p>Refleks: ${(state.reflexes || []).join(", ")}</p>
+        <p>Kim devlet: merkez ${state.kimDevlet?.center} · sokak ${state.kimDevlet?.street}</p>
+        <p>Bilgi kalitesi ${state.infoQuality} · sinir: ${(state.nervous?.channels || []).join(", ")}</p></article>`;
     }
     if (screen === "Arşiv") {
-      return `<article><h2>Arşiv</h2><ul>${state.archive
-        .slice(-10)
-        .map((a) => `<li>${a.year}-${String(a.month).padStart(2, "0")} · oran ${(a.rate * 100).toFixed(0)} ${a.event ? "· " + a.event : ""}</li>`)
-        .join("")}</ul></article>`;
+      return `<article><h2>Arşiv / dosya</h2><ul>${(state.archive || [])
+        .slice(-8)
+        .map((a) => `<li>${a.year}-${String(a.month).padStart(2, "0")} · ${(a.rate * 100).toFixed(0)} ${a.event ? "· " + a.event : ""} ${a.provenance || ""}</li>`)
+        .join("")}</ul>
+        <p>Dosyalar: ${(state.files || []).map((f) => f.status).join(", ") || "yok"}</p>
+        <p>Hayalet: ${(state.ghosts || []).slice(-2).map((g) => h(g.text)).join(" / ") || "—"}</p></article>`;
     }
-    return `<article><h2>Durum</h2><p>${state.time.year}/${state.time.month} · ${h(era.name)}</p><p>Fiili enflasyon ${state.actual.inflation.toFixed?.(1) ?? state.actual.inflation} · raporlanan ${state.reported.inflation} · güven ${state.known.inflation.confidence}</p><p>Hazine fiili ${state.actual.treasury} · rapor ${state.reported.treasury}</p></article>`;
+    if (screen === "Kelebekler") {
+      return `<article><h2>Kelebekler / yol</h2><ul>${(state.butterflies || []).slice(-8).map((b) => `<li>${h(b.from)} — ${h(b.text)}</li>`).join("") || "<li>Henüz yok</li>"}</ul>
+        <p>Politika borcu konut ${state.policyDebt?.housing} · eğitim ${state.policyDebt?.education}</p>
+        <p>Doktrin ${h(state.scenario?.doctrineName || "hedefsiz")}</p></article>`;
+    }
+    return `<article class="era-${h(state.ui?.flavor || era.flavor)}"><h2>Durum</h2>
+      <p>${state.time.year}/${state.time.month} · ${h(era.name)} · ${state.scenario?.campaign ? "büyük kampanya" : "dönem"}</p>
+      <p>Fiili enflasyon ${Number(state.actual.inflation).toFixed(1)} · rapor ${state.reported.inflation} · güven ${(state.known.inflation?.confidence || 0).toFixed?.(2) || state.known.inflation?.confidence}</p>
+      <p>Hazine fiili ${Number(state.actual.treasury).toFixed(0)} · işsizlik ${Number(state.actual.unemployment || 0).toFixed(1)}</p>
+      <p>Uygulama ${implementationRate(state).toFixed(0)} · form ${h(state.form)}</p></article>`;
   }
   return `<article><pre>${h(JSON.stringify(state, null, 2))}</pre></article>`;
 }
@@ -640,6 +646,8 @@ function render(id) {
       <button type="button" id="alt">${id === "kayip-telefon" ? "İade et" : id === "tc-sim-devlet" ? "Ay ilerle" : id === "apartman" ? "Hafta ilerle" : "İlerle"}</button>
       <button type="button" id="reset">Sıfırla</button>
     </div>
+    ${id === "tc-sim-devlet" ? `<div class="actions" id="starts">${["1923", "1950", "1980", "2002", "gunumuz", "alternatif"].map((e) => `<button type="button" data-era="${e}">${e}</button>`).join("")}<button type="button" data-era="grand">1923→2030</button><button type="button" data-era="hedefli">Hedefli</button></div>` : ""}
+    ${id === "son-100-gun" ? `<div class="actions" id="scen">${SCENARIOS.map((sc) => `<button type="button" data-sc="${sc.id}">${h(sc.name)}</button>`).join("")}</div>` : ""}
     <details><summary>Nasıl oynanır</summary><p>${helpText(id)}</p></details>
     <footer>© 2026 TarikLab · Tarık Halil Ayaz</footer>
   </main>`;
@@ -704,15 +712,34 @@ function render(id) {
       render(id);
     };
   });
+  document.querySelectorAll("[data-era]").forEach((b) => {
+    b.onclick = () => {
+      if (!state) state = create(id);
+      const v = b.dataset.era;
+      if (v === "grand") applyAction(id, state, "campaign:grand");
+      else if (v === "hedefli") applyAction(id, state, "campaign:istikrar");
+      else applyAction(id, state, "era:" + v);
+      show();
+      persist();
+    };
+  });
+  document.querySelectorAll("[data-sc]").forEach((b) => {
+    b.onclick = () => {
+      if (!state) state = create(id);
+      applyAction(id, state, "scenario:" + b.dataset.sc);
+      show();
+      persist();
+    };
+  });
   show();
 }
 
 function helpText(id) {
   if (id === "apartman") return "Aidat, sistem ve sakin gerilimi toplantıda oya döner. Ucuz çözüm sonra geri gelir.";
-  if (id === "son-100-gun") return "Günde iki hareket. Yüküm kaçınca şişer. Dört senaryo ayrı başlangıçtır.";
-  if (id === "hayat") return "18–35. Büyük karar Uzun Gölge bırakır; yıllar sonra karışık döner.";
-  if (id === "kayip-telefon") return "Uygulamalar keşifle açılır. Derin bakış mahremiyet baskısı üretir. Üç iade yolu var.";
-  if (id === "tc-sim-devlet") return "Oyuncu devlet organizmasıdır. Niyet ≠ sonuç. Fiili / rapor / bilinen ayrı durur. 2002–2005 oynanır; diğer dönemler veri paketidir.";
+  if (id === "son-100-gun") return "Günde iki hareket. On altı senaryo ayrı başlangıç ve yükümdür. Hep iş veya hep dinlen yetmez.";
+  if (id === "hayat") return "18–35. Büyük karar Uzun Gölge bırakır; gölgeler birleşebilir.";
+  if (id === "kayip-telefon") return "Uygulamalar keşifle açılır. Doğrulama ve çelişki ayrı yollar üretir.";
+  if (id === "tc-sim-devlet") return "Oyuncu devlet organizmasıdır. Niyet ≠ sonuç. Fiili / rapor / bilinen ayrı durur. 1923, 1950, 1980, 2002, Günümüz, Alternatif ve 1923–2030 kampanyası oynanır.";
   return "Kayıt yerleri yereldir.";
 }
 

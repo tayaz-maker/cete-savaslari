@@ -9,6 +9,8 @@ export const CONTACTS = [
   { id: "c_mert", name: "Mert", relation: "kuzen", tone: "lâubali" },
   { id: "c_naz", name: "Naz", relation: "yeni isim", tone: "dikkatli" },
   { id: "c_bank", name: "Banka Bildirim", relation: "servis", tone: "otomatik" },
+  { id: "c_eczane", name: "Nöbetçi Eczane", relation: "servis", tone: "kısa" },
+  { id: "c_patron", name: "Hakan Bey", relation: "üst", tone: "resmi" },
 ];
 
 export const THREADS = [
@@ -18,6 +20,8 @@ export const THREADS = [
   { id: "t4", contactId: "c_seda", app: "messages", messages: ["anahtarı bıraktım", "kutular sende kalsın", "konuşacak bişey yok"] },
   { id: "t5", contactId: "c_mert", app: "messages", messages: ["abi nakit lazım", "çarşamba netleşir", "annene söyleme"] },
   { id: "t6", contactId: "c_naz", app: "messages", messages: ["geldin mi", "kafede kimse olmasın", "foto atma"] },
+  { id: "t7", contactId: "c_patron", app: "messages", messages: ["toplantı 09:30 kaydırma", "müşteri bekler", "bu maili dışarı taşıma"] },
+  { id: "t8", contactId: "c_eczane", app: "messages", messages: ["ilac hazır", "son 1 gün"] },
 ];
 
 export const DISCOVERABLES = [
@@ -43,10 +47,18 @@ export const DISCOVERABLES = [
   { id: "contact_naz_note", app: "contacts", title: "Naz — not: 'iş değil'", text: "Rehber notu kısa. Aileye anlatılmamış.", tags: ["naz"] },
   { id: "photo_ticket", app: "photos", title: "Foto: otobüs bileti", text: "Tarih yarın. İsim telefon sahibi.", tags: ["travel"] },
   { id: "deleted_draft", app: "messages", title: "Taslak: Seda'ya", text: "'özür' yazılmış, gönderilmemiş.", tags: ["seda"] },
+  { id: "call_patron", app: "calls", title: "Hakan Bey, 08:41, 12 sn", text: "Açılmamış. Sonra 'kaydırma' mesajı.", tags: ["work"], corroborates: ["t7"] },
+  { id: "photo_eczane", app: "photos", title: "Foto: reçete kuyruğu", text: "Tarih dün gece. Aileye söylenmemiş.", tags: ["body"] },
+  { id: "note_iban", app: "notes", title: "Not: IBAN + 'Naz'", text: "Banka SMS'indeki 2.400 ile aynı haneye bakıyor.", tags: ["money", "naz"], corroborates: ["bank_sms"] },
+  { id: "cal_bus", app: "calendar", title: "Takvim: otogar 06:20", text: "Bilet fotoğrafıyla aynı gün.", tags: ["travel"], corroborates: ["photo_ticket"] },
+  { id: "voice_3", app: "voice", title: "Ses: 'anneme söyleme'", text: "Leyla hattı değil. Mert'in tonuna yakın.", tags: ["mert"], corroborates: ["t5"] },
+  { id: "file_map", app: "files", title: "Konum kaydı: Moda iskele", text: "Takvim 21:00, foto 23:14. Aralık açık.", tags: ["naz"], contradicts: ["cal_naz"] },
+  { id: "deleted_ali", app: "messages", title: "Silinmiş: Ali 'cuma değil'", text: "Ses kaydıyla aynı cümle.", tags: ["ali"], corroborates: ["voice_2"] },
 ];
 
 export const ENDINGS = {
   minimal: { id: "minimal", title: "Kilitli iade", text: "Telefonu olduğu gibi bırakırsın. Bildiğin az, karıştığın yok." },
   thorough: { id: "thorough", title: "Bilinçli müdahale", text: "Yeterince gördün. Sahibini veya aileyi, her şeyi dökmeden uyarabilirsin." },
   reckless: { id: "reckless", title: "Sızdırılmış hayat", text: "Çok derin indin. Bilgi sende, sonuç başkasında." },
+  witness: { id: "witness", title: "Tanık iadesi", text: "Çelişkileri gördün, özel dosyaya girmedin. Aileye tek cümle yeter." },
 };

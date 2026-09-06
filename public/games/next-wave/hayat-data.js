@@ -36,6 +36,18 @@ export const MAJORS = [
   { id: "career-peak", chapter: 5, domain: "work", title: "Teklif: başka ülke", text: "Aile burada kalır.", shadow: "career", choice: "abroad" },
   { id: "settle", chapter: 5, domain: "ambition", title: "Burada kök sal", text: "Yükselme yavaşlar.", shadow: "career", choice: "root" },
   { id: "forgive", chapter: 5, domain: "regret", title: "Eski kırgınlık", text: "Aramak geç mi?", shadow: "romance", choice: "call" },
+  { id: "night-class", chapter: 1, domain: "education", title: "Gece lisesi / açıköğretim", text: "Diploma başka yoldan. Uyku gider.", shadow: "education", choice: "school" },
+  { id: "first-boss", chapter: 2, domain: "work", title: "İlk patron sınırı", text: "Fazla mesai 'aile gibi' diline girer.", shadow: "career", choice: "safe" },
+  { id: "roommate", chapter: 2, domain: "housing", title: "Ev arkadaşı krizi", text: "Aidat, temizlik, sessizlik.", shadow: "housing", choice: "move" },
+  { id: "union-talk", chapter: 3, domain: "work", title: "Temsilci / sessiz kal", text: "İsim çıkar, güvence sarsılır.", shadow: "career", choice: "speak" },
+  { id: "parent-money", chapter: 3, domain: "family", title: "Anne borç istedi", text: "Utanç iki tarafta.", shadow: "family", choice: "give" },
+  { id: "side-skill", chapter: 3, domain: "ambition", title: "Sertifika geceleri", text: "İş + kurs. Hafta sonu yok.", shadow: "education", choice: "school" },
+  { id: "quiet-quit", chapter: 4, domain: "work", title: "İç istifa", text: "Kadrolu kal, hızı kes.", shadow: "career", choice: "slow" },
+  { id: "care-sibling", chapter: 4, domain: "family", title: "Kardeşin işi tutmadı", text: "Odanı aç veya hayır de.", shadow: "family", choice: "help" },
+  { id: "city-return", chapter: 5, domain: "housing", title: "Memlekete dönüş teklifi", text: "Kira iner, ağ değişir.", shadow: "housing", choice: "return" },
+  { id: "old-debt", chapter: 5, domain: "money", title: "Eski kefalet", text: "İsim unutulmamış.", shadow: "money", choice: "restructure" },
+  { id: "health-ignore", chapter: 5, domain: "body", title: "Kontrolü ertele", text: "Rapor bekler.", shadow: "body", choice: "delay" },
+  { id: "mentor-ask", chapter: 2, domain: "friendship", title: "Eski hoca aradı", text: "Referans mı, yük mü?", shadow: "friendship", choice: "help" },
 ];
 
 export const SHADOWS = [
@@ -48,4 +60,8 @@ export const SHADOWS = [
   { category: "money", delay: 3, good: "O birikim kapı açtı.", bad: "Faiz sessiz şişti.", mix: "Nakit var, esneklik yok." },
   { category: "duty", delay: 4, good: "Erteleme penceresi yetti.", bad: "Tarih çakıştı, iş kaçtı.", mix: "Halloldu, iz bıraktı." },
   { category: "body", delay: 2, good: "Erken tempo kesişi tuttu.", bad: "İhmal fatura kesti.", mix: "Düzen var, eski hız yok." },
+  { category: "ambition", delay: 4, good: "O yavaşlama sonra bir kapı açtı.", bad: "Tempo kaybı unvanı götürdü.", mix: "İsim duruyor, hız yok." },
+  { category: "network", delay: 3, good: "Eski bir isim iş çıkardı.", bad: "Çevre inceldi, kapı kapandı.", mix: "Selam var, iş yok." },
+  { category: "regret", delay: 5, good: "Geç arama yine de tuttu.", bad: "Sessizlik kalıcı oldu.", mix: "Konuşuldu, eski hale dönmedi." },
+  { category: "migration", delay: 4, good: "Göç ağın yerine yenisini kurdu.", bad: "İki şehirde de yarım kaldın.", mix: "Adres değişti, aidiyet tartışmalı." },
 ];
