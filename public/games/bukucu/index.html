@@ -1719,6 +1719,9 @@ button:disabled { opacity: .35; }
     ["Senet", "Paran yetmezse önce binalar yarı fiyatına sökülür, sonra tapular senede girer. Senetli tapu kira getirmez. Geri almak yarı bedel + %10."],
     ["Nezaret", "Çift atarak, çıkış kartıyla ya da 50 TL ödeyerek çıkarsın. Üçüncü hakkını da yakarsan 50 TL kefalet ödeyip çıkarsın. Çift atıp çıkmak fazladan zar hakkı vermez."],
     ["Çift", "Üst üste üç çift atarsan doğruca Nezaret’e gidersin."],
+    ["Batma", "Ödeyemediğin bir borç önce binalarını yarı fiyatına söker, sonra tapularını senede yatırır. Hâlâ yetmiyorsa oyundan düşersin; uzun oyunda son ayakta kalan kazanır."],
+    ["Oyuncu / Naci Bey", "Naci Bey’e karşı (Acemi/Esnaf/Bükücü) tek başına oynayabilir veya aynı telefonda 2-4 kişi sırayla oynayabilirsiniz."],
+    ["Kayıt", "Oyun otomatik kaydedilir; menüden çıksan da başlangıç ekranındaki “Devam et” ile aynı oyuna dönersin. “Yeni oyun” mevcut kaydı siler."],
     ["Kontrol", "Bir kareye dokun, tapusunu gör. Basılı tut, tahtayı büyüt. Boşluk tuşu ana eylemi çalıştırır, Esc katmanı kapatır."]
   ];
   function openRules() {
@@ -2829,6 +2832,8 @@ button:disabled { opacity: .35; }
     add(st, btn("Nasıl oynanır", "rules"));
     add(st, el("button", { text: sndPref() ? "Ses açık" : "Ses kapalı", "data-act": "snd", cls: sndPref() ? "pick" : "" }));
     add(m, el("p", { cls: "plus", text: "18+ kurgu · başla 1.500 TL" }));
+    var credit = add(m, el("p", { cls: "plus" }));
+    credit.innerHTML = "© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.";
     document.getElementById("app").style.visibility = "hidden";
     document.getElementById("app").classList.remove("handoff");
   }

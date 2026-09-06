@@ -640,6 +640,30 @@ svg.face { display:block; flex:0 0 auto; }
     }
     openSheet();
   }
+  var HELP = [
+    ["Amaç", "Altı kademeli lig: Sokak, Semt, İlçe, Yakası, Şehir, Taht. Sezon 16 hafta sürer; 28 puan terfi, 10 puanın altı düşüş getirir. Taht'ı bir sezon boyunca korumak Hanedan hedefini tamamlar."],
+    ["Haftalık döngü", "Her hafta ya bir rakiple baskına çıkarsın ya da dinlenirsin. Dinlenmek fikstür puanı kazandırmaz ama ekibi yormaz. Baskın öncesi hazır ve sözleşmeli adamlardan kadro seçilir."],
+    ["Kadro ve sözleşme", "Her adamın rolü (Tetikçi, Fedai, Toplayıcı, Gözcü, Avukat, Muhasebeci, Sürücü, Baba adayı), yevmiyesi, sözleşme süresi, yorgunluğu ve varsa hapis durumu vardır. Hapisteki veya sözleşmesi biten adam kadroya giremez."],
+    ["Baskın ve odalar", "Baskında ekibin rakiple çarpışır; adamlar yaralanabilir. Tesis sekmesindeki yatırımlar (ör. Hukuk odası) hapis ve polis baskısını azaltır."],
+    ["Yaralanma ve ölüm", "Canı biten adam baskında kaybedilebilir; yaşı ilerleyen adamlar emekli olur veya ölür ve deftere geçer. Kayıp kalıcıdır."],
+    ["Hapis ve kefalet", "Yakalanan adam için kasadan kefalet ödenebilir; kasa yetmezse kefalet verilemez ve adam hapiste kalır."],
+    ["Puan ve taht", "Sezon puanı fikstürlerden birikir. 16 hafta sonunda terfi/düşüş belirlenir; Taht kademesinde bir sezon kalmak Hanedan'ı tamamlar."],
+    ["Kayıt", "Oyun bu cihazda otomatik kaydedilir; üstteki Kaydet ile elle de kaydedebilirsin. Yedek al/yükle ile JSON dosyası olarak taşıyabilirsin."],
+    ["İlk sezon için ipuçları", "Draft'ta dengeli bir kadro seç, tek role yüklenme. Erken sezonda dinlenmekten çekinme; yorgun ekiple baskına çıkmak riskli. Hukuk odasına erken yatırım hapis riskini düşürür."]
+  ];
+  function openHelp() {
+    var sh = document.getElementById("sheet");
+    clear(sh);
+    add(sh, el("p", { cls: "kicker", text: "Yardım" }));
+    add(sh, el("h2", { cls: "h1", text: "NASIL OYNANIR" }));
+    for (var i = 0; i < HELP.length; i++) {
+      add(sh, el("p", { cls: "kicker", text: HELP[i][0] }));
+      var hp = add(sh, el("p", { cls: "serif" }));
+      hp.textContent = HELP[i][1];
+    }
+    add(sh, el("button", { cls: "primary", text: "Kapat", "data-act": "close" }));
+    openSheet();
+  }
 
   window.addEventListener("popstate", function () {
     if (sheetOpen) closeSheet(false);
@@ -1653,13 +1677,14 @@ svg.face { display:block; flex:0 0 auto; }
     var p = code.split(":");
     var k = p[0];
     var a = p.slice(1).join(":");
-    var readOnly = ["save","close","title","menu","tab","man","haber","export","import","doimport","copy","font","wipe","wipe2","load","resume","new","demir","home","mode","setupgo","drafttog","draftsee","draftok","draftforce"];
+    var readOnly = ["save","close","title","menu","tab","man","haber","export","import","doimport","copy","font","wipe","wipe2","load","resume","new","demir","home","mode","setupgo","drafttog","draftsee","draftok","draftforce","help"];
     if(S && S.over && readOnly.indexOf(k)<0){toast("Defter kapandı. Yeni hanedan kurabilir veya kaydı inceleyebilirsin.");return;}
     if(reader && ["rnext","rback","silent"].indexOf(k)<0 && readOnly.indexOf(k)<0){toast("Önce açık baskını tamamla.");return;}
     if(k==="save"){toast(saveNow()?"Kayıt güncel.":"Kayıt yazılamadı; yedek al.");return;}
     if(k==="rest"){if(reader||!S||S.over)return; S.week++;if(S.week>16)endSeason();if(!S.over)tickWeekEnd();kronik("Bu hafta baskın yapılmadı. Ekip dinlendi; fikstür puanı alınmadı.");saveNow();paint();return;}
 
     if (k === "close") { closeSheet(); return; }
+    if (k === "help") { openHelp(); return; }
     if (k === "title") { bootTitle(); return; }
     if (k === "new") { startNew(a || "klasik"); return; }
     if (k === "demir") { startNew("demir"); return; }
@@ -1949,7 +1974,8 @@ svg.face { display:block; flex:0 0 auto; }
     clear(tabs);
     if (view === "title") {
       tabs.style.display = "none";
-      add(header, el("strong", { text: "HANEDAN" }));
+      add(header, el("strong", { cls: "grow", text: "HANEDAN" }));
+      add(header, el("button", {text:"Nasıl oynanır", "data-act":"help"}));
       add(main, el("p", { cls: "kicker", text: "Çete Savaşları" }));
       add(main, el("h1", { cls: "h1", text: "ÇETE SAVAŞLARI: HANEDAN" }));
       add(main, el("p", { cls: "sub", text: "Futbol menajerliği ile mahalle savaşı." }));
@@ -1977,6 +2003,8 @@ svg.face { display:block; flex:0 0 auto; }
         add(st, el("button", { text: "Demir", "data-act": "demir" }));
         add(st, el("button", { text: "Yedek yükle", "data-act": "import" }));
       }
+      var credit = add(main, el("p", { cls: "small" }));
+      credit.innerHTML = "© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.";
       return;
     }
     if (view === "setup") {
@@ -2031,6 +2059,7 @@ svg.face { display:block; flex:0 0 auto; }
     tabs.style.display = "flex";
     if (S && S.font) document.documentElement.style.fontSize = S.font + "px";
     add(header, el("strong", { cls: "grow", text: S.name }));
+    add(header, el("button", {text:"?", "aria-label":"Nasıl oynanır", "data-act":"help"}));
     add(header, el("button", {text:"Kaydet", "data-act":"save"}));
     var meta = add(header, el("span", { cls: "mono small", text: fmtHafta() }));
     meta.setAttribute("aria-label", fmtHafta());
