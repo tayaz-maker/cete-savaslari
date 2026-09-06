@@ -83,6 +83,22 @@ import { getReputationContext, getSocialDistanceContext } from "./depth3-systems
 import { renderHelpModal } from "./help.js?v=9";
 
 const app = document.querySelector("#app");
+
+// This app rebuilds app.innerHTML from Turkish templates on every render(), so
+// the site-wide EN phrase pass (which only walks the DOM once at page boot)
+// never sees post-boot content. Re-running it after each render is what makes
+// EN mode reach navigation/buttons/modals instead of only the very first paint.
+function applyLangPhrases() {
+  if (window.tlabI18n?.getLang() === "en") window.tlabI18n.applyPhrases(app);
+}
+
+// window.confirm() dialogs are native browser chrome, invisible to the DOM
+// phrase walker - they need an explicit EN string for critical destructive
+// actions (generation succession, quitting education, wiping the save).
+function confirmText(tr, en) {
+  return window.tlabI18n?.getLang() === "en" ? en : tr;
+}
+
 let state = null;
 let notice = "";
 let saveStatus = "";
@@ -263,6 +279,7 @@ function startScreen(loadResult) {
         </form>
       </section>
     </main>`;
+  applyLangPhrases();
 
   document.querySelectorAll("[data-slot]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1056,9 +1073,10 @@ function render() {
       ${helpOpen ? renderHelpModal() : ""}
       <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.</footer>
     </main>`;
+  applyLangPhrases();
 
   document.querySelectorAll("[data-successor]").forEach(button => button.addEventListener("click", () => {
-    if (!window.confirm("Bu çocukla yeni kuşağa geçmek istiyor musun?")) return;
+    if (!window.confirm(confirmText("Bu çocukla yeni kuşağa geçmek istiyor musun?", "Move on to this child's new generation?"))) return;
     const result = continueGeneration(state, button.dataset.successor);
     notice = result.message || result.reason;
     if (result.ok) { activeView = "dashboard"; weekStartSnapshot = null; }
@@ -1140,7 +1158,7 @@ function render() {
     }),
   );
   document.querySelector("#stop-education")?.addEventListener("click", () => {
-    if (!window.confirm("Eğitimi bırakırsan biriken ilerleme silinir. Devam edilsin mi?")) return;
+    if (!window.confirm(confirmText("Eğitimi bırakırsan biriken ilerleme silinir. Devam edilsin mi?", "Quitting the program erases your accumulated progress. Continue?"))) return;
     const result = stopEducation(state);
     notice = result.reason || result.message;
     persist();
@@ -1196,7 +1214,7 @@ function render() {
     render();
   });
   document.querySelector("#new-game").addEventListener("click", () => {
-    if (!window.confirm("Mevcut hayatı silip yeni oyuna dönmek istiyor musun?")) return;
+    if (!window.confirm(confirmText("Mevcut hayatı silip yeni oyuna dönmek istiyor musun?", "Delete the current life and start a new game?"))) return;
     if (!clearSaves(localStorage)) {
       saveStatus = "Eski kayıt silinemedi; mevcut yaşam açık tutuldu.";
       render();

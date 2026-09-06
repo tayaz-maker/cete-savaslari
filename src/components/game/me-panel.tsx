@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   CREW_MAP,
@@ -65,6 +66,8 @@ function loadBoard() {
 }
 
 export function MePanel({ player }: { player: Player }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const market = useGame((s) => s.market) ?? MARKET_START;
   const logs = useGame((s) => s.logs);
   const savedAt = useGame((s) => s.savedAt);
@@ -132,40 +135,46 @@ export function MePanel({ player }: { player: Player }) {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl bg-surface p-4 shadow-[0_0_0_1px_rgba(239,232,222,0.08)]">
-        <h2 className="font-display text-2xl font-semibold">Ben</h2>
+        <h2 className="font-display text-2xl font-semibold">{en ? "Me" : "Ben"}</h2>
         <p className="mt-1 text-sm text-muted">
           {player.name} · {lakap(player.level)} · {HOOD[player.neighborhood]}
         </p>
         <p className="mt-2 text-sm text-fg">
-          Kıdem {player.level} · {player.xp}/{xpToNext(player.level)} XP · sezon{" "}
-          {dayInSeason}/{SEASON_DAYS} · {Math.round(player.seasonScore)} skor
+          {en ? "Level" : "Kıdem"} {player.level} · {player.xp}/{xpToNext(player.level)} XP ·{" "}
+          {en ? "season" : "sezon"}{" "}
+          {dayInSeason}/{SEASON_DAYS} · {Math.round(player.seasonScore)} {en ? "score" : "skor"}
         </p>
         <p className="mt-2 text-sm text-fg">
-          Durum:{" "}
+          {en ? "Status" : "Durum"}:{" "}
           {player.durum === "serbest"
-            ? "serbest"
+            ? (en ? "free" : "serbest")
             : player.durum === "nezaret"
-              ? `nezaret (${player.durumTick * 10} dk)`
-              : `klinik (${player.durumTick * 10} dk)`}
+              ? `${en ? "holding cell" : "nezaret"} (${player.durumTick * 10} ${en ? "min" : "dk"})`
+              : `${en ? "clinic" : "klinik"} (${player.durumTick * 10} ${en ? "min" : "dk"})`}
         </p>
         <p className="mt-2 text-sm text-muted">
-          Günlük seri {player.streak || 0}
-          {player.streak >= 7 ? " · 7 günlük başarım açık" : ""} · son kayıt{" "}
+          {en ? "Daily streak" : "Günlük seri"} {player.streak || 0}
+          {player.streak >= 7 ? (en ? " · 7-day achievement unlocked" : " · 7 günlük başarım açık") : ""} ·{" "}
+          {en ? "last saved" : "son kayıt"}{" "}
           {savedAt
             ? new Date(savedAt).toLocaleTimeString("tr-TR", {
                 hour: "2-digit",
                 minute: "2-digit",
               })
-            : "yok"}
+            : (en ? "never" : "yok")}
         </p>
-        <p className="mt-2 text-sm text-fg md:hidden">{loadout.join(" · ") || "Üst boş"}</p>
+        <p className="mt-2 text-sm text-fg md:hidden">
+          {loadout.join(" · ") || (en ? "Nothing equipped" : "Üst boş")}
+        </p>
       </section>
 
       <section>
-        <h3 className="font-display text-xl font-semibold">Sıra</h3>
+        <h3 className="font-display text-xl font-semibold">{en ? "Rank" : "Sıra"}</h3>
         <p className="mt-1 text-sm text-muted">
-          Sezon skoru. Birinci unvanı: İstanbul'un babası.
-          {rank ? ` Sen: ${rank}.` : ""}
+          {en
+            ? "Season score. First place's title: father of Istanbul."
+            : "Sezon skoru. Birinci unvanı: İstanbul'un babası."}
+          {rank ? ` ${en ? "You:" : "Sen:"} ${rank}.` : ""}
         </p>
         <ol className="mt-3 space-y-1">
           {rows.slice(0, 10).map((r, i) => (
@@ -177,7 +186,7 @@ export function MePanel({ player }: { player: Player }) {
             >
               <span>
                 {i + 1}. {r.name}
-                {i === 0 ? " · İstanbul'un babası" : ""}
+                {i === 0 ? (en ? " · father of Istanbul" : " · İstanbul'un babası") : ""}
               </span>
               <span className="font-mono tabular-nums text-fg">
                 {Math.round(r.score)}
@@ -189,7 +198,7 @@ export function MePanel({ player }: { player: Player }) {
       </section>
 
       <section>
-        <h3 className="font-display text-xl font-semibold">Başarımlar</h3>
+        <h3 className="font-display text-xl font-semibold">{en ? "Achievements" : "Başarımlar"}</h3>
         <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {ACHIEVEMENTS.map((a) => (
             <li
@@ -198,7 +207,7 @@ export function MePanel({ player }: { player: Player }) {
                 have.has(a.id) ? "bg-elevated text-fg" : "text-muted"
               }`}
             >
-              {have.has(a.id) ? a.label : `${a.label} · kilitli`}
+              {have.has(a.id) ? a.label : `${a.label} · ${en ? "locked" : "kilitli"}`}
             </li>
           ))}
         </ul>
@@ -209,26 +218,28 @@ export function MePanel({ player }: { player: Player }) {
             onClick={() => {
               void navigator.share?.({
                 title: "Çete Savaşları",
-                text: `${player.name} · ${[...have].length} başarım · skor ${Math.round(player.seasonScore)}`,
+                text: `${player.name} · ${[...have].length} ${en ? "achievements" : "başarım"} · ${en ? "score" : "skor"} ${Math.round(player.seasonScore)}`,
                 url: invite || window.location.href,
               });
             }}
           >
-            Paylaş
+            {en ? "Share" : "Paylaş"}
           </Button>
         ) : null}
       </section>
 
       <section>
-        <h3 className="font-display text-xl font-semibold">Davet</h3>
+        <h3 className="font-display text-xl font-semibold">{en ? "Invite" : "Davet"}</h3>
         <p className="mt-2 text-sm text-muted">
-          Kodun lakabın. İlk işten sonra ikinize 5.000 ₺, bir kez.
+          {en
+            ? "Your name is your code. After the first job, both of you get ₺5,000, once."
+            : "Kodun lakabın. İlk işten sonra ikinize 5.000 ₺, bir kez."}
         </p>
         <p className="mt-2 break-all font-mono text-xs text-fg">{invite}</p>
       </section>
 
       <section>
-        <h3 className="font-display text-xl font-semibold">Titreşim</h3>
+        <h3 className="font-display text-xl font-semibold">{en ? "Vibration" : "Titreşim"}</h3>
         <Button
           variant="ghost"
           className="mt-2"
