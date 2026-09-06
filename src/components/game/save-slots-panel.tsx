@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SAVE_KEY } from "@/game/data";
 import { useGame } from "@/game/store";
 import {
   parseSlotEnvelope,
@@ -18,12 +17,14 @@ import {
 
 function slotSummary(slot: SlotIndex) {
   if (typeof window === "undefined") return { empty: true, label: "Boş" };
-  const raw = readSlotRaw(window.localStorage, "cete", slot);
+  let raw: string | null;
+  try { raw = readSlotRaw(window.localStorage, "cete", slot); } catch { return { empty: false, label: "Kayıt okunamıyor" }; }
   const parsed = parseSlotEnvelope(raw);
   const state = (parsed?.state ?? parsed) as
     | { player?: { name?: string; neighborhood?: string; cash?: number }; savedAt?: number }
     | null;
-  if (!state?.player?.name) return { empty: true, label: "Boş slot" };
+  if (raw && (!parsed || !state || typeof state !== "object" || !("player" in state))) return { empty: false, label: "Bozuk kayıt" };
+  if (!state?.player?.name) return { empty: !raw || state?.player === null, label: raw && state?.player !== null ? "Bozuk kayıt" : "Boş slot" };
   const when = typeof state.savedAt === "number" && state.savedAt
     ? new Date(state.savedAt).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
     : "";
@@ -40,7 +41,13 @@ export function SaveSlotsPanel() {
   const loadSlot = useGame((s) => s.loadSlot);
   const saveToSlot = useGame((s) => s.saveToSlot);
   const clearPlaySlot = useGame((s) => s.clearPlaySlot);
-  const slots = useMemo(() => ([1, 2, 3] as SlotIndex[]).map((slot) => ({ slot, ...slotSummary(slot) })), [open, activeSlot]);
+  const [message, setMessage] = useState("");
+  const slots = ([1, 2, 3] as SlotIndex[]).map((slot) => ({ slot, ...slotSummary(slot) }));
+  function act(slot: SlotIndex, mode: "load" | "save" | "clear") {
+    const ok = mode === "load" ? loadSlot(slot) : mode === "save" ? saveToSlot(slot) : clearPlaySlot(slot);
+    setMessage(ok ? (mode === "clear" ? "Kayıt silindi." : "Kayıt tamamlandı.") : "İşlem tamamlanamadı. Kayıt bozuk olabilir veya cihaz kayıt erişimini engelliyor.");
+    if (ok && mode === "load") setOpen(false);
+  }
 
   return (
     <>
@@ -71,8 +78,7 @@ export function SaveSlotsPanel() {
                     onClick={() => {
                       if (!item.empty && item.slot !== activeSlot) setConfirm({ slot: item.slot, mode: "load" });
                       else {
-                        loadSlot(item.slot);
-                        setOpen(false);
+                        act(item.slot, "load");
                       }
                     }}
                   >
@@ -83,7 +89,7 @@ export function SaveSlotsPanel() {
                     variant="ghost"
                     onClick={() => {
                       if (!item.empty && item.slot !== activeSlot) setConfirm({ slot: item.slot, mode: "save" });
-                      else saveToSlot(item.slot);
+                      else act(item.slot, "save");
                     }}
                   >
                     Kaydet
@@ -100,7 +106,7 @@ export function SaveSlotsPanel() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[11px] text-subtle">Eski tek kayıt varsa Slot 1'e taşınır. Anahtar: {SAVE_KEY} → tariklab::cete:1</p>
+          <p role="status" className="mt-3 text-xs text-muted">{message || "Eski tek kayıt varsa Slot 1’e taşınır."}</p>
         </DialogContent>
       </Dialog>
       <Dialog open={Boolean(confirm)} onOpenChange={(next) => !next && setConfirm(null)}>
@@ -123,11 +129,9 @@ export function SaveSlotsPanel() {
               variant={confirm?.mode === "clear" ? "danger" : "default"}
               onClick={() => {
                 if (!confirm) return;
-                if (confirm.mode === "clear") clearPlaySlot(confirm.slot);
-                if (confirm.mode === "save") saveToSlot(confirm.slot);
-                if (confirm.mode === "load") loadSlot(confirm.slot);
+                act(confirm.slot, confirm.mode);
                 setConfirm(null);
-                if (confirm.mode === "load") setOpen(false);
+
               }}
             >
               Onayla
