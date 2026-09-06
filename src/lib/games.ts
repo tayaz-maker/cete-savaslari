@@ -14,6 +14,7 @@ export const HTML5_SLUGS = [
   "satranc",
   "racon",
   "tc-sim",
+  "apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet",
 ] as const;
 
 export type Html5Slug = (typeof HTML5_SLUGS)[number];
