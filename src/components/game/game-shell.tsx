@@ -192,8 +192,17 @@ export function GameShell({
     if (dx > 0 && i > 0) goTab(TAB_IDS[i - 1]!);
   }
 
+  /*
+    overflow-x MUST stay `clip`, not `hidden`. Per the CSS overflow spec, when
+    one axis is `visible` and the other is not, the `visible` one computes to
+    `auto` — so `overflow-x: hidden` silently turned this shell into a scroll
+    container in BOTH axes, and every descendant `position: sticky` (the side
+    nav, the log sidebar) then stuck to this never-scrolling box instead of the
+    viewport. On desktop that meant navigation scrolled away in long views.
+    `clip` gives the same horizontal guard without creating a scroll container.
+  */
   return (
-    <div className="game-shell flex min-h-dvh flex-col overflow-x-hidden bg-bg text-fg [overscroll-behavior-y:contain]">
+    <div className="game-shell flex min-h-dvh flex-col overflow-x-clip bg-bg text-fg [overscroll-behavior-y:contain]">
       <Hud player={player} onAccount={onAccount} />
       <TutorialTips />
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col md:flex-row">
@@ -213,8 +222,14 @@ export function GameShell({
           </nav>
         </aside>
 
+        {/*
+          No always-on `overflow-y-auto` here: the document is the scroll owner,
+          and a second nested scroll container only creates a double-scroll trap.
+          Short landscape phones still get an internal scroller from the scoped
+          `.game-shell main` rule in styles.css, which is where it is wanted.
+        */}
         <main
-          className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 md:pb-8"
+          className="min-w-0 flex-1 px-4 py-5 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 md:pb-8"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >

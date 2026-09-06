@@ -339,7 +339,9 @@ export const FOREIGN_AXES = ["us", "nato", "eu", "ru", "ir", "gulf", "gr", "cy"]
 
 export const GRAND_HOOKS = {
   span: "1923-2030",
-  months: 1284,
+  // 1923-10 → 2030-12 inclusive is 1286 monthly turns; the old 1284 was two
+  // short of the span this same block documents, and it is shown to the player.
+  months: 1286,
   note: "1923 Ekim → 2030 Aralık. Hedefsiz veya doktrinli.",
 };
 

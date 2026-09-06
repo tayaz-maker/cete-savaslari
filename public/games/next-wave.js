@@ -154,11 +154,17 @@ export function create(id) {
   s.meta.seed = 12345;
   return s;
 }
-export function validate(s) {
-  return !!s && s.meta?.version === 1 && Array.isArray(s.history) && Array.isArray(s.openCases);
+export function validate(s, id) {
+  if (!s || s.meta?.version !== 1) return false;
+  if (!Array.isArray(s.history) || !Array.isArray(s.openCases)) return false;
+  // A save only belongs to the game that wrote it. Without this an apartman
+  // payload validated cleanly as a hayat save and would have been fed to the
+  // wrong engine.
+  if (id && s.meta?.id !== id) return false;
+  return true;
 }
 export function normalize(id, raw) {
-  return validate(raw) ? raw : raw ? null : create(id);
+  return validate(raw, id) ? raw : raw ? null : create(id);
 }
 
 function rel(s, key, d) {
@@ -429,11 +435,16 @@ export function applyAction(id, s, action) {
     }
     pushHist(s, { type: "meeting", proposal: proposal.id, accepted: vote.accepted });
   } else if (id === "son-100-gun" && action === "advance") {
-    if (s.actionsRemaining > 0) applySonAction(s, "work");
-    sonAdvanceDay(s);
+    // Day 100 is the end of the run. Without the guard the final report stayed
+    // on screen while further presses kept advancing the day counter (101 -> 121)
+    // and kept missing obligations after the game was over.
+    if (!s.flags.finalReport) {
+      if (s.actionsRemaining > 0) applySonAction(s, "work");
+      sonAdvanceDay(s);
+    }
   } else if (id === "son-100-gun" && action.startsWith("act:")) {
     if (s.actionsRemaining > 0 && !s.flags.finalReport) applySonAction(s, action.slice(4));
-    if (s.actionsRemaining === 0) sonAdvanceDay(s);
+    if (s.actionsRemaining === 0 && !s.flags.finalReport) sonAdvanceDay(s);
   } else if (id === "son-100-gun" && action.startsWith("scenario:")) {
     const sc = scenarioOf(action.slice(9));
     const fresh = defs["son-100-gun"].initial();
@@ -493,10 +504,13 @@ export function applyAction(id, s, action) {
 export { defs, SYSTEMS, MEETINGS, SCENARIOS, MAJORS, DISCOVERABLES, PERIODS, POLICIES_2002, ENDINGS, APPS, ISSUE_TEMPLATES, hydrateDevlet, tickDevletN, DOCTRINES, ALT_PRESETS, POLICIES, finiteState, GUNUMUZ_BASELINE, SHADOWS, CONTACTS, RESIDENTS };
 
 function h(s) {
+  // Every replacement here used to map a character to itself, so the whole
+  // helper was a no-op and nothing rendered through innerHTML was escaped.
   return String(s ?? "")
-    .replaceAll("&", "&")
-    .replaceAll("<", "<")
-    .replaceAll(">", ">");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function panelHtml(id, state) {
@@ -609,11 +623,50 @@ function panelHtml(id, state) {
         <p>Politika borcu konut ${state.policyDebt?.housing} · eğitim ${state.policyDebt?.education}</p>
         <p>Doktrin ${h(state.scenario?.doctrineName || "hedefsiz")}</p></article>`;
     }
+    if (screen === "Geçmiş") {
+      // Real consumer for the meaningful record. Before the heartbeat rows were
+      // dropped from history this screen could only ever have shown "month".
+      const rows = (state.history || []).slice(-14).reverse();
+      const label = {
+        "period-transition": "dönem geçişi",
+        policy: "mühür",
+        "file-return": "dosya yeniden açıldı",
+        doctrine: "doktrin",
+        campaign: "kampanya",
+        "era-select": "dönem seçimi",
+        alt: "alternatif",
+      };
+      return `<article><h2>Geçmiş</h2><ul>${
+        rows
+          .map((r) => {
+            const when = r.year ? `${r.year}${r.month ? "/" + r.month : ""} · ` : "";
+            const what = h(label[r.type] || r.type);
+            const detail = h(r.policy || r.era || r.id || r.mode || "");
+            return `<li>${when}${what}${detail ? " · " + detail : ""}</li>`;
+          })
+          .join("") || "<li>Defter henüz boş.</li>"
+      }</ul>
+        <p>Kayıtlı ay: ${(state.archive || []).length} · yıl özeti: ${(state.yearDigest || []).length} · nesil: ${(state.generations || []).length}</p></article>`;
+    }
+    // The player is the state, and a state does not read its own ledger — it
+    // reads what was reported to it. `actual` is simulation truth and stays out
+    // of the panel; the divergence is the game.
+    const conf = (k) => {
+      const c = state.known?.[k]?.confidence;
+      return typeof c === "number" ? c.toFixed(2) : "—";
+    };
+    const ended = state.flags?.campaignEnd;
     return `<article class="era-${h(state.ui?.flavor || era.flavor)}"><h2>Durum</h2>
-      <p>${state.time.year}/${state.time.month} · ${h(era.name)} · ${state.scenario?.campaign ? "büyük kampanya" : "dönem"}</p>
-      <p>Fiili enflasyon ${Number(state.actual.inflation).toFixed(1)} · rapor ${state.reported.inflation} · güven ${(state.known.inflation?.confidence || 0).toFixed?.(2) || state.known.inflation?.confidence}</p>
-      <p>Hazine fiili ${Number(state.actual.treasury).toFixed(0)} · işsizlik ${Number(state.actual.unemployment || 0).toFixed(1)}</p>
-      <p>Uygulama ${implementationRate(state).toFixed(0)} · form ${h(state.form)}</p></article>`;
+      <p>${state.time.year}/${state.time.month} · ${h(era.name)} · ${state.scenario?.campaign ? "büyük kampanya" : "dönem"}${ended ? " · kapandı" : ""}</p>
+      <p>Rapor edilen enflasyon ${state.reported.inflation} · güven ${conf("inflation")}</p>
+      <p>Rapor edilen hazine ${state.reported.treasury} · güven ${conf("treasury")} · işsizlik ${state.reported.unemployment} · güven ${conf("unemployment")}</p>
+      <p>Uygulama ${implementationRate(state).toFixed(0)} · form ${h(state.form)} · entropi ${Number(state.entropy).toFixed(0)}</p>
+      ${
+        ended
+          ? `<h3>Defter kapandı</h3><p>${state.scenario?.campaign ? "1923→2030 kampanyası" : h(era.name) + " dönemi"} ${state.time.year}/${state.time.month} itibarıyla bitti. Doktrin ${h(state.scenario?.doctrineName || "hedefsiz")}.</p>
+             <p>Dönem geçişi ${(state.history || []).filter((x) => x.type === "period-transition").length} · hayalet ${(state.ghosts || []).length} · nesil ${(state.generations || []).length} · yıl özeti ${(state.yearDigest || []).length}</p>`
+          : ""
+      }</article>`;
   }
   return `<article><pre>${h(JSON.stringify(state, null, 2))}</pre></article>`;
 }

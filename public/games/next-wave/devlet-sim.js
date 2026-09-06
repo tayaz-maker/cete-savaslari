@@ -215,6 +215,10 @@ function maybeTransition(s) {
 }
 
 export function tickDevlet(s) {
+  // A finished run is terminal. Without this the 2002–2005 slice (and every
+  // other era horizon) kept ticking forever — 600 advances put the "2002-2005"
+  // scenario in 2052 — and the campaign-end report could never settle.
+  if (s.flags?.campaignEnd) return s;
   s.time.month += 1;
   if (s.time.month > 12) {
     s.time.month = 1;
@@ -248,7 +252,14 @@ export function tickDevlet(s) {
   s.reported.inflation = Math.round(s.actual.inflation * optimism);
   s.reported.treasury = Math.round(s.actual.treasury * (0.94 + rate * 0.05));
   s.reported.unemployment = Math.round((s.actual.unemployment || 10) * (0.9 + (s.infoQuality || 50) / 500));
-  s.known.inflation = { confidence: Math.min(1, (s.known.inflation?.confidence || 0.4) + 0.02 - lag * 0.002) };
+  // All three reporting channels age, not just inflation. Treasury and
+  // unemployment confidence used to stay frozen at their hydrate values for the
+  // whole run, so two thirds of the "known" layer was inert.
+  const settle = (prev, floor, gain) =>
+    Math.max(floor, Math.min(1, (prev || floor) + gain - lag * 0.002 - (s.rumor || 0) * 0.0004));
+  s.known.inflation = { confidence: settle(s.known.inflation?.confidence, 0.2, 0.02) };
+  s.known.treasury = { confidence: settle(s.known.treasury?.confidence, 0.2, 0.015) };
+  s.known.unemployment = { confidence: settle(s.known.unemployment?.confidence, 0.15, 0.01) };
   s.entropy = clamp((s.entropy || 40) + (s.appointments.length > 20 ? 0.15 : 0.02) - rate * 0.05);
   s.heat = clamp((s.heat || 40) + ((s.actual.unemployment || 10) - 8) * 0.05 + (s.actual.inflation > 40 ? 0.2 : -0.05) - (pending?.trust || 0) * 0.05);
   s.rumor = clamp((s.rumor || 20) + (s.infoQuality < 45 ? 0.3 : -0.1));
@@ -307,7 +318,11 @@ export function tickDevlet(s) {
   if (s.time.year > endYear || (s.time.year === endYear && s.time.month >= 12)) {
     s.flags.campaignEnd = true;
   }
-  pushBounded(s.history, { type: "month", turn: s.time.turn, year: s.time.year, month: s.time.month }, 80);
+  // The monthly heartbeat deliberately does NOT go into `history`. It used to,
+  // and with an 80-row cap a 1284-month campaign evicted every meaningful record
+  // (period transitions, policies, reopened files, doctrine) within ~6 years —
+  // the campaign's whole institutional record was heartbeat noise. `archive`
+  // already carries per-month rows and `yearDigest` the per-year summary.
   s.openCases = (s.openCases || []).slice(-24);
   return s;
 }
@@ -315,8 +330,9 @@ export function tickDevlet(s) {
 export function tickDevletN(s, n) {
   const cap = Math.max(0, n | 0);
   for (let i = 0; i < cap; i += 1) {
-    if (s.flags.campaignEnd && i > 0 && s.scenario?.campaign && s.time.year >= 2030) break;
-    s.flags.campaignEnd = false;
+    // Stop at the run's own horizon instead of clearing the end flag every
+    // iteration; clearing it meant no scenario ever actually ended.
+    if (s.flags.campaignEnd) break;
     tickDevlet(s);
   }
   return s;
