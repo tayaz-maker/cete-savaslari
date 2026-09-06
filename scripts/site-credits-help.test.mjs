@@ -19,7 +19,7 @@ const OBSOLETE_TERMS = [
   "/licenses/",
 ];
 
-test("credits.html artık üçüncü taraf atıflarını içermez", () => {
+test("credits.html kaldırılmış Classics bağımlılıklarını içermez", () => {
   const html = read("public/credits.html");
   for (const term of OBSOLETE_TERMS) {
     assert.equal(html.includes(term), false, `credits.html hâlâ "${term}" içeriyor`);
@@ -105,4 +105,18 @@ test("TLab Classics telif satırları hâlâ tutarlı ve tam isim kullanıyor", 
     assert.match(html, /Tarık Halil Ayaz/);
     assert.match(html, /Klasik oyun kuralları üzerindeki hak iddiası/);
   }
+});
+
+
+test("credits distinguishes independent Classics from shipping application dependencies", () => {
+  const html = read("public/credits.html");
+  const dependencies = JSON.parse(read("package.json")).dependencies;
+  for (const [pkg, label] of [["react", "React"], ["zustand", "Zustand"], ["@tanstack/react-router", "TanStack Router"], ["@radix-ui/react-dialog", "Radix UI"], ["lucide-react", "Lucide"], ["zod", "Zod"]]) {
+    assert.ok(dependencies[pkg], `${pkg} is a shipped dependency`);
+    assert.ok(html.includes(label), `${label} is credited`);
+  }
+  assert.match(read("src/game/store.ts"), /from "zustand"/);
+  assert.match(read("src/components/game/game-shell.tsx"), /from "react"/);
+  assert.doesNotMatch(html, /hiçbir oyun/);
+  assert.doesNotMatch(html, /Çete Savaşları —[^<]*bağımlılığı yok/);
 });
