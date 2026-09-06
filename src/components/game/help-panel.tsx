@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CETE_HELP_EN, useLang } from "@/lib/i18n";
 
 const SECTIONS: { title: string; body: string }[] = [
   {
@@ -49,6 +50,9 @@ const SECTIONS: { title: string; body: string }[] = [
 
 export function HelpPanel({ triggerClassName }: { triggerClassName?: string }) {
   const [open, setOpen] = useState(false);
+  const { lang, t } = useLang();
+  const sections = lang === "en" ? CETE_HELP_EN : SECTIONS;
+  const how = t("common.howTo", "Nasıl Oynanır");
   return (
     <>
       <Button
@@ -60,15 +64,15 @@ export function HelpPanel({ triggerClassName }: { triggerClassName?: string }) {
         onClick={() => setOpen(true)}
       >
         <HelpCircle className="size-4" />
-        <span className="hidden sm:inline">Nasıl Oynanır</span>
+        <span className="hidden sm:inline">{how}</span>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nasıl Oynanır</DialogTitle>
+            <DialogTitle>{how}</DialogTitle>
           </DialogHeader>
           <div className="mt-2 grid gap-4">
-            {SECTIONS.map((section) => (
+            {sections.map((section) => (
               <section key={section.title}>
                 <h3 className="text-sm font-semibold text-accent">{section.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted">{section.body}</p>

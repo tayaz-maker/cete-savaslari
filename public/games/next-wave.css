@@ -45,6 +45,8 @@ button {
   color: #efe8de;
   font: inherit;
   cursor: pointer;
+  white-space: normal;
+  max-width: 100%;
 }
 button:hover { border-color: #d8a13c; }
 .slot { width: 100%; text-align: left; }

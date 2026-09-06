@@ -50,9 +50,13 @@ function escapeText(value) {
 
 /** Modal HTML'i. Salt görüntü — hiçbir alanı state'e yazmaz. */
 export function renderHelpModal() {
-  const sections = HELP_SECTIONS.map(
+  const I = typeof window !== "undefined" ? window.tlabI18n : null;
+  const source = I && I.getLang() === "en" ? I.TCSIM_HELP_EN : HELP_SECTIONS;
+  const title = I && I.getLang() === "en" ? "How to Play" : "Nasıl Oynanır";
+  const close = I && I.getLang() === "en" ? "Close" : "Kapat";
+  const sections = source.map(
     (section) =>
       `<section class="help-section"><h3>${escapeText(section.title)}</h3><p>${escapeText(section.body)}</p></section>`,
   ).join("");
-  return `<div class="help-backdrop" role="presentation"><div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title"><div class="help-card-head"><h2 id="help-title">Nasıl Oynanır</h2><button class="button button-quiet" id="help-close" aria-label="Kapat">Kapat</button></div><div class="help-body">${sections}</div></div></div>`;
+  return `<div class="help-backdrop" role="presentation"><div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title"><div class="help-card-head"><h2 id="help-title">${title}</h2><button class="button button-quiet" id="help-close" aria-label="${close}">${close}</button></div><div class="help-body">${sections}</div></div></div>`;
 }

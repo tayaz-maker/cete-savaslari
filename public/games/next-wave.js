@@ -682,28 +682,34 @@ function render(id) {
   });
   let state = slots[active - 1];
   const d = defs[id];
-  const nav = (d.screens || ["Durum"]).map((x) => `<button type="button" data-screen="${h(x)}">${h(x)}</button>`).join("");
+  const nav = (d.screens || ["Durum"]).map((x) => `<button type="button" data-screen="${h(x)}">${h(loc(x))}</button>`).join("");
   document.body.innerHTML = `<main>
-    <header><a href="/">← Oyunlar</a><span>TLAB NEXT WAVE</span></header>
-    <section class="hero"><p class="eyebrow">${h(d.tag)}</p><h1>${h(d.title)}</h1>
-      <p id="status">${state ? "Slot " + active + " hazır" : "Yeni bir kayıt başlat."}</p></section>
+    <header><a href="/">${h(loc("← Oyunlar"))}</a><span>TLAB NEXT WAVE</span></header>
+    <section class="hero"><p class="eyebrow">${h(loc(d.tag))}</p><h1>${h(d.title)}</h1>
+      <p id="status">${state ? loc("Slot") + " " + active + " " + (window.tlabI18n?.getLang?.() === "en" ? "ready" : "hazır") : h(loc("Yeni bir kayıt başlat."))}</p></section>
     <nav>${nav}</nav>
     <section id="panel"></section>
-    <section class="slots"><h2>Kayıt yerleri</h2>${[1, 2, 3]
-      .map((n) => `<button type="button" class="slot" data-slot="${n}">Slot ${n} · ${slots[n - 1] ? "dolu" : "boş"}</button>`)
+    <section class="slots"><h2>${h(loc("Kayıt yerleri"))}</h2>${[1, 2, 3]
+      .map((n) => `<button type="button" class="slot" data-slot="${n}">${h(loc("Slot"))} ${n} · ${slots[n - 1] ? h(loc("dolu")) : h(loc("boş"))}</button>`)
       .join("")}</section>
     <div class="actions">
-      <button type="button" id="new">Yeni oyun</button>
-      <button type="button" id="save">Kaydet</button>
-      <button type="button" id="core">${id === "apartman" ? "Toplantı Gecesi" : id === "kayip-telefon" ? "İncele" : id === "tc-sim-devlet" ? "Politika" : id === "hayat" ? "Büyük karar" : "İş / ilerle"}</button>
-      <button type="button" id="alt">${id === "kayip-telefon" ? "İade et" : id === "tc-sim-devlet" ? "Ay ilerle" : id === "apartman" ? "Hafta ilerle" : "İlerle"}</button>
-      <button type="button" id="reset">Sıfırla</button>
+      <button type="button" id="new">${h(loc("Yeni oyun"))}</button>
+      <button type="button" id="save">${h(loc("Kaydet"))}</button>
+      <button type="button" id="core">${h(loc(id === "apartman" ? "Toplantı Gecesi" : id === "kayip-telefon" ? "İncele" : id === "tc-sim-devlet" ? "Politika" : id === "hayat" ? "Büyük karar" : "İş / ilerle"))}</button>
+      <button type="button" id="alt">${h(loc(id === "kayip-telefon" ? "İade et" : id === "tc-sim-devlet" ? "Ay ilerle" : id === "apartman" ? "Hafta ilerle" : "İlerle"))}</button>
+      <button type="button" id="reset">${h(loc("Sıfırla"))}</button>
     </div>
     ${id === "tc-sim-devlet" ? `<div class="actions" id="starts">${["1923", "1950", "1980", "2002", "gunumuz", "alternatif"].map((e) => `<button type="button" data-era="${e}">${e}</button>`).join("")}<button type="button" data-era="grand">1923→2030</button><button type="button" data-era="hedefli">Hedefli</button></div>` : ""}
-    ${id === "son-100-gun" ? `<div class="actions" id="scen">${SCENARIOS.map((sc) => `<button type="button" data-sc="${sc.id}">${h(sc.name)}</button>`).join("")}</div>` : ""}
-    <details><summary>Nasıl oynanır</summary><p>${helpText(id)}</p></details>
+    ${id === "son-100-gun" ? `<div class="actions" id="scen">${SCENARIOS.map((sc) => `<button type="button" data-sc="${sc.id}">${h(loc(sc.name))}</button>`).join("")}</div>` : ""}
+    <details><summary>${h(loc("Nasıl oynanır"))}</summary><p>${helpText(id)}</p></details>
     <footer>© 2026 TarikLab · Tarık Halil Ayaz</footer>
   </main>`;
+  const I18 = typeof window !== "undefined" ? window.tlabI18n : null;
+  if (I18) {
+    I18.applyHtmlLang();
+    const header = document.querySelector("header");
+    if (header) I18.mountLangToggle(header);
+  }
   const panel = document.querySelector("#panel");
   const show = () => {
     panel.innerHTML = panelHtml(id, state);
@@ -787,7 +793,17 @@ function render(id) {
   show();
 }
 
+function loc(text) {
+  const I = typeof window !== "undefined" ? window.tlabI18n : null;
+  if (!I) return text;
+  return I.phrase(text);
+}
+
 function helpText(id) {
+  const I = typeof window !== "undefined" ? window.tlabI18n : null;
+  if (I && I.getLang() === "en") {
+    return I.HELP_EN[id] || I.HELP_EN.fallback;
+  }
   if (id === "apartman") return "Aidat, sistem ve sakin gerilimi toplantıda oya döner. Ucuz çözüm sonra geri gelir.";
   if (id === "son-100-gun") return "Günde iki hareket. On altı senaryo ayrı başlangıç ve yükümdür. Hep iş veya hep dinlen yetmez.";
   if (id === "hayat") return "18–35. Büyük karar Uzun Gölge bırakır; gölgeler birleşebilir.";
@@ -797,5 +813,13 @@ function helpText(id) {
 }
 
 if (typeof window !== "undefined") {
-  window.addEventListener("DOMContentLoaded", () => render(document.body.dataset.game));
+  window.addEventListener("DOMContentLoaded", () => {
+    const id = document.body.dataset.game;
+    render(id);
+    const I = window.tlabI18n;
+    if (I && !window.__nwLangBound) {
+      window.__nwLangBound = true;
+      I.onLang(() => render(id));
+    }
+  });
 }

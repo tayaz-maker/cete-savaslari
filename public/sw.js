@@ -1,8 +1,8 @@
 /* Çete Savaşları — kalıcı çevrimdışı.
  * İlk online ziyarette kabuk + asset cache'lenir. Sonra uçak modu çalışır.
  */
-const CACHE = "cete-offline-v2";
-const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];
+const CACHE = "cete-offline-v3";
+const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest", "/i18n/tlab-i18n.js", "/i18n/boot.js", "/credits.html"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -54,6 +54,7 @@ const MODULE_GAME_PATHS = [
   "/games/amiral-batti/",
   "/games/next-wave.js",
   "/games/next-wave/",
+  "/i18n/",
 ];
 
 function isModuleGameAsset(url) {

@@ -132,5 +132,42 @@
         üzerindeki hak iddiası bu bildirimin kapsamı dışındadır.
       </p>
     </main>
+    <script src="/i18n/tlab-i18n.js"></script>
+    <script>
+      (function () {
+        var I = window.tlabI18n;
+        if (!I) return;
+        var main = document.querySelector("main");
+        var original = main.innerHTML;
+        function paint() {
+          I.applyHtmlLang();
+          var host = document.querySelector("h1");
+          if (host && host.parentNode) I.mountLangToggle(host.parentNode);
+          if (I.getLang() !== "en") {
+            if (main.getAttribute("data-en") === "1") main.innerHTML = original;
+            main.removeAttribute("data-en");
+            var h = document.querySelector("h1");
+            if (h && h.parentNode) I.mountLangToggle(h.parentNode);
+            return;
+          }
+          var C = I.CREDITS_EN;
+          var html = '<a class="back" href="/">' + C.back + '</a><h1>' + C.h1 + '</h1><p class="kicker">' + C.kicker + "</p>";
+          C.sections.forEach(function (s) {
+            html += "<h2>" + s.h + "</h2>";
+            if (s.lead) html += "<p>" + s.lead + "</p>";
+            if (s.items) {
+              html += "<ul>" + s.items.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>";
+            }
+            if (s.note) html += "<p>" + s.note + "</p>";
+          });
+          html += '<p class="legal">' + C.legal + "</p>";
+          main.innerHTML = html;
+          main.setAttribute("data-en", "1");
+          I.mountLangToggle(document.querySelector("h1").parentNode);
+        }
+        I.onLang(paint);
+        paint();
+      })();
+    </script>
   </body>
 </html>

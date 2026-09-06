@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { NEIGHBORHOODS } from "@/game/data";
 import { useGame } from "@/game/store";
 import type { NeighborhoodId } from "@/game/types";
+import { useLang } from "@/lib/i18n";
 import { cn, unlockUi } from "@/lib/utils";
 
 export function CreateCharacter() {
   const [name, setName] = useState("");
   const [hood, setHood] = useState<NeighborhoodId>("eyup");
   const activeSlot = useGame((s) => s.activeSlot) || 1;
+  const { t } = useLang();
 
   useEffect(() => {
     unlockUi();
@@ -20,20 +22,20 @@ export function CreateCharacter() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-2xl px-5 py-10">
       <p className="text-[0.7rem] font-medium tracking-[0.28em] text-muted uppercase">
-        Dosya aç
+        {t("cete.openFile", "Dosya aç")}
       </p>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-4xl font-semibold tracking-tight">
-          İsmin, semtin, raconun
+          {t("cete.createTitle", "İsmin, semtin, raconun")}
         </h1>
         <SaveSlotsPanel />
       </div>
       <p className="mt-3 max-w-md text-sm text-muted">
-        Hesap gerekmez. Slot {activeSlot} bu cihazda tutulur. Cebin boş iner.
+        {t("cete.createBody", "Hesap gerekmez. Slot {n} bu cihazda tutulur. Cebin boş iner.", { n: activeSlot })}
       </p>
 
       <label className="mt-8 block text-xs font-medium tracking-wide text-muted uppercase">
-        Ad
+        {t("cete.name", "Ad")}
       </label>
       <Input
         className="mt-2"
@@ -46,7 +48,7 @@ export function CreateCharacter() {
       />
 
       <p className="mt-8 text-xs font-medium tracking-wide text-muted uppercase">
-        Semt
+        {t("cete.hood", "Semt")}
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {NEIGHBORHOODS.map((n) => (
@@ -72,7 +74,7 @@ export function CreateCharacter() {
         className="mt-8 h-12 w-full sm:w-auto"
         onClick={() => useGame.getState().createPlayer(name, hood)}
       >
-        Sokağa in
+        {t("cete.street", "Sokağa in")}
       </Button>
       <Disclaimer />
     </main>

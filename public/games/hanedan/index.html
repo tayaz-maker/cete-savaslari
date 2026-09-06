@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f0e0c">
 <title>Çete Savaşları: Hanedan</title>
+<script src="/i18n/tlab-i18n.js"></script>
+<script src="/i18n/boot.js"></script>
 <style>
 html, body { margin:0; height:100%; background:#0f0e0c; color:#e8dcc8;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -297,7 +299,7 @@ svg.face { display:block; flex:0 0 auto; }
     var n = document.createElement(tag);
     if (attrs) {
       for (var k in attrs) {
-        if (k === "text") n.textContent = attrs[k];
+        if (k === "text") n.textContent = window.tlabPhrase ? window.tlabPhrase(attrs[k]) : attrs[k];
         else if (k === "cls") n.className = attrs[k];
         else n.setAttribute(k, attrs[k]);
       }

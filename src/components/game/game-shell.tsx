@@ -21,6 +21,7 @@ import { useGame } from "@/game/store";
 import { useGameClock } from "@/game/use-game-clock";
 import type { TabId } from "@/game/types";
 import { askPushOnce, pingStreetIfHidden } from "@/lib/notify";
+import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const MePanel = lazy(() =>
@@ -94,6 +95,20 @@ export function GameShell({
   const [tab, setTab] = useState<TabId>(initial);
   const [logOpen, setLogOpen] = useState(false);
   const swipe = useRef<{ x: number; y: number; fromUi: boolean } | null>(null);
+  const { lang } = useLang();
+  const tabText = (id: TabId, fallback: string, short: string) => {
+    if (lang !== "en") return { label: fallback, short };
+    const map: Record<TabId, { label: string; short: string }> = {
+      ben: { label: "Me", short: "Me" },
+      icraat: { label: "Jobs", short: "Job" },
+      tezgah: { label: "Shop", short: "Shop" },
+      emlak: { label: "Property", short: "Prop" },
+      sokak: { label: "Street", short: "St" },
+      hayat: { label: "Life", short: "Life" },
+      klinik: { label: "Clinic", short: "Cln" },
+    };
+    return map[id];
+  };
 
   useGameClock(Boolean(player));
   useSaveSync(false);
@@ -208,17 +223,20 @@ export function GameShell({
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col md:flex-row">
         <aside className="hidden w-52 shrink-0 border-r border-border md:block">
           <nav className="sticky top-0 flex flex-col gap-1 p-3">
-            {TABS.map((t) => (
-              <TabButton
-                key={t.id}
-                active={tab === t.id}
-                label={t.label}
-                short={t.short}
-                icon={t.icon}
-                onClick={() => goTab(t.id)}
-                layout="side"
-              />
-            ))}
+            {TABS.map((t) => {
+              const tx = tabText(t.id, t.label, t.short);
+              return (
+                <TabButton
+                  key={t.id}
+                  active={tab === t.id}
+                  label={tx.label}
+                  short={tx.short}
+                  icon={t.icon}
+                  onClick={() => goTab(t.id)}
+                  layout="side"
+                />
+              );
+            })}
           </nav>
         </aside>
 
@@ -280,17 +298,20 @@ export function GameShell({
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden">
         <div className="grid grid-cols-7">
-          {TABS.map((t) => (
-            <TabButton
-              key={t.id}
-              active={tab === t.id}
-              label={t.label}
-              short={t.short}
-              icon={t.icon}
-              onClick={() => goTab(t.id)}
-              layout="bottom"
-            />
-          ))}
+          {TABS.map((t) => {
+            const tx = tabText(t.id, t.label, t.short);
+            return (
+              <TabButton
+                key={t.id}
+                active={tab === t.id}
+                label={tx.label}
+                short={tx.short}
+                icon={t.icon}
+                onClick={() => goTab(t.id)}
+                layout="bottom"
+              />
+            );
+          })}
         </div>
       </nav>
       <SeasonModal />

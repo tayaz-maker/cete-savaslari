@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#0B0B0B">
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
+<script src="/i18n/tlab-i18n.js"></script>
+<script src="/i18n/boot.js"></script>
 <meta name="smb-rev" content="13">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -312,7 +314,7 @@ button:disabled { opacity: .35; }
   function el(tag, attrs) {
     var n = document.createElement(tag);
     if (attrs) for (var k in attrs) {
-      if (k === "text") n.textContent = attrs[k];
+      if (k === "text") n.textContent = window.tlabPhrase ? window.tlabPhrase(attrs[k]) : attrs[k];
       else if (k === "cls") n.className = attrs[k];
       else n.setAttribute(k, attrs[k]);
     }

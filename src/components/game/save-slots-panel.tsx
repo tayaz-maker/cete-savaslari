@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useGame } from "@/game/store";
+import { useLang } from "@/lib/i18n";
 import {
   parseSlotEnvelope,
   readActiveSlot,
@@ -15,18 +16,22 @@ import {
   type SlotIndex,
 } from "@/lib/save-slots";
 
-function slotSummary(slot: SlotIndex) {
-  if (typeof window === "undefined") return { empty: true, label: "Boş" };
+function slotSummary(slot: SlotIndex, lang: "tr" | "en") {
+  const empty = lang === "en" ? "Empty slot" : "Boş slot";
+  const corrupt = lang === "en" ? "Corrupt save" : "Bozuk kayıt";
+  const unread = lang === "en" ? "Save unreadable" : "Kayıt okunamıyor";
+  const vacant = lang === "en" ? "Empty" : "Boş";
+  if (typeof window === "undefined") return { empty: true, label: vacant };
   let raw: string | null;
-  try { raw = readSlotRaw(window.localStorage, "cete", slot); } catch { return { empty: false, label: "Kayıt okunamıyor" }; }
+  try { raw = readSlotRaw(window.localStorage, "cete", slot); } catch { return { empty: false, label: unread }; }
   const parsed = parseSlotEnvelope(raw);
   const state = (parsed?.state ?? parsed) as
     | { player?: { name?: string; neighborhood?: string; cash?: number }; savedAt?: number }
     | null;
-  if (raw && (!parsed || !state || typeof state !== "object" || !("player" in state))) return { empty: false, label: "Bozuk kayıt" };
-  if (!state?.player?.name) return { empty: !raw || state?.player === null, label: raw && state?.player !== null ? "Bozuk kayıt" : "Boş slot" };
+  if (raw && (!parsed || !state || typeof state !== "object" || !("player" in state))) return { empty: false, label: corrupt };
+  if (!state?.player?.name) return { empty: !raw || state?.player === null, label: raw && state?.player !== null ? corrupt : empty };
   const when = typeof state.savedAt === "number" && state.savedAt
-    ? new Date(state.savedAt).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+    ? new Date(state.savedAt).toLocaleString(lang === "en" ? "en-GB" : "tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
     : "";
   return {
     empty: false,
@@ -35,6 +40,7 @@ function slotSummary(slot: SlotIndex) {
 }
 
 export function SaveSlotsPanel() {
+  const { lang, t } = useLang();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<null | { slot: SlotIndex; mode: "load" | "save" | "clear" }>(null);
   const activeSlot = useGame((s) => s.activeSlot) || (typeof window === "undefined" ? 1 : readActiveSlot(window.localStorage, "cete"));
@@ -42,33 +48,34 @@ export function SaveSlotsPanel() {
   const saveToSlot = useGame((s) => s.saveToSlot);
   const clearPlaySlot = useGame((s) => s.clearPlaySlot);
   const [message, setMessage] = useState("");
-  const slots = ([1, 2, 3] as SlotIndex[]).map((slot) => ({ slot, ...slotSummary(slot) }));
+  const slots = ([1, 2, 3] as SlotIndex[]).map((slot) => ({ slot, ...slotSummary(slot, lang) }));
   function act(slot: SlotIndex, mode: "load" | "save" | "clear") {
     const ok = mode === "load" ? loadSlot(slot) : mode === "save" ? saveToSlot(slot) : clearPlaySlot(slot);
-    setMessage(ok ? (mode === "clear" ? "Kayıt silindi." : "Kayıt tamamlandı.") : "İşlem tamamlanamadı. Kayıt bozuk olabilir veya cihaz kayıt erişimini engelliyor.");
+    setMessage(ok
+      ? (mode === "clear" ? t("cete.saveDeleted", "Kayıt silindi.") : t("cete.saveDone", "Kayıt tamamlandı."))
+      : t("cete.saveFail", "İşlem tamamlanamadı. Kayıt bozuk olabilir veya cihaz kayıt erişimini engelliyor."));
     if (ok && mode === "load") setOpen(false);
   }
 
   return (
     <>
       <Button variant="ghost" className="px-3 text-xs md:px-4 md:text-sm" onClick={() => setOpen(true)}>
-        Kayıt {activeSlot}
+        {t("common.slot", "Kayıt")} {activeSlot}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Üç kayıt yeri</DialogTitle>
+            <DialogTitle>{t("cete.slotsTitle", "Üç kayıt yeri")}</DialogTitle>
             <DialogDescription>
-              Hesap gerekmez. Her slot bu cihazda ayrı durur. Dolu slota kayıt
-              sormadan yazılmaz.
+              {t("cete.slotsBody", "Hesap gerekmez. Her slot bu cihazda ayrı durur. Dolu slota kayıt sormadan yazılmaz.")}
             </DialogDescription>
           </DialogHeader>
           <ul className="mt-4 space-y-2">
             {slots.map((item) => (
               <li key={item.slot} className="rounded-xl bg-elevated px-3 py-3">
                 <p className="text-sm text-fg">
-                  Slot {item.slot}
-                  {item.slot === activeSlot ? " · açık" : ""}
+                  {t("common.slot", "Slot")} {item.slot}
+                  {item.slot === activeSlot ? ` · ${t("common.active", "açık")}` : ""}
                 </p>
                 <p className="text-xs text-muted">{item.label}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -77,12 +84,10 @@ export function SaveSlotsPanel() {
                     variant="ghost"
                     onClick={() => {
                       if (!item.empty && item.slot !== activeSlot) setConfirm({ slot: item.slot, mode: "load" });
-                      else {
-                        act(item.slot, "load");
-                      }
+                      else act(item.slot, "load");
                     }}
                   >
-                    Aç
+                    {lang === "en" ? "Open" : "Aç"}
                   </Button>
                   <Button
                     size="sm"
@@ -92,7 +97,7 @@ export function SaveSlotsPanel() {
                       else act(item.slot, "save");
                     }}
                   >
-                    Kaydet
+                    {t("common.save", "Kaydet")}
                   </Button>
                   <Button
                     size="sm"
@@ -100,41 +105,44 @@ export function SaveSlotsPanel() {
                     disabled={item.empty}
                     onClick={() => setConfirm({ slot: item.slot, mode: "clear" })}
                   >
-                    Sil
+                    {t("common.delete", "Sil")}
                   </Button>
                 </div>
               </li>
             ))}
           </ul>
-          <p role="status" className="mt-3 text-xs text-muted">{message || "Eski tek kayıt varsa Slot 1’e taşınır."}</p>
+          <p role="status" className="mt-3 text-xs text-muted">{message || (lang === "en" ? "A leftover single save is moved to Slot 1." : "Eski tek kayıt varsa Slot 1’e taşınır.")}</p>
         </DialogContent>
       </Dialog>
       <Dialog open={Boolean(confirm)} onOpenChange={(next) => !next && setConfirm(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {confirm?.mode === "clear" ? "Slotu sil" : confirm?.mode === "save" ? "Üzerine yaz" : "Slotu aç"}
+              {confirm?.mode === "clear"
+                ? (lang === "en" ? "Delete slot" : "Slotu sil")
+                : confirm?.mode === "save"
+                  ? (lang === "en" ? "Overwrite" : "Üzerine yaz")
+                  : (lang === "en" ? "Open slot" : "Slotu aç")}
             </DialogTitle>
             <DialogDescription>
               {confirm?.mode === "clear"
-                ? `Slot ${confirm.slot} silinir. Diğer slotlar durur.`
+                ? (lang === "en" ? `Slot ${confirm.slot} will be deleted. Other slots stay.` : `Slot ${confirm.slot} silinir. Diğer slotlar durur.`)
                 : confirm?.mode === "save"
-                  ? `Slot ${confirm?.slot} dolu. Şu anki oyunu bunun üzerine yazmak istiyor musun?`
-                  : `Slot ${confirm?.slot} açılınca ekrandaki oyun değişir. Kaydetmediysen kaybolur.`}
+                  ? (lang === "en" ? `Slot ${confirm?.slot} is full. Overwrite it with the current game?` : `Slot ${confirm?.slot} dolu. Şu anki oyunu bunun üzerine yazmak istiyor musun?`)
+                  : (lang === "en" ? `Opening slot ${confirm?.slot} replaces the game on screen. Unsaved progress is lost.` : `Slot ${confirm?.slot} açılınca ekrandaki oyun değişir. Kaydetmediysen kaybolur.`)}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setConfirm(null)}>Vazgeç</Button>
+            <Button variant="ghost" onClick={() => setConfirm(null)}>{lang === "en" ? "Never mind" : "Vazgeç"}</Button>
             <Button
               variant={confirm?.mode === "clear" ? "danger" : "default"}
               onClick={() => {
                 if (!confirm) return;
                 act(confirm.slot, confirm.mode);
                 setConfirm(null);
-
               }}
             >
-              Onayla
+              {t("common.confirm", "Onayla")}
             </Button>
           </div>
         </DialogContent>

@@ -3,6 +3,7 @@ import { CreateCharacter } from "@/components/game/create-character";
 import { OfflineReady } from "@/components/game/offline-ready";
 import { useGame } from "@/game/store";
 import { track } from "@/lib/analytics";
+import { translate, readLang } from "@/lib/i18n";
 
 const GameShell = lazy(() =>
   import("@/components/game/game-shell").then((m) => ({ default: m.GameShell })),
@@ -27,18 +28,19 @@ class GameCrashGate extends Component<
 
   render() {
     if (this.state.crashed) {
+      const lang = readLang();
       return (
         <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg px-6 text-center text-fg">
-          <h1 className="font-display text-2xl font-semibold">Oyun kilitlendi</h1>
+          <h1 className="font-display text-2xl font-semibold">{translate(lang, "cete.locked", "Oyun kilitlendi")}</h1>
           <p className="max-w-sm text-sm text-muted">
-            Kayıt duruyor. Sayfayı yenilemeden devam et.
+            {translate(lang, "cete.lockedBody", "Kayıt duruyor. Sayfayı yenilemeden devam et.")}
           </p>
           <button
             type="button"
             className="rounded-lg bg-elevated px-4 py-2 text-sm"
             onClick={() => this.setState({ crashed: false })}
           >
-            Devam
+            {translate(lang, "common.continue", "Devam")}
           </button>
         </main>
       );

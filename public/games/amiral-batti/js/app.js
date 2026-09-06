@@ -23,6 +23,7 @@ const STORE = "tariklab.amiral-batti.match";
 const STATS = "tariklab.amiral-batti.stats";
 
 const $ = (id) => document.getElementById(id);
+const P = (s) => (typeof window !== "undefined" && window.tlabPhrase ? window.tlabPhrase(s) : s);
 
 let state = null;
 let selected = FLEET[0].id;
@@ -118,7 +119,7 @@ function boardHtml(kind) {
   const ships = kind === "own" ? state.playerShips : state.enemyShips;
   const shots = kind === "own" ? state.enemyShots : state.playerShots;
   const hide = kind === "enemy" && state.phase !== "over";
-  const label = kind === "own" ? "Senin filon" : "Rakip denizi";
+  const label = kind === "own" ? P("Senin filon") : P("Rakip denizi");
   let html = `<div class="board-wrap"><p class="board-label" id="lbl-${kind}">${label}</p><div class="board" role="grid" aria-labelledby="lbl-${kind}">`;
   for (let r = 0; r < SIZE; r += 1) {
     for (let c = 0; c < SIZE; c += 1) {
@@ -132,19 +133,19 @@ function boardHtml(kind) {
 
 function render() {
   if (!state) {
-    $("arena").innerHTML = "<p class='muted'>Yeni oyun başlat.</p>";
+    $("arena").innerHTML = `<p class='muted'>${P("Yeni oyun başlat.")}</p>`;
     return;
   }
   const phaseLabel =
     state.phase === "place"
-      ? "Yerleşim"
+      ? P("Yerleşim")
       : state.phase === "over"
         ? state.winner === "player"
-          ? "Zafer — rakip filo battı"
-          : "Kayıp — filon battı"
+          ? P("Zafer — rakip filo battı")
+          : P("Kayıp — filon battı")
         : state.turn === "player"
-          ? "Sıra sende"
-          : "Rakip ateş ediyor";
+          ? P("Sıra sende")
+          : P("Rakip ateş ediyor");
   $("status").textContent = phaseLabel;
   $("fleet-line").innerHTML = FLEET.map((f) => {
     const placed = state.playerShips.some((s) => s.id === f.id);

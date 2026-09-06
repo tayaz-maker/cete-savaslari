@@ -1,17 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AgeGate } from "@/components/game/age-gate";
 import { GameApp } from "@/components/game/game-app";
+import { LanguageToggle } from "@/components/portal/language-toggle";
 import type { TabId } from "@/game/types";
+import { useLang } from "@/lib/i18n";
 
-const TABS: TabId[] = [
-  "ben",
-  "icraat",
-  "tezgah",
-  "emlak",
-  "sokak",
-  "hayat",
-  "klinik",
-];
+const TABS: TabId[] = ["ben", "icraat", "tezgah", "emlak", "sokak", "hayat", "klinik"];
 
 export const Route = createFileRoute("/cete-savaslari")({
   ssr: false,
@@ -27,18 +21,17 @@ export const Route = createFileRoute("/cete-savaslari")({
 });
 
 function CetePage() {
+  const { t } = useLang();
   return (
     <div className="min-h-dvh bg-bg">
-      <div className="relative h-11 border-b border-border px-4">
-        <Link
-          to="/"
-          className="relative z-10 inline-flex h-11 items-center text-sm text-muted hover:text-fg"
-        >
-          ← Oyunlar
+      <div className="relative flex h-11 items-center justify-between border-b border-border px-4">
+        <Link to="/" className="relative z-10 inline-flex h-11 items-center text-sm text-muted hover:text-fg">
+          {t("portal.back", "← Oyunlar")}
         </Link>
         <p className="pointer-events-none absolute inset-0 flex items-center justify-center font-display text-sm text-fg">
           Çete Savaşları
         </p>
+        <LanguageToggle />
       </div>
       <AgeGate>
         <GameApp />
