@@ -28,3 +28,10 @@ test('Empty, completed, missed, postponed, multiple historical and endgame state
  }
  g.ev('S.flags.oyunSonu=true');noBadge(g);assert.equal(g.document.getElementById('btn-ilerlet').disabled,true);
 });
+
+test('Past appointment never promises a future opening; future and closed reasons stay correct',()=>{
+ const g=setup();g.ev('S.week=2;S.day=6;S.calendar=[{id:"qa",week:2,day:5,strip:"randevu",status:"bekler"}];');
+ for(const action of ['randevu-git','randevu-ertele','randevu-gitme','duty-go']) assert.match(g.ev(`actionReason("${action}",{id:"qa"})`),/Tarihi geçti/);
+ g.ev('S.calendar[0].day=7');assert.match(g.ev('actionReason("randevu-git",{id:"qa"})'),/Tarihi gelince/);
+ g.ev('S.calendar[0].status="kacirildi"');assert.match(g.ev('actionReason("randevu-git",{id:"qa"})'),/kapandı/);
+});

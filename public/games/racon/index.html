@@ -946,6 +946,7 @@ html,body{font-size:14px}
     if (["randevu-git","randevu-ertele","randevu-gitme","duty-go"].indexOf(code)>=0) {
       var c=S.calendar.find(function(x){return x.id===p.id;});
       if(!c||c.status!=="bekler") return "Bu takvim kaydı kapandı.";
+      if(c.week*7+c.day < S.week*7+S.day) return "Tarihi geçti; bu işlem artık yapılamaz.";
       if(c.week!==S.week||c.day!==S.day) return "Tarihi gelince açılır: H"+c.week+" · "+DAYS[c.day-1]+".";
       if(code==="randevu-ertele"&&c.postponed) return "Bir kez ertelendi; yeniden ertelenemez.";
       if(code==="randevu-git"&&!randevuKadro().length) return "Randevu için hazır ekip yok.";
