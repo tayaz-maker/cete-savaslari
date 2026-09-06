@@ -90,13 +90,13 @@ test('file-pressure consequence is retained on next recalculation',()=>{
 test('mid-scene save resumes the exact pending choice and deterministic result',()=>{
  const a=game(),j=plan(a);while(a.ev(`jobBy("${j.id}").prepLeft>0`))day(a);
  a.ev(`act("sahne",{id:"${j.id}"});act("job-emir",{id:"devam"});writeSave();`);
- const text=a.localStorage.getItem('racon_v1'),b=game();b.localStorage.setItem('racon_v1',text);b.ev('S=loadSave();enterPlay();');
+ const text=a.localStorage.getItem('tariklab::racon:1')||a.localStorage.getItem('racon_v1'),b=game();b.localStorage.setItem('tariklab::racon:1',text);b.ev('S=loadSave();enterPlay();');
  assert.equal(b.ev('UI.sahne'),true);assert.deepEqual(b.ev('[S.seed,UI.jobOrders,UI.jobWait]'),a.ev('[S.seed,UI.jobOrders,UI.jobWait]'));
  for(const g of [a,b]){for(let i=0;i<15&&g.ev('!UI.jobDone');i++)g.ev('act("job-emir",{id:jobBy(UI.jobId).okulBekliyor?"cekil":"sessiz"});');g.ev('act("job-tamam",{});');}
  assert.deepEqual(b.ev('[S.seed,S.kasa,S.rep,S.dosya]'),a.ev('[S.seed,S.kasa,S.rep,S.dosya]'));
 });
 test('malformed primary loads good backup; storage failure is visible',()=>{
- const g=game();g.ev('writeSave();writeSave();');g.localStorage.setItem('racon_v1','{"week":1,"men":[null]}');
+ const g=game();g.ev('writeSave();writeSave();');g.localStorage.setItem(g.ev('KEY'),'{"week":1,"men":[null]}');
  assert.ok(g.ev('loadSave()'));assert.match(g.ev('UI.loadErr'),/yedek/);
  g.localStorage.setItem=()=>{throw Error('quota');};assert.equal(g.ev('writeSave()'),false);assert.match(g.ev('UI.feedback'),/yazılamadı/);
 });

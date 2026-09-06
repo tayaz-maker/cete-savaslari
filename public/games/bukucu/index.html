@@ -1882,6 +1882,7 @@ button:disabled { opacity: .35; }
       paintMenu();
       return;
     }
+    if (code === "cont") {
       closeSheet();
       var raw = loadRaw(); if (!raw) return;
       try { bootState(JSON.parse(raw)); } catch (e) { wipe(); view = "menu"; paintMenu(); }
