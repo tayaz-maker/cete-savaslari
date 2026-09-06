@@ -111,12 +111,21 @@ export function hydrateDevlet(eraId, opts = {}) {
     appointments: [],
     generations: [{ id: "g0", year: start.year, note: "açılış kohortu" }],
     cohorts: COHORTS.map((c) => ({ ...c, mood: 52 - Math.round(era.heat / 8), trust: 50 })),
-    regions: REGIONS.map((r) => ({ id: r.id, name: r.name, impl: Math.round(50 * r.implMod), heat: era.heat })),
+    regions: REGIONS.map((r) => ({
+      id: r.id,
+      name: r.name,
+      impl: Math.round(50 * r.implMod),
+      heat: era.heat,
+    })),
     networks: NETWORKS.map((n) => ({ ...n })),
     foreign: { ...defaultForeign(), ...(alt?.foreign || {}) },
     events: [],
     periodPacks: Object.keys(PERIODS),
-    grand: { ...GRAND_HOOKS, active: campaign, endYear: campaign ? 2030 : era.id === "2002" ? 2005 : start.year + 8 },
+    grand: {
+      ...GRAND_HOOKS,
+      active: campaign,
+      endYear: campaign ? 2030 : era.id === "2002" ? 2005 : start.year + 8,
+    },
     dna,
     reflexes: era.reflexes.slice(),
     form: alt?.form || era.form,
@@ -132,7 +141,10 @@ export function hydrateDevlet(eraId, opts = {}) {
     attraction: 70,
     ghosts: [],
     files: [],
-    media: [{ id: "official", reach: 60, trust: era.infoQuality, tone: "resmi" }, { id: "street", reach: 40, trust: 35, tone: "söylenti" }],
+    media: [
+      { id: "official", reach: 60, trust: era.infoQuality, tone: "resmi" },
+      { id: "street", reach: 40, trust: 35, tone: "söylenti" },
+    ],
     rumor: 20,
     heat: era.heat,
     procurement: { quality: 50, delay: 20, graftRisk: 18 },
@@ -140,7 +152,12 @@ export function hydrateDevlet(eraId, opts = {}) {
     archive: [],
     yearDigest: [],
     implementationLog: [],
-    flags: { baseline: era.id === "gunumuz" ? GUNUMUZ_BASELINE : null },
+    flags: {
+      baseline: era.id === "gunumuz" ? GUNUMUZ_BASELINE : null,
+      decisionsRemaining: 2,
+      decisionIds: [],
+      pendingPolicies: [],
+    },
     history: [],
     ui: { screen: "Durum", flavor: era.flavor },
   };
@@ -165,22 +182,45 @@ function applyDnaDelta(s, delta) {
 
 export function applyPolicy(s, policyId) {
   const stamp = s.time.year + "-" + s.time.month;
-  if (s.flags.policyMonth === stamp) return s;
+  if (s.flags.decisionMonth !== stamp) {
+    s.flags.decisionMonth = stamp;
+    s.flags.decisionsRemaining = 2;
+    s.flags.decisionIds = [];
+    s.flags.pendingPolicies = [];
+  }
+  if ((s.flags.decisionsRemaining ?? 2) <= 0) return s;
   const pool = policiesOf(s.eraId);
   const p = pool.find((x) => x.id === policyId) || pool[0];
   if (!p) return s;
+  if ((s.flags.decisionIds || []).includes(p.id)) return s;
   s.flags.policyMonth = stamp;
   const inst = s.institutions.find((i) => i.id === p.inst);
   const cap = inst ? inst.capacity : 50;
   const rate = clamp((cap / Math.max(30, p.capacityNeed)) * 70 - (s.entropy || 0) * 0.1);
-  s.appointments.push({ id: "policy_" + s.time.turn, kind: p.id === pool[0].id ? "stability" : p.id, institution: p.inst, rate });
+  s.appointments.push({
+    id: "policy_" + s.time.turn,
+    kind: p.id === pool[0].id ? "stability" : p.id,
+    institution: p.inst,
+    rate,
+  });
   if (s.appointments.length > 40) s.appointments.splice(0, s.appointments.length - 40);
   pushBounded(s.implementationLog, { turn: s.time.turn, policy: p.id, rate }, 48);
   s.flags.pendingPolicy = { id: p.id, rate, inflation: p.inflation, cost: p.cost, trust: p.trust };
+  s.flags.pendingPolicies = (s.flags.pendingPolicies || []).concat(s.flags.pendingPolicy);
+  s.flags.decisionIds = (s.flags.decisionIds || []).concat(p.id);
+  s.flags.decisionsRemaining = Math.max(0, (s.flags.decisionsRemaining ?? 2) - 1);
   applyDnaDelta(s, p.dna);
-  const domain = p.inst === "belediye" ? "housing" : p.inst === "maarif" ? "education" : p.inst === "maliye" ? "infra" : "legal";
+  const domain =
+    p.inst === "belediye"
+      ? "housing"
+      : p.inst === "maarif"
+        ? "education"
+        : p.inst === "maliye"
+          ? "infra"
+          : "legal";
   if (p.cost >= 8) s.policyDebt[domain] = clamp((s.policyDebt[domain] || 20) - 4);
-  else if (p.id.includes("relief") || p.id.includes("rahat")) s.policyDebt.housing = clamp((s.policyDebt.housing || 20) + 3);
+  else if (p.id.includes("relief") || p.id.includes("rahat"))
+    s.policyDebt.housing = clamp((s.policyDebt.housing || 20) + 3);
   pushBounded(s.path, { turn: s.time.turn, policy: p.id, era: s.eraId }, 36);
   pushBounded(s.butterflies, { turn: s.time.turn, from: p.id, text: p.intent }, 24);
   pushBounded(s.history, { type: "policy", turn: s.time.turn, policy: p.id }, 80);
@@ -190,7 +230,9 @@ export function applyPolicy(s, policyId) {
 function pickEvent(s) {
   const list = eventsOf(s.eraId);
   if (!list.length) return null;
-  const exact = list.find((e) => (e.year ? e.year === s.time.year : true) && e.month === s.time.month);
+  const exact = list.find(
+    (e) => (e.year ? e.year === s.time.year : true) && e.month === s.time.month,
+  );
   if (exact) return exact;
   if (s.time.month % 4 === 0) return list[s.time.turn % list.length];
   return null;
@@ -211,7 +253,11 @@ function maybeTransition(s) {
         cur.name = inst.name;
       } else s.institutions.push({ ...inst });
     }
-    s.ghosts.push({ year: s.time.year, from: "transition", text: era.name + " bandına geçildi. Eski kadro alışkanlığı duruyor." });
+    s.ghosts.push({
+      year: s.time.year,
+      from: "transition",
+      text: era.name + " bandına geçildi. Eski kadro alışkanlığı duruyor.",
+    });
     if (s.ghosts.length > 16) s.ghosts.splice(0, s.ghosts.length - 16);
     pushBounded(s.history, { type: "period-transition", era: next, year: s.time.year }, 80);
   }
@@ -239,22 +285,54 @@ export function tickDevlet(s) {
       120,
     );
     if (s.time.year % 25 === 0) {
-      pushBounded(s.generations, { id: "g" + s.generations.length, year: s.time.year, note: "nesil kaydı" }, 8);
+      pushBounded(
+        s.generations,
+        { id: "g" + s.generations.length, year: s.time.year, note: "nesil kaydı" },
+        8,
+      );
     }
   }
   s.time.turn += 1;
   const rate = implementationRate(s) / 100;
-  const pending = s.flags.pendingPolicy;
+  const pendingList = s.flags.pendingPolicies?.length
+    ? s.flags.pendingPolicies
+    : s.flags.pendingPolicy
+      ? [s.flags.pendingPolicy]
+      : [];
+  const pending = pendingList.length
+    ? {
+        rate: pendingList.reduce((sum, item) => sum + item.rate, 0) / pendingList.length,
+        cost: pendingList.reduce((sum, item) => sum + item.cost, 0),
+        trust: pendingList.reduce((sum, item) => sum + (item.trust || 0), 0),
+      }
+    : null;
   const boost = pending ? pending.rate / 100 : 0;
-  s.actual.inflation = clamp(s.actual.inflation * (1 - rate * 0.06 - boost * 0.02) + (s.heat - 40) * 0.01, 0, 220);
-  s.actual.unemployment = clamp((s.actual.unemployment || 10) + (pending && pending.cost > 8 ? -0.05 : 0.02) - rate * 0.04, 0, 40);
-  s.actual.treasury = clamp((s.actual.treasury || 50) - (pending ? pending.cost : 1) + rate * 3, 0, 220);
-  if (pending) s.flags.pendingPolicy = null;
+  s.actual.inflation = clamp(
+    s.actual.inflation * (1 - rate * 0.06 - boost * 0.02) + (s.heat - 40) * 0.01,
+    0,
+    220,
+  );
+  s.actual.unemployment = clamp(
+    (s.actual.unemployment || 10) + (pending && pending.cost > 8 ? -0.05 : 0.02) - rate * 0.04,
+    0,
+    40,
+  );
+  s.actual.treasury = clamp(
+    (s.actual.treasury || 50) - (pending ? pending.cost : 1) + rate * 3,
+    0,
+    220,
+  );
+  if (pending) {
+    s.flags.pendingPolicy = null;
+    s.flags.pendingPolicies = [];
+  }
   const lag = s.nervous?.lag || 1;
   const optimism = 0.88 + rate * 0.18 - (100 - (s.infoQuality || 50)) / 400;
   s.reported.inflation = Math.round(s.actual.inflation * optimism);
   s.reported.treasury = Math.round(s.actual.treasury * (0.94 + rate * 0.05));
-  s.reported.unemployment = Math.round((s.actual.unemployment || 10) * (0.9 + (s.infoQuality || 50) / 500));
+  s.reported.unemployment = Math.round(
+    (s.actual.unemployment || 10) * (0.9 + (s.infoQuality || 50) / 500),
+  );
   // All three reporting channels age, not just inflation. Treasury and
   // unemployment confidence used to stay frozen at their hydrate values for the
   // whole run, so two thirds of the "known" layer was inert.
@@ -264,9 +342,16 @@ export function tickDevlet(s) {
   s.known.treasury = { confidence: settle(s.known.treasury?.confidence, 0.2, 0.015) };
   s.known.unemployment = { confidence: settle(s.known.unemployment?.confidence, 0.15, 0.01) };
   s.entropy = clamp((s.entropy || 40) + (s.appointments.length > 20 ? 0.15 : 0.02) - rate * 0.05);
-  s.heat = clamp((s.heat || 40) + ((s.actual.unemployment || 10) - 8) * 0.05 + (s.actual.inflation > 40 ? 0.2 : -0.05) - (pending?.trust || 0) * 0.05);
+  s.heat = clamp(
+    (s.heat || 40) +
+      ((s.actual.unemployment || 10) - 8) * 0.05 +
+      (s.actual.inflation > 40 ? 0.2 : -0.05) -
+      (pending?.trust || 0) * 0.05,
+  );
   s.rumor = clamp((s.rumor || 20) + (s.infoQuality < 45 ? 0.3 : -0.1));
-  s.infoQuality = clamp((s.infoQuality || 50) + (s.dna?.institutionalism - 50) * 0.01 - s.rumor * 0.01);
+  s.infoQuality = clamp(
+    (s.infoQuality || 50) + (s.dna?.institutionalism - 50) * 0.01 - s.rumor * 0.01,
+  );
   const formScore = {
     security: s.dna.security,
     bureau: s.dna.institutionalism,
@@ -295,16 +380,38 @@ export function tickDevlet(s) {
   }
   const ev = pickEvent(s);
   if (ev) {
-    pushBounded(s.events, { id: ev.id, title: ev.title, year: s.time.year, month: s.time.month }, 36);
+    pushBounded(
+      s.events,
+      { id: ev.id, title: ev.title, year: s.time.year, month: s.time.month },
+      36,
+    );
     if (ev.domain === "prices") s.reported.inflation = Math.max(0, s.reported.inflation - 2);
-    if (ev.domain === "labor") s.actual.unemployment = clamp((s.actual.unemployment || 10) + 0.3, 0, 40);
+    if (ev.domain === "labor")
+      s.actual.unemployment = clamp((s.actual.unemployment || 10) + 0.3, 0, 40);
     if (ev.domain === "heat") s.heat = clamp(s.heat + 4);
     if (ev.domain === "info") s.infoQuality = clamp(s.infoQuality - 3);
-    if (ev.contested) pushBounded(s.files, { id: ev.id, status: "open", year: s.time.year, contested: true }, 20);
-    else if (s.time.turn % 18 === 0) pushBounded(s.files, { id: "f" + s.time.turn, status: "sleeping", year: s.time.year }, 20);
+    if (ev.contested)
+      pushBounded(s.files, { id: ev.id, status: "open", year: s.time.year, contested: true }, 20);
+    else if (s.time.turn % 18 === 0)
+      pushBounded(s.files, { id: "f" + s.time.turn, status: "sleeping", year: s.time.year }, 20);
     pushBounded(s.memoryState, { year: s.time.year, text: ev.title, voice: "resmi" }, 24);
-    pushBounded(s.memoryPublic, { year: s.time.year, text: ev.voices?.halk || ev.text, voice: "halk" }, 24);
-    pushBounded(s.archive, { year: s.time.year, month: s.time.month, rate, event: ev.id, provenance: ev.provenance, contested: !!ev.contested }, 36);
+    pushBounded(
+      s.memoryPublic,
+      { year: s.time.year, text: ev.voices?.halk || ev.text, voice: "halk" },
+      24,
+    );
+    pushBounded(
+      s.archive,
+      {
+        year: s.time.year,
+        month: s.time.month,
+        rate,
+        event: ev.id,
+        provenance: ev.provenance,
+        contested: !!ev.contested,
+      },
+      36,
+    );
   } else {
     pushBounded(s.archive, { year: s.time.year, month: s.time.month, rate }, 36);
   }
@@ -315,7 +422,12 @@ export function tickDevlet(s) {
       pushBounded(s.history, { type: "file-return", id: f.id, year: s.time.year }, 80);
     }
   }
-  s.attraction = clamp(70 - Math.abs(s.time.year - (PERIODS[s.eraId]?.start?.year || s.time.year)) * 0.15);
+  s.attraction = clamp(
+    70 - Math.abs(s.time.year - (PERIODS[s.eraId]?.start?.year || s.time.year)) * 0.15,
+  );
+  s.flags.decisionMonth = s.time.year + "-" + s.time.month;
+  s.flags.decisionsRemaining = 2;
+  s.flags.decisionIds = [];
   maybeTransition(s);
   const endYear = s.grand?.endYear || 2005;
   if (s.time.year > endYear || (s.time.year === endYear && s.time.month >= 12)) {
@@ -346,7 +458,11 @@ export function applyAlt(s, altId) {
   if (!alt) return s;
   s.scenario.alt = alt.id;
   if (alt.form) s.form = alt.form;
-  if (alt.dna) applyDnaDelta(s, Object.fromEntries(Object.entries(alt.dna).map(([k, v]) => [k, v - (s.dna[k] || 50)])));
+  if (alt.dna)
+    applyDnaDelta(
+      s,
+      Object.fromEntries(Object.entries(alt.dna).map(([k, v]) => [k, v - (s.dna[k] || 50)])),
+    );
   if (alt.foreign) s.foreign = { ...s.foreign, ...alt.foreign };
   if (alt.economy) {
     for (const [k, v] of Object.entries(alt.economy)) s.actual[k] = v;

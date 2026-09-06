@@ -24,7 +24,10 @@ test("apartman delayed cheap patch and finance-once per week", () => {
   applyAction("apartman", s, "proposal:cheap-patch");
   assert.equal(s.finance.cash, cashAfter);
   for (let i = 0; i < 4; i += 1) applyAction("apartman", s, "advance");
-  assert.ok(s.issues.some((i) => String(i.title).includes("yama")) || s.history.some((h) => h.type === "callback"));
+  assert.ok(
+    s.issues.some((i) => String(i.title).includes("yama")) ||
+      s.history.some((h) => h.type === "callback"),
+  );
 });
 
 test("apartman raise-dues backlash after two hikes", () => {
@@ -117,7 +120,7 @@ test("kayip clue dependency privacy cost ending eligibility", () => {
   assert.equal(deep.flags.ending, "reckless");
 });
 
-test("devlet monthly policy once, actual/reported/known stay split", () => {
+test("devlet accepts exactly two monthly decisions, actual/reported/known stay split", () => {
   assert.ok(POLICIES_2002.length >= 10);
   const s = create("tc-sim-devlet");
   s.actual.inflation = 88;
@@ -125,10 +128,13 @@ test("devlet monthly policy once, actual/reported/known stay split", () => {
   applyAction("tc-sim-devlet", s, "policy:eu-align");
   const hist = s.history.filter((h) => h.type === "policy").length;
   applyAction("tc-sim-devlet", s, "policy:tax-admin");
-  assert.equal(s.history.filter((h) => h.type === "policy").length, hist);
+  assert.equal(s.history.filter((h) => h.type === "policy").length, hist + 1);
+  applyAction("tc-sim-devlet", s, "policy:social-relief");
+  assert.equal(s.history.filter((h) => h.type === "policy").length, hist + 1);
+  assert.equal(s.flags.decisionsRemaining, 0);
   applyAction("tc-sim-devlet", s, "advance");
   applyAction("tc-sim-devlet", s, "policy:tax-admin");
-  assert.ok(s.history.filter((h) => h.type === "policy").length >= hist + 1);
+  assert.ok(s.history.filter((h) => h.type === "policy").length >= hist + 2);
   assert.notEqual(s.actual.inflation, s.reported.inflation);
   assert.ok(s.known.inflation.confidence >= 0);
   assert.ok(implementationRate(s) >= 0 && implementationRate(s) <= 100);

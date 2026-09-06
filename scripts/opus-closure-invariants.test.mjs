@@ -5,7 +5,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { hydrateDevlet, tickDevlet, tickDevletN, applyPolicy } from "../public/games/next-wave/devlet-sim.js";
+import {
+  hydrateDevlet,
+  tickDevlet,
+  tickDevletN,
+  applyPolicy,
+} from "../public/games/next-wave/devlet-sim.js";
 import { GRAND_HOOKS } from "../public/games/next-wave/devlet-data.js";
 import { create, applyAction, normalize } from "../public/games/next-wave.js";
 
@@ -23,7 +28,11 @@ test("DEVLET grand campaign has a real terminal at 2030/12 and stays there", () 
   const frozen = JSON.stringify(s);
   tickDevlet(s);
   tickDevletN(s, 200);
-  assert.equal(JSON.stringify(s), frozen, "ticking a finished run must be a no-op, not silent extra months");
+  assert.equal(
+    JSON.stringify(s),
+    frozen,
+    "ticking a finished run must be a no-op, not silent extra months",
+  );
 });
 
 test("DEVLET era horizons terminate at their own end year", () => {
@@ -44,7 +53,11 @@ test("DEVLET declared campaign length matches the runtime span", () => {
     tickDevlet(s);
     months += 1;
   }
-  assert.equal(months, GRAND_HOOKS.months, "GRAND_HOOKS.months must equal the real 1923-10 -> 2030-12 span");
+  assert.equal(
+    months,
+    GRAND_HOOKS.months,
+    "GRAND_HOOKS.months must equal the real 1923-10 -> 2030-12 span",
+  );
 });
 
 test("DEVLET campaign history keeps the meaningful record, not month heartbeats", () => {
@@ -53,10 +66,21 @@ test("DEVLET campaign history keeps the meaningful record, not month heartbeats"
   // and reopened file - the whole institutional record was heartbeat noise.
   const s = hydrateDevlet("1923", { campaign: true });
   tickDevletN(s, 5000);
-  assert.equal(s.history.some((h) => h.type === "month"), false, "no per-month heartbeat rows in history");
+  assert.equal(
+    s.history.some((h) => h.type === "month"),
+    false,
+    "no per-month heartbeat rows in history",
+  );
   const transitions = s.history.filter((h) => h.type === "period-transition");
-  assert.equal(transitions.length, 4, "1950, 1980, 2002 and gunumuz transitions all survive to the end of the run");
-  assert.deepEqual(transitions.map((t) => t.era), ["1950", "1980", "2002", "gunumuz"]);
+  assert.equal(
+    transitions.length,
+    4,
+    "1950, 1980, 2002 and gunumuz transitions all survive to the end of the run",
+  );
+  assert.deepEqual(
+    transitions.map((t) => t.era),
+    ["1950", "1980", "2002", "gunumuz"],
+  );
   assert.ok(s.history.length <= 80);
 });
 
@@ -69,7 +93,11 @@ test("DEVLET save/load is neutral at the dangerous boundaries", () => {
     const reloaded = JSON.parse(JSON.stringify(live));
     tickDevlet(live);
     tickDevlet(reloaded);
-    assert.equal(JSON.stringify(live), JSON.stringify(reloaded), `reload changed the next month at: ${label}`);
+    assert.equal(
+      JSON.stringify(live),
+      JSON.stringify(reloaded),
+      `reload changed the next month at: ${label}`,
+    );
   };
 
   roundTrip("mid-run with a policy still pending", () => {
@@ -103,7 +131,11 @@ test("DEVLET save/load is neutral at the dangerous boundaries", () => {
   tickDevletN(done, 600);
   const revived = JSON.parse(JSON.stringify(done));
   tickDevletN(revived, 50);
-  assert.equal(JSON.stringify(revived), JSON.stringify(done), "reloading a finished run must not restart it");
+  assert.equal(
+    JSON.stringify(revived),
+    JSON.stringify(done),
+    "reloading a finished run must not restart it",
+  );
 });
 
 test("DEVLET known-confidence moves on all three reported channels", () => {
@@ -122,13 +154,17 @@ test("DEVLET status panel reports, it does not leak simulation truth", () => {
   // Defect: the Durum panel printed actual.inflation / actual.treasury /
   // actual.unemployment straight to the player next to the reported values,
   // which defeats the actual-vs-reported-vs-known mechanic the game is built on.
-  const src = readFileSync(root + "public/games/next-wave.js", "utf8");
-  const start = src.indexOf('if (id === "tc-sim-devlet") {', src.indexOf("function panelHtml"));
-  const durum = src.slice(start, src.indexOf("\n  return `<article><pre>", start));
-  assert.ok(durum.length > 500, "located the DEVLET panel block");
-  assert.equal(/state\.actual\./.test(durum), false, "no direct state.actual render anywhere in the DEVLET panel");
-  assert.ok(/state\.reported\.inflation/.test(durum));
-  assert.ok(/state\.known/.test(durum), "player-facing figures are reported values with a confidence readout");
+  const src = readFileSync(root + "public/games/tc-sim-devlet/app.js", "utf8");
+  assert.equal(
+    /state\.actual\./.test(src),
+    false,
+    "no direct state.actual render anywhere in the DEVLET experience",
+  );
+  assert.ok(/state\.reported\.inflation/.test(src));
+  assert.ok(
+    /state\.known/.test(src),
+    "player-facing figures are reported values with a confidence readout",
+  );
 });
 
 test("Son 100 Gün cannot be played past its own final report", () => {
@@ -157,14 +193,21 @@ test("next-wave saves never load into the wrong game", () => {
   assert.equal(normalize("tc-sim-devlet", JSON.parse(JSON.stringify(apartman))), null);
   const hayat = create("hayat");
   assert.equal(normalize("hayat", JSON.parse(JSON.stringify(hayat))).meta.id, "hayat");
-  assert.equal(normalize("hayat", null).meta.id, "hayat", "an empty slot still starts a fresh game");
+  assert.equal(
+    normalize("hayat", null).meta.id,
+    "hayat",
+    "an empty slot still starts a fresh game",
+  );
 });
 
 test("next-wave html escaping actually escapes", () => {
   // Defect: every replacement in the escape helper mapped a character to
   // itself, so nothing rendered through innerHTML was escaped at all.
-  const src = readFileSync(root + "public/games/next-wave.js", "utf8");
-  const fn = src.slice(src.indexOf("function h(s)"), src.indexOf("function h(s)") + 420);
+  const src = readFileSync(root + "public/games/next-wave/shared/runtime.js", "utf8");
+  const fn = src.slice(
+    src.indexOf("function escapeHtml"),
+    src.indexOf("function escapeHtml") + 420,
+  );
   assert.ok(fn.includes("&amp;"), "& must be escaped");
   assert.ok(fn.includes("&lt;"), "< must be escaped");
   assert.ok(fn.includes("&gt;"), "> must be escaped");
@@ -179,9 +222,20 @@ test("Çete shell never becomes a scroll container (breaks sticky navigation)", 
   // The behavioural proof lives in scripts/cete-scroll-regression.mjs (real
   // browser); this guard is the CI-safe half, since CI has no browser.
   const src = readFileSync(root + "src/components/game/game-shell.tsx", "utf8");
-  const shell = src.slice(src.indexOf('className="game-shell'), src.indexOf('className="game-shell') + 200);
-  assert.equal(/overflow-x-hidden/.test(shell), false, "use overflow-x-clip: `hidden` forces overflow-y to auto");
+  const shell = src.slice(
+    src.indexOf('className="game-shell'),
+    src.indexOf('className="game-shell') + 200,
+  );
+  assert.equal(
+    /overflow-x-hidden/.test(shell),
+    false,
+    "use overflow-x-clip: `hidden` forces overflow-y to auto",
+  );
   assert.ok(/overflow-x-clip/.test(shell), "horizontal guard must stay in place");
   const main = src.slice(src.indexOf("<main"), src.indexOf("<main") + 320);
-  assert.equal(/overflow-y-auto/.test(main), false, "the document owns the scroll; no always-on second scroll container");
+  assert.equal(
+    /overflow-y-auto/.test(main),
+    false,
+    "the document owns the scroll; no always-on second scroll container",
+  );
 });

@@ -1,0 +1,168 @@
+:root {
+  --game-bg: #0b0e0d;
+  --panel: #141a17;
+  --button: #18211d;
+  --line: #30443b;
+  --accent: #86aa91;
+  --muted: #b8c2b4;
+  --danger: #c96757;
+}
+body {
+  background-image:
+    linear-gradient(#0b0e0df2, #0b0e0df2),
+    repeating-linear-gradient(90deg, #d7cba80a 0 1px, transparent 1px 22px);
+}
+.apt-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: end;
+  padding: 20px 0;
+}
+.apt-head h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 4.4rem);
+  color: #e6dec4;
+}
+.apt-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.apt-board {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.65fr) minmax(340px, 1.5fr) minmax(210px, 0.8fr);
+  gap: 12px;
+}
+.building-list,
+.issue-list,
+.resident-list {
+  display: grid;
+  gap: 8px;
+}
+.building-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.building-row .meter {
+  grid-column: 1/-1;
+}
+.issue {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 5px;
+  background: #e3dcc5;
+  color: #20241f;
+  border-color: #918b75;
+}
+.issue.is-focus {
+  outline: 3px solid var(--accent);
+}
+.issue small {
+  color: #50584f;
+}
+.desk h2,
+.notice-board h2 {
+  color: #e6dec4;
+}
+.desk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.resident {
+  border-left: 3px solid var(--accent);
+  padding: 8px 10px;
+  background: #0c100e;
+  font-size: 0.82rem;
+}
+.apt-footer-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0b0e0df0;
+}
+.apt-footer-actions .primary {
+  margin-left: auto;
+  background: #315744;
+  font-weight: 800;
+}
+.meeting-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #050706dd;
+}
+.meeting-paper {
+  width: min(760px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  background: #ded4b8;
+  color: #20231f;
+  border-radius: 10px;
+  padding: 22px;
+  box-shadow: 0 24px 90px #000;
+}
+.meeting-paper button {
+  color: #f3eee2;
+}
+.proposal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.vote-result {
+  border: 2px solid #536e5d;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 900px) {
+  .apt-board {
+    grid-template-columns: 1fr 1.5fr;
+  }
+  .notice-board {
+    grid-column: 1/-1;
+  }
+  .resident-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .apt-head {
+    grid-template-columns: 1fr;
+  }
+  .apt-metrics {
+    justify-content: flex-start;
+  }
+  .apt-board {
+    display: flex;
+    flex-direction: column;
+  }
+  .desk {
+    order: -1;
+  }
+  .resident-list,
+  .proposal-grid {
+    grid-template-columns: 1fr;
+  }
+  .apt-footer-actions .primary {
+    margin-left: 0;
+    width: 100%;
+  }
+}
