@@ -678,7 +678,8 @@ function render(id, draft) {
   let active = +(localStorage.getItem(NS + id + ".active") || 1);
   const slots = [1, 2, 3].map((n) => {
     try {
-      return normalize(id, JSON.parse(localStorage.getItem(NS + id + ".slot" + n)));
+      const raw = localStorage.getItem(NS + id + ".slot" + n);
+      return raw === null ? null : normalize(id, JSON.parse(raw));
     } catch {
       return null;
     }

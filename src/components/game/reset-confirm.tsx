@@ -1,3 +1,4 @@
+import { useLang } from "@/lib/i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,8 @@ export function ResetConfirm({
   className?: string;
   label?: string;
 }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const [open, setOpen] = useState(false);
 
   return (
@@ -26,20 +29,19 @@ export function ResetConfirm({
         className={className}
         onClick={() => setOpen(true)}
       >
-        {label}
+        {en && label === "Dosyayı yak" ? "Delete game" : label}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dosyayı yak</DialogTitle>
+            <DialogTitle>{en ? "Delete game" : "Dosyayı yak"}</DialogTitle>
             <DialogDescription>
-              Kayıt, kasa, semt, çete, ev — hepsi gider. Bu mahalle seni
-              unutur. Emin misin?
+              {en ? "This deletes the active game, money, district, crew and home. This cannot be undone. Continue?" : "Kayıt, kasa, semt, çete, ev — hepsi gider. Bu mahalle seni unutur. Emin misin?"}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-6 flex flex-wrap justify-end gap-2">
             <Button variant="ghost" onClick={() => setOpen(false)}>
-              Vazgeç
+              {en ? "Cancel" : "Vazgeç"}
             </Button>
             <Button
               variant="danger"
@@ -52,7 +54,7 @@ export function ResetConfirm({
                 }, 0);
               }}
             >
-              Yak
+              {en ? "Delete" : "Yak"}
             </Button>
           </div>
         </DialogContent>
@@ -62,6 +64,8 @@ export function ResetConfirm({
 }
 
 export function ResetLink({ className }: { className?: string }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -73,19 +77,19 @@ export function ResetLink({ className }: { className?: string }) {
         )}
         onClick={() => setOpen(true)}
       >
-        Dosyayı yak, baştan başla
+        {en ? "Delete game and start over" : "Dosyayı yak, baştan başla"}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dosyayı yak</DialogTitle>
+            <DialogTitle>{en ? "Delete game" : "Dosyayı yak"}</DialogTitle>
             <DialogDescription>
-              Kayıt silinir. Geri dönüş yok.
+              {en ? "The save will be deleted. This cannot be undone." : "Kayıt silinir. Geri dönüş yok."}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-6 flex flex-wrap justify-end gap-2">
             <Button variant="ghost" onClick={() => setOpen(false)}>
-              Vazgeç
+              {en ? "Cancel" : "Vazgeç"}
             </Button>
             <Button
               variant="danger"
@@ -98,7 +102,7 @@ export function ResetLink({ className }: { className?: string }) {
                 }, 0);
               }}
             >
-              Yak
+              {en ? "Delete" : "Yak"}
             </Button>
           </div>
         </DialogContent>

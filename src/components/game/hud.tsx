@@ -1,3 +1,4 @@
+import { useLang } from "@/lib/i18n";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { SaveSlotsPanel } from "@/components/game/save-slots-panel";
@@ -43,6 +44,8 @@ export function Hud({
   player: Player;
   onAccount?: (tab?: "giris" | "kayit" | "unuttum" | "sifre") => void;
 }) {
+  const { lang } = useLang();
+  const en = lang === "en";
   const [detailOpen, setDetailOpen] = useState(false);
   const hiz = useGame((s) => s.hiz);
   const toggleHiz = useGame((s) => s.toggleHiz);
@@ -105,16 +108,16 @@ export function Hud({
         </div>
 
         <div className="order-2 grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4 md:order-4 md:gap-3">
-          <StatBar label="Mermi & Takat" value={player.energy} max={eMax} />
+          <StatBar label={en ? "Energy" : "Mermi & Takat"} value={player.energy} max={eMax} />
           <StatBar
-            label="Racon & Karizma"
+            label={en ? "Stamina" : "Racon & Karizma"}
             value={player.stamina}
             max={sMax}
             tone="muted"
           />
-          <StatBar label="Can" value={player.health} max={100} tone="danger" />
+          <StatBar label={en ? "Health" : "Can"} value={player.health} max={100} tone="danger" />
           <StatBar
-            label="Emniyet"
+            label={en ? "Heat" : "Emniyet"}
             value={player.isi}
             max={HEAT_MAX}
             tone={player.isi >= 45 ? "danger" : "muted"}
@@ -139,10 +142,10 @@ export function Hud({
         <div className="order-4 flex flex-wrap items-center gap-2 md:order-3">
           <HelpPanel triggerClassName={CTRL_BTN} />
           <Button variant="ghost" className={CTRL_BTN} onClick={toggleHiz}>
-            Hız ×{hiz}
+            {en ? "Speed" : "Hız"} ×{hiz}
           </Button>
           <Button variant="ghost" className={CTRL_BTN} onClick={skipHour}>
-            1 saat geçir
+            {en ? "Pass 1 hour" : "1 saat geçir"}
           </Button>
           <Button
             variant="ghost"
@@ -150,7 +153,7 @@ export function Hud({
             aria-expanded={detailOpen}
             onClick={() => setDetailOpen((v) => !v)}
           >
-            Detay
+            {en ? "Details" : "Detay"}
             <ChevronDown
               className={cn(
                 "transition-transform duration-[var(--motion-quick)]",
@@ -171,21 +174,21 @@ export function Hud({
         >
           <p className="text-sm text-fg md:hidden">{loadout}</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Chip label="Semt" value={HOOD[player.neighborhood]} />
+            <Chip label={en ? "District" : "Semt"} value={HOOD[player.neighborhood]} />
             <Chip
-              label="Kıdem"
+              label={en ? "Rank" : "Kıdem"}
               value={`${player.level} · ${player.xp}/${xpToNext(player.level)} XP`}
             />
             <Chip
-              label="Sezon"
+              label={en ? "Season" : "Sezon"}
               value={`${dayInSeason}/${SEASON_DAYS} · ${Math.round(player.seasonScore)} skor`}
             />
-            <Chip label="Saat" value={formatClock(player)} accent />
-            <Chip label="Kasa" value={formatTRY(player.bank)} />
-            <Chip label="Yatırım" value={formatTRY(yatirim)} />
-            <Chip label="İtibar" value={`${Math.round(player.itibar)}`} />
-            <Chip label="Rüşvet" value={formatTRY(player.rusvet)} />
-            <Chip label="Son kayıt" value={lastSaveLabel(savedAt)} />
+            <Chip label={en ? "Time" : "Saat"} value={formatClock(player)} accent />
+            <Chip label={en ? "Bank" : "Kasa"} value={formatTRY(player.bank)} />
+            <Chip label={en ? "Investments" : "Yatırım"} value={formatTRY(yatirim)} />
+            <Chip label={en ? "Reputation" : "İtibar"} value={`${Math.round(player.itibar)}`} />
+            <Chip label={en ? "Bribe fund" : "Rüşvet"} value={formatTRY(player.rusvet)} />
+            <Chip label={en ? "Last save" : "Son kayıt"} value={lastSaveLabel(savedAt)} />
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <SaveSlotsPanel />

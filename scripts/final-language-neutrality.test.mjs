@@ -40,7 +40,8 @@ test('Next Wave language rerender preserves unsaved game and screen, without wri
   let nodes = {};
   const storage = { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, v), removeItem: k => values.delete(k) };
   const screens = [{ dataset: { screen: 'Toplantı' } }];
-  const body = { dataset: { game: 'apartman' }, set innerHTML(_) { nodes = {}; } };
+  let rendered = "";
+  const body = { dataset: { game: 'apartman' }, set innerHTML(html) { rendered = html; nodes = {}; } };
   const doc = { body, querySelector: selector => nodes[selector] ??= {}, querySelectorAll: selector => selector === '[data-screen]' ? screens : [] };
   const I = { HELP_EN: { apartman: 'Meeting help' }, getLang: () => lang, phrase: x => x, applyHtmlLang() {}, mountLangToggle() {}, onLang(fn) { listeners.add(fn); return () => listeners.delete(fn); } };
   globalThis.localStorage = storage;
@@ -49,6 +50,8 @@ test('Next Wave language rerender preserves unsaved game and screen, without wri
   try {
     await import('../public/games/next-wave.js?final-language-neutrality');
     ready();
+    assert.match(rendered, /Slot 1 · boş/);
+    assert.doesNotMatch(rendered, /Slot 1 · dolu/);
     nodes['#new'].onclick();
     screens[0].onclick();
     const before = nodes['#panel'].innerHTML;
