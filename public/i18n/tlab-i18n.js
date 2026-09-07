@@ -308,7 +308,8 @@
     apartman: { title: "Apartman: Apartman Yöneticisi", subtitle: "One building, dozens of people, issues that do not end." },
     "kayip-telefon": { title: "Kayıp Telefon", subtitle: "A phone is lost. The life inside it surfaces." },
     "son-100-gun": { title: "Son 100 Gün", subtitle: "The last hundred days. Every choice weighs more." },
-    "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "Four thousand years of state mind." },
+    "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
+    ihtilal: { title: "İhtilâl", subtitle: "Elections are won. Power is not kept." },
   };
 
   const CREDITS_EN = {
@@ -394,14 +395,15 @@
 
   const HELP_EN = {
     apartman:
-      "Dues, systems and resident tension become votes on meeting night. A cheap patch comes back later.",
+      "Pick an issue, prepare the file, put one proposal to a vote on Meeting Night, then close the week. Cheap patches return. Raising dues too often stops payment.",
     "son-100-gun":
-      "Two moves a day. Sixteen scenarios are separate starts and loads. All work or all rest is not enough.",
-    hayat: "Ages 18–35. A major decision leaves a Long Shadow; shadows can combine.",
+      "One hundred days. Two actions a day. Eighteen scenarios. Timed windows expire. Always-work is not free. The final report is terminal.",
+    hayat:
+      "Start at 18. Name the life, then manage Me, Decisions, Path, Money, People, Home, Long Shadows and History. A major choice leaves a Long Shadow that can return years later.",
     "kayip-telefon":
-      "Apps open through discovery. Corroboration and contradiction produce separate paths.",
+      "This phone is not yours. Eight apps open through discovery. Corroboration and contradiction change the ending. Return at any time; going deeper raises privacy cost.",
     "tc-sim-devlet":
-      "The player is the state organism. Intent ≠ outcome. Actual / reported / known stay apart. 1923, 1950, 1980, 2002, Present, Alternative and the 1923–2030 campaign all play.",
+      "Front menu, then setup: period, mode, goal, doctrine. Take the State. Two decisions a month, then Advance Month. You read reported figures and confidence, not actuals. Intent is not implementation.",
     fallback: "Save slots are local to this device.",
   };
 

@@ -14,6 +14,13 @@ export function language() {
   return window.tlabI18n?.getLang?.() === "en" ? "en" : "tr";
 }
 
+export function loc(tr, en) {
+  if (en && language() === "en") return en;
+  const I = window.tlabI18n;
+  if (I && language() === "en") return I.phrase(String(tr ?? ""));
+  return tr;
+}
+
 export function text(tr, en) {
   return language() === "en" ? en : tr;
 }
@@ -151,6 +158,9 @@ export function bootGame(id, draw) {
     draw(api);
     const host = document.querySelector("[data-lang-host]");
     if (host && window.tlabI18n) window.tlabI18n.mountLangToggle(host);
+    if (window.tlabI18n?.getLang?.() === "en") {
+      window.tlabI18n.applyPhrases?.(document.body);
+    }
   };
 
   const guarded = (work) => {

@@ -132,7 +132,8 @@ test("credits English pack exists and Amiral Battı stays credited", () => {
 
 test("service worker versions i18n assets", () => {
   const sw = read("public/sw.js");
-  assert.match(sw, /cete-offline-v3/);
+  assert.match(sw, /cete-offline-v4/);
+  assert.match(sw, /\/i18n\/deep-en\.js/);
   assert.match(sw, /\/i18n\//);
 });
 
@@ -167,5 +168,6 @@ test("Son 100 Gün still has 18 scenario names for EN phrase coverage", () => {
 test("i18n files exist on disk", () => {
   assert.equal(existsSync(join(root, "public/i18n/tlab-i18n.js")), true);
   assert.equal(existsSync(join(root, "public/i18n/boot.js")), true);
+  assert.equal(existsSync(join(root, "public/i18n/deep-en.js")), true);
   assert.equal(existsSync(join(root, "src/lib/i18n.ts")), true);
 });

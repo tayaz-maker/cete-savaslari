@@ -1028,12 +1028,16 @@ function renderCalendar() {
     }</section>`;
 }
 
+function phraseText(value) {
+  return window.tlabI18n?.phrase?.(value) ?? value;
+}
+
 function renderEvent() {
   if (!state.events.active) return "";
   const base = getEventDefinition(state.events.active.eventId);
   const definition = base && { ...base, text: `${base.text} ${adultEventContext(state)}` };
   if (!definition) return "";
-  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(definition.title)}</h2><p>${escapeText(definition.text)}</p>${getBodyEventContext(state, definition) ? `<p>${escapeText(getBodyEventContext(state, definition))}</p>` : ""}<div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}" ${getEventChoiceAvailability(state, choice.id).ok ? "" : "disabled"} title="${escapeText(getEventChoiceAvailability(state, choice.id).reason || "")}"><strong>${escapeText(choice.label)}</strong><small>${escapeText(getChoiceEffectSummary(choice))}</small></button>`).join("")}</div></section></div>`;
+  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(phraseText(definition.title))}</h2><p>${escapeText(phraseText(definition.text))}</p>${getBodyEventContext(state, definition) ? `<p>${escapeText(phraseText(getBodyEventContext(state, definition)))}</p>` : ""}<div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}" ${getEventChoiceAvailability(state, choice.id).ok ? "" : "disabled"} title="${escapeText(phraseText(getEventChoiceAvailability(state, choice.id).reason || ""))}"><strong>${escapeText(phraseText(choice.label))}</strong><small>${escapeText(phraseText(getChoiceEffectSummary(choice)))}</small></button>`).join("")}</div></section></div>`;
 }
 
 const VIEW_RENDERERS = {

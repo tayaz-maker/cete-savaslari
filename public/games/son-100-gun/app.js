@@ -5,6 +5,7 @@ import {
   bootGame,
   escapeHtml as h,
   frontMenu,
+  loc,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
@@ -17,7 +18,7 @@ let selectedScenario = null;
 
 function slotSummary(state) {
   const scenario = SCENARIOS.find((item) => item.id === state.scenarioId);
-  return `${state.remainingDays} ${t("gün", "days")} · ${scenario?.name || state.scenarioId} · ₺${state.resources.money} · ${t("enerji", "energy")} ${state.resources.energy}`;
+  return `${state.remainingDays} ${t("gün", "days")} · ${loc(scenario?.name || state.scenarioId)} · ₺${state.resources.money} · ${t("enerji", "energy")} ${state.resources.energy}`;
 }
 
 function menu(session) {
@@ -47,7 +48,7 @@ function menu(session) {
 }
 
 function setup(session) {
-  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell"><section class="count-head"><div class="count-number">100</div><div><p class="eyebrow">${t("SENARYONU SEÇ", "CHOOSE YOUR SCENARIO")}</p><h1>SON 100 GÜN</h1><p class="muted">${t("Başlangıç yükün sessizce seçilmez. On sekiz senaryodan birini belirle.", "Your starting burden is never chosen silently. Pick one of eighteen scenarios.")}</p></div></section><section class="scenario-grid">${SCENARIOS.map((scenario, index) => `<button type="button" class="scenario ${index < 5 ? "recommended" : ""} ${selectedScenario === scenario.id ? "is-selected" : ""}" data-scenario="${h(scenario.id)}" aria-pressed="${selectedScenario === scenario.id}"><strong>${h(scenario.name)}</strong><p>${h(scenario.goal)}</p><small>${index < 5 ? t("ÖNERİLEN", "RECOMMENDED") + " · " : ""}₺${scenario.resources.money} · ${t("enerji", "energy")} ${scenario.resources.energy} · ${t("umut", "hope")} ${scenario.resources.hope}${Object.keys(scenario.relations || {}).length ? ` · ${t("ilişki yükü", "relationship pressure")}` : ""}</small></button>`).join("")}</section><div class="setup-actions"><button type="button" id="cancel-setup">${t("GERİ", "BACK")}</button><button type="button" id="confirm-start" class="primary" ${selectedScenario ? "" : "disabled"}>${t("100 GÜNÜ BAŞLAT", "START THE 100 DAYS")}</button></div></section></main>`;
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="setup-shell"><section class="count-head"><div class="count-number">100</div><div><p class="eyebrow">${t("SENARYONU SEÇ", "CHOOSE YOUR SCENARIO")}</p><h1>SON 100 GÜN</h1><p class="muted">${t("Başlangıç yükün sessizce seçilmez. On sekiz senaryodan birini belirle.", "Your starting burden is never chosen silently. Pick one of eighteen scenarios.")}</p></div></section><section class="scenario-grid">${SCENARIOS.map((scenario, index) => `<button type="button" class="scenario ${index < 5 ? "recommended" : ""} ${selectedScenario === scenario.id ? "is-selected" : ""}" data-scenario="${h(scenario.id)}" aria-pressed="${selectedScenario === scenario.id}"><strong>${h(loc(scenario.name))}</strong><p>${h(loc(scenario.goal))}</p><small>${index < 5 ? t("ÖNERİLEN", "RECOMMENDED") + " · " : ""}₺${scenario.resources.money} · ${t("enerji", "energy")} ${scenario.resources.energy} · ${t("umut", "hope")} ${scenario.resources.hope}${Object.keys(scenario.relations || {}).length ? ` · ${t("ilişki yükü", "relationship pressure")}` : ""}</small></button>`).join("")}</section><div class="setup-actions"><button type="button" id="cancel-setup">${t("GERİ", "BACK")}</button><button type="button" id="confirm-start" class="primary" ${selectedScenario ? "" : "disabled"}>${t("100 GÜNÜ BAŞLAT", "START THE 100 DAYS")}</button></div></section></main>`;
   root.querySelectorAll("[data-scenario]").forEach((button) =>
     button.addEventListener("click", () => {
       selectedScenario = button.dataset.scenario;
@@ -88,24 +89,24 @@ function draw(session) {
     .filter((id) => actionById.has(id))
     .slice(0, 6);
   const today = state.day;
-  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">SON 100 GÜN</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">${state.remainingDays}</div><div><p class="eyebrow">${t("KALAN GÜN", "DAYS LEFT")}</p><h1>${h(SCENARIOS.find((scenario) => scenario.id === state.scenarioId)?.name || state.scenarioId)}</h1></div><div class="action-counter">${t("AKSİYON", "ACTION")} ${2 - state.actionsRemaining}/2<br><small class="muted">${t("Gün", "Day")} ${today}</small></div></section>
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">SON 100 GÜN</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">${state.remainingDays}</div><div><p class="eyebrow">${t("KALAN GÜN", "DAYS LEFT")}</p><h1>${h(loc(SCENARIOS.find((scenario) => scenario.id === state.scenarioId)?.name || state.scenarioId))}</h1></div><div class="action-counter">${t("AKSİYON", "ACTION")} ${2 - state.actionsRemaining}/2<br><small class="muted">${t("Gün", "Day")} ${today}</small></div></section>
     <section class="hundred-grid"><aside class="card"><p class="eyebrow">${t("TAKVİM", "CALENDAR")}</p><div class="calendar-strip">${Array.from(
       { length: 7 },
       (_, offset) => {
         const day = today + offset;
         const due = state.obligations
           .filter((item) => item.status === "open" && item.due === offset)
-          .map((item) => item.title);
+          .map((item) => loc(item.title));
         const expiry = openWindows
           .filter((item) => item.expiresOn === day)
-          .map((item) => item.title);
+          .map((item) => loc(item.title));
         return `<div class="calendar-day ${offset === 0 ? "today" : ""}"><b>${day}</b><span>${h([...due, ...expiry].join(" · ") || t("boş", "open"))}</span></div>`;
       },
     ).join("")}</div></aside>
-      <section class="card today-panel"><p class="eyebrow">${t("BUGÜN", "TODAY")}</p>${openWindows.map((window) => `<div class="window"><strong>${h(window.title)}</strong><br><small>${t("Son gün", "Last day")} ${window.expiresOn} · ${t("kaçarsa sonuç doğar", "missing it has a consequence")}</small></div>`).join("") || `<p class="muted">${t("Bugün açık fırsat yok; yükümlülüklerini ve enerjini tart.", "No open window today; weigh obligations and energy.")}</p>`}<div class="action-grid">${choiceIds
+      <section class="card today-panel"><p class="eyebrow">${t("BUGÜN", "TODAY")}</p>${openWindows.map((window) => `<div class="window"><strong>${h(loc(window.title))}</strong><br><small>${t("Son gün", "Last day")} ${window.expiresOn} · ${t("kaçarsa sonuç doğar", "missing it has a consequence")}</small></div>`).join("") || `<p class="muted">${t("Bugün açık fırsat yok; yükümlülüklerini ve enerjini tart.", "No open window today; weigh obligations and energy.")}</p>`}<div class="action-grid">${choiceIds
         .map((id) => {
           const action = actionById.get(id);
-          return `<button type="button" class="action-card" data-action="${h(id)}"><strong>${h(action.label)}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}</small></button>`;
+          return `<button type="button" class="action-card" data-action="${h(id)}"><strong>${h(loc(action.label))}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}</small></button>`;
         })
         .join(
           "",
@@ -115,7 +116,7 @@ function draw(session) {
           .filter((item) => item.status === "open")
           .map(
             (item) =>
-              `<p><strong>${h(item.title)}</strong><br><small>${item.due} ${t("gün ·", "days ·")} ₺${item.cost || 0}</small></p>`,
+              `<p><strong>${h(loc(item.title))}</strong><br><small>${item.due} ${t("gün ·", "days ·")} ₺${item.cost || 0}</small></p>`,
           )
           .join("") || `<p>${t("Açık yüküm yok.", "No open obligation.")}</p>`
       }</aside></section>
@@ -124,7 +125,7 @@ function draw(session) {
       .reverse()
       .map(
         (row) =>
-          `<span>${row.type === "act" ? t("Karar", "Decision") + ": " + h(row.id) : row.type === "opportunity" ? t("Fırsat", "Window") + ": " + h(row.result) : h(row.type)}</span>`,
+          `<span>${row.type === "act" ? t("Karar", "Decision") + ": " + h(loc(row.id)) : row.type === "opportunity" ? t("Fırsat", "Window") + ": " + h(loc(row.result)) : h(loc(row.type))}</span>`,
       )
       .join(
         "",

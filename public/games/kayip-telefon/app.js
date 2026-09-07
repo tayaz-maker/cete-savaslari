@@ -5,6 +5,7 @@ import {
   bootGame,
   escapeHtml as h,
   frontMenu,
+  loc,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
@@ -73,7 +74,7 @@ function draw(session) {
   const threads = state.threads || [];
   root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">KAYIP TELEFON</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="phone-wrap"><div class="phone"><div class="phone-status"><span>21:14</span><span>${t("SAHİBİ BİLİNMİYOR", "OWNER UNKNOWN")}</span><span class="privacy">${t("MAHREMİYET", "PRIVACY")} ${state.privacyPressure}/100</span></div>${
     ending
-      ? `<section class="ending"><div><p class="eyebrow">${t("TELEFON İADE EDİLDİ", "PHONE RETURNED")}</p><h1>${h(ending.title)}</h1><p>${h(ending.text)}</p><p>${t("Keşif", "Discoveries")} ${state.discoveredItems.length} · ${t("mahremiyet baskısı", "privacy pressure")} ${state.privacyPressure}</p></div></section>`
+      ? `<section class="ending"><div><p class="eyebrow">${t("TELEFON İADE EDİLDİ", "PHONE RETURNED")}</p><h1>${h(loc(ending.title))}</h1><p>${h(loc(ending.text))}</p><p>${t("Keşif", "Discoveries")} ${state.discoveredItems.length} · ${t("mahremiyet baskısı", "privacy pressure")} ${state.privacyPressure}</p></div></section>`
       : `<div class="phone-grid"><nav class="app-dock" aria-label="${t("Telefon uygulamaları", "Phone apps")}">${APPS.map(
           (app) => {
             const copy = appCopy[app];
@@ -88,7 +89,7 @@ function draw(session) {
                 .slice(0, 3)
                 .map((thread) => {
                   const person = CONTACTS.find((contact) => contact.id === thread.contactId);
-                  return `<article class="thread"><h3>${h(person?.name)}</h3>${thread.messages.map((message) => `<div class="bubble">${h(message)}</div>`).join("")}</article>`;
+                  return `<article class="thread"><h3>${h(person?.name)}</h3>${thread.messages.map((message) => `<div class="bubble">${h(loc(message))}</div>`).join("")}</article>`;
                 })
                 .join("")
             : ""
@@ -99,7 +100,7 @@ function draw(session) {
               const locked = item.requires?.some(
                 (required) => !state.discoveredItems.includes(required),
               );
-              return `<button type="button" class="phone-item ${read ? "is-read" : ""}" data-item="${h(item.id)}" ${read || locked ? "disabled" : ""}><strong>${h(item.title)}</strong><small>${read ? h(item.text) : locked ? t("Önce ilişkili bir notu bulmalısın.", "Find the related note first.") : t("Açmak mahremiyet baskısını artırabilir.", "Opening may increase privacy pressure.")}</small></button>`;
+              return `<button type="button" class="phone-item ${read ? "is-read" : ""}" data-item="${h(item.id)}" ${read || locked ? "disabled" : ""}><strong>${h(loc(item.title))}</strong><small>${read ? h(loc(item.text)) : locked ? t("Önce ilişkili bir notu bulmalısın.", "Find the related note first.") : t("Açmak mahremiyet baskısını artırabilir.", "Opening may increase privacy pressure.")}</small></button>`;
             })
             .join("") ||
           `<p class="muted">${t("Bu uygulamada yeni öğe yok.", "No new item in this app.")}</p>`

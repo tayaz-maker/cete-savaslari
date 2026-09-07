@@ -11,6 +11,7 @@
 <meta name="description" content="İstanbul tapusu. Semti tutan büker. 2–4 kişi, aynı telefon. Para birimi TL.">
 <title>Son Mahalle Bükücü</title>
 <script src="/i18n/tlab-i18n.js"></script>
+<script src="/i18n/deep-en.js"></script>
 <script src="/i18n/boot.js"></script>
 <meta name="smb-rev" content="13">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2886,6 +2887,7 @@ button:disabled { opacity: .35; }
     credit.innerHTML = "© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.";
     document.getElementById("app").style.visibility = "hidden";
     document.getElementById("app").classList.remove("handoff");
+    if (window.tlabI18n && window.tlabI18n.getLang() === "en") window.tlabI18n.applyPhrases(m);
   }
 
   function paintEnd() {
@@ -2930,6 +2932,7 @@ button:disabled { opacity: .35; }
     paintDock();
     drawRing();
     if (view === "end" || S.win != null) paintEnd();
+    if (window.tlabI18n && window.tlabI18n.getLang() === "en") window.tlabI18n.applyPhrases(document.body);
   }
 
   window.addEventListener("orientationchange", function () { setTimeout(function () { setVvh(); redrawAll(); }, 280); });

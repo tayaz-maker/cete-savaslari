@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#0f0e0c">
 <title>Çete Savaşları: Hanedan</title>
 <script src="/i18n/tlab-i18n.js"></script>
+<script src="/i18n/deep-en.js"></script>
 <script src="/i18n/boot.js"></script>
 <style>
 html, body { margin:0; height:100%; background:#0f0e0c; color:#e8dcc8;
@@ -2177,6 +2178,7 @@ svg.face { display:block; flex:0 0 auto; }
       }
       if (S.tier === t) add(acc, el("p", { cls: "ok", text: S.name + " · " + S.pts + " p" }));
     }
+    if (window.tlabI18n && window.tlabI18n.getLang() === "en") window.tlabI18n.applyPhrases(document.body);
   }
   function bar(p, label, v) {
     var r = add(p, el("div", { cls: "row" }));
@@ -2369,6 +2371,12 @@ svg.face { display:block; flex:0 0 auto; }
     add(main, el("p", { cls: "kicker", text: "Compendium" }));
     for (i = 0; i < TRAITS.length; i++) add(main, el("p", { cls: "small", text: TRAIT_NAME[TRAITS[i][0]] }));
   }
+
+  var _paintHanedan = paint;
+  paint = function () {
+    _paintHanedan();
+    if (window.tlabI18n && window.tlabI18n.getLang() === "en") window.tlabI18n.applyPhrases(document.body);
+  };
 
   (function boot() {
     var data = loadSave();

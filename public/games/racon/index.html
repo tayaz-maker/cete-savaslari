@@ -7,6 +7,7 @@
 <meta name="racon-rev" content="35">
 <title>Racon Manager</title>
 <script src="/i18n/tlab-i18n.js"></script>
+<script src="/i18n/deep-en.js"></script>
 <script src="/i18n/boot.js"></script>
 <style>
 :root{
@@ -5103,6 +5104,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     drawModal();
     decorateActions();
     if(S&&UI.mode==="play") writeSave();
+    if (window.tlabI18n && window.tlabI18n.getLang() === "en") window.tlabI18n.applyPhrases(document.body);
   }
 
   function act(code, payload) {

@@ -6,11 +6,61 @@ import {
   bootGame,
   escapeHtml as h,
   frontMenu,
+  loc,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
 
-const root = document.body;
+const shadowLabel = {
+  education: ["Eğitim", "Education"],
+  career: ["Kariyer", "Career"],
+  family: ["Aile", "Family"],
+  romance: ["İlişki", "Romance"],
+  friendship: ["Dostluk", "Friendship"],
+  housing: ["Barınma", "Housing"],
+  money: ["Para", "Money"],
+  duty: ["Yükümlülük", "Duty"],
+  body: ["Beden", "Body"],
+  ambition: ["Hırs", "Ambition"],
+  network: ["Çevre", "Network"],
+  regret: ["Pişmanlık", "Regret"],
+  migration: ["Göç", "Migration"],
+  "health-habit": ["Alışkanlık", "Habit"],
+  civic: ["Yurttaşlık", "Civic"],
+  skill: ["Beceri", "Skill"],
+  "kin-money": ["Aile parası", "Family money"],
+  lease: ["Kira", "Lease"],
+  tempo: ["Tempo", "Pace"],
+  "return-home": ["Dönüş", "Return"],
+  "second-chance": ["İkinci şans", "Second chance"],
+};
+
+function labelShadow(category) {
+  const row = shadowLabel[category];
+  return row ? t(row[0], row[1]) : loc(category);
+}
+
+function labelType(type) {
+  const map = {
+    decision: ["Karar", "Decision"],
+    shadow: ["Uzun Gölge", "Long Shadow"],
+    advance: ["Dönem", "Passage"],
+    milestone: ["Eşik", "Milestone"],
+  };
+  const row = map[type];
+  return row ? t(row[0], row[1]) : loc(type);
+}
+
+function labelRelation(id) {
+  const map = {
+    family: ["Aile", "Family"],
+    friend: ["Arkadaş", "Friend"],
+    partner: ["Partner", "Partner"],
+    work: ["İş", "Work"],
+  };
+  const row = map[id];
+  return row ? t(row[0], row[1]) : loc(id);
+}
 const screens = [
   ["decisions", "KARARLAR", "DECISIONS"],
   ["me", "BEN", "ME"],
@@ -21,6 +71,7 @@ const screens = [
   ["shadows", "UZUN GÖLGE", "LONG SHADOW"],
   ["history", "GEÇMİŞ", "HISTORY"],
 ];
+const root = document.body;
 let view = "menu";
 let draftName = "";
 
@@ -122,7 +173,7 @@ function panel(state) {
   const decided = state.flags.majorTurn === state.turn;
   const open = state.shadows.filter((shadow) => shadow.status === "open");
   if (screen === "decisions")
-    return `<section class="active-panel decision-surface"><p class="eyebrow">${decided ? t("KARAR VERİLDİ", "DECISION MADE") : t("ANA KARAR", "MAIN DECISION")}</p><h2>${h(event.title)}</h2><p>${h(event.text)}</p>${
+    return `<section class="active-panel decision-surface"><p class="eyebrow">${decided ? t("KARAR VERİLDİ", "DECISION MADE") : t("ANA KARAR", "MAIN DECISION")}</p><h2>${h(loc(event.title))}</h2><p>${h(loc(event.text))}</p>${
       decided
         ? `<div class="result-card"><strong>${t("Karar işlendi.", "Decision recorded.")}</strong><p>${open.some((shadow) => shadow.event === event.id) ? t("Bir Uzun Gölge doğdu. Ne zaman döneceği gizli.", "A Long Shadow was born. Its return remains hidden.") : t("Bu karar açık gölge bırakmadı.", "This decision left no open shadow.")}</p></div><button id="next" type="button">${t("SONRAKİ DÖNEM", "NEXT PASSAGE")}</button>`
         : `<div class="choice-grid">${choicesFor(event)
@@ -154,7 +205,7 @@ function panel(state) {
       (state.relationships || [])
         .map(
           (relationship) =>
-            `<article><span>${h(relationship.id)}</span><b>${Math.round(relationship.value)}</b></article>`,
+            `<article><span>${h(labelRelation(relationship.id))}</span><b>${Math.round(relationship.value)}</b></article>`,
         )
         .join("") ||
       `<p>${t("Bağlar kararlarla oluşacak.", "Bonds will form through decisions.")}</p>`
@@ -162,14 +213,14 @@ function panel(state) {
   if (screen === "home")
     return `<section class="active-panel"><p class="eyebrow">${t("EV", "HOME")}</p><h2>${h(state.home || t("Başlangıç evi", "Starting home"))}</h2><p>${t("Barınma ve aile kararlarının sonuçları burada görünür.", "Housing and family decisions appear here.")}</p></section>`;
   if (screen === "shadows")
-    return `<section class="active-panel"><p class="eyebrow">${t("UZUN GÖLGE", "LONG SHADOW")}</p>${open.map((s) => `<article class="shadow"><strong>${h(s.category)}</strong><p>${t("Açık · dönüş zamanı bilinmiyor", "Open · return time unknown")}</p></article>`).join("") || `<p>${t("Henüz açık gölge yok.", "No open shadow yet.")}</p>`}</section>`;
+    return `<section class="active-panel"><p class="eyebrow">${t("UZUN GÖLGE", "LONG SHADOW")}</p>${open.map((s) => `<article class="shadow"><strong>${h(labelShadow(s.category))}</strong><p>${t("Açık · dönüş zamanı bilinmiyor", "Open · return time unknown")}</p></article>`).join("") || `<p>${t("Henüz açık gölge yok.", "No open shadow yet.")}</p>`}</section>`;
   return `<section class="active-panel"><p class="eyebrow">${t("GEÇMİŞ", "HISTORY")}</p><div class="result-feed">${
     state.history
       .slice(-12)
       .reverse()
       .map(
         (row) =>
-          `<div><b>${h(row.type)}</b><span>${h(row.title || row.text || row.choice || "")}</span></div>`,
+          `<div><b>${h(labelType(row.type))}</b><span>${h(loc(row.title || row.text || choiceCopy[row.choice]?.[0] || row.choice || ""))}</span></div>`,
       )
       .join("") || `<p>${t("Kayıt henüz boş.", "The record is empty.")}</p>`
   }</div></section>`;
@@ -205,7 +256,7 @@ function draw(session) {
       .reverse()
       .map(
         (row) =>
-          `<div><b>${h(row.type)}</b><span>${h(row.title || row.choice || row.text || "")}</span></div>`,
+          `<div><b>${h(labelType(row.type))}</b><span>${h(loc(row.title || choiceCopy[row.choice]?.[0] || row.choice || row.text || ""))}</span></div>`,
       )
       .join("") || `<p>${t("İlk kararını bekliyor.", "Waiting for your first decision.")}</p>`
   }</section></div></section><p class="notice">${h(session.notice)}</p><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
