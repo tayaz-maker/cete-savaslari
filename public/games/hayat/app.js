@@ -195,7 +195,7 @@ function panel(state) {
       state.decisionsLog
         .slice(-5)
         .reverse()
-        .map((d) => `<div><b>${h(d.title)}</b><span>${h(d.choice)}</span></div>`)
+        .map((d) => `<div><b>${h(loc(d.title))}</b><span>${h(t(choiceCopy[d.choice]?.[0] || d.choice, choiceCopy[d.choice]?.[2] || d.choice))}</span></div>`)
         .join("") || `<p>${t("Henüz karar yok.", "No decisions yet.")}</p>`
     }</div></section>`;
   if (screen === "money")

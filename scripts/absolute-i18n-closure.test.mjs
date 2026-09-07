@@ -18,6 +18,7 @@ function loadI18n() {
   };
   vm.runInNewContext(read("public/i18n/tlab-i18n.js"), context);
   vm.runInNewContext(read("public/i18n/deep-en.js"), context);
+  vm.runInNewContext(read("public/i18n/deep-en-final.js"), context);
   return context.tlabI18n;
 }
 
@@ -53,12 +54,18 @@ const LIVE = [
 
 test("deep-en overlay exists and extends PHRASE", () => {
   assert.equal(existsSync(join(root, "public/i18n/deep-en.js")), true);
+  assert.equal(existsSync(join(root, "public/i18n/deep-en-final.js")), true);
   assert.ok(I.DEEP_EN);
+  assert.ok(I.DEEP_EN_FINAL);
   assert.ok(Object.keys(I.DEEP_EN).length > 400);
+  assert.ok(Object.keys(I.DEEP_EN_FINAL).length > 400);
   assert.equal(I.phrase("Toplantı Gecesi"), "Meeting Night");
   assert.equal(I.phrase("Uzun Gölge"), "Long Shadow");
   assert.equal(I.phrase("Yönetimi Devral"), "Take Management");
   assert.equal(I.phrase("Devleti Devral"), "Take the State");
+  assert.equal(I.phrase("Bu telefon senin değil."), "This phone is not yours.");
+  assert.equal(I.phrase("YÖNETİMİ DEVRAL"), "TAKE MANAGEMENT");
+  assert.equal(I.phrase("100 GÜNÜ BAŞLAT"), "BEGIN 100 DAYS");
 });
 
 test("required EN keys missing = 0", () => {
@@ -135,16 +142,55 @@ test("Next Wave shells wrap data through loc and load deep-en", () => {
     "public/games/racon/index.html",
   ]) {
     assert.match(read(file), /\/i18n\/deep-en\.js/, file);
+    assert.match(read(file), /\/i18n\/deep-en-final\.js/, file);
   }
 });
 
 test("Hayat does not leak raw shadow category ids", () => {
   assert.match(read("public/games/hayat/app.js"), /labelShadow/);
   assert.doesNotMatch(read("public/games/hayat/app.js"), /h\(s\.category\)/);
+  assert.doesNotMatch(read("public/games/hayat/app.js"), /h\(d\.choice\)/);
 });
 
 test("DEVLET does not leak raw foreign/policy-debt keys", () => {
   const src = read("public/games/tc-sim-devlet/app.js");
   assert.match(src, /function ax\(/);
   assert.doesNotMatch(src, /key\.replaceAll\("_", " "\)/);
+});
+
+test("Kayıp Telefon thread slang has EN phrases", () => {
+  for (const line of [
+    "nerdesin ya",
+    "müşteri 16:00ı bekliyo",
+    "annene söyleme",
+    "bu maili dışarı taşıma",
+  ]) {
+    const en = I.phrase(line);
+    assert.notEqual(en, line, line);
+  }
+});
+
+test("TC SIM catalog and help critical strings have EN", () => {
+  for (const line of [
+    "Market Çalışanı",
+    "Paylaşımlı Ev",
+    "Her hafta 2 karar hakkın var (sağlığın kritikse 1'e düşer). Karar hakkını iş/sosyal/aktivite kararlarına harcadıktan sonra haftayı ilerlet; maaş, kira ve düzenli giderler ay sonunda otomatik işler.",
+    "Mütevazı",
+    "Dertleş",
+  ]) {
+    const en = I.phrase(line);
+    assert.notEqual(en, line, line);
+  }
+});
+
+test("Çete job and shop copy has EN phrases", () => {
+  for (const line of [
+    "Pavyon Çıkışı Sarhoş Soyma",
+    "Torba Tutma ve Köşe Başları",
+    "Hayalet Canik TP9",
+    "Tek köşe",
+  ]) {
+    const en = I.phrase(line);
+    assert.notEqual(en, line, line);
+  }
 });

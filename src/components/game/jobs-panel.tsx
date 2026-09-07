@@ -15,7 +15,7 @@ function riskVariant(risk: Risk) {
 }
 
 export function JobsPanel({ player }: { player: Player }) {
-  const { lang } = useLang();
+  const { lang, phrase } = useLang();
   const en = lang === "en";
   const doJob = useGame((s) => s.doJob);
   const blocked = !canAct(player);
@@ -30,7 +30,7 @@ export function JobsPanel({ player }: { player: Player }) {
           <p className="text-[0.7rem] font-medium tracking-[0.22em] text-accent uppercase">
             {en ? "Contract" : "Sözleşme"} · {contract.npc}
           </p>
-          <p className="mt-2 text-sm text-fg">{contract.text}</p>
+          <p className="mt-2 text-sm text-fg">{phrase(contract.text)}</p>
           <p className="mt-2 font-mono text-xs tabular-nums text-muted">
             {en ? `Complete the marked job for a ${formatTRY(contract.bonus)} bonus. Expires tomorrow.` : `İcraatı bitir, +${formatTRY(contract.bonus)} bonus. Yarın biter.`}
           </p>
@@ -47,7 +47,7 @@ export function JobsPanel({ player }: { player: Player }) {
             {en ? "Tier" : "Kademe"} {tier.tier}
           </p>
           <h2 className="mt-1 font-display text-2xl font-semibold">
-            {tier.title}
+            {phrase(tier.title)}
           </h2>
           <ul className="mt-4 space-y-3">
             {tier.missions.map((m) => {
@@ -70,14 +70,14 @@ export function JobsPanel({ player }: { player: Player }) {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h3 className="font-display text-xl font-semibold">
-                      {m.name}
+                      {phrase(m.name)}
                     </h3>
                     <div className="flex gap-1.5">
                       {marked ? <Badge variant="ok">{en ? "Contract" : "Sözleşme"}</Badge> : null}
                       <Badge variant={riskVariant(m.risk)}>{en ? ({Düşük: "Low", Orta: "Medium", Yüksek: "High", "Çok Yüksek": "Very high", Kritik: "Critical"}[m.risk]) : m.risk}</Badge>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-muted">{m.desc}</p>
+                  <p className="mt-2 text-sm text-muted">{phrase(m.desc)}</p>
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs tabular-nums text-subtle">
                     <span>{en ? "Energy" : "Mermi"} {cost}</span>
                     <span>
@@ -90,7 +90,7 @@ export function JobsPanel({ player }: { player: Player }) {
                   {missing.length > 0 ? (
                     <p className="mt-2 text-xs text-warn">
                       {en ? "Required:" : "Gerekli:"}{" "}
-                      {missing.map((id) => ITEM_MAP[id]?.name ?? id).join(", ")}
+                      {missing.map((id) => phrase(ITEM_MAP[id]?.name ?? id)).join(", ")}
                     </p>
                   ) : null}
                   {crewNote ? <p className="mt-2 text-xs text-warn">{en ? `Requires ${crewNeed} available crew. Busy crew cannot join.` : crewNote}</p> : null}

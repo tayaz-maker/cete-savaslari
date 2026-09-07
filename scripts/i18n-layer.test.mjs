@@ -134,6 +134,7 @@ test("service worker versions i18n assets", () => {
   const sw = read("public/sw.js");
   assert.match(sw, /cete-offline-v4/);
   assert.match(sw, /\/i18n\/deep-en\.js/);
+  assert.match(sw, /\/i18n\/deep-en-final\.js/);
   assert.match(sw, /\/i18n\//);
 });
 
@@ -169,5 +170,7 @@ test("i18n files exist on disk", () => {
   assert.equal(existsSync(join(root, "public/i18n/tlab-i18n.js")), true);
   assert.equal(existsSync(join(root, "public/i18n/boot.js")), true);
   assert.equal(existsSync(join(root, "public/i18n/deep-en.js")), true);
+  assert.equal(existsSync(join(root, "public/i18n/deep-en-final.js")), true);
   assert.equal(existsSync(join(root, "src/lib/i18n.ts")), true);
+  assert.equal(existsSync(join(root, "src/lib/i18n-phrases.ts")), true);
 });

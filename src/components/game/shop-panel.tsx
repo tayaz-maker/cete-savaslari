@@ -34,7 +34,7 @@ function Catalog({
   items: ShopItem[];
   player: Player;
 }) {
-  const { lang } = useLang();
+  const { lang, phrase } = useLang();
   const en = lang === "en";
   const buyItem = useGame((s) => s.buyItem);
   const sellItem = useGame((s) => s.sellItem);
@@ -64,13 +64,13 @@ function Catalog({
             >
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-display text-lg font-semibold">
-                  {item.name}
+                  {phrase(item.name)}
                 </h3>
                 <span className="font-mono text-sm tabular-nums text-accent">
                   {item.price === 0 ? (en ? "Given" : "Emanet") : formatTRY(item.price)}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-muted">{item.desc}</p>
+              <p className="mt-1 text-sm text-muted">{phrase(item.desc)}</p>
               <p className="mt-2 font-mono text-xs tabular-nums text-subtle">
                 {item.kind === "luxury"
                   ? `${en ? "Reputation" : "İtibar"} +${item.itibarBonus ?? 0}`

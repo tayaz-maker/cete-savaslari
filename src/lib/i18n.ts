@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { EXTRA_PHRASE } from "@/lib/i18n-phrases";
 
 export const LANG_KEY = "tariklab.language";
 export type Lang = "tr" | "en";
@@ -186,5 +187,9 @@ export function useLang() {
   };
   const t = (key: string, fallback: string, vars?: Record<string, string | number>) =>
     translate(lang, key, fallback, vars);
-  return { lang, setLang, t };
+  const phrase = (text: string) => {
+    if (lang !== "en" || text == null) return text;
+    return EXTRA_PHRASE[text] ?? text;
+  };
+  return { lang, setLang, t, phrase };
 }

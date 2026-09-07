@@ -1,4 +1,5 @@
 import { APPS, CONTACTS, DISCOVERABLES, ENDINGS } from "../next-wave.js";
+import { THREADS } from "../next-wave/kayip-data.js";
 import {
   bindFrontMenu,
   bindSavePanel,
@@ -22,6 +23,16 @@ const appCopy = {
   voice: ["Ses Kayıtları", "Voice", "◉"],
 };
 let view = "menu";
+function clueLabel(id) {
+  const item = DISCOVERABLES.find((row) => row.id === id);
+  if (item) return loc(item.title);
+  const thread = THREADS.find((row) => row.id === id);
+  if (thread) {
+    const person = CONTACTS.find((contact) => contact.id === thread.contactId);
+    return person?.name || id;
+  }
+  return loc(id);
+}
 
 function slotSummary(state) {
   const ending = state.flags.ending ? ` · ${t("dosya kapandı", "case closed")}` : "";
@@ -106,10 +117,10 @@ function draw(session) {
           `<p class="muted">${t("Bu uygulamada yeni öğe yok.", "No new item in this app.")}</p>`
         }</div></section><aside class="evidence"><p class="eyebrow">${t("BULGULAR", "EVIDENCE")}</p><p>${t("Doğrulanan", "Corroborated")} ${state.corroboration.length} · ${t("Çelişki", "Contradictions")} ${state.contradiction.length}</p><div class="evidence-list">${state.corroboration
           .slice(-4)
-          .map((row) => `<div class="evidence-row">✓ ${h(row.item)} ↔ ${h(row.with)}</div>`)
+          .map((row) => `<div class="evidence-row">✓ ${h(clueLabel(row.item))} ↔ ${h(clueLabel(row.with))}</div>`)
           .join("")}${state.contradiction
           .slice(-4)
-          .map((row) => `<div class="evidence-row contra">! ${h(row.item)} ≠ ${h(row.with)}</div>`)
+          .map((row) => `<div class="evidence-row contra">! ${h(clueLabel(row.item))} ≠ ${h(clueLabel(row.with))}</div>`)
           .join(
             "",
           )}${!state.corroboration.length && !state.contradiction.length ? `<p class="muted">${t("Öğeleri okuyup ilişkileri kendin kur.", "Read items and build the links yourself.")}</p>` : ""}</div></aside></div><div class="return-bar"><span>${t("Telefonu her an iade edebilirsin; bu dosyayı kapatır.", "You may return the phone at any time; this closes the case.")}</span><button type="button" id="return">${t("TELEFONU İADE ET", "RETURN PHONE")}</button></div>`

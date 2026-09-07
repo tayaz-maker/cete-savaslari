@@ -19,7 +19,7 @@ import type { Player } from "@/game/types";
 import { formatTRY } from "@/lib/utils";
 
 export function StreetPanel({ player }: { player: Player }) {
-  const { lang } = useLang();
+  const { lang, phrase } = useLang();
   const en = lang === "en";
   const rivals = useGame((s) => s.rivals);
   const attackRival = useGame((s) => s.attackRival);
@@ -119,9 +119,9 @@ export function StreetPanel({ player }: { player: Player }) {
               >
                 <h3 className="font-display text-lg font-semibold">{c.name}</h3>
                 <p className="text-xs tracking-wide text-muted uppercase">
-                  {c.role}
+                  {phrase(c.role)}
                 </p>
-                <p className="mt-2 text-sm text-muted">{c.perk}</p>
+                <p className="mt-2 text-sm text-muted">{phrase(c.perk)}</p>
                 <p className="mt-2 font-mono text-xs tabular-nums text-subtle">
                   {en ? "Hire" : "Giriş"} {formatTRY(c.hire)} · {en ? "hour" : "saat"} {formatTRY(c.wage)} · {en ? "reputation" : "itibar"}{" "}
                   {c.itibar}

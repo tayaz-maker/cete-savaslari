@@ -13,7 +13,7 @@ export function CreateCharacter() {
   const [name, setName] = useState("");
   const [hood, setHood] = useState<NeighborhoodId>("eyup");
   const activeSlot = useGame((s) => s.activeSlot) || 1;
-  const { t } = useLang();
+  const { t, phrase } = useLang();
 
   useEffect(() => {
     unlockUi();
@@ -62,9 +62,9 @@ export function CreateCharacter() {
             )}
           >
             <div className="font-display text-xl font-semibold">{n.name}</div>
-            <p className="mt-1 text-sm text-muted">{n.blurb}</p>
+            <p className="mt-1 text-sm text-muted">{phrase(n.blurb)}</p>
             <p className="mt-3 text-xs tracking-wide text-accent uppercase">
-              {n.perk}
+              {phrase(n.perk)}
             </p>
           </button>
         ))}
