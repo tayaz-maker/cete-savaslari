@@ -1,5 +1,5 @@
 import { compactNavigation } from "../../shared/compact-navigation.js";
-import { arrangeLifeDesk } from "./desk.js";
+import { arrangeLifeDesk } from "./desk.js?v=9";
 import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, MARKET,

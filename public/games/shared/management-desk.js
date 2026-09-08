@@ -3,7 +3,7 @@
 const selections = new Map();
 const resizeHandlers = new WeakMap();
 
-export function managementDesk({ workspace, layout, key, selector, text }) {
+export function managementDesk({ workspace, layout, key, selector, text, searchSelector }) {
   if (!workspace || !layout) return;
   layout.classList.add("management-layout");
   workspace.classList.add("management-workspace");
@@ -103,14 +103,15 @@ export function managementDesk({ workspace, layout, key, selector, text }) {
     return { row, full, select };
   });
   rows[Math.min(selections.get(key) || 0, rows.length - 1)].select(false);
+  const searchable = searchSelector ? [...workspace.querySelectorAll(searchSelector)].map(row => ({ row, full: row.textContent })) : rows;
   const filter = () => {
     const query = input.value.toLocaleLowerCase(doc.documentElement.lang || "tr");
     let visible = 0;
-    rows.forEach(({ row, full }) => {
+    searchable.forEach(({ row, full }) => {
       row.hidden = !full.toLocaleLowerCase(doc.documentElement.lang || "tr").includes(query);
       if (!row.hidden) visible++;
     });
-    count.textContent = `${visible} / ${rows.length}`;
+    count.textContent = `${visible} / ${searchable.length}`;
     empty.hidden = visible !== 0;
   };
   input.addEventListener("input", filter);

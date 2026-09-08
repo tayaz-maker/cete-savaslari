@@ -32,5 +32,5 @@ export function arrangeLifeDesk(view, text) {
     history.push(...panels.filter(panel => panel.querySelector(".history")));
   }
   managementDeck(layout, history, text("KAYIT / HESAP DÖKÜMÜ", "RECORD / ACCOUNT LEDGER"));
-  managementDesk({ workspace, layout, key: `life:${view}`, selector: selectors[view] || ".panel", text });
+  managementDesk({ workspace, layout, key: `life:${view}`, selector: selectors[view] || ".panel", text, searchSelector: view === "people" ? ".person-select" : undefined });
 }

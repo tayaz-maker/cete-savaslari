@@ -21,11 +21,13 @@ export async function deskFlows(page, surface, id, lang, out) {
     const detail = surface.locator(".desk-record:not([hidden])");
     assert.ok((await detail.innerText()).trim().length > 5);
     const search = surface.locator(".desk-search");
+    const searchable = screen === "people" ? ".person-select" : ".desk-row";
+    const searchableCount = await surface.locator(searchable).count();
     await search.fill("unmatched-qa-zzzz");
-    assert.equal(await surface.locator(".desk-row:not([hidden])").count(), 0);
+    assert.equal(await surface.locator(`${searchable}:not([hidden])`).count(), 0);
     assert.equal(await surface.locator(".desk-empty").isVisible(), true);
     await search.fill("");
-    assert.equal(await surface.locator(".desk-row:not([hidden])").count(), count);
+    assert.equal(await surface.locator(`${searchable}:not([hidden])`).count(), searchableCount);
     await rows.first().click();
     await surface.evaluate(() => { document.scrollingElement.scrollTop = 0; });
     await page.screenshot({ path: `${out}/desk-${id}-${screen}-${lang}.png`, fullPage: false });
