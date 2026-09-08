@@ -34,6 +34,25 @@ const labels = {
   "Hayat merkezi": "Life desk", "Bu hafta": "This week", "Haftanın öncelikleri": "Weekly priorities",
   "Hayat kayıtları": "Life records", "Tamamlanan yıllar": "Completed years", "Yıl özetleri": "Annual summaries",
   "İlk yıl tamamlandığında burada bir dosya oluşacak.": "A file will appear here when the first year ends.",
+  "Mali durum ve net servet": "Finances and net worth", "Bakiye": "Balance", "Net servet": "Net worth",
+  "Aylık gelir": "Monthly income", "Aylık gider": "Monthly expenses", "Ay sonu tahmini": "Month-end projection",
+  "Yaşam standardı": "Living standard", "Gündelik düzen": "Daily routine", "Tüketim": "Consumption",
+  "Daha yüksek standart yalnız daha fazla seçenek ve düzenli gider sağlar; mutluluk satın alınmaz.": "A higher standard provides more options and recurring expenses; it cannot buy happiness.",
+  "Günlük harcama, gece hayatı, hediye ve riskli alışveriş MARKET ekranında.": "Daily spending, nightlife, gifts and risky purchases are on the MARKET screen.",
+  "Market'e geç": "Open Market", "ayrı ekran": "separate screen", "Abonelikler": "Subscriptions",
+  "Düzenli hizmetler": "Recurring services", "Yatırımlar": "Investments", "Sahip oldukların": "Owned assets",
+  "Borçlar": "Debts", "Alacaklar": "Receivables", "İşlemler": "Transactions", "Son işlemler": "Recent transactions",
+  "Eğitim ve yeterlilik": "Education and qualifications", "Eğitim seviyesi": "Education level", "Alanlar": "Fields",
+  "Henüz alan yok": "No field yet", "Aktif program": "Active program", "Bu ay eğitim gideri": "This month's tuition",
+  "Şu an bir programa kayıtlı değilsin.": "You are not currently enrolled in a program.",
+  "Ay sonunda tahsil edilir.": "Charged at the end of the month.", "Eğitim yolları": "Education pathways",
+  "Mesleki Eğitim Kursu": "Vocational training course", "Üniversite": "University", "Lise mezunu": "High-school graduate",
+  "Haftalık yük": "Weekly workload", "Kazandırır": "Grants", "Tam zamanlı başla": "Start full-time", "Yarı zamanlı başla": "Start part-time",
+  "Karakter": "Character", "Yaşam dönemi": "Life stage", "Yaşam yeri": "Residence", "İş": "Job",
+  "Enerji": "Energy", "Stres": "Stress", "Sosyal": "Social", "Sevgili yok": "No partner",
+  "Gündem": "Agenda", "Gelen kutusu": "Inbox", "Hayat kaydı": "Life record", "Önceliklerin": "Your priorities",
+  "Enerji ve stres; haftalık kararlar, iş yükü ve ulaşım tarafından etkilenir.": "Energy and stress are affected by weekly decisions, workload and commuting.",
+  "Temel kararlar her hafta açık. Diğer seçenekler hayat durumuna göre değişir.": "Basic decisions are available every week. Other options depend on your life situation.",
 };
 const english = new Map(Object.entries(labels).map(([tr, en]) => [tr.toLocaleLowerCase("tr"), en]));
 export function deskEnglish(value) {
@@ -46,6 +65,15 @@ export function deskEnglish(value) {
     .replace(/Son anlamlı temas (\d+) hafta önce/g, "Last meaningful contact $1 weeks ago")
     .replace(/(\d+) hafta · Düzenli vardiya/g, "$1 weeks · Regular shifts")
     .replace(/Aile Yanında ulaşımı/g, "Commute from family home")
+    .replace(/Bu düzende yaşıyorsun\./g, "This is your current lifestyle.")
+    .replace(/Tam (\d+) hafta · Yarı (\d+) hafta/g, "Full-time $1 weeks · Part-time $2 weeks")
+    .replace(/Tam: enerji/g, "Full-time: energy").replace(/Yarı: enerji/g, "Part-time: energy")
+    .replace(/Teknik alanı/g, "Technical field").replace(/(\d+) hak kaldı/g, "$1 decisions left")
+    .replace(/(\d+) açık sosyal mesele/g, "$1 open social issues")
+    .replace(/Ay sonu tahmini:/g, "Month-end projection:")
+    .replace(/\bAylık /g, "Monthly ").replace(/\bNakit /g, "Cash ").replace(/\bYatırım /g, "Investments ")
+    .replace(/Gayrimenkul /g, "Property ").replace(/Araç\/eşya /g, "Vehicle/durables ").replace(/Borç /g, "Debt ")
+    .replace(/Maaş /g, "Salary ").replace(/Konut /g, "Housing ").replace(/Yaşam\/varlık /g, "Lifestyle/assets ").replace(/Diğer /g, "Other ")
     .replace(/\bEnerji /g, "Energy ").replace(/\bStres /g, "Stress ")
     .replace(/yakınlık ([+−\-]?\d+)/g, "closeness $1").replace(/güven ([+−\-]?\d+)/g, "trust $1");
 }
@@ -72,13 +100,18 @@ export function arrangeLifeDesk(view, text) {
     finance: ".wealth-grid > *, .open-case",
     people: ".person-detail",
     relationships: ".panel",
-    dashboard: ".overview-grid > .panel, .agenda-panel, .people-panel, .cases-panel",
+    dashboard: ".overview-grid > article, .agenda-panel, .people-panel, .cases-panel",
     body: ".panel",
     calendar: ".panel",
     character: ".panel",
     history: ".memory",
     yearbook: ".open-case",
   };
+  if (view === "dashboard") {
+    const priorities = workspace.querySelector(".week-panel");
+    const overview = workspace.querySelector(".overview-grid");
+    if (priorities && overview) overview.before(priorities);
+  }
   const history = [...workspace.querySelectorAll(".history-panel, .career-history")];
   if (view === "finance") {
     const panels = [...workspace.querySelectorAll(".panel")];

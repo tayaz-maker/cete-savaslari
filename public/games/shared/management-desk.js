@@ -82,7 +82,8 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
     }
   });
   const rows = items.map((node, index) => {
-    const title = node.querySelector("h3, h2, strong, b")?.textContent?.trim() || node.textContent.trim().split("\n")[0].slice(0, 90);
+    const titleNodeSource = node.querySelector("h3, h2") || node.querySelector(".panel-kicker, :scope > p") || node.querySelector("strong, b");
+    const title = titleNodeSource?.textContent?.trim() || node.textContent.trim().split("\n")[0].slice(0, 90);
     const full = (node.innerText || node.textContent).trim().replace(/\s*\n+\s*/g, " · ").replace(/[ \t]+/g, " ");
     const row = make("button", "desk-row");
     row.type = "button";
