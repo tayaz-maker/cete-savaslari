@@ -118,6 +118,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #090f12ee;
+  padding-bottom: max(11px, env(safe-area-inset-bottom));
 }
 .month-bar button {
   background: #49583c;
@@ -175,10 +176,16 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-@media (max-width: 680px) {
+@media (max-width: 820px) {
   .state-head {
     grid-template-columns: 1fr;
+    padding: 10px 0;
+    gap: 8px;
   }
+  .state-head h1 { font-size: 1.75rem; line-height: 1.15; }
+  .report-card { min-height: 0; padding: 9px; }
+  .report-card strong { font-size: 1.25rem; }
+  .decision { min-height: 96px; gap: 6px; }
   .state-metrics {
     justify-content: flex-start;
   }
@@ -213,4 +220,7 @@ body {
   .year-row {
     grid-template-columns: 1fr 1fr;
   }
+}
+@media (max-height: 500px) {
+  .month-bar { position: static; }
 }

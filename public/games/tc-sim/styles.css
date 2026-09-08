@@ -101,6 +101,7 @@ select:focus-visible {
 
 .game-frame {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -1152,7 +1153,12 @@ select {
   .workspace-head {
     align-items: flex-start;
     flex-direction: column;
+    gap: 8px;
   }
+  .workspace-head h1 { font-size: 1.5rem; line-height: 1.2; margin-bottom: 4px; }
+  .option-card, .person-select { padding: 10px; }
+  .person-list { gap: 6px; }
+  .option-card h3 { margin-bottom: 6px; }
   .week-control {
     width: 100%;
     justify-content: space-between;

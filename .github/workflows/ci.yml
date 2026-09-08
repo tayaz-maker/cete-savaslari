@@ -19,3 +19,13 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - name: Install Chromium for responsive regression
+        run: npx playwright install --with-deps chromium --only-shell
+      - name: Responsive and interaction regression (TR/EN, 14 live routes)
+        run: node scripts/sitewide-responsive.mjs
+      - name: Upload responsive evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitewide-responsive
+          path: ${{ runner.temp }}/screenshots/tariklab-ux

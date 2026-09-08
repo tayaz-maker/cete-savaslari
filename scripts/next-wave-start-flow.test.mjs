@@ -197,9 +197,12 @@ test("DEVLET setup is conditional, real and cannot reset the run from gameplay",
   assert.doesNotMatch(app, /session\.act\(`era:/);
 });
 
-test("embedded mode hides duplicate global chrome while standalone fallback remains", () => {
+test("embedded mode hides duplicate portal chrome but preserves the game's save tools", () => {
   const runtime = read("public/games/next-wave/shared/runtime.js");
   const css = read("public/games/next-wave/shared/base.css");
   assert.match(runtime, /window\.self !== window\.top/);
-  assert.match(css, /\.embedded \.global-chrome/);
+  assert.match(css, /\.embedded \.topbar > a/);
+  assert.match(css, /\.embedded \.topbar__title/);
+  assert.doesNotMatch(css, /\.embedded\s+\.(?:global-chrome|topbar)\s*\{[^}]*display:\s*none/);
+  assert.match(runtime, /class="save-menu"/);
 });

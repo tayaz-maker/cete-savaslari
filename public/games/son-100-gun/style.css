@@ -141,7 +141,14 @@ body {
   .count-head {
     grid-template-columns: auto 1fr;
     gap: 12px;
+    padding: 12px 0;
   }
+  .count-number { font-size: 3.5rem; line-height: 1; letter-spacing: -0.06em; }
+  .count-head h1 { font-size: 1.5rem; line-height: 1.15; }
+  .action-counter { font-size: 0.875rem; }
+  .action-card { min-height: 88px; gap: 6px; }
+  .scenario { min-height: 0; padding: 12px; }
+  .scenario-grid { max-height: none; overflow: visible; }
   .action-counter {
     grid-column: 1/-1;
     text-align: left;

@@ -1,4 +1,5 @@
 import { applyAction, create, normalize } from "../../next-wave.js";
+import { compactNavigation } from "../../shared/compact-navigation.js";
 
 const NS = "tariklab.nextwave.";
 
@@ -126,7 +127,15 @@ export function bindSavePanel(root, session) {
     button.addEventListener("click", () => session.load(Number(button.dataset.loadSlot)));
   });
   root.querySelectorAll("[data-save-slot]").forEach((button) => {
-    button.addEventListener("click", () => session.save(Number(button.dataset.saveSlot)));
+    button.addEventListener("click", () => {
+      const slot = Number(button.dataset.saveSlot);
+      const occupied = session.slotSummaries().find((entry) => entry.number === slot)?.filled;
+      if (slot !== session.active && occupied && !window.confirm(text(
+        `Slot ${slot} dolu. Üzerine yazılsın mı?`,
+        `Slot ${slot} is occupied. Overwrite it?`,
+      ))) return;
+      session.save(slot);
+    });
   });
   root.querySelectorAll("[data-delete-slot]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -156,6 +165,7 @@ export function bootGame(id, draw) {
 
   const render = () => {
     draw(api);
+    compactNavigation(document.querySelector(".life-nav, .state-nav"), text("Diğer bölümler", "More sections"));
     const host = document.querySelector("[data-lang-host]");
     if (host && window.tlabI18n) window.tlabI18n.mountLangToggle(host);
     if (window.tlabI18n?.getLang?.() === "en") {

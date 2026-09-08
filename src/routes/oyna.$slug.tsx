@@ -28,16 +28,17 @@ function Html5Play() {
   const title = lang === "en" && g && CATALOG_EN[g.slug] ? CATALOG_EN[g.slug].title : (g?.title ?? "Oyun");
   return (
     <div className="flex h-dvh min-h-0 flex-col bg-bg">
-      <div className="relative flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border px-3 sm:h-11 sm:px-4">
-        <Link to="/" className="relative z-10 inline-flex h-9 items-center text-sm text-muted hover:text-fg sm:h-11">
+      <div className="relative flex min-h-11 shrink-0 items-center justify-between gap-2 border-b border-border px-3 sm:px-4">
+        <Link to="/" className="relative z-10 inline-flex min-h-11 items-center text-sm text-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-danger">
           {t("portal.back", "← Oyunlar")}
         </Link>
-        <p className="pointer-events-none absolute inset-0 hidden items-center justify-center font-display text-sm text-fg sm:flex">
+        <p className="pointer-events-none absolute inset-0 hidden items-center justify-center px-36 text-center font-display text-sm text-fg sm:flex">
           {title}
         </p>
         <LanguageToggle />
       </div>
       <iframe
+        key={slug}
         title={title}
         src={`/games/${slug}/index.html`}
         className="block min-h-0 w-full flex-1 border-0 bg-bg"
