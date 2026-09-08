@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
+import { correctionFlows } from "./playability-browser.mjs";
 
 const origin = "http://127.0.0.1:8081";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/tariklab-ux`;
@@ -79,6 +80,7 @@ try {
           if (route.id === "hayat") await surface.locator("#player-name").fill("Uzun İsimli Deneme Karakteri QA");
           if (route.id === "son-100-gun") await surface.locator("[data-scenario]").first().click();
           await surface.locator("#confirm-start").click();
+          if (route.id === "tc-sim-devlet") assert.equal(await surface.evaluate(() => document.scrollingElement.scrollTop), 0, "New state opens at its overview");
           await measure("game");
           await page.setViewportSize({ width: 390, height: 844 });
           const save = surface.locator(".save-menu > summary");
@@ -113,6 +115,7 @@ try {
             await measure(destination, [[320,568],[360,800],[390,844],[430,932],[640,360],[768,1024],[1440,900]]);
           }
         }
+        await correctionFlows(page, surface, route.id, lang, out);
         if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });
           await page.setViewportSize({ width: 390, height: 844 });

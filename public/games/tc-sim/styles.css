@@ -22,6 +22,7 @@
     "Segoe UI",
     sans-serif;
 }
+.embedded .tlab-lang { display: none; }
 
 * {
   box-sizing: border-box;
@@ -1248,6 +1249,11 @@ select {
 }
 .wealth-action small {
   white-space: normal;
+}
+.wealth-action:disabled {
+  opacity: 1;
+  color: var(--muted);
+  border-style: dashed;
 }
 @media (max-width: 1060px) {
   .wealth-grid {

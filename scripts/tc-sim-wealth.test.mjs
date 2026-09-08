@@ -76,14 +76,14 @@ test("subscriptions bill once per month and cancellation stops the next charge",
   assert.equal(s.finances.balance, before);
 });
 
-test("durable replacement credits bounded resale once and keeps one item per category", () => {
+test("owned durable cannot be repurchased and keeps one item per category", () => {
   const s = game();
   assert.equal(buyDurable(s, "phone").ok, true);
   const afterFirst = s.finances.balance;
   nextWeek(s);
-  assert.equal(buyDurable(s, "phone").ok, true);
+  assert.equal(buyDurable(s, "phone").ok, false);
   assert.equal(s.wealth.durables.filter((x) => x.id === "phone").length, 1);
-  assert.equal(s.finances.balance, afterFirst - 9000 + 3780);
+  assert.equal(s.finances.balance, afterFirst);
   assert.ok(s.wealth.durables.length <= WEALTH_LIMITS.durables);
 });
 
