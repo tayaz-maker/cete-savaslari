@@ -22,6 +22,7 @@
     "Segoe UI",
     sans-serif;
 }
+.embedded .tlab-lang { display: none; }
 
 * {
   box-sizing: border-box;

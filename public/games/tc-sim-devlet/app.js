@@ -199,9 +199,10 @@ function draw(session) {
     );
   root.querySelector("[data-open-policy]")?.addEventListener("click", () => session.setUI("screen", "policy"));
   root.querySelector("#advance").addEventListener("click", () => {
+    const previous = feedback;
     const before = visibleSnapshot(state);
     feedback = { kind: "month", before };
-    session.act("advance");
+    if (!session.act("advance")) { feedback = previous; session.render(); }
   });
   bindSavePanel(root, session);
 }

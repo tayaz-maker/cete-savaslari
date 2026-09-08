@@ -78,6 +78,10 @@ export async function correctionFlows(page,surface,id,lang,out) {
     if(await frame.locator('.event-choice:enabled').count())await frame.locator('.event-choice:enabled').first().click();
     await frame.locator('[data-wealth-action="invest-sell"][data-wealth-value="gold"]').click();
     state=await saved(page);assert.ok(state.finances.ledger.some(r=>/Gerçekleşmiş|Realized/.test(r.reason)));
+    await frame.locator("#advance-week").click();
+    if(await frame.locator('.event-choice:enabled').count())await frame.locator('.event-choice:enabled').first().click();
+    await frame.locator('[data-wealth-action="invest-sell-all"][data-wealth-value="gold"]').click();
+    assert.equal((await saved(page)).wealth.investments.length,0);
     await page.screenshot({path:`${out}/finance-${lang}-pl.png`,fullPage:false});
     return;
   }

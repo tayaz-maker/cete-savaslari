@@ -564,6 +564,17 @@ export function tradeInvestment(state, id, amount) {
   state.wealth.cooldowns[key] = 1;
   return { ok: true, message: `${x.label} işlemi tamamlandı.` };
 }
+export function sellDurable(state, id) {
+  normalizeWealth(state);
+  const owned=state.wealth.durables.find(d=>d.id===id), action=`wealth-durable:${id}`;
+  const blocked=weekly(state,action);
+  if(blocked)return {ok:false,reason:blocked};
+  if(!owned)return {ok:false,reason:tr("Satılacak eşya yok.","No owned item to sell.")};
+  const proceeds=Math.round(owned.price*DURABLES[id].resale);
+  ledger(state,proceeds,`${DURABLES[id].label} · ${tr("ikinci el satışı", "resale")}`,"asset");
+  state.wealth.durables=state.wealth.durables.filter(d=>d.id!==id);mark(state,action);
+  return {ok:true,message:`${tr("Net satış", "Net proceeds")}: ${tl(proceeds)} · ${tr("Kalıcı fayda sona erdi.", "Ownership benefit ended.")}`};
+}
 export function buyVehicle(state, tier, financed = false) {
   normalizeWealth(state);
   const x = VEHICLES[tier],
@@ -723,7 +734,7 @@ export function processWealthMonthEnd(state) {
     [s.lifestyle, "Yaşam standardı"],
     [subscriptionDue, "Abonelikler"],
     [s.vehicle, "Araç giderleri"],
-    [s.maintenance, "Mülk bakımı"],
+    [s.maintenance, tr("Varlık bakımı", "Asset upkeep")],
   ])
     if (amount) ledger(state, -amount, label, "lifestyle");
   for (const item of w.subscriptions) item.lastBilledMonth = month;
@@ -803,13 +814,16 @@ export function getWealthActionAvailability(state, action, value) {
   if (action === "durable") {
     const item = DURABLES[value]; if (!item) return { ok: false, reason: "Ürün geçersiz." };
     if (w.durables.some(d => d.id === value)) return { ok: false, reason: tr("Bu eşya zaten sende.", "You already own this item.") };
+    if(w.durables.length>=WEALTH_LIMITS.durables)return {ok:false,reason:tr("Eşya sınırına ulaştın.","Owned item limit reached.")};
     const blocked = weekBlocked(`wealth-durable:${value}`); if (blocked) return { ok: false, reason: blocked };
     return state.finances.balance < item.price ? { ok: false, reason: `Bu ürün için ₺${item.price.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
   }
-  if (action === "invest-buy" || action === "invest-sell") {
+  if (action === "sell-durable") return w.durables.some(d=>d.id===value) ? (weekBlocked(`wealth-durable:${value}`) ? {ok:false,reason:weekBlocked(`wealth-durable:${value}`)} : {ok:true}) : {ok:false,reason:tr("Satılacak eşya yok.","No owned item to sell.")};
+  if (action === "invest-buy" || action === "invest-sell" || action === "invest-sell-all") {
     const position = w.investments.find(item => item.id === value); if (!INVESTMENTS[value]) return { ok: false, reason: "Yatırım sınıfı geçersiz." };
     if (w.cooldowns[`investment:${state.time.absoluteWeek}:${value}`]) return { ok: false, reason: "Aynı yatırım sınıfında haftada bir işlem yapabilirsin." };
     if (action === "invest-buy") return state.finances.balance < 5050 ? { ok: false, reason: "Alım ve işlem farkı için ₺5.050 gerekiyor." } : { ok: true };
+    if(action==="invest-sell-all")return (position?.value||0)>0 ? {ok:true} : {ok:false,reason:tr("Satılacak yatırım yok.","No investment to sell.")};
     return (position?.value || 0) < 5000 ? { ok: false, reason: "Satılabilir değer ₺5.000 altında." } : { ok: true };
   }
   if (action.startsWith("vehicle-")) {
@@ -844,6 +858,8 @@ export function applyWealthAction(state, action, value) {
   const availability = getWealthActionAvailability(state, action, value);
   if (!availability.ok) return availability;
   const operations = {
+    "sell-durable":()=>sellDurable(state,value),
+    "invest-sell-all":()=>tradeInvestment(state,value,-(state.wealth.investments.find(p=>p.id===value)?.value||0)),
     lifestyle: () => setLifestyle(state, value), spend: () => spendLifestyle(state, value), subscription: () => toggleSubscription(state, value), durable: () => buyDurable(state, value),
     "invest-buy": () => tradeInvestment(state, value, 5000), "invest-sell": () => tradeInvestment(state, value, -5000), "vehicle-cash": () => buyVehicle(state, value, false), "vehicle-finance": () => buyVehicle(state, value, true),
     "vehicle-sell": () => sellVehicle(state), "property-owner": () => buyProperty(state, "owner", value === "mortgage"), "property-rental": () => buyProperty(state, "rental", value === "mortgage"),

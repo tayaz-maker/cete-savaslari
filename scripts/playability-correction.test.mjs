@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createNewGame, validateState } from "../public/games/tc-sim/js/state.js";
 import { deserializeState } from "../public/games/tc-sim/js/save.js";
-import { MARKET, MARKET_OWNERSHIP, spendLifestyle, buyDurable, processOwnedBenefits, processWealthMonthEnd, tradeInvestment, investmentPL, marketPreview, netWorth } from "../public/games/tc-sim/js/wealth.js";
+import { MARKET, MARKET_OWNERSHIP, spendLifestyle, buyDurable, sellDurable, applyWealthAction, processOwnedBenefits, processWealthMonthEnd, tradeInvestment, investmentPL, marketPreview, netWorth } from "../public/games/tc-sim/js/wealth.js";
 import { hydrateDevlet, applyPolicy, tickDevlet, finiteState } from "../public/games/next-wave/devlet-sim.js";
 import { POLICIES, EVENTS, PERIODS, COHORTS, REGIONS, FOREIGN_AXES } from "../public/games/next-wave/devlet-data.js";
 import { screenHtml, visibleSnapshot, feedbackHtml, helpHtml } from "../public/games/tc-sim-devlet/presentation.js";
@@ -76,6 +76,16 @@ test("investment gains/losses are non-cash, monthly idempotent and finite over a
     assert.equal(processWealthMonthEnd(s),false);assert.ok(Number.isFinite(after));
   }
   assert.ok(up&&down);assert.ok(s.finances.ledger.some(row=>row.category==="valuation"&&row.amount===0));
+});
+test("durable resale removes the benefit without creating money; small investment remainders can be sold",()=>{
+  const s=game();spendLifestyle(s,"bike");week(s);const before=s.finances.balance;
+  assert.equal(sellDurable(s,"bike").ok,true);assert.equal(s.wealth.durables.length,0);
+  assert.equal(s.finances.balance,before+2600);assert.ok(s.finances.balance<1000000);
+  assert.equal(sellDurable(s,"bike").ok,false);
+  s.health.health=50;week(s);processOwnedBenefits(s);assert.equal(s.health.health,50);
+  tradeInvestment(s,"gold",1000);week(s);
+  assert.equal(applyWealthAction(s,"invest-sell-all","gold").ok,true);assert.equal(s.wealth.investments.length,0);
+  assert.equal(applyWealthAction(s,"invest-sell-all","gold").ok,false);
 });
 test("DEVLET views, details, report and sorting are immutable and cannot read actual or actual-backed year inflation",()=>{
   const s=hydrateDevlet("2002");s.ui.screen="home";s.yearDigest=[{year:2002,inflation:987654,heat:40,entropy:45,form:s.form}];
