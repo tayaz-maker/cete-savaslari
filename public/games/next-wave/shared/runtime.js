@@ -36,13 +36,16 @@ export function createActionGate(windowMs = 140, clock = () => performance.now()
   };
 }
 
-function readSlot(id, slot) {
-  try {
-    const raw = localStorage.getItem(`${NS}${id}.slot${slot}`);
-    return raw === null ? null : normalize(id, JSON.parse(raw));
-  } catch {
-    return null;
+function readSlot(id, slot, normalizer = normalize, backup = false) {
+  for (const suffix of backup ? ["", ".backup"] : [""]) {
+    try {
+      const raw = localStorage.getItem(`${NS}${id}.slot${slot}${suffix}`);
+      const parsed = raw === null ? null : JSON.parse(raw);
+      const state = parsed ? normalizer(id, parsed) : null;
+      if (state) return state;
+    } catch { /* Try only this slot's backup. */ }
   }
+  return null;
 }
 
 export function savePanel(session) {
@@ -146,9 +149,12 @@ export function bindSavePanel(root, session) {
   });
 }
 
-export function bootGame(id, draw) {
-  let active = Math.min(3, Math.max(1, Number(localStorage.getItem(`${NS}${id}.active`)) || 1));
-  let slots = [1, 2, 3].map((slot) => readSlot(id, slot));
+export function bootGame(id, draw, engine = {}) {
+  const make = engine.create || create, loadState = engine.normalize || normalize, actState = engine.applyAction || applyAction;
+  const safe = engine.safe || id === "hayat";
+  let active = 1;
+  try { active = Math.min(3, Math.max(1, Number(localStorage.getItem(`${NS}${id}.active`)) || 1)); } catch { /* Allow an in-memory game. */ }
+  let slots = [1, 2, 3].map((slot) => readSlot(id, slot, loadState, safe));
   let state = null;
   let newGameAuthorized = false;
   const enterAction = createActionGate();
@@ -157,11 +163,24 @@ export function bootGame(id, draw) {
 
   const persist = (slot = active) => {
     if (!state) return false;
-    localStorage.setItem(`${NS}${id}.slot${slot}`, JSON.stringify(state));
-    slots[slot - 1] = JSON.parse(JSON.stringify(state));
-    notice = text(`Slot ${slot} kaydedildi.`, `Saved to slot ${slot}.`);
-    return true;
+    try {
+      const data = JSON.stringify(state), key = `${NS}${id}.slot${slot}`;
+      if (safe) {
+        const old = localStorage.getItem(key);
+        let validOld = false;
+        try { validOld = old && !!loadState(id, JSON.parse(old)); } catch { /* Never back up corrupt data. */ }
+        if (validOld) localStorage.setItem(`${key}.backup`, old);
+      }
+      localStorage.setItem(key, data);
+      slots[slot - 1] = JSON.parse(data);
+      notice = text(`Slot ${slot} kaydedildi.`, `Saved to slot ${slot}.`);
+      return true;
+    } catch {
+      notice = text("Kayıt yazılamadı. Oyun bellekte devam ediyor; sayfayı kapatmadan tekrar kaydet.", "Save failed. Play continues in memory; save again before closing this page.");
+      return false;
+    }
   };
+  const rememberActive = () => { try { localStorage.setItem(`${NS}${id}.active`, String(active)); } catch { /* Main save reports failures. */ } };
 
   const render = () => {
     draw(api);
@@ -232,7 +251,7 @@ export function bootGame(id, draw) {
     },
     commitNew(options = {}) {
       if (!newGameAuthorized || state) return false;
-      state = options.factory ? options.factory() : create(id);
+      state = options.factory ? options.factory() : make(id);
       if (!state?.meta || state.meta.id !== id) {
         state = null;
         newGameAuthorized = false;
@@ -241,10 +260,10 @@ export function bootGame(id, draw) {
         return false;
       }
       state.meta.seed ??= 12345;
-      if (options.action) applyAction(id, state, options.action);
+      if (options.action) actState(id, state, options.action);
       options.configure?.(state);
       slots[active - 1] = state;
-      localStorage.setItem(`${NS}${id}.active`, String(active));
+      rememberActive();
       persist();
       newGameAuthorized = false;
       render();
@@ -268,7 +287,7 @@ export function bootGame(id, draw) {
         return false;
       }
       return guarded(() => {
-        applyAction(id, state, action);
+        actState(id, state, action);
         persist();
         render();
       });
@@ -282,17 +301,23 @@ export function bootGame(id, draw) {
       return true;
     },
     save(slot = active) {
-      if (!state) return false;
+      if (!state || ![1,2,3].includes(slot)) return false;
       active = slot;
-      localStorage.setItem(`${NS}${id}.active`, String(active));
-      persist(slot);
+      rememberActive();
+      const saved = persist(slot);
       render();
-      return true;
+      return saved;
     },
     load(slot) {
+      if (![1,2,3].includes(slot)) return false;
+      const loaded = readSlot(id, slot, loadState, safe);
+      if (!loaded) {
+        notice = text("Kayıt boş veya bozuk; açık oyun korunuyor.", "Save empty or corrupt; current game preserved.");
+        render(); return false;
+      }
       active = slot;
-      localStorage.setItem(`${NS}${id}.active`, String(active));
-      state = readSlot(id, slot);
+      rememberActive();
+      state = loaded;
       slots[slot - 1] = state;
       notice = state
         ? text(`Slot ${slot} yüklendi.`, `Loaded slot ${slot}.`)
@@ -300,7 +325,11 @@ export function bootGame(id, draw) {
       render();
     },
     remove(slot) {
-      localStorage.removeItem(`${NS}${id}.slot${slot}`);
+      if (![1,2,3].includes(slot)) return false;
+      try {
+        localStorage.removeItem(`${NS}${id}.slot${slot}.backup`);
+        localStorage.removeItem(`${NS}${id}.slot${slot}`);
+      } catch { notice = text("Kayıt silinemedi.", "Could not delete save."); render(); return false; }
       slots[slot - 1] = null;
       if (slot === active) state = null;
       notice = text(`Slot ${slot} silindi.`, `Deleted slot ${slot}.`);

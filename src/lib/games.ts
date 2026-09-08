@@ -20,6 +20,7 @@ export const HTML5_SLUGS = [
   "hayat",
   "kayip-telefon",
   "tc-sim-devlet",
+  "son-kasaba",
 ] as const;
 
 export type Html5Slug = (typeof HTML5_SLUGS)[number];
@@ -140,6 +141,14 @@ export const GAMES: CatalogGame[] = [
     status: "live",
     href: "/oyna/tc-sim-devlet",
     icon: "devlet",
+  },
+  {
+    slug: "son-kasaba",
+    title: "Son Kasaba",
+    subtitle: "Herkes gidiyor. Sen kalıp kasabayı yaşatmaya çalışıyorsun.",
+    status: "live",
+    href: "/oyna/son-kasaba",
+    icon: "son-kasaba",
   },
   {
     slug: "ihtilal",
