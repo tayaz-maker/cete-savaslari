@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,8 +21,10 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - name: Install Chromium for responsive regression
+        timeout-minutes: 5
         run: npx playwright install --with-deps chromium --only-shell
       - name: Responsive and interaction regression (TR/EN, 14 live routes)
+        timeout-minutes: 10
         run: node scripts/sitewide-responsive.mjs
       - name: Upload responsive evidence
         if: always()

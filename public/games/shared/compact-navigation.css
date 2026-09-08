@@ -1,4 +1,11 @@
-.compact-nav .nav-more { display: none; }
+.compact-nav .nav-more {
+  display: none;
+  background: inherit;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.compact-nav .nav-more.is-active { border-color: var(--accent); }
 .compact-nav .nav-secondary { display: contents; }
 @media (max-width: 820px) {
   .compact-nav {

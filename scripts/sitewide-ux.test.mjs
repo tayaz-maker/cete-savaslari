@@ -6,10 +6,17 @@ import vm from "node:vm";
 import { transform } from "lightningcss";
 import { compactNavigation } from "../public/games/shared/compact-navigation.js";
 import { bindSavePanel } from "../public/games/next-wave/shared/runtime.js";
+import { create } from "../public/games/next-wave.js";
 
 const root = new URL("../", import.meta.url).pathname;
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 const games = ["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon"];
+
+test("Hayat setup promises the actual initial energy and health", () => {
+  const { energy, health } = create("hayat").resources;
+  const app = read("public/games/hayat/app.js");
+  assert.ok(app.includes(`<b>${energy} / ${health}</b>`));
+});
 
 // Unit doubles for DOM ownership and event wiring, NOT a layout/browser simulator.
 function navFixture(count, active) {
