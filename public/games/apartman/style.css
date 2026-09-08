@@ -94,6 +94,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #0b0e0df0;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 .apt-footer-actions .primary {
   margin-left: auto;
@@ -146,7 +147,11 @@ body {
 @media (max-width: 620px) {
   .apt-head {
     grid-template-columns: 1fr;
+    padding: 10px 0;
+    gap: 8px;
   }
+  .apt-head h1 { font-size: 1.75rem; line-height: 1.15; }
+  .meeting-paper { padding: 14px; max-height: calc(100dvh - 32px); overscroll-behavior: contain; }
   .apt-metrics {
     justify-content: flex-start;
   }
@@ -165,4 +170,7 @@ body {
     margin-left: 0;
     width: 100%;
   }
+}
+@media (max-height: 500px) {
+  .apt-footer-actions { position: static; }
 }

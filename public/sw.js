@@ -54,6 +54,12 @@ const MODULE_GAME_PATHS = [
   "/games/amiral-batti/",
   "/games/next-wave.js",
   "/games/next-wave/",
+  "/games/shared/",
+  "/games/apartman/",
+  "/games/son-100-gun/",
+  "/games/hayat/",
+  "/games/kayip-telefon/",
+  "/games/tc-sim-devlet/",
   "/i18n/",
 ];
 

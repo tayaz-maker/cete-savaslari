@@ -45,7 +45,7 @@ body {
 .phone-grid {
   min-height: 640px;
   display: grid;
-  grid-template-columns: 210px 1fr 270px;
+  grid-template-columns: 210px minmax(0, 1fr) 270px;
 }
 .app-dock {
   padding: 14px;
@@ -207,13 +207,25 @@ body {
     min-height: 0;
   }
   .app-dock {
-    order: 2;
+    order: -1;
     grid-template-columns: repeat(4, 1fr);
     border-right: 0;
     border-top: 1px solid var(--line);
+    gap: 4px;
+    padding: 8px;
   }
+  .app-button { padding: 6px 3px; gap: 4px; }
+  .app-button i { width: 24px; height: 24px; }
+  .phone-wrap { min-height: 0; }
+  .phone { box-shadow: none; }
+  .phone-status { height: auto; min-height: 40px; padding: 8px 12px; gap: 8px; }
+  .lockscreen { padding: 18px; }
+  .lock-time { font-size: 3rem; }
+  .ending { min-height: 0; padding: 18px; }
   .phone-screen {
-    min-height: 48dvh;
+    min-height: 32dvh;
+    padding: 12px;
+    overflow: visible;
   }
   .evidence {
     order: 3;
@@ -221,6 +233,8 @@ body {
   .return-bar {
     position: sticky;
     bottom: 0;
+    flex-wrap: wrap;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
   .phone-status {
     grid-template-columns: auto 1fr;

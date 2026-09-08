@@ -13,7 +13,7 @@ function GameCard({ game, featured = false }: { game: CatalogGame; featured?: bo
     <>
       <GameIcon name={game.icon} />
       <div className="min-w-0 flex-1">
-        <h3 className="text-lg font-semibold leading-snug">{title}</h3>
+        <h3 className="text-base font-semibold leading-snug sm:text-lg">{title}</h3>
         <p className="mt-1 text-sm text-muted">{subtitle}</p>
       </div>
       <span
@@ -24,7 +24,7 @@ function GameCard({ game, featured = false }: { game: CatalogGame; featured?: bo
       </span>
     </>
   );
-  const classes = `group flex h-full min-h-32 items-center gap-4 rounded-lg border border-border bg-surface/80 p-5 text-left transition-colors hover:border-danger/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger ${featured ? "border-danger/50 bg-elevated" : ""}`;
+  const classes = `group flex h-full min-h-28 items-center gap-3 rounded-lg border border-border bg-surface/80 p-4 text-left wrap-anywhere transition-colors hover:border-danger/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger sm:min-h-32 sm:gap-4 sm:p-5 ${featured ? "border-danger/50 bg-elevated" : ""}`;
   const label = t("portal.openGame", `${game.title} oyununu aç`, { title });
   if (!game.href)
     return (
@@ -71,8 +71,8 @@ export function PortalHome() {
   const active = GAMES.filter((g) => g.status === "live");
   const soon = GAMES.filter((g) => g.status !== "live");
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-      <header className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+    <main className="mx-auto min-h-dvh w-full max-w-6xl px-3 py-5 sm:px-8 sm:py-12">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-4 sm:mb-12 sm:pb-6">
         <div>
           <p className="text-3xl font-semibold tracking-tight sm:text-5xl">TARIKLAB</p>
           <p className="mt-2 text-[0.65rem] font-medium tracking-[0.35em] text-muted uppercase">
@@ -118,7 +118,7 @@ export function PortalHome() {
         <p>{t("footer.rights", "© 2026 TarikLab. Tüm hakları saklıdır.")}</p>
         <a
           href="/credits.html"
-          className="hover:text-fg focus-visible:outline-2 focus-visible:outline-danger"
+          className="inline-flex min-h-11 items-center hover:text-fg focus-visible:outline-2 focus-visible:outline-danger"
         >
           {t("portal.sources", "Kaynaklar")}
         </a>

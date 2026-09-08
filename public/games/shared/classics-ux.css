@@ -1,0 +1,35 @@
+/* Keep board geometry and each Classic's colours; only adapt its chrome. */
+body { overflow-wrap: anywhere; }
+.shell > *, .controls > *, .toolbar > *, .board-wrap { min-width: 0; }
+button, select { max-width: 100%; }
+button { white-space: normal; line-height: 1.3; }
+a:focus-visible, summary:focus-visible, button:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+details.help summary { min-height: 44px; display: flex; align-items: center; }
+dialog { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 620px) {
+  .shell { gap: 8px; padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)); }
+  .readout { margin: 0; }
+  .title { font-size: 1.5rem; letter-spacing: 0.02em; }
+  .field { max-width: 100%; flex-wrap: wrap; padding-block: 4px; }
+  .field label { white-space: normal; }
+  .controls { gap: 6px; }
+  .controls > button { flex: 1 1 120px; padding: 6px 10px; font-size: 0.875rem; }
+  .toolbar label { flex-wrap: wrap; }
+  select, input { font-size: 1rem; }
+  .board { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .board .cell { min-width: 0; min-height: 0; }
+  .board-wrap { padding: 6px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .shell { gap: 6px; }
+  .shell .plate { width: min(100%, calc(100dvh - 80px)); align-self: center; }
+  .shell .board-wrap { width: min(100%, calc(100dvh - 80px)); align-self: center; }
+  .masthead .title { font-size: 1.5rem; }
+  .result-body, .dialog-body { padding: 12px; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

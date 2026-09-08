@@ -1,3 +1,4 @@
+import { compactNavigation } from "../../shared/compact-navigation.js";
 import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, MARKET,
@@ -1117,6 +1118,7 @@ function render() {
       <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.</footer>
     </main>`;
   applyLangPhrases();
+  compactNavigation(document.querySelector(".side-nav"), confirmText("Diğer bölümler", "More sections"));
 
   document.querySelectorAll("[data-successor]").forEach(button => button.addEventListener("click", () => {
     if (!window.confirm(confirmText("Bu çocukla yeni kuşağa geçmek istiyor musun?", "Move on to this child's new generation?"))) return;
