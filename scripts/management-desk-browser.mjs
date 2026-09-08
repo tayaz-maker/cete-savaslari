@@ -1,5 +1,23 @@
 import assert from "node:assert/strict";
 
+export async function deskLanguageSwitch(page, surface, lang, setup = false) {
+  const snapshot = () => page.evaluate(() => JSON.stringify(Object.fromEntries(
+    Object.entries(localStorage).filter(([key]) => key !== "tariklab.language"))));
+  const before = await snapshot();
+  const fields = () => surface.locator("#new-game-form [name]").evaluateAll(nodes => nodes.map(node => [node.name, node.value]));
+  const draft = setup ? await fields() : null;
+  for (const next of [lang === "tr" ? "en" : "tr", lang]) {
+    await page.getByRole("button", { name: next.toUpperCase(), exact: true }).click();
+    if (setup) {
+      await surface.locator('#new-game-form button[type="submit"]').filter({ hasText: next === "en" ? "New life" : "Bu slota" }).waitFor();
+      assert.deepEqual(await fields(), draft, "Language switch erased setup draft");
+    } else {
+      await surface.locator(".desk-search-label").filter({ hasText: next === "en" ? "Search this section" : "Bu bölümde ara" }).waitFor();
+    }
+    assert.equal(await snapshot(), before, "Language switch mutated game storage");
+  }
+}
+
 export async function deskFlows(page, surface, id, lang, out) {
   if (!["tc-sim", "tc-sim-devlet"].includes(id)) return;
   const attr = id === "tc-sim" ? "data-view" : "data-screen";
@@ -66,4 +84,5 @@ export async function deskFlows(page, surface, id, lang, out) {
   }
   const after = await page.evaluate(() => JSON.stringify(Object.fromEntries(Object.entries(localStorage))));
   assert.equal(after, before, `${id}: selecting/filtering/navigating/resizing changed save data`);
+  await deskLanguageSwitch(page, surface, lang);
 }
