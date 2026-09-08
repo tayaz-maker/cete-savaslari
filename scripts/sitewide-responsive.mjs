@@ -7,6 +7,7 @@ import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { townBrowser } from "./son-kasaba-browser.mjs";
 import { correctionFlows } from "./playability-browser.mjs";
+import { deskFlows } from "./management-desk-browser.mjs";
 
 const origin = "http://127.0.0.1:8081";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/tariklab-ux`;
@@ -117,6 +118,9 @@ try {
           }
         }
         await correctionFlows(page, surface, route.id, lang, out);
+        // correctionFlows may reload fixtures; reacquire the current frame.
+        if (["tc-sim", "tc-sim-devlet"].includes(route.id)) surface = await (await page.locator("iframe").elementHandle()).contentFrame();
+        await deskFlows(page, surface, route.id, lang, out);
         await townBrowser(page, surface, route.id, lang, out);
         if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });
