@@ -38,6 +38,52 @@ test("credits.html güncel yaratıcı bilgisini ve gerekli grupları taşır", (
   assert.match(html, /Hanedan/);
 });
 
+test("resources catalog stays aligned with the canonical game catalog", () => {
+  const catalog = read("src/lib/games.ts");
+  const html = read("public/credits.html");
+  const en = read("public/i18n/tlab-i18n.js");
+  const games = [
+    ...catalog.matchAll(
+      /\{\s*slug: "([^"]+)",[\s\S]*?title: "([^"]+)",[\s\S]*?status: "(live|soon)",[\s\S]*?href: (?:"([^"]+)"|null),[\s\S]*?\}/g,
+    ),
+  ].map((m) => ({ slug: m[1], title: m[2], status: m[3], href: m[4] || null }));
+  assert.equal(games.length, 16);
+  assert.equal(games.filter((g) => g.status === "live").length, 15);
+  assert.deepEqual(
+    games.filter((g) => g.status === "soon").map((g) => g.slug),
+    ["ihtilal"],
+  );
+  assert.match(html, /data-live-count="15" data-soon-count="1"/);
+  for (const game of games) {
+    assert.match(html, new RegExp(`data-game="${game.slug}" data-status="${game.status}"`));
+    assert.ok(html.includes(`data-route="${game.href}"`), `${game.slug} route must match catalog`);
+    assert.ok(html.includes(`href="${game.href}"`), `${game.slug} needs a usable link`);
+    assert.ok(en.includes(game.title), `${game.title} needs English resources coverage`);
+    assert.ok(en.includes(`href="${game.href}"`), `${game.slug} needs an English route`);
+  }
+});
+
+test("resources describes current products and technical contract in both languages", () => {
+  const tr = read("public/credits.html");
+  const en = read("public/i18n/tlab-i18n.js");
+  for (const term of [
+    "Extreme Last 100 Days",
+    "Uzun Gölge",
+    "üç yerel slot",
+    "Türkçe ve İngilizce",
+    "telefon, tablet ve masaüstü",
+  ])
+    assert.match(tr, new RegExp(term));
+  for (const term of [
+    "Extreme Last 100 Days",
+    "Long Shadows",
+    "three local slots",
+    "Turkish and English",
+    "phone, tablet and desktop",
+  ])
+    assert.match(en, new RegExp(term));
+});
+
 test("credits linki portal ana sayfasında hâlâ çalışır durumda", () => {
   const html = read("src/components/portal/portal-home.tsx");
   assert.match(html, /href="\/credits\.html"/);
@@ -107,11 +153,17 @@ test("TLab Classics telif satırları hâlâ tutarlı ve tam isim kullanıyor", 
   }
 });
 
-
 test("credits distinguishes independent Classics from shipping application dependencies", () => {
   const html = read("public/credits.html");
   const dependencies = JSON.parse(read("package.json")).dependencies;
-  for (const [pkg, label] of [["react", "React"], ["zustand", "Zustand"], ["@tanstack/react-router", "TanStack Router"], ["@radix-ui/react-dialog", "Radix UI"], ["lucide-react", "Lucide"], ["zod", "Zod"]]) {
+  for (const [pkg, label] of [
+    ["react", "React"],
+    ["zustand", "Zustand"],
+    ["@tanstack/react-router", "TanStack Router"],
+    ["@radix-ui/react-dialog", "Radix UI"],
+    ["lucide-react", "Lucide"],
+    ["zod", "Zod"],
+  ]) {
     assert.ok(dependencies[pkg], `${pkg} is a shipped dependency`);
     assert.ok(html.includes(label), `${label} is credited`);
   }

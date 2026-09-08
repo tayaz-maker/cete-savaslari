@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
@@ -63,6 +63,28 @@
       li + li {
         margin-top: 0.3rem;
       }
+      .catalog {
+        list-style: none;
+        padding: 0;
+      }
+      .catalog li {
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .catalog a {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .status {
+        display: inline-block;
+        margin-left: 0.4rem;
+        color: var(--subtle);
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+      }
+      .catalog p {
+        margin: 0.2rem 0 0;
+      }
       .back {
         display: inline-block;
         margin-bottom: 1.5rem;
@@ -80,63 +102,167 @@
         font-size: 0.8rem;
         color: var(--subtle);
       }
+      @media (max-width: 360px) {
+        main {
+          padding: 1.5rem 1rem 3rem;
+        }
+        h1 {
+          font-size: 1.75rem;
+        }
+      }
     </style>
   </head>
   <body>
     <main>
       <a class="back" href="/">← Oyunlar</a>
       <h1>Kaynaklar</h1>
-      <p class="kicker">TarikLab · yaratıcı ve bileşenler</p>
+      <p class="kicker">TarikLab · oyunlar ve teknik yapı</p>
 
-      <h2>TarikLab</h2>
-      <ul>
-        <li>Oyun tasarımı, arayüz ve özgün içerik: Tarık Halil Ayaz.</li>
+      <h2>Katalog</h2>
+      <p>TarikLab'da 15 oyun oynanabilir. İhtilâl geliştirme aşamasındadır.</p>
+      <ul class="catalog" data-live-count="15" data-soon-count="1">
+        <li data-game="cete-savaslari" data-status="live" data-route="/cete-savaslari">
+          <a href="/cete-savaslari">Çete Savaşları</a><span class="status">LIVE</span>
+          <p>Ekip kur, görev yönet, mahalle tut; emniyet baskısı ve rakip tepkileriyle uğraş.</p>
+        </li>
+        <li data-game="hanedan" data-status="live" data-route="/oyna/hanedan">
+          <a href="/oyna/hanedan">Çete Savaşları: Hanedan</a><span class="status">LIVE</span>
+          <p>Kadro, baskın ve miras kararlarıyla nesiller süren bir hanedanı yönet.</p>
+        </li>
+        <li data-game="racon" data-status="live" data-route="/oyna/racon">
+          <a href="/oyna/racon">Racon Manager</a><span class="status">LIVE</span>
+          <p>
+            İlişkileri, kararları ve gecikmiş sonuçları yöneten anlatı tabanlı menajerlik oyunu.
+          </p>
+        </li>
+        <li data-game="tc-sim" data-status="live" data-route="/oyna/tc-sim">
+          <a href="/oyna/tc-sim">TC SIM</a><span class="status">LIVE</span>
+          <p>
+            İş, eğitim, aile, çevre, ilişki, konut, finans ve market sistemleriyle haftalık hayat
+            simülasyonu.
+          </p>
+        </li>
+        <li data-game="bukucu" data-status="live" data-route="/games/bukucu/index.html">
+          <a href="/games/bukucu/index.html">Son Mahalle Bükücü</a><span class="status">LIVE</span>
+          <p>Zar, tapu, açık artırma ve takas üzerinden mahalle hâkimiyeti kurulan masa oyunu.</p>
+        </li>
+        <li data-game="labirent" data-status="live" data-route="/oyna/labirent">
+          <a href="/oyna/labirent">Labirent</a><span class="status">LIVE</span>
+          <p>Her oyunda yenilenen labirentte çıkışı bul.</p>
+        </li>
+        <li data-game="peg-solitaire" data-status="live" data-route="/oyna/peg-solitaire">
+          <a href="/oyna/peg-solitaire">Tek Taş</a><span class="status">LIVE</span>
+          <p>Taşları yasal sıçramalarla azaltıp tahtada tek taş bırak.</p>
+        </li>
+        <li data-game="satranc" data-status="live" data-route="/oyna/satranc">
+          <a href="/oyna/satranc">Satranç</a><span class="status">LIVE</span>
+          <p>Yerel kural motoru, hamle geçmişi ve seviyeli bilgisayar rakibiyle satranç.</p>
+        </li>
+        <li data-game="amiral-batti" data-status="live" data-route="/oyna/amiral-batti">
+          <a href="/oyna/amiral-batti">Amiral Battı</a><span class="status">LIVE</span>
+          <p>Filonu yerleştir; kolay, orta veya zor rakibe karşı koordinat avla.</p>
+        </li>
+        <li data-game="hayat" data-status="live" data-route="/oyna/hayat">
+          <a href="/oyna/hayat">Hayat</a><span class="status">LIVE</span>
+          <p>
+            Normal hayat eylemlerini yönet; büyük dönüm noktalarının Uzun Gölge'si yıllar sonra
+            dönsün.
+          </p>
+        </li>
+        <li data-game="apartman" data-status="live" data-route="/oyna/apartman">
+          <a href="/oyna/apartman">Apartman: Apartman Yöneticisi</a><span class="status">LIVE</span>
+          <p>Aidat, bakım, sakinler ve toplantılar arasında bir apartmanı ayakta tut.</p>
+        </li>
+        <li data-game="kayip-telefon" data-status="live" data-route="/oyna/kayip-telefon">
+          <a href="/oyna/kayip-telefon">Kayıp Telefon</a><span class="status">LIVE</span>
+          <p>Sekiz uygulamadaki izleri doğrula; mahremiyet bedelini gözeterek telefonu iade et.</p>
+        </li>
+        <li data-game="son-100-gun" data-status="live" data-route="/oyna/son-100-gun">
+          <a href="/oyna/son-100-gun">Son 100 Gün</a><span class="status">LIVE</span>
+          <p>
+            Extreme Last 100 Days formatında sınırlı zamanı, yükümlülükleri ve hayatta kalan bağları
+            yönet.
+          </p>
+        </li>
+        <li data-game="tc-sim-devlet" data-status="live" data-route="/oyna/tc-sim-devlet">
+          <a href="/oyna/tc-sim-devlet">TC SIM: DEVLET</a><span class="status">LIVE</span>
+          <p>
+            Kurulumdan sonra aylık kararlarla politika, kurum, bölge, hazine ve devlet raporlarını
+            yönet.
+          </p>
+        </li>
+        <li data-game="son-kasaba" data-status="live" data-route="/oyna/son-kasaba">
+          <a href="/oyna/son-kasaba">Son Kasaba</a><span class="status">LIVE</span>
+          <p>
+            24 ay boyunca bütçe, binalar, göç, gruplar ve yatırımcılarla kasabanın geleceğini
+            belirle.
+          </p>
+        </li>
+        <li data-game="ihtilal" data-status="soon" data-route="/ihtilal">
+          <a href="/ihtilal">İhtilâl</a><span class="status">YAKINDA</span>
+          <p>Geliştirme aşamasında.</p>
+        </li>
       </ul>
 
-      <h2>Özgün TarikLab oyunları</h2>
+      <h2>Nasıl çalışıyor?</h2>
+      <p>
+        TarikLab, doğrudan tarayıcıda çalışan bağımsız oyunlardan oluşur. Portal ve Çete Savaşları
+        React ve TypeScript tabanlıdır; diğer oyunlar kendi HTML, CSS ve JavaScript uygulamalarını
+        kullanır.
+      </p>
       <ul>
-        <li>Çete Savaşları — özgün TLab oyunu; arayüz ve uygulama altyapısında aşağıdaki üçüncü taraf bileşenler kullanılır.</li>
-        <li>Çete Savaşları: Hanedan — özgün TLab oyunu, harici çalışma zamanı bağımlılığı yok.</li>
-        <li>Racon Manager — özgün TLab oyunu, harici çalışma zamanı bağımlılığı yok.</li>
-        <li>TC SIM — özgün TLab oyunu, harici çalışma zamanı bağımlılığı yok.</li>
-        <li>Son Mahalle Bükücü — özgün TLab oyunu, harici çalışma zamanı bağımlılığı yok.</li>
+        <li>
+          Kayıt kullanan oyunlarda üç yerel slot standardı vardır; slotlar aynı cihazda birbirinden
+          bağımsız tutulur.
+        </li>
+        <li>Portal ve oyunlar Türkçe ve İngilizce kullanılabilir.</li>
+        <li>
+          Arayüzler telefon, tablet ve masaüstüne uyarlanır; her oyunun kendi görsel ve etkileşim
+          kimliği korunur.
+        </li>
       </ul>
 
       <h2>TLab Classics</h2>
       <p>
-        Labirent, Tek Taş, Satranç ve Amiral Battı; TarikLab için sıfırdan,
-        bağımsız uygulanmış oyun mantığı, arayüz ve görsellerle yeniden yazıldı.
-        Hepsi harici çalışma zamanı bağımlılığı taşımaz.
+        Labirent, Tek Taş, Satranç ve Amiral Battı; TarikLab için sıfırdan, bağımsız uygulanmış oyun
+        mantığı, arayüz ve görsellerle yeniden yazıldı. Hepsi harici çalışma zamanı bağımlılığı
+        taşımaz.
       </p>
+
       <ul>
         <li>Labirent — bağımsız TarikLab uygulaması. Harici bağımlılık yok.</li>
         <li>Tek Taş — bağımsız TarikLab uygulaması. Harici bağımlılık yok.</li>
         <li>Satranç — bağımsız TarikLab kural motoru ve özgün taş seti. Harici bağımlılık yok.</li>
-        <li>Amiral Battı — bağımsız TarikLab ızgara-filo uygulaması. Kamuya mal olmuş kavram; özgün TLab kodu ve görseli. Harici bağımlılık yok.</li>
+        <li>
+          Amiral Battı — bağımsız TarikLab ızgara-filo uygulaması. Kamuya mal olmuş kavram; özgün
+          TLab kodu ve görseli. Harici bağımlılık yok.
+        </li>
       </ul>
       <p>
-        Klasik oyun kuralları (labirent, tek taş bulmacası, satranç, ızgara-filo)
-        kamuya mal olmuş kavramlardır; bu bildirim yalnız TarikLab'ın kendi
-        kodu, arayüzü ve özgün içeriği için geçerlidir.
+        Klasik oyun kuralları (labirent, tek taş bulmacası, satranç, ızgara-filo) kamuya mal olmuş
+        kavramlardır; bu bildirim yalnız TarikLab'ın kendi kodu, arayüzü ve özgün içeriği için
+        geçerlidir.
       </p>
 
+      <h2>Katkı ve atıflar</h2>
+      <p>Oyun tasarımı, arayüz ve özgün içerik: Tarık Halil Ayaz.</p>
+
       <h2>Üçüncü taraf bileşenler</h2>
-      <p>
-        Portal ve Çete Savaşları uygulamasının başlıca üçüncü taraf bileşenleri:
-        React, TanStack Router, Zustand, Radix UI, Lucide ve Zod.
-        Bu bileşenlerin hakları kendi sahiplerine aittir. TLab Classics'in
-        bağımsız oyun mantığına ilişkin açıklama bu uygulama altyapısından ayrıdır.
+      <p data-components="React, TanStack Router, Zustand, Radix UI, Lucide, Zod">
+        Portal ve Çete Savaşları uygulamasının başlıca üçüncü taraf bileşenleri: React, TanStack
+        Router, Zustand, Radix UI, Lucide ve Zod. Bu bileşenlerin hakları kendi sahiplerine aittir.
+        TLab Classics'in bağımsız oyun mantığına ilişkin açıklama bu uygulama altyapısından ayrıdır.
       </p>
 
       <p class="legal">
-        © 2026 TarikLab. Tüm hakları saklıdır. Klasik oyun kuralları
-        üzerindeki hak iddiası bu bildirimin kapsamı dışındadır.
+        © 2026 TarikLab. Tüm hakları saklıdır. Klasik oyun kuralları üzerindeki hak iddiası bu
+        bildirimin kapsamı dışındadır.
       </p>
     </main>
     <script src="/i18n/tlab-i18n.js"></script>
     <script src="/i18n/deep-en.js"></script>
     <script src="/i18n/deep-en-final.js"></script>
-        <script>
+    <script>
       (function () {
         var I = window.tlabI18n;
         if (!I) return;
@@ -154,12 +280,27 @@
             return;
           }
           var C = I.CREDITS_EN;
-          var html = '<a class="back" href="/">' + C.back + '</a><h1>' + C.h1 + '</h1><p class="kicker">' + C.kicker + "</p>";
+          document.title = C.h1 + " | TLab";
+          var html =
+            '<a class="back" href="/">' +
+            C.back +
+            "</a><h1>" +
+            C.h1 +
+            '</h1><p class="kicker">' +
+            C.kicker +
+            "</p>";
           C.sections.forEach(function (s) {
             html += "<h2>" + s.h + "</h2>";
             if (s.lead) html += "<p>" + s.lead + "</p>";
             if (s.items) {
-              html += "<ul>" + s.items.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ul>";
+              html +=
+                "<ul>" +
+                s.items
+                  .map(function (x) {
+                    return "<li>" + x + "</li>";
+                  })
+                  .join("") +
+                "</ul>";
             }
             if (s.note) html += "<p>" + s.note + "</p>";
           });
