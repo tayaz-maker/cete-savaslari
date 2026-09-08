@@ -9,6 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      # Browser QA runs the compiled server under Node, as on Vercel. The
+      # default Workers adapter cannot host the existing Node auth/DB bootstrap.
+      # Deployment providers retain their own preset; no hosting setting changes.
+      NITRO_PRESET: node-server
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
