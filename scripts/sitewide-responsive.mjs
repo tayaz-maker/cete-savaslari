@@ -1,4 +1,5 @@
-// Real Chromium layout/interaction regression against the production build.
+// Real Chromium layout/interaction regression against the Vite runtime.
+// Production compilation remains a separate CI gate; deployed assets are smoked separately.
 // Run in CI where the browser binary is installed; no emulated DOM or skipped tests.
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -15,7 +16,7 @@ assert.equal(routes.length, 14);
 const viewports = [[320,568],[360,800],[390,844],[430,932],[640,360],[740,390],[844,390],[768,1024],[820,1180],[1024,768],[1280,800],[1440,900]];
 const nextWave = new Set(["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon"]);
 const errors = [], results = [];
-const server = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", "8081"], { stdio: "inherit" });
+const server = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", "8081"], { stdio: "inherit" });
 let browser;
 try {
   let ready = false;
@@ -24,7 +25,7 @@ try {
     if (ready) break;
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  assert.ok(ready, "production preview did not start");
+  assert.ok(ready, "Vite runtime did not start");
   browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined, args: ["--no-sandbox"] });
   for (const lang of ["tr", "en"]) {
     for (const route of [{ id: "portal", href: "/" }, ...routes, { id: "credits", href: "/credits.html" }, { id: "ihtilal", href: "/ihtilal" }]) {
@@ -114,6 +115,8 @@ try {
         }
         if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.screenshot({ path: `${out}/${route.id}-${lang}-mobile.png`, fullPage: true });
         }
       } catch (error) {
         errors.push(`${route.id}/${lang}: ${error.message}`);
