@@ -11,6 +11,11 @@
 .management-workspace :is(.option-grid,.wealth-grid,.decision-grid,.data-grid) { display:grid; grid-template-columns:1fr!important; gap:4px; }
 .management-workspace :is(.overview-grid,.dashboard-grid,.dashboard-grid > .right-column,.detail-summary) { display:grid; grid-template-columns:1fr!important; gap:8px; }
 .management-workspace :is(.dashboard-grid,.overview-grid) > * { grid-column:auto!important; }
+.management-workspace .detail-summary { grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:4px; }
+.management-workspace .detail-summary > div { min-height:0; padding:7px; }
+.management-workspace .detail-summary strong { font-size:14px!important; }
+.desk-action-label { display:block; margin-top:8px; border-top:1px solid #435257; padding-top:8px; font-size:12px; font-weight:600; color:#e5eef0; }
+.management-inspector button:disabled .desk-action-label { color:#bec8cc; }
 .management-workspace :is(p,small,li,dd,dt), .management-inspector :is(p,small,li,dd,dt) { font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
 .management-inspector { position:sticky; top:var(--desk-top,64px); max-height:calc(100dvh - var(--desk-top,64px) - 12px); overflow:auto; padding:14px; background:#101619; color:#e7ecee; }
 .management-inspector .inspector-heading { padding-bottom:12px; border-bottom:1px solid var(--desk-line); color:var(--desk-muted); font-size:12px!important; }
@@ -69,6 +74,7 @@
 @media(max-width:900px) {
   .management-layout, .management-layout:not(:has(.management-inspector)) { display:block!important; }
   .management-workspace { border:0; padding:10px!important; min-height:0; }
+  .management-workspace .detail-summary { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
   .management-layout :is(.side-nav,.state-nav) { position:fixed; inset:auto 0 0; z-index:40; max-height:none; overflow:visible; background:#10191d; border-top:1px solid #435257; padding:6px 6px max(6px,env(safe-area-inset-bottom)); display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; }
   .management-layout .compact-nav > button { font-size:10px; padding:6px 3px; min-height:44px; text-align:center; }
   .management-layout .compact-nav .nav-more { display:block; grid-column:auto; }

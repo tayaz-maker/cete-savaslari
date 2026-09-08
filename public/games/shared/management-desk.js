@@ -83,7 +83,7 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
   });
   const rows = items.map((node, index) => {
     const title = node.querySelector("h3, h2, strong, b")?.textContent?.trim() || node.textContent.trim().split("\n")[0].slice(0, 90);
-    const full = node.textContent.trim();
+    const full = (node.innerText || node.textContent).trim().replace(/\s*\n+\s*/g, " · ").replace(/[ \t]+/g, " ");
     const row = make("button", "desk-row");
     row.type = "button";
     row.dataset.deskRow = String(index);
@@ -99,6 +99,9 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
     detail.id = `desk-record-${index}`;
     row.setAttribute("aria-controls", detail.id);
     detail.append(node);
+    if (node.matches("button[data-wealth-action]")) {
+      node.append(make("span", "desk-action-label", node.disabled ? text("Şu anda kullanılamıyor", "Currently unavailable") : text("İşlemi uygula", "Apply transaction")));
+    }
     bank.append(detail);
     const select = (open = true) => {
       if (active) { active.detail.hidden = true; active.row.setAttribute("aria-expanded", "false"); }

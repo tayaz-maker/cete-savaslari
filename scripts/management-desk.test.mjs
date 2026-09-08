@@ -7,6 +7,7 @@ import { EDUCATION_PATHS } from "../public/games/tc-sim/js/education.js";
 import { NETWORK_CAST } from "../public/games/tc-sim/js/network.js";
 import { MARKET } from "../public/games/tc-sim/js/wealth.js";
 import { POLICIES, EVENTS, REGIONS, FOREIGN_AXES } from "../public/games/next-wave/devlet-data.js";
+import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 
 test("782a495 baseline: all 34 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
@@ -36,4 +37,12 @@ test("desk boundary cannot dispatch actions, read hidden state or persist UI", (
   const app = readFileSync("public/games/tc-sim-devlet/app.js", "utf8");
   assert.doesNotMatch(app, /session\.setUI\(/);
   assert.match(app, /selectedScreen = button\.dataset\.screen; session\.render\(\)/);
+});
+test("desk display translations preserve financial numbers and source strings", () => {
+  assert.equal(deskEnglish("Çalışma hayatı"), "Working life");
+  assert.equal(deskEnglish("KİŞİ DOSYASI"), "Person file");
+  assert.equal(deskEnglish("Otomatik kaydedildi. (9 KB)"), "Autosaved. (9 KB)");
+  const original = "Enerji -5 · Stres +3 · ₺9.000";
+  assert.equal(deskEnglish(original), "Energy -5 · Stress +3 · ₺9.000");
+  assert.equal(original, "Enerji -5 · Stres +3 · ₺9.000");
 });
