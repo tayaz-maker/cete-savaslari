@@ -110,6 +110,7 @@ let selectedPersonId = "mehmet";
 let weekStartSnapshot = null;
 // Nasıl Oynanır modalı yalnız görüntü durumudur; save/state'e hiç yazılmaz.
 let helpOpen = false;
+let startLoadResult = null;
 
 const money = (value) =>
   new Intl.NumberFormat("tr-TR", {
@@ -237,6 +238,7 @@ function persist(message = "Otomatik kaydedildi.") {
 }
 
 function startScreen(loadResult) {
+  startLoadResult = loadResult;
   const slots = listSlots(localStorage);
   const active = getActiveSlot(localStorage);
   app.innerHTML = `
@@ -1276,6 +1278,34 @@ function render() {
     render();
   });
 }
+
+// Keep the standalone language control outside the rebuilt app. Embedded play
+// uses the portal toggle; this replaces the static-page boot/reload handler.
+window.tlabI18n?.applyHtmlLang?.();
+const languageHost = document.querySelector("#tc-sim-language");
+if (languageHost && window.self === window.top) {
+  languageHost.hidden = false;
+  window.tlabI18n?.mountLangToggle?.(languageHost);
+}
+
+// Language changes are presentation-only: rebuild canonical templates without
+// loading/saving again, advancing time, or losing an unfinished setup form.
+window.tlabI18n?.onLang?.(() => {
+  if (state) {
+    render();
+    return;
+  }
+  if (!startLoadResult) return;
+  const fields = [...document.querySelectorAll("#new-game-form [name]")]
+    .map(field => [field.name, field.value]);
+  const focusedName = document.activeElement?.name;
+  startScreen(startLoadResult);
+  for (const field of document.querySelectorAll("#new-game-form [name]")) {
+    const saved = fields.find(([name]) => name === field.name);
+    if (saved) field.value = saved[1];
+    if (field.name === focusedName) field.focus();
+  }
+});
 
 window.addEventListener?.("keydown", (event) => {
   if (event.key === "Escape" && helpOpen) {

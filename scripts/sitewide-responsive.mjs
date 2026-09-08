@@ -7,7 +7,7 @@ import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { townBrowser } from "./son-kasaba-browser.mjs";
 import { correctionFlows } from "./playability-browser.mjs";
-import { deskFlows } from "./management-desk-browser.mjs";
+import { deskFlows, deskLanguageSwitch } from "./management-desk-browser.mjs";
 
 const origin = "http://127.0.0.1:8081";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/tariklab-ux`;
@@ -95,6 +95,7 @@ try {
           await save.click();
         } else if (route.id === "tc-sim") {
           await surface.locator('input[name="name"]').fill("Uzun İsimli Deneme Karakteri QA");
+          await deskLanguageSwitch(page, surface, lang, true);
           await surface.locator('#new-game-form button[type="submit"]').click();
           await measure("game");
         }

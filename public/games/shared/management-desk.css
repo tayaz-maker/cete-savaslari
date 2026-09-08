@@ -94,3 +94,4 @@
   .management-deck :is(th,td) { padding:6px; }
 }
 @media(max-height:500px) and (min-width:901px) { .management-inspector, .management-layout :is(.side-nav,.state-nav) { position:relative; top:0; max-height:none; } }
+#tc-sim-language:not([hidden]) { display: flex; justify-content: flex-end; padding: 6px 12px; }
