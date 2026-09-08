@@ -75,7 +75,7 @@ export function deskEnglish(value) {
     .replace(/Gayrimenkul /g, "Property ").replace(/Araç\/eşya /g, "Vehicle/durables ").replace(/Borç /g, "Debt ")
     .replace(/Maaş /g, "Salary ").replace(/Konut /g, "Housing ").replace(/Yaşam\/varlık /g, "Lifestyle/assets ").replace(/Diğer /g, "Other ")
     .replace(/\bEnerji /g, "Energy ").replace(/\bStres /g, "Stress ")
-    .replace(/yakınlık ([+−\-]?\d+)/g, "closeness $1").replace(/güven ([+−\-]?\d+)/g, "trust $1");
+    .replace(/yakınlık ([+−-]?\d+)/g, "closeness $1").replace(/güven ([+−-]?\d+)/g, "trust $1");
 }
 function translateDesk(root) {
   const walker = root.ownerDocument.createTreeWalker(root, 4);
