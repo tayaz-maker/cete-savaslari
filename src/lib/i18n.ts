@@ -9,7 +9,7 @@ const EN: Record<string, string> = {
   "portal.games": "Games",
   "portal.playableCount": "{n} playable",
   "portal.soon": "Coming Soon",
-  "portal.sources": "Credits",
+  "portal.sources": "Resources",
   "portal.back": "← Games",
   "portal.openGame": "Open {title}",
   "footer.rights": "© 2026 TarikLab. All rights reserved.",

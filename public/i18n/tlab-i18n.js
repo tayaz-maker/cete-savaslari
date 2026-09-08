@@ -13,7 +13,7 @@
     "portal.playable": "playable",
     "portal.soon": "Coming Soon",
     "portal.play": "Play",
-    "portal.sources": "Credits",
+    "portal.sources": "Resources",
     "portal.back": "← Games",
     "portal.openGame": "Open {title}",
     "footer.rights": "© 2026 TarikLab. All rights reserved.",
@@ -68,8 +68,8 @@
     "hayat.shadow": "Long Shadow",
     "apartman.meeting": "Meeting Night",
     "kayip.privacy": "Privacy Pressure",
-    "credits.title": "Credits",
-    "credits.kicker": "TarikLab · creator and components",
+    "credits.title": "Resources",
+    "credits.kicker": "TarikLab · games and technical structure",
     "cete.helpTitle": "How to Play",
   };
 
@@ -79,7 +79,7 @@
     "Oyun Laboratuvarı": "Game Lab",
     "Yakında": "Coming Soon",
     "oynanabilir": "playable",
-    "Kaynaklar": "Credits",
+    "Kaynaklar": "Resources",
     "Tüm hakları saklıdır.": "All rights reserved.",
     "© 2026 TarikLab. Tüm hakları saklıdır.": "© 2026 TarikLab. All rights reserved.",
     "Kaydet": "Save",
@@ -322,41 +322,59 @@
   };
 
   const CREDITS_EN = {
-    h1: "Credits",
-    kicker: "TarikLab · creator and components",
+    h1: "Resources",
+    kicker: "TarikLab · games and technical structure",
     back: "← Games",
     sections: [
       {
-        h: "TarikLab",
-        items: ["Game design, interface and original content: Tarık Halil Ayaz."],
-      },
-      {
-        h: "Original TarikLab games",
+        h: "Catalog",
+        lead: "TarikLab has 15 playable games. İhtilâl is in development.",
         items: [
-          "Çete Savaşları — original TLab game; the interface and application stack use the third-party components listed below.",
-          "Çete Savaşları: Hanedan — original TLab game, no external runtime dependency.",
-          "Racon Manager — original TLab game, no external runtime dependency.",
-          "TC SIM — original TLab game, no external runtime dependency.",
-          "Son Mahalle Bükücü — original TLab game, no external runtime dependency.",
+          '<a href="/cete-savaslari">Çete Savaşları</a> · LIVE — Build a crew, run missions and hold turf under police and rival pressure.',
+          '<a href="/oyna/hanedan">Çete Savaşları: Hanedan</a> · LIVE — Manage a roster, raids and legacy across generations.',
+          '<a href="/oyna/racon">Racon Manager</a> · LIVE — Narrative management shaped by relationships, decisions and delayed consequences.',
+          '<a href="/oyna/tc-sim">TC SIM</a> · LIVE — A weekly life simulation spanning work, education, family, networks, relationships, housing, finance and the market.',
+          '<a href="/games/bukucu/index.html">Son Mahalle Bükücü</a> · LIVE — A neighborhood board game of dice, deeds, auctions and trades.',
+          '<a href="/oyna/labirent">Labirent</a> · LIVE — Find the exit through a newly generated maze.',
+          '<a href="/oyna/peg-solitaire">Tek Taş</a> · LIVE — Use legal jumps to leave one piece on the board.',
+          '<a href="/oyna/satranc">Satranç</a> · LIVE — Chess with a local rules engine, move history and a computer opponent with distinct levels.',
+          '<a href="/oyna/amiral-batti">Amiral Battı</a> · LIVE — Place a fleet and hunt coordinates against an easy, medium or hard opponent.',
+          '<a href="/oyna/hayat">Hayat</a> · LIVE — Manage everyday actions as major turning points cast Long Shadows years ahead.',
+          '<a href="/oyna/apartman">Apartman: Apartman Yöneticisi</a> · LIVE — Keep one building running through dues, maintenance, residents and meetings.',
+          '<a href="/oyna/kayip-telefon">Kayıp Telefon</a> · LIVE — Corroborate clues across eight apps and weigh the privacy cost of returning a lost phone.',
+          '<a href="/oyna/son-100-gun">Son 100 Gün</a> · LIVE — The Extreme Last 100 Days format: manage limited time, obligations and the bonds that survive.',
+          '<a href="/oyna/tc-sim-devlet">TC SIM: DEVLET</a> · LIVE — Configure a state, then manage policy, institutions, regions, treasury and reports month by month.',
+          '<a href="/oyna/son-kasaba">Son Kasaba</a> · LIVE — Shape a town’s future across 24 months of budgets, buildings, migration, groups and investors.',
+          '<a href="/ihtilal">İhtilâl</a> · COMING SOON — In development.',
         ],
       },
       {
+        h: "How it works",
+        lead: "TarikLab is a collection of independent games that run directly in the browser. The portal and Çete Savaşları use React and TypeScript; the other games run as their own HTML, CSS and JavaScript applications.",
+        items: [
+          "Games that save progress use three local slots, kept separate from one another on the same device.",
+          "The portal and games support Turkish and English.",
+          "Interfaces adapt to phone, tablet and desktop while preserving each game's own visual and interaction identity.",
+        ],
+      },
+      {
+        h: "Contribution and attribution",
+        lead: "Game design, interface and original content: Tarık Halil Ayaz.",
+      },
+      {
         h: "TLab Classics",
-        lead:
-          "Labirent, Tek Taş, Satranç and Amiral Battı were rewritten from scratch for TarikLab with independent game logic, interface and visuals. None carry an external runtime dependency.",
+        lead: "Labirent, Tek Taş, Satranç and Amiral Battı were rewritten from scratch for TarikLab with independent game logic, interface and visuals. None carry an external runtime dependency.",
         items: [
           "Labirent — independent TarikLab implementation. No external dependency.",
           "Tek Taş — independent TarikLab implementation. No external dependency.",
           "Satranç — independent TarikLab rules engine and original piece set. No external dependency.",
           "Amiral Battı — independent TarikLab grid-fleet implementation. Public-domain concept; original TLab code and visuals. No external dependency.",
         ],
-        note:
-          "Classic game rules (maze, peg solitaire, chess, grid-fleet) are public-domain concepts; this notice covers only TarikLab's own code, interface and original content.",
+        note: "Classic game rules (maze, peg solitaire, chess, grid-fleet) are public-domain concepts; this notice covers only TarikLab's own code, interface and original content.",
       },
       {
         h: "Third-party components",
-        lead:
-          "Principal third-party components of the portal and Çete Savaşları application: React, TanStack Router, Zustand, Radix UI, Lucide and Zod. Rights in those components belong to their owners. The note on TLab Classics' independent game logic is separate from this application stack.",
+        lead: "Principal third-party components of the portal and Çete Savaşları application: React, TanStack Router, Zustand, Radix UI, Lucide and Zod. Rights in those components belong to their owners. The note on TLab Classics' independent game logic is separate from this application stack.",
       },
     ],
     legal:
