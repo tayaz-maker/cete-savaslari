@@ -2,12 +2,20 @@
 // listeners; this module never receives a game state or a persistence callback.
 const selections = new Map();
 const resizeHandlers = new WeakMap();
+const headerObservers = new WeakMap();
 
 export function managementDesk({ workspace, layout, key, selector, text, searchSelector }) {
   if (!workspace || !layout) return;
   layout.classList.add("management-layout");
   workspace.classList.add("management-workspace");
   const doc = workspace.ownerDocument;
+  headerObservers.get(doc)?.disconnect();
+  const header = layout.parentElement.querySelector(".game-topbar, .topbar");
+  if (header && doc.defaultView.ResizeObserver) {
+    const observer = new doc.defaultView.ResizeObserver(() => layout.style.setProperty("--desk-top", `${header.getBoundingClientRect().height + 8}px`));
+    observer.observe(header);
+    headerObservers.set(doc, observer);
+  }
   const make = (tag, className, content) => {
     const node = doc.createElement(tag);
     node.className = className;
@@ -51,7 +59,15 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
   };
   const previousResize = resizeHandlers.get(doc);
   if (previousResize) doc.defaultView.removeEventListener("resize", previousResize);
-  const onResize = () => { if (!mobile() && inspector.classList.contains("is-open")) dismiss(); };
+  let wasMobile = mobile();
+  doc.querySelectorAll("details.management-deck").forEach(deck => { deck.open = !wasMobile; });
+  const onResize = () => {
+    if (!mobile() && inspector.classList.contains("is-open")) dismiss();
+    if (wasMobile !== mobile()) {
+      wasMobile = mobile();
+      doc.querySelectorAll("details.management-deck").forEach(deck => { deck.open = !wasMobile; });
+    }
+  };
   resizeHandlers.set(doc, onResize);
   doc.defaultView.addEventListener("resize", onResize);
   close.addEventListener("click", dismiss);
@@ -121,9 +137,10 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
 export function managementDeck(layout, nodes, title) {
   const records = nodes.filter(Boolean);
   if (!records.length) return;
-  const deck = layout.ownerDocument.createElement("section");
+  const deck = layout.ownerDocument.createElement("details");
   deck.className = "management-deck";
-  const heading = layout.ownerDocument.createElement("h2");
+  deck.open = !layout.ownerDocument.defaultView.matchMedia("(max-width: 900px)").matches;
+  const heading = layout.ownerDocument.createElement("summary");
   heading.textContent = title;
   deck.append(heading, ...records);
   layout.after(deck);

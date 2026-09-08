@@ -2,7 +2,7 @@
 .management-layout { --desk-line:#303b3e; --desk-bg:#101619; --desk-muted:#aeb9bd; display:grid!important; grid-template-columns:176px minmax(0,1fr) minmax(270px,30%); gap:0!important; align-items:start; border-block:1px solid var(--desk-line); }
 .management-layout:not(:has(.management-inspector)) { grid-template-columns:176px minmax(0,1fr); }
 .management-layout > * { min-width:0; }
-.management-layout :is(.side-nav,.state-nav) { position:sticky; top:64px; max-height:calc(100dvh - 76px); overflow-y:auto; border:0; border-radius:0; margin:0; padding:8px; background:#0c1215; }
+.management-layout :is(.side-nav,.state-nav) { position:sticky; top:var(--desk-top,64px); max-height:calc(100dvh - var(--desk-top,64px) - 12px); overflow-y:auto; border:0; border-radius:0; margin:0; padding:8px; background:#0c1215; }
 .management-layout :is(.side-nav,.state-nav) button { font-size:12px; min-height:42px; border-radius:3px; text-align:left; padding:8px 10px; }
 .management-workspace { padding:14px!important; border-inline:1px solid var(--desk-line); min-height:60vh; }
 .management-workspace :is(h1,h2,h3), .management-inspector :is(h2,h3), .management-deck h2 { font-size:15px!important; line-height:1.35; letter-spacing:.025em; margin-block:0 10px; }
@@ -12,7 +12,7 @@
 .management-workspace :is(.overview-grid,.dashboard-grid,.dashboard-grid > .right-column,.detail-summary) { display:grid; grid-template-columns:1fr!important; gap:8px; }
 .management-workspace :is(.dashboard-grid,.overview-grid) > * { grid-column:auto!important; }
 .management-workspace :is(p,small,li,dd,dt), .management-inspector :is(p,small,li,dd,dt) { font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
-.management-inspector { position:sticky; top:64px; max-height:calc(100dvh - 76px); overflow:auto; padding:14px; background:#101619; color:#e7ecee; }
+.management-inspector { position:sticky; top:var(--desk-top,64px); max-height:calc(100dvh - var(--desk-top,64px) - 12px); overflow:auto; padding:14px; background:#101619; color:#e7ecee; }
 .management-inspector .inspector-heading { padding-bottom:12px; border-bottom:1px solid var(--desk-line); color:var(--desk-muted); font-size:12px!important; }
 .management-inspector .desk-record > * { width:100%; max-width:100%; min-width:0; margin:0; }
 .management-inspector :is(.wealth-actions,.edu-actions,.social-actions) { display:flex; flex-wrap:wrap; gap:8px; }
@@ -37,6 +37,15 @@
 .management-deck .memory p { flex:1; min-width:180px; margin:0; }
 .management-deck table { width:100%; border-collapse:collapse; font-size:12px; }
 .management-deck .ledger-scroll { max-height:240px; overflow:auto; }
+.management-deck > summary { cursor:pointer; min-height:30px; font-size:12px; font-weight:600; letter-spacing:.04em; }
+.management-deck[open] > summary { margin-bottom:10px; }
+.management-inspector .decision :is(strong,b) { font-size:14px; }
+.management-inspector .decision :is(span,small) { font-size:13px; line-height:1.5; }
+.management-inspector .decision { text-align:left; }
+.management-workspace .social-layout { display:block; }
+.management-workspace .person-select { border-radius:3px; padding:10px; min-height:54px; }
+.management-workspace .person-select strong { font-size:14px; }
+.management-workspace .person-select small { font-size:12px; }
 .management-deck .dashboard-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; }
 .management-deck .report-card { min-width:0; border:1px solid #303b3e; border-radius:0; padding:10px; background:transparent; }
 .management-deck .report-card h3 { font-size:13px; }
@@ -44,11 +53,17 @@
 .management-deck p { font-size:12px; overflow-wrap:anywhere; }
 .management-deck :is(th,td) { padding:7px 10px; border:1px solid #303b3e; text-align:left; overflow-wrap:anywhere; }
 .management-deck td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
-.game-frame:has(.management-layout), .game-root:has(.management-layout) { max-width:1920px; padding:0; background:#0c1215; }
+.game-frame:has(.management-layout), .game-root:has(.management-layout) { width:100%; max-width:1920px; margin-inline:auto; padding:0; background:#0c1215; }
 .game-frame:has(.management-layout) .game-topbar, .game-root:has(.management-layout) .topbar { position:sticky; top:0; z-index:30; min-height:60px; margin:0; padding:8px 14px; border-radius:0; background:#0c1215; border-bottom:1px solid #303b3e; gap:10px; }
 .game-frame:has(.management-layout) .game-brand strong { font-size:18px; }
 .game-root:has(.management-layout) .state-head { padding:8px 14px; gap:8px; }
 .game-root:has(.management-layout) .state-head h1 { font-size:18px; }
+.game-root:has(.management-layout) .topbar .state-head { padding:0; display:grid; gap:2px; grid-template-columns:1fr; }
+.game-root:has(.management-layout) .topbar .state-head h1 { display:none; }
+.game-root:has(.management-layout) .topbar .state-head .eyebrow { margin:0; font-size:11px; }
+.game-root:has(.management-layout) .topbar .state-metrics { justify-content:flex-start; }
+.game-root:has(.management-layout) .desk-budget { position:static!important; border:0; padding:0 0 10px; font-size:12px; margin:0; }
+.game-root:has(.management-layout) .topbar #advance { min-height:42px; font-size:12px; border-radius:3px; }
 .game-root:has(.management-layout) .month-bar { position:sticky; bottom:0; z-index:10; background:#10191d; border:1px solid #435257; padding:10px; border-radius:3px; }
 @media(min-width:901px) { .game-frame:has(.management-layout) .week-control { margin-left:auto; } }
 @media(max-width:900px) {
@@ -56,6 +71,8 @@
   .management-workspace { border:0; padding:10px!important; min-height:0; }
   .management-layout :is(.side-nav,.state-nav) { position:fixed; inset:auto 0 0; z-index:40; max-height:none; overflow:visible; background:#10191d; border-top:1px solid #435257; padding:6px 6px max(6px,env(safe-area-inset-bottom)); display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; }
   .management-layout .compact-nav > button { font-size:10px; padding:6px 3px; min-height:44px; text-align:center; }
+  .management-layout .compact-nav .nav-more { display:block; grid-column:auto; }
+  .management-layout .compact-nav button { min-width:0; white-space:normal; overflow-wrap:anywhere; }
   .management-layout .compact-nav .nav-secondary { position:absolute; inset:auto 6px 100%; max-height:65dvh; overflow:auto; background:#10191d; border:1px solid #435257; padding:8px; }
   .management-layout .compact-nav:not(.is-expanded) .nav-secondary { display:none!important; }
   .management-layout .compact-nav.is-expanded .nav-secondary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -216,6 +216,8 @@ function draw(session) {
     else {
       selectedScreen = "home";
       session.render();
+      const reportDeck = root.querySelector(".action-feedback")?.closest("details");
+      if (reportDeck) reportDeck.open = true;
       root.querySelector(".action-feedback")?.scrollIntoView({ block: "start" });
     }
   });
