@@ -84,6 +84,7 @@ let view = "menu";
 let setupDraft = { era: null, mode: null, goal: null, doctrine: null, alt: null };
 const legacyPeriodScreen = "periods";
 let feedback = null;
+let renderedState = null;
 const renderScreen = state => screenHtml(state, { screen: state.ui?.screen === legacyPeriodScreen ? "period-file" : state.ui?.screen, formOf, feedback });
 
 const setupReady = () =>
@@ -160,6 +161,11 @@ function setupScreen(session) {
 
 function draw(session) {
   const state = session.state;
+  const freshState = state && state !== renderedState;
+  if (state !== renderedState) {
+    feedback = null;
+    renderedState = state;
+  }
   if (!state) {
     if (view === "setup") return setupScreen(session);
     root.innerHTML = frontMenu(session, {
@@ -203,8 +209,13 @@ function draw(session) {
     const before = visibleSnapshot(state);
     feedback = { kind: "month", before };
     if (!session.act("advance")) { feedback = previous; session.render(); }
+    else {
+      session.setUI("screen", "home");
+      root.querySelector(".action-feedback")?.scrollIntoView({ block: "start" });
+    }
   });
   bindSavePanel(root, session);
+  if (freshState && document.scrollingElement) document.scrollingElement.scrollTop = 0;
 }
 
 bootGame("tc-sim-devlet", draw);

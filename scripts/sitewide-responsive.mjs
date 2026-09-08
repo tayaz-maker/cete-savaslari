@@ -80,6 +80,7 @@ try {
           if (route.id === "hayat") await surface.locator("#player-name").fill("Uzun İsimli Deneme Karakteri QA");
           if (route.id === "son-100-gun") await surface.locator("[data-scenario]").first().click();
           await surface.locator("#confirm-start").click();
+          if (route.id === "tc-sim-devlet") assert.equal(await surface.evaluate(() => document.scrollingElement.scrollTop), 0, "New state opens at its overview");
           await measure("game");
           await page.setViewportSize({ width: 390, height: 844 });
           const save = surface.locator(".save-menu > summary");

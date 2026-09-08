@@ -99,8 +99,10 @@ export async function correctionFlows(page,surface,id,lang,out) {
   const buttons=surface.locator("[data-policy]");assert.equal(await buttons.count(),48);
   await buttons.nth(0).click();await page.waitForTimeout(400);await buttons.nth(1).click();
   assert.equal(await buttons.nth(2).isDisabled(),true);assert.equal((await read()).flags.decisionsRemaining,0);
+  await surface.locator('.compact-nav [data-screen="regions"]').click();
   const turn=(await read()).time.turn;await page.waitForTimeout(400);await surface.locator("#advance").click();
   assert.equal((await read()).time.turn,turn+1);
+  assert.equal((await read()).ui.screen,"home");
   await surface.locator('.compact-nav [data-screen="home"]').click();
   assert.ok((await surface.locator(".action-feedback").innerText()).includes(lang==="en"?"Month-end report":"Ay sonu raporu"));
   assert.ok(await surface.locator(".state-head h1").evaluate(n=>parseFloat(getComputedStyle(n).fontSize)<=42));
