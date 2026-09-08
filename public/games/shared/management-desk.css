@@ -9,7 +9,7 @@
 .management-workspace h1 { font-size:20px!important; }
 .management-workspace :is(.panel,.card,.report-card,.option-card,.wealth-card), .management-inspector :is(.panel,.card,.report-card,.option-card,.wealth-card) { border-radius:4px; box-shadow:none; padding:12px; background:#121a1e; }
 .management-workspace :is(.option-grid,.wealth-grid,.decision-grid,.data-grid) { display:grid; grid-template-columns:1fr!important; gap:4px; }
-.management-workspace :is(.overview-grid,.dashboard-grid,.dashboard-grid > .right-column,.detail-summary) { display:grid; grid-template-columns:1fr!important; gap:8px; }
+.management-workspace :is(.overview-grid,.dashboard-grid,.dashboard-grid > .right-column) { display:grid; grid-template-columns:1fr!important; gap:8px; }
 .management-workspace :is(.dashboard-grid,.overview-grid) > * { grid-column:auto!important; }
 .management-workspace .detail-summary { grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:4px; }
 .management-workspace .detail-summary > div { min-height:0; padding:7px; }
@@ -22,7 +22,8 @@
 .management-inspector .desk-record > * { width:100%; max-width:100%; min-width:0; margin:0; }
 .management-inspector :is(.wealth-actions,.edu-actions,.social-actions) { display:flex; flex-wrap:wrap; gap:8px; }
 .management-inspector button { white-space:normal; overflow-wrap:anywhere; min-height:44px; }
-.management-inspector dl { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+.management-inspector dl { display:grid; grid-template-columns:1fr; gap:8px; }
+.management-inspector dl > div { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
 .management-inspector :is(dt,dd) { margin:0; }
 .desk-toolbar { display:flex; align-items:end; gap:10px; margin-bottom:12px; }
 .desk-search-label { flex:1; min-width:0; display:grid; gap:5px; font-size:11px; color:#aeb9bd; }

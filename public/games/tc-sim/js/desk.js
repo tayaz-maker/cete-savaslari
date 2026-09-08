@@ -20,6 +20,7 @@ const labels = {
   "Gereksinim yok": "No requirements", "Teklifi kabul et": "Accept offer", "İş fırsatları": "Job opportunities",
   "Deneyim": "Experience", "Performans": "Performance", "Eğitim düzeyi": "Education level",
   "Birikmiş deneyim": "Accumulated experience", "Kariyer bandı": "Career band", "Mevcut işten ayrıl": "Leave current job",
+  "Alan deneyimi": "Field experience", "Değerlendirme": "Review", "İşten ayrıl": "Leave job",
   "Çevre": "Social circle", "Önemli kişiler": "Key people", "Kişi dosyası": "Person file",
   "Son önemli anılar": "Recent meaningful memories", "Gerilim": "Tension", "Arkadaş": "Friend",
   "Yakınlık bağın gücünü, güven sana duyulan inancı, gerilim ise aranızdaki sürtüşmeyi gösterir.": "Closeness measures the bond, trust measures confidence in you, and tension measures friction between you.",
@@ -67,6 +68,7 @@ export function deskEnglish(value) {
     .replace(/Aile Yanında ulaşımı/g, "Commute from family home")
     .replace(/Bu düzende yaşıyorsun\./g, "This is your current lifestyle.")
     .replace(/Tam (\d+) hafta · Yarı (\d+) hafta/g, "Full-time $1 weeks · Part-time $2 weeks")
+    .replace(/(\d+) hafta\b/g, "$1 weeks").replace(/(\d+) ay\b/g, "$1 months")
     .replace(/Tam: enerji/g, "Full-time: energy").replace(/Yarı: enerji/g, "Part-time: energy")
     .replace(/Teknik alanı/g, "Technical field").replace(/(\d+) hak kaldı/g, "$1 decisions left")
     .replace(/(\d+) açık sosyal mesele/g, "$1 open social issues")
@@ -81,6 +83,7 @@ function translateDesk(root) {
   const walker = root.ownerDocument.createTreeWalker(root, 4);
   while (walker.nextNode()) walker.currentNode.nodeValue = deskEnglish(walker.currentNode.nodeValue);
 }
+let openPerson = false;
 
 // Only public rendered nodes cross this boundary: no hidden people data,
 // simulation state, action dispatch or save function is passed to the desk.
@@ -88,6 +91,9 @@ export function arrangeLifeDesk(view, text) {
   const layout = document.querySelector(".game-body");
   const workspace = layout?.querySelector(".workspace");
   if (!workspace) return;
+  // Install before app.js binds the original person action: the subsequent
+  // render opens the newly selected person's sheet, without a second tap.
+  workspace.querySelectorAll(".person-select, [data-open-person]").forEach(button => button.addEventListener("click", () => { openPerson = window.matchMedia("(max-width: 900px)").matches; }));
   if (document.documentElement.lang === "en" || window.tlabI18n?.getLang?.() === "en") translateDesk(document.querySelector(".game-frame"));
   const operations = document.querySelector(".game-topbar");
   const week = workspace.querySelector(".week-control");
@@ -120,5 +126,6 @@ export function arrangeLifeDesk(view, text) {
     history.push(...panels.filter(panel => panel.querySelector(".history")));
   }
   managementDeck(layout, history, text("KAYIT / HESAP DÖKÜMÜ", "RECORD / ACCOUNT LEDGER"));
-  managementDesk({ workspace, layout, key: `life:${view}`, selector: selectors[view] || ".panel", text, searchSelector: view === "people" ? ".person-select" : undefined });
+  managementDesk({ workspace, layout, key: `life:${view}`, selector: selectors[view] || ".panel", text, searchSelector: view === "people" ? ".person-select" : undefined, openInitially: view === "people" && openPerson, returnFocusSelector: view === "people" ? ".person-select.is-current" : undefined });
+  openPerson = false;
 }

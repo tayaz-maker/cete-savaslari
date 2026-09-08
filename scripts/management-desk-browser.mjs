@@ -15,6 +15,10 @@ export async function deskFlows(page, surface, id, lang, out) {
     if (screen === "market") assert.equal(await surface.locator('[data-wealth-action="spend"]').count(), 53);
     if (screen === "policy") assert.equal(count, 48);
     if (!count) continue;
+    if (screen === "career" || screen === "education") {
+      const columns = await surface.locator(".detail-summary").first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(" ").length);
+      assert.equal(columns, 3, "Desktop summary must stay compact rather than becoming a tall card stack");
+    }
     assert.equal(await surface.locator(".desk-record").count(), count);
     await rows.last().click();
     assert.equal(await rows.last().getAttribute("aria-expanded"), "true");
@@ -28,6 +32,17 @@ export async function deskFlows(page, surface, id, lang, out) {
     assert.equal(await surface.locator(".desk-empty").isVisible(), true);
     await search.fill("");
     assert.equal(await surface.locator(`${searchable}:not([hidden])`).count(), searchableCount);
+    if (screen === "people") {
+      await page.setViewportSize({ width: 390, height: 844 });
+      const person = surface.locator(".person-select").nth(1);
+      const name = await person.locator("strong").innerText();
+      await person.click();
+      assert.equal(await surface.locator('.management-inspector[role="dialog"]').isVisible(), true, "A person tap must open their sheet immediately");
+      assert.ok((await surface.locator(".desk-record:not([hidden])").innerText()).includes(name));
+      await surface.locator(".inspector-close").press("Escape");
+      assert.equal(await surface.locator(".person-select.is-current").evaluate(node => node === document.activeElement), true);
+      await page.setViewportSize({ width: 1440, height: 900 });
+    }
     await rows.first().click();
     await surface.evaluate(() => { document.scrollingElement.scrollTop = 0; });
     await page.screenshot({ path: `${out}/desk-${id}-${screen}-${lang}.png`, fullPage: false });
@@ -43,7 +58,8 @@ export async function deskFlows(page, surface, id, lang, out) {
         if (width === 390) await page.screenshot({ path: `${out}/desk-${id}-${screen}-${lang}-sheet.png`, fullPage: false });
         await surface.locator(".inspector-close").press("Escape");
         assert.equal(await sheet.count(), 0);
-        assert.equal(await rows.first().evaluate(node => node === document.activeElement), true);
+        const returned = screen === "people" ? surface.locator(".person-select.is-current") : rows.first();
+        assert.equal(await returned.evaluate(node => node === document.activeElement), true);
         assert.equal(await surface.locator("[inert]").count(), 0);
       }
     }

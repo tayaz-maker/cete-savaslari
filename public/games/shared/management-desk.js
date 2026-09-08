@@ -1,10 +1,11 @@
 // DOM-only presentation. The original content and action nodes retain their
 // listeners; this module never receives a game state or a persistence callback.
 const selections = new Map();
+const queries = new Map();
 const resizeHandlers = new WeakMap();
 const headerObservers = new WeakMap();
 
-export function managementDesk({ workspace, layout, key, selector, text, searchSelector }) {
+export function managementDesk({ workspace, layout, key, selector, text, searchSelector, openInitially = false, returnFocusSelector }) {
   if (!workspace || !layout) return;
   layout.classList.add("management-layout");
   workspace.classList.add("management-workspace");
@@ -37,6 +38,7 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
   const label = make("label", "desk-search-label", text("Bu bölümde ara", "Search this section"));
   const input = make("input", "desk-search");
   input.type = "search";
+  input.value = queries.get(key) || "";
   input.placeholder = text("Ad, açıklama veya koşul…", "Name, description or requirement…");
   label.append(input);
   const count = make("span", "desk-count");
@@ -111,7 +113,7 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
       row.setAttribute("aria-expanded", "true");
       selections.set(key, index);
       if (open && mobile()) {
-        returnTo = row;
+        returnTo = (returnFocusSelector && workspace.querySelector(returnFocusSelector)) || row;
         inspector.classList.add("is-open");
         inspector.setAttribute("role", "dialog");
         inspector.setAttribute("aria-modal", "true");
@@ -122,9 +124,10 @@ export function managementDesk({ workspace, layout, key, selector, text, searchS
     row.addEventListener("click", () => select());
     return { row, full, select };
   });
-  rows[Math.min(selections.get(key) || 0, rows.length - 1)].select(false);
+  rows[Math.min(selections.get(key) || 0, rows.length - 1)].select(openInitially);
   const searchable = searchSelector ? [...workspace.querySelectorAll(searchSelector)].map(row => ({ row, full: row.textContent })) : rows;
   const filter = () => {
+    queries.set(key, input.value);
     const query = input.value.toLocaleLowerCase(doc.documentElement.lang || "tr");
     let visible = 0;
     searchable.forEach(({ row, full }) => {
