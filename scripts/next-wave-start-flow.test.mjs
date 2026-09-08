@@ -146,12 +146,12 @@ test("all five games expose the universal menu before a game-specific setup", ()
 
 test("Son 100 Gün separates scenario selection from final state creation", () => {
   const app = read("public/games/son-100-gun/app.js");
-  assert.match(app, /selectedScenario/);
-  assert.match(app, /SCENARIOS\.map/);
+  assert.match(app, /chooseScenario/);
+  assert.match(app, /paintScenarioSelection/);
   assert.match(app, /id="confirm-start"/);
-  assert.match(app, /selectedScenario \? "" : "disabled"/);
   assert.doesNotMatch(app, /data-scenario[\s\S]{0,300}session\.start/);
   assert.match(app, /commitNew\(\{ action: `scenario:/);
+  assert.doesNotMatch(app, /selectedScenario = button\.dataset\.scenario;\s*session\.render\(\)/);
 });
 
 test("Hayat is a named, panel-based management shell rather than a diary-only page", () => {

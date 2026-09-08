@@ -32,6 +32,7 @@ import {
   ACTIONS as A100,
   EVENTS as SON_EVENTS,
 } from "./next-wave/son100-data.js";
+import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState } from "./next-wave/son100-sim.js";
 import { MAJORS, SHADOWS } from "./next-wave/hayat-data.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
 import { PERIODS, POLICIES_2002, POLICIES } from "./next-wave/devlet-data.js";
@@ -85,7 +86,7 @@ const defs = {
     screens: ["Durum", "Yüküm", "Fırsat", "İlişkiler", "Geçmiş"],
     initial: () => {
       const sc = scenarioOf("financial-recovery");
-      return {
+      return ensureSonState({
         meta: { version: 1, id: "son-100-gun" },
         day: 1,
         remainingDays: 100,
@@ -108,9 +109,9 @@ const defs = {
         missed: [],
         openCases: [],
         history: [],
-        flags: { milestones: [], finalReport: false, workStreak: 0 },
+        flags: { milestones: [], finalReport: false, workStreak: 0, soul: { ...(sc.soul || {}) } },
         ui: { screen: "Durum" },
-      };
+      });
     },
   },
   hayat: {
@@ -208,6 +209,7 @@ export function normalize(id, raw) {
     const screens = ["decisions", "me", "path", "money", "people", "home", "shadows", "history"];
     if (!screens.includes(raw.ui.screen)) raw.ui.screen = "decisions";
   }
+  if (id === "son-100-gun") ensureSonState(raw);
   return raw;
 }
 
@@ -365,125 +367,6 @@ function tickApartman(s) {
     const next = ISSUE_TEMPLATES.find((t) => !used.has(t.id));
     if (next) s.issues.push({ ...next, status: "acik" });
   }
-}
-
-function applySonAction(s, actId) {
-  const act = A100.find((a) => a.id === actId) || A100[0];
-  s.resources.energy = clamp(s.resources.energy + (act.energy || 0));
-  s.resources.money += act.money || 0;
-  s.resources.hope = clamp(s.resources.hope + (act.hope || 0));
-  if (act.family) rel(s, "family", act.family);
-  if (act.friend) rel(s, "friend", act.friend);
-  if (act.work) rel(s, "work", act.work);
-  if (act.work) s.goalProgress.work += act.work;
-  if (act.family || act.friend) s.goalProgress.relationship += 1;
-  if (act.money && act.money > 0) s.goalProgress.money += act.money;
-  if (act.id === "rest") s.goalProgress.health += 2;
-  if (act.risk) s.flags.risk = (s.flags.risk || 0) + act.risk;
-  if (act.id === "work") s.flags.workStreak = (s.flags.workStreak || 0) + 1;
-  else s.flags.workStreak = 0;
-  if ((s.flags.workStreak || 0) >= 4) {
-    rel(s, "friend", -4);
-    rel(s, "family", -3);
-    s.resources.hope = clamp(s.resources.hope - 3);
-    s.resources.energy = clamp(s.resources.energy - 4);
-  }
-  const hit = (s.opportunities || []).find(
-    (o) => o.status === "open" && (o.choices || []).includes(act.id),
-  );
-  if (hit) {
-    hit.status = "done";
-    s.resources.hope = clamp(s.resources.hope + 2);
-    pushHist(s, { type: "opportunity", id: hit.id, result: "caught" });
-  }
-  if (act.id === "pay" || act.id === "min") {
-    const ob = s.obligations.find((o) => o.status === "open");
-    if (ob) {
-      ob.status = act.id === "pay" ? "paid" : "min";
-      s.resources.money -= Math.max(0, (ob.cost || 0) - 200);
-    }
-  }
-  s.actionsRemaining = Math.max(0, s.actionsRemaining - 1);
-  pushHist(s, { type: "act", id: act.id, day: s.day });
-}
-
-function seedOpportunity(s) {
-  s.opportunities = s.opportunities || [];
-  const used = new Set(s.opportunities.map((o) => o.id));
-  const next = SON_EVENTS.find((e) => !used.has(e.id)) || SON_EVENTS[s.day % SON_EVENTS.length];
-  if (!next) return;
-  const openCount = s.opportunities.filter((o) => o.status === "open").length;
-  if (openCount >= 2) return;
-  s.opportunities.push({
-    id: next.id + "_" + s.day,
-    src: next.id,
-    title: next.title,
-    expiresOn: s.day + (next.window || 3),
-    choices: next.choices.slice(),
-    domain: next.domain,
-    status: "open",
-  });
-}
-
-function sonAdvanceDay(s) {
-  s.day += 1;
-  s.remainingDays = Math.max(0, s.remainingDays - 1);
-  s.actionsRemaining = 2;
-  s.resources.energy = clamp(s.resources.energy - 4);
-  for (const o of s.obligations) {
-    if (o.status === "open") {
-      o.due -= 1;
-      if (o.due <= 0) {
-        o.status = "missed";
-        s.missed.push(o.id);
-        s.resources.hope = clamp(s.resources.hope - 8);
-        s.resources.money -= Math.round((o.cost || 0) * 0.15);
-        rel(s, "family", o.domain === "family" || o.domain === "home" ? -6 : -1);
-      }
-    }
-  }
-  for (const op of s.opportunities || []) {
-    if (op.status === "open" && op.expiresOn <= s.day) {
-      op.status = "expired";
-      s.missed.push(op.id);
-      s.resources.hope = clamp(s.resources.hope - 3);
-      if (op.domain === "friend") rel(s, "friend", -5);
-      if (op.domain === "family") rel(s, "family", -4);
-      if (op.domain === "work") rel(s, "work", -3);
-      pushHist(s, { type: "opportunity", id: op.id, result: "expired" });
-    }
-  }
-  if (s.obligations.filter((o) => o.status === "open").length < 2 && s.remainingDays > 8) {
-    s.obligations.push({
-      id: "wave_" + s.day,
-      title: s.day % 3 === 0 ? "Fatura" : "Randevu",
-      due: 6 + (s.day % 5),
-      cost: 120 + (s.day % 7) * 20,
-      domain: s.day % 2 ? "money" : "bureaucracy",
-      status: "open",
-    });
-  }
-  if (s.day % 4 === 0) seedOpportunity(s);
-  for (const m of MILESTONES) {
-    if (s.remainingDays === m && !(s.flags.milestones || []).includes(m)) {
-      s.flags.milestones = (s.flags.milestones || []).concat(m);
-      pushHist(s, { type: "milestone", left: m });
-    }
-  }
-  if (s.remainingDays === 0) {
-    s.flags.finalReport = true;
-    s.flags.report = {
-      money: s.resources.money,
-      energy: s.resources.energy,
-      hope: s.resources.hope,
-      missed: s.missed.slice(),
-      goals: { ...s.goalProgress },
-      workStreakMax: s.flags.workStreak || 0,
-      caught: (s.opportunities || []).filter((o) => o.status === "done").length,
-      expired: (s.opportunities || []).filter((o) => o.status === "expired").length,
-    };
-  }
-  pushHist(s, { type: "day", day: s.day });
 }
 
 function hayatApplyChoice(s, choiceKey) {
@@ -676,27 +559,7 @@ export function applyAction(id, s, action) {
     if (s.actionsRemaining > 0 && !s.flags.finalReport) applySonAction(s, action.slice(4));
     if (s.actionsRemaining === 0 && !s.flags.finalReport) sonAdvanceDay(s);
   } else if (id === "son-100-gun" && action.startsWith("scenario:")) {
-    const sc = scenarioOf(action.slice(9));
-    const fresh = defs["son-100-gun"].initial();
-    Object.assign(s, fresh, {
-      meta: s.meta,
-      scenarioId: sc.id,
-      resources: { ...sc.resources },
-      relationships: Object.entries(sc.relations).map(([id, value]) => ({ id, value })),
-      obligations: sc.obligations.map((o) => ({ ...o, status: "open" })),
-      opportunities: [
-        {
-          id: SON_EVENTS[1].id,
-          title: SON_EVENTS[1].title,
-          expiresOn: 1 + (SON_EVENTS[1].window || 3),
-          choices: SON_EVENTS[1].choices,
-          domain: SON_EVENTS[1].domain,
-          status: "open",
-        },
-      ],
-      missed: [],
-      flags: { milestones: [], finalReport: false, workStreak: 0 },
-    });
+    applySonScenario(s, action.slice(9));
   } else if (id === "hayat" && action === "major-choice") {
     hayatApplyChoice(s, "ambition");
   } else if (id === "hayat" && action.startsWith("choose:")) {

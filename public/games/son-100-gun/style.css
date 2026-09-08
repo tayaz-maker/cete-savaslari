@@ -82,6 +82,14 @@ body {
   margin-bottom: 10px;
   background: #2c1710;
 }
+.window.case {
+  border-color: #8a6a2a;
+  background: #24180c;
+}
+.phase-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
 .stat-list {
   display: grid;
   gap: 12px;
@@ -122,9 +130,41 @@ body {
 .scenario {
   text-align: left;
   min-height: 130px;
+  border: 1px solid var(--line);
+  background: var(--button);
+  cursor: pointer;
+  touch-action: manipulation;
 }
 .scenario.recommended {
   border-color: var(--accent);
+}
+.scenario.is-selected,
+.scenario[aria-pressed="true"] {
+  border-color: #ffd2b0;
+  box-shadow: inset 0 0 0 2px #ffd2b0;
+  background: #3a2218;
+}
+.scenario.is-selected strong {
+  color: #ffe7d4;
+}
+#confirm-start:disabled {
+  opacity: 0.45;
+}
+.verdict-banner {
+  border: 1px solid #8a3a28;
+  background: #1c100c;
+}
+.verdict-kicker {
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--accent);
+}
+.verdict-line {
+  font-size: 1.35rem;
+  font-weight: 850;
+}
+.report-list {
+  padding-left: 1.1rem;
 }
 @media (max-width: 900px) {
   .hundred-grid {
