@@ -19,6 +19,7 @@ function loadI18n() {
   vm.runInNewContext(read("public/i18n/tlab-i18n.js"), context);
   vm.runInNewContext(read("public/i18n/deep-en.js"), context);
   vm.runInNewContext(read("public/i18n/deep-en-final.js"), context);
+  vm.runInNewContext(read("public/i18n/expansion-en.js"), context);
   return context.tlabI18n;
 }
 

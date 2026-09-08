@@ -38,6 +38,7 @@ import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secre
 import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=9";
 import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=9";
 import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=9";
+import { EXPANSION_EVENTS, EXPANSION_CALLBACK_EVENTS, applyExpansionResolution } from "./expansion-events.js?v=9";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -1419,6 +1420,8 @@ export const EVENT_DEFINITIONS = [
   ...BODY_EVENTS,
   ...HOUSEHOLD_EVENTS,
   ...PARENTING_EVENTS,
+  ...EXPANSION_EVENTS.map((event) => ({ ...event, expansion: true })),
+  ...EXPANSION_CALLBACK_EVENTS.map((event) => ({ ...event, expansion: true })),
 ];
 
 export function getEventDefinition(eventId) {
@@ -1445,7 +1448,7 @@ function isEligible(state, definition) {
   // resolveEvent'in aynı hafta içinde zincirleme aktive ettiği bir sonraki olayın
   // (3D olmayan bir olayın ardından bile) o hafta içine sızmasını engeller.
   if (
-    definition.social3D &&
+    (definition.social3D || definition.expansion) &&
     (state.flags.lastSocial3DWeek === state.time.absoluteWeek ||
       state.flags.lastEventResolvedWeek === state.time.absoluteWeek)
   )
@@ -1659,6 +1662,7 @@ export function resolveEvent(state, choiceId) {
   if (definition.parenting) resolveParentChoice(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   if (definition.household) resolveHouseholdChoice(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyBodyResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
+  applyExpansionResolution(state, definition, choiceId);
   if (definition.social3D) state.flags.lastSocial3DWeek = state.time.absoluteWeek;
   state.flags.lastEventResolvedWeek = state.time.absoluteWeek;
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);

@@ -10,7 +10,7 @@ export const WEALTH_LIMITS = {
   durables: 10,
   properties: 3,
   debts: 4,
-  investments: 5,
+  investments: 10,
 };
 export const SUBSCRIPTIONS = {
   streaming: { label: "Film ve dizi", monthly: 180 },
@@ -38,6 +38,11 @@ export const INVESTMENTS = {
   fx: { label: "Döviz sepeti", monthlyRates: [0.012, -0.008, 0.006, 0.01, -0.004] },
   fund: { label: "Karma fon", monthlyRates: [0.014, -0.01, 0.018, -0.006, 0.009] },
   equity: { label: "Hisse sepeti", monthlyRates: [0.025, -0.025, 0.018, -0.012, 0.03, -0.02] },
+  crypto: { label: "Kripto", monthlyRates: [0.08, -0.09, 0.04, -0.06, 0.05, -0.04] },
+  bes: { label: "BES", monthlyRates: [0.006, 0.007, 0.005, 0.008] },
+  land: { label: "Arsa payı", monthlyRates: [0.004, 0.012, -0.003, 0.009, 0.002] },
+  business: { label: "Küçük işletme payı", monthlyRates: [0.02, -0.03, 0.015, -0.01, 0.01] },
+  bond: { label: "Tahvil / bono", monthlyRates: [0.007, 0.006, 0.008, 0.005] },
 };
 export const SPENDING = {
   coffee: { label: "Kahve molası", cost: 180, energy: 1, stress: -2, category: "Günlük yaşam" },
@@ -153,6 +158,38 @@ export const SPENDING = {
     category: "Seyahat",
     time: 2,
   },
+};
+
+export const MARKET = {
+  ...SPENDING,
+  grocery: { label: "Haftalık market", cost: 900, energy: 2, stress: -1, category: "Günlük" },
+  phone_plan: { label: "Telefon / internet faturası", cost: 650, energy: 0, stress: -1, category: "Günlük" },
+  cheap_clothes: { label: "Ucuz kıyafet", cost: 800, energy: -2, stress: -1, category: "Giyim / Statü" },
+  status_shoes: { label: "Marka ayakkabı", cost: 4800, energy: -3, stress: -4, category: "Giyim / Statü" },
+  luxury_watch: { label: "Saat / aksesuar", cost: 12000, energy: -2, stress: -3, category: "Giyim / Statü" },
+  new_phone: { label: "Yeni telefon", cost: 18000, energy: -2, stress: -4, category: "Teknoloji" },
+  laptop: { label: "Dizüstü bilgisayar", cost: 22000, energy: -3, stress: -3, category: "Teknoloji" },
+  headphones: { label: "Kulaklık", cost: 2500, energy: 1, stress: -3, category: "Teknoloji" },
+  furniture: { label: "Mobilya parçası", cost: 4500, energy: -5, stress: -3, category: "Ev" },
+  appliance: { label: "Küçük beyaz eşya", cost: 3800, energy: 2, stress: -2, category: "Ev" },
+  bike: { label: "Bisiklet", cost: 6500, energy: -4, stress: -5, category: "Ulaşım" },
+  scooter: { label: "İkinci el motor", cost: 28000, energy: -5, stress: -4, category: "Ulaşım" },
+  car_service: { label: "Araç bakım / lastik", cost: 3200, energy: -4, stress: -2, category: "Ulaşım" },
+  dentist: { label: "Diş tedavisi", cost: 4500, energy: -6, stress: -8, category: "Sağlık / Spor" },
+  private_clinic: { label: "Özel muayene", cost: 2800, energy: 4, stress: -6, category: "Sağlık / Spor" },
+  therapy: { label: "Terapi seansı", cost: 1600, energy: -2, stress: -10, category: "Sağlık / Spor" },
+  gym_drop: { label: "Tek sefer spor", cost: 250, energy: -6, stress: -4, category: "Sağlık / Spor" },
+  restaurant: { label: "Restoran gecesi", cost: 1800, energy: -4, stress: -6, category: "Eğlence" },
+  club_night: { label: "Kulüp gecesi", cost: 2400, energy: -16, stress: -6, category: "Yetişkin / Gece", adult: true },
+  heavy_drink: { label: "Ağır içki gecesi", cost: 1600, energy: -18, stress: -4, category: "Yetişkin / Gece", adult: true, risk: "alcohol" },
+  cannabis: { label: "Esrar (yasa dışı)", cost: 900, energy: 2, stress: -8, category: "Riskli / Yasadışı", adult: true, risk: "illegal" },
+  betting: { label: "Yasa dışı bahis", cost: 1200, energy: -3, stress: 4, category: "Riskli / Yasadışı", adult: true, risk: "gambling" },
+  casino: { label: "Kumar masası", cost: 3500, energy: -8, stress: 6, category: "Riskli / Yasadışı", adult: true, risk: "gambling" },
+  escort: { label: "Ücretli yetişkin hizmet", cost: 4500, energy: -6, stress: -5, category: "Yetişkin / Gece", adult: true, risk: "sexwork" },
+  family_gift: { label: "Aileye hediye", cost: 1200, energy: -2, stress: -3, category: "Hediyeler" },
+  partner_gift: { label: "Partnere hediye", cost: 1800, energy: -2, stress: -4, category: "Hediyeler" },
+  friend_gift: { label: "Arkadaşa hediye", cost: 700, energy: -2, stress: -2, category: "Hediyeler" },
+  pet_care: { label: "Ev hayvanı bakımı", cost: 800, energy: -3, stress: -3, category: "Günlük" },
 };
 
 const integer = (v, fallback = 0) => (Number.isFinite(v) ? Math.max(0, Math.round(v)) : fallback);
@@ -280,7 +317,7 @@ export function validateWealth(state) {
     w.durables.length > 10 ||
     w.properties.length > 3 ||
     w.debts.length > 4 ||
-    w.investments.length > 5
+    w.investments.length > WEALTH_LIMITS.investments
   )
     return false;
   if (
@@ -337,7 +374,7 @@ export function setLifestyle(state, id) {
 }
 export function spendLifestyle(state, id) {
   normalizeWealth(state);
-  const x = SPENDING[id];
+  const x = MARKET[id] || SPENDING[id];
   if (!x) return { ok: false, reason: "Harcama geçersiz." };
   const action = `wealth-spend:${id}`,
     blocked = weekly(state, action);
@@ -349,9 +386,37 @@ export function spendLifestyle(state, id) {
   const last = state.wealth.cooldowns[id] || 0;
   if (last && state.time.absoluteWeek - last < 4)
     return { ok: false, reason: "Bu deneyimi yeniden planlamak için biraz beklemelisin." };
-  ledger(state, -x.cost, x.label, "lifestyle");
+  ledger(state, -x.cost, x.label, "market");
   state.health.energy = clamp(state.health.energy + x.energy, 0, 100);
   state.health.stress = clamp(state.health.stress + x.stress, 0, 100);
+  if (x.risk === "alcohol") {
+    state.flags.alcoholWeeks = (state.flags.alcoholWeeks || 0) + 1;
+    if (state.health.health > 8) state.health.health = clamp(state.health.health - 2, 0, 100);
+  }
+  if (x.risk === "illegal") {
+    state.flags.illegalRisk = Math.min(100, (state.flags.illegalRisk || 0) + 8);
+    state.flags.lastIllegalWeek = state.time.absoluteWeek;
+  }
+  if (x.risk === "gambling") {
+    const swing = ((state.meta.rngState >>> 0) % 5) - 2;
+    const delta = Math.round(x.cost * swing * 0.25);
+    if (delta) ledger(state, delta, delta > 0 ? "Bahis kazancı" : "Bahis kaybı", "market");
+    state.flags.gamblingWeeks = (state.flags.gamblingWeeks || 0) + 1;
+  }
+  if (x.risk === "sexwork") {
+    state.flags.paidEncounterWeek = state.time.absoluteWeek;
+    if (state.social?.currentPartnerNpcId) state.flags.infidelityRisk = true;
+  }
+  if (id === "partner_gift" && state.social?.currentPartnerNpcId) {
+    const pid = state.social.currentPartnerNpcId;
+    if (Number.isFinite(state.relationships[pid]))
+      state.relationships[pid] = Math.min(100, state.relationships[pid] + 4);
+  }
+  if (id === "family_gift") {
+    for (const pid of ["anne", "baba"])
+      if (Number.isFinite(state.relationships[pid]))
+        state.relationships[pid] = Math.min(100, state.relationships[pid] + 3);
+  }
   state.wealth.cooldowns[id] = state.time.absoluteWeek;
   mark(state, action, time);
   return { ok: true, message: `${x.label} gerçekleşti.` };
@@ -644,7 +709,7 @@ export function getWealthActionAvailability(state, action, value) {
     return state.finances.balance < increase ? { ok: false, reason: `Geçiş için ₺${increase.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
   }
   if (action === "spend") {
-    const item = SPENDING[value]; if (!item) return { ok: false, reason: "Harcama geçersiz." };
+    const item = MARKET[value] || SPENDING[value]; if (!item) return { ok: false, reason: "Harcama geçersiz." };
     const blocked = weekBlocked(`wealth-spend:${value}`, item.time || 1); if (blocked) return { ok: false, reason: blocked };
     const last = w.cooldowns[value] || 0; if (last && state.time.absoluteWeek - last < 4) return { ok: false, reason: "Bu deneyimi yeniden planlamak için biraz beklemelisin." };
     return state.finances.balance < item.cost ? { ok: false, reason: `Bu işlem için ₺${item.cost.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };

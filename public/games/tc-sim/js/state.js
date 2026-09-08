@@ -11,6 +11,12 @@ import { ensureBodyState } from "./body-systems.js?v=9";
 import { getHomeById, getJobById } from "./catalog.js?v=9";
 import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
 import { isEducationLevel, isValidActiveEducation } from "./education.js?v=9";
+import {
+  applyFamilyStartFlags,
+  resolveFamilyType,
+  resolveNetworkMode,
+  selectNetworkPeople,
+} from "./network.js?v=9";
 
 export const SAVE_VERSION = 5;
 export const WEEKS_PER_MONTH = 4;
@@ -60,6 +66,13 @@ export const BACKGROUND_OPTIONS = {
     unfinished: "Yarım kalmış eğitim",
   },
   social: { close: "Yakın çevre", broad: "Geniş çevre", family: "Aile merkezli" },
+  familyType: {
+    nuclear: "Çekirdek Aile",
+    extended: "Geniş Aile",
+    stem: "Kök Aile",
+    single: "Tek Ebeveynli Aile",
+    random: "Rastgele",
+  },
 };
 
 const DEFAULT_TENDENCIES = { risk: 50, discipline: 50, sociability: 50, frugality: 50 };
@@ -167,8 +180,24 @@ export function createNewGame(options = {}) {
     discipline: background.education === "vocational" ? 54 : 50,
   };
   const militaryApplicable = options.militaryApplicable === true;
+  const familyType = resolveFamilyType(options);
+  const networkMode = resolveNetworkMode(options);
+  const extras = selectNetworkPeople(familyType, networkMode, 1);
+  const people = [...createDefaultPeople(1), ...extras.filter((p) => !createDefaultPeople(1).some((d) => d.id === p.id))];
+  const relationships = {
+    anne: Math.max(0, Math.min(100, 70 + socialBonus + familyRelationship)),
+    baba: 64,
+    mehmet: Math.max(0, Math.min(100, 52 + socialBonus + socialRelationship)),
+    elif: 38,
+    selin: 44,
+    emre: 44,
+    burak: 48,
+  };
+  for (const person of extras) {
+    if (!(person.id in relationships)) relationships[person.id] = Math.max(8, Math.min(50, person.social?.trust || 24));
+  }
 
-  return {
+  const state = {
     meta: {
       saveVersion: SAVE_VERSION,
       gameId: options.gameId || `tc-${seed}-${String(options.name || "oyuncu").length}`,
@@ -178,13 +207,13 @@ export function createNewGame(options = {}) {
       yearStartBalance: profile.balance + economicBalance,
       yearStartHealth: { energy: profile.energy, stress: profile.stress, health: 82 },
       yearStartRelationships: {
-        anne: Math.max(0, Math.min(100, 70 + socialBonus + familyRelationship)),
-        baba: 64,
-        mehmet: Math.max(0, Math.min(100, 52 + socialBonus + socialRelationship)),
-        elif: 38,
-        selin: 44,
-        emre: 44,
-        burak: 48,
+        anne: relationships.anne,
+        baba: relationships.baba,
+        mehmet: relationships.mehmet,
+        elif: relationships.elif,
+        selin: relationships.selin,
+        emre: relationships.emre,
+        burak: relationships.burak,
       },
     },
     player: {
@@ -197,6 +226,8 @@ export function createNewGame(options = {}) {
         : "unspecified",
       profile: profile.label,
       background,
+      familyType,
+      networkMode,
       tendencies,
       age: 18,
       city: "İstanbul",
@@ -229,16 +260,8 @@ export function createNewGame(options = {}) {
     education: { level: "lise", fields: educationFields, active: null, tuitionOwedThisMonth: 0 },
     parenthood: neutralParenthood(),
     household: { homeId: "family", livingWithFamily: true, union: neutralUnion(), history: [] },
-    people: createDefaultPeople(1),
-    relationships: {
-      anne: Math.max(0, Math.min(100, 70 + socialBonus + familyRelationship)),
-      baba: 64,
-      mehmet: Math.max(0, Math.min(100, 52 + socialBonus + socialRelationship)),
-      elif: 38,
-      selin: 44,
-      emre: 44,
-      burak: 48,
-    },
+    people,
+    relationships,
     social: { currentPartnerNpcId: null, lastMaintenanceWeek: 0, engaged: false },
     health: { energy: profile.energy, stress: profile.stress, health: 82 },
     body: { exposures: { overwork: 0, underRecovery: 0, inactivity: 0 }, conditions: [] },
@@ -271,6 +294,9 @@ export function createNewGame(options = {}) {
       dueWeek: militaryApplicable ? 96 : null,
     },
   };
+  state.flags.networkMode = networkMode;
+  applyFamilyStartFlags(state, familyType);
+  return state;
 }
 
 export function nextRandom(state) {
@@ -452,11 +478,11 @@ export function normalizeSocialState(state) {
     !Array.isArray(state.relationships)
       ? state.relationships
       : {};
-  state.people = defaults.map((fallback) => {
-    const raw = rawPeople.find((person) => person?.id === fallback.id) || fallback;
-    const social = raw.social && typeof raw.social === "object" ? raw.social : {};
-    const memories = Array.isArray(raw.memories)
-      ? raw.memories
+  const hydrate = (fallback, raw, socialDefault) => {
+    const source = raw || fallback;
+    const social = source.social && typeof source.social === "object" ? source.social : {};
+    const memories = Array.isArray(source.memories)
+      ? source.memories
           .slice(-LIMITS.npcMemories)
           .filter((memory) => memory && typeof memory.text === "string")
           .map((memory, index) => ({
@@ -470,52 +496,88 @@ export function normalizeSocialState(state) {
             year: Number.isInteger(memory.year) ? memory.year : state.time?.year || 2027,
           }))
       : [];
+    const roleId = ["family", "friend", "acquaintance", "work_contact"].includes(source.roleId)
+      ? source.roleId
+      : fallback.roleId;
     return {
       ...fallback,
-      ...raw,
+      ...source,
       id: fallback.id,
-      name: typeof raw.name === "string" && raw.name ? raw.name : fallback.name,
+      name: typeof source.name === "string" && source.name ? source.name : fallback.name,
       relationType:
-        typeof raw.relationType === "string" && raw.relationType
-          ? raw.relationType
+        typeof source.relationType === "string" && source.relationType
+          ? source.relationType
           : fallback.relationType,
-      roleId: fallback.roleId,
-      tags: [...fallback.tags],
-      circles: Array.isArray(raw.circles) ? [...new Set(raw.circles.filter((value) => typeof value === "string"))].slice(0, 4) : [...fallback.circles],
-      contactCategory: typeof raw.contactCategory === "string" ? raw.contactCategory : fallback.contactCategory,
-      dormant: raw.dormant === true,
+      roleId,
+      tags: Array.isArray(source.tags) ? source.tags.filter((v) => typeof v === "string").slice(0, 8) : [...fallback.tags],
+      circles: Array.isArray(source.circles) ? [...new Set(source.circles.filter((value) => typeof value === "string"))].slice(0, 4) : [...fallback.circles],
+      contactCategory: typeof source.contactCategory === "string" ? source.contactCategory : fallback.contactCategory,
+      dormant: source.dormant === true,
       lifeState: {
-        employment: typeof raw.lifeState?.employment === "string" ? raw.lifeState.employment : null,
-        education: typeof raw.lifeState?.education === "string" ? raw.lifeState.education : null,
-        residence: typeof raw.lifeState?.residence === "string" ? raw.lifeState.residence : null,
-        relationship: typeof raw.lifeState?.relationship === "string" ? raw.lifeState.relationship : "single",
-        concern: typeof raw.lifeState?.concern === "string" ? raw.lifeState.concern : null,
+        employment: typeof source.lifeState?.employment === "string" ? source.lifeState.employment : fallback.lifeState?.employment || null,
+        education: typeof source.lifeState?.education === "string" ? source.lifeState.education : null,
+        residence: typeof source.lifeState?.residence === "string" ? source.lifeState.residence : null,
+        relationship: typeof source.lifeState?.relationship === "string" ? source.lifeState.relationship : "single",
+        concern: typeof source.lifeState?.concern === "string" ? source.lifeState.concern : null,
       },
-      lifeMilestones: Array.isArray(raw.lifeMilestones) ? raw.lifeMilestones.slice(-12) : [],
-      knownMilestones: Array.isArray(raw.knownMilestones) ? [...new Set(raw.knownMilestones.filter((value) => typeof value === "string"))].slice(-12) : [],
-      available: raw.available !== false,
+      lifeMilestones: Array.isArray(source.lifeMilestones) ? source.lifeMilestones.slice(-12) : [],
+      knownMilestones: Array.isArray(source.knownMilestones) ? [...new Set(source.knownMilestones.filter((value) => typeof value === "string"))].slice(-12) : [],
+      available: source.available !== false,
+      romanceEligible: source.romanceEligible === true && roleId !== "family",
+      possibleFavors: Array.isArray(source.possibleFavors) ? source.possibleFavors.slice(0, 6) : [],
+      networkEdges: Array.isArray(source.networkEdges) ? source.networkEdges.filter((id) => typeof id === "string").slice(0, 6) : [],
       memories,
       social: {
-        trust: safeRelationshipValue(social.trust, SOCIAL_DEFAULTS[fallback.id].trust),
+        trust: safeRelationshipValue(social.trust, socialDefault?.trust ?? 40),
         tension: safeRelationshipValue(social.tension, 0),
         lastMeaningfulContactWeek:
           Number.isInteger(social.lastMeaningfulContactWeek) && social.lastMeaningfulContactWeek >= 1
             ? Math.min(social.lastMeaningfulContactWeek, state.time?.absoluteWeek || 1)
             : state.time?.absoluteWeek || 1,
         romanceStatus:
-          fallback.roleId !== "family" && ["none", "interest", "partner"].includes(social.romanceStatus)
+          roleId !== "family" && ["none", "interest", "partner"].includes(social.romanceStatus)
             ? social.romanceStatus
             : "none",
+        visibility: typeof social.visibility === "string" ? social.visibility : "heard_of",
       },
     };
+  };
+  const core = defaults.map((fallback) => {
+    const raw = rawPeople.find((person) => person?.id === fallback.id) || fallback;
+    return hydrate(fallback, raw, SOCIAL_DEFAULTS[fallback.id]);
   });
+  const extras = rawPeople
+    .filter((person) => person?.id && !SOCIAL_DEFAULTS[person.id])
+    .slice(0, 48)
+    .map((raw) =>
+      hydrate(
+        {
+          id: raw.id,
+          name: raw.name || raw.id,
+          relationType: raw.relationType || "Tanıdık",
+          roleId: ["family", "friend", "acquaintance", "work_contact"].includes(raw.roleId) ? raw.roleId : "acquaintance",
+          tags: Array.isArray(raw.tags) ? raw.tags : ["peer"],
+          circles: ["acquaintances"],
+          contactCategory: "weak",
+          lifeState: { employment: null, education: null, residence: null, relationship: "single", concern: null },
+        },
+        raw,
+        { trust: 28 },
+      ),
+    );
+  state.people = [...core, ...extras];
   const extendedSave = rawPeople.some((person) => ["selin", "emre", "burak"].includes(person?.id)) && ["selin", "emre", "burak"].some((id) => Object.hasOwn(rawRelationships, id));
+  const extraIds = new Set(extras.map((p) => p.id));
   state.relationships = Object.fromEntries(
-    defaults.filter((person) => extendedSave || !["selin", "emre", "burak"].includes(person.id)).map((person) => [
-      person.id,
-      safeRelationshipValue(rawRelationships[person.id],
-        person.id === "anne" ? 70 : person.id === "baba" ? 64 : person.id === "mehmet" ? 52 : person.id === "elif" ? 38 : 44),
-    ]),
+    state.people
+      .filter((person) => extraIds.has(person.id) || extendedSave || !["selin", "emre", "burak"].includes(person.id))
+      .map((person) => [
+        person.id,
+        safeRelationshipValue(
+          rawRelationships[person.id],
+          person.id === "anne" ? 70 : person.id === "baba" ? 64 : person.id === "mehmet" ? 52 : person.id === "elif" ? 38 : 44,
+        ),
+      ]),
   );
   const rawSocial = state.social && typeof state.social === "object" ? state.social : {};
   const partnerCandidates = state.people.filter((person) => person.social.romanceStatus === "partner");
@@ -523,7 +585,7 @@ export function normalizeSocialState(state) {
     (person) =>
       person.id === rawSocial.currentPartnerNpcId &&
       person.roleId !== "family" &&
-      person.tags.includes("romance_available"),
+      (person.tags.includes("romance_available") || person.romanceEligible),
   );
   const partner = requestedPartner || partnerCandidates[0] || null;
   for (const person of state.people)
@@ -538,6 +600,15 @@ export function normalizeSocialState(state) {
         ? Math.min(rawSocial.lastMaintenanceWeek, state.time?.absoluteWeek || 1)
         : 0,
   };
+  if (typeof state.player === "object" && state.player) {
+    if (!["nuclear", "extended", "stem", "single"].includes(state.player.familyType))
+      state.player.familyType = "nuclear";
+    if (!["tight", "normal", "wide"].includes(state.player.networkMode))
+      state.player.networkMode = state.player.background?.social === "broad" ? "wide" : "tight";
+  }
+  state.flags = state.flags && typeof state.flags === "object" ? state.flags : {};
+  if (!state.flags.familyType) state.flags.familyType = state.player?.familyType || "nuclear";
+  if (!state.flags.networkMode) state.flags.networkMode = state.player?.networkMode || "tight";
   return state;
 }
 

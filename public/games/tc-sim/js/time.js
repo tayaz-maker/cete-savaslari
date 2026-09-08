@@ -34,11 +34,8 @@ import {
   syncPeerMilestones,
   updatePerceivedIdentity,
 } from "./depth3-systems.js?v=9";
-import {
-  processLongTermBody,
-  getBodyYearSummary,
-  getHealthPriorityReflection,
-} from "./body-systems.js?v=9";
+import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=9";
+import { processNetworkWeek } from "./network.js?v=9";
 import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=9";
 
 import { getPlayerVisibleOpenCases } from "./calendar.js?v=9";
@@ -539,6 +536,7 @@ export function advanceWeek(state) {
   processDueOpenCases(state);
   advanceComparisonCircle(state);
   processNpcMilestones(state);
+  processNetworkWeek(state);
   syncPeerMilestones(state);
   expireMilitaryObligation(state);
   updatePerceivedIdentity(state);

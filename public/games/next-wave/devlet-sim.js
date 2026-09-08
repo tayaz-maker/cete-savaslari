@@ -230,10 +230,28 @@ export function applyPolicy(s, policyId) {
 function pickEvent(s) {
   const list = eventsOf(s.eraId);
   if (!list.length) return null;
-  const exact = list.find(
+  const exact = list.filter(
     (e) => (e.year ? e.year === s.time.year : true) && e.month === s.time.month,
   );
-  if (exact) return exact;
+  if (exact.length === 1) return exact[0];
+  if (exact.length > 1) {
+    const seen = new Set((s.events || []).map((x) => x.id));
+    const fresh = exact.find((e) => !seen.has(e.id));
+    if (fresh) return fresh;
+    if ((s.actual?.inflation || 0) > 20) return exact.find((e) => e.domain === "prices") || exact[0];
+    if ((s.heat || 0) > 55) return exact.find((e) => e.domain === "heat" || e.domain === "admin") || exact[0];
+    return exact[s.time.turn % exact.length];
+  }
+  const seen = new Set((s.events || []).map((x) => x.id));
+  const unused = list.filter((e) => !seen.has(e.id));
+  if ((s.actual?.inflation || 0) > 18 || (s.heat || 0) > 60 || s.time.month % 3 === 0) {
+    const pool = unused.length ? unused : list;
+    if ((s.actual?.inflation || 0) > 18) {
+      const priced = pool.find((e) => e.domain === "prices" || e.domain === "fiscal");
+      if (priced) return priced;
+    }
+    return pool[s.time.turn % pool.length];
+  }
   if (s.time.month % 4 === 0) return list[s.time.turn % list.length];
   return null;
 }
