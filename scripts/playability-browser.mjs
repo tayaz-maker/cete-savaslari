@@ -16,6 +16,15 @@ async function loadFixture(page, seed=12345, monthEnd=false) {
   await frame.locator("#continue-game").click();return frame;
 }
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("tariklab::tc-sim:1")));
+export async function revealDesk(frame, target) {
+  const record = await target.evaluate(node => node.closest(".desk-record")?.id);
+  if (record) await frame.locator(`[aria-controls="${record}"]`).click();
+}
+async function act(frame, selector) {
+  const target = frame.locator(selector);
+  await revealDesk(frame, target);
+  await target.click();
+}
 async function scrollNav(page,frame,screen,attribute) {
   await page.setViewportSize({width:1440,height:900});
   await frame.locator(`.compact-nav [${attribute}="${screen}"]`).click();
@@ -57,8 +66,8 @@ export async function correctionFlows(page,surface,id,lang,out) {
   if(id==="tc-sim"){
     let frame=await loadFixture(page);
     await scrollNav(page,frame,"market","data-view");
-    await frame.locator('[data-wealth-action="spend"][data-wealth-value="coffee"]').click();
-    await frame.locator('[data-wealth-action="spend"][data-wealth-value="laptop"]').click();
+    await act(frame, '[data-wealth-action="spend"][data-wealth-value="coffee"]');
+    await act(frame, '[data-wealth-action="spend"][data-wealth-value="laptop"]');
     let state=await saved(page);assert.equal(state.finances.balance,177820);assert.equal(state.wealth.durables[0].id,"computer");
     assert.equal(await frame.locator('[data-wealth-action="spend"][data-wealth-value="laptop"]').isDisabled(),true);
     await page.screenshot({path:`${out}/market-${lang}-effects.png`,fullPage:false});
@@ -70,7 +79,7 @@ export async function correctionFlows(page,surface,id,lang,out) {
       }
       assert.ok(seed);frame=await loadFixture(page,seed);
       await frame.locator('.compact-nav [data-view="market"]').click();
-      await frame.locator('[data-wealth-action="spend"][data-wealth-value="betting"]').click();
+      await act(frame, '[data-wealth-action="spend"][data-wealth-value="betting"]');
       state=await saved(page);assert.equal(state.finances.balance>200000,winning);
       const cash=state.finances.balance;
       await page.reload({waitUntil:"networkidle"});frame=await (await page.locator("iframe").elementHandle()).contentFrame();
@@ -79,7 +88,7 @@ export async function correctionFlows(page,surface,id,lang,out) {
       assert.equal((await saved(page)).finances.balance,cash);
     }
     frame=await loadFixture(page,12345,true);await frame.locator('.compact-nav [data-view="finance"]').click();
-    await frame.locator('[data-wealth-action="invest-buy"][data-wealth-value="gold"]').click();
+    await act(frame, '[data-wealth-action="invest-buy"][data-wealth-value="gold"]');
     assert.equal((await saved(page)).wealth.investments[0].basis,5050);
     await frame.locator("#advance-week").click();
     if(await frame.locator('.event-choice:enabled').count())await frame.locator('.event-choice:enabled').first().click();
@@ -88,14 +97,14 @@ export async function correctionFlows(page,surface,id,lang,out) {
     // The monthly loss can leave less than the standard 5,000 sale ticket.
     // Add another tranche next week through the real buy control, then sell
     // on the following week so proportional basis is exercised in the UI.
-    await frame.locator('[data-wealth-action="invest-buy"][data-wealth-value="gold"]').click();
+    await act(frame, '[data-wealth-action="invest-buy"][data-wealth-value="gold"]');
     await frame.locator("#advance-week").click();
     if(await frame.locator('.event-choice:enabled').count())await frame.locator('.event-choice:enabled').first().click();
-    await frame.locator('[data-wealth-action="invest-sell"][data-wealth-value="gold"]').click();
+    await act(frame, '[data-wealth-action="invest-sell"][data-wealth-value="gold"]');
     state=await saved(page);assert.ok(state.finances.ledger.some(r=>/Gerçekleşmiş|Realized/.test(r.reason)));
     await frame.locator("#advance-week").click();
     if(await frame.locator('.event-choice:enabled').count())await frame.locator('.event-choice:enabled').first().click();
-    await frame.locator('[data-wealth-action="invest-sell-all"][data-wealth-value="gold"]').click();
+    await act(frame, '[data-wealth-action="invest-sell-all"][data-wealth-value="gold"]');
     assert.equal((await saved(page)).wealth.investments.length,0);
     await page.screenshot({path:`${out}/finance-${lang}-pl.png`,fullPage:false});
     return;
@@ -109,15 +118,15 @@ export async function correctionFlows(page,surface,id,lang,out) {
     const text=await surface.locator(".state-center").innerText();assert.doesNotMatch(text,/(?:^|\n)(?:nato|gulf|ir|gr|cy)(?:\n|$)|Isı \d/);
     const info=surface.locator(".metric-help summary");if(await info.count()){await info.first().click();await info.first().click();}
   }
-  const after=await read();delete original.ui;delete after.ui;assert.deepEqual(after,original);
+  const after=await read();assert.deepEqual(after,original, "Navigation must not write even the UI save fields");
   await surface.locator('.compact-nav [data-screen="policy"]').click();
   const buttons=surface.locator("[data-policy]");assert.equal(await buttons.count(),48);
-  await buttons.nth(0).click();await page.waitForTimeout(400);await buttons.nth(1).click();
+  await revealDesk(surface,buttons.nth(0));await buttons.nth(0).click();await page.waitForTimeout(400);await revealDesk(surface,buttons.nth(1));await buttons.nth(1).click();
   assert.equal(await buttons.nth(2).isDisabled(),true);assert.equal((await read()).flags.decisionsRemaining,0);
   await surface.locator('.compact-nav [data-screen="regions"]').click();
   const turn=(await read()).time.turn;await page.waitForTimeout(400);await surface.locator("#advance").click();
   assert.equal((await read()).time.turn,turn+1);
-  assert.equal((await read()).ui.screen,"home");
+  assert.equal(await surface.locator('.compact-nav [data-screen="home"]').getAttribute("aria-current"), "page");
   await surface.locator('.compact-nav [data-screen="home"]').click();
   assert.ok((await surface.locator(".action-feedback").innerText()).includes(lang==="en"?"Month-end report":"Ay sonu raporu"));
   assert.ok(await surface.locator(".state-head h1").evaluate(n=>parseFloat(getComputedStyle(n).fontSize)<=42));

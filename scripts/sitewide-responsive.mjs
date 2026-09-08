@@ -7,6 +7,7 @@ import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 import { townBrowser } from "./son-kasaba-browser.mjs";
 import { correctionFlows } from "./playability-browser.mjs";
+import { deskFlows } from "./management-desk-browser.mjs";
 
 const origin = "http://127.0.0.1:8081";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/tariklab-ux`;
@@ -112,11 +113,15 @@ try {
             const target = nav.locator(`[${attribute}="${destination}"]`);
             if (!(await target.isVisible())) await more.click();
             await target.click();
+            if (["tc-sim", "tc-sim-devlet"].includes(route.id)) assert.equal(await surface.evaluate(() => document.scrollingElement.scrollTop), 0, "A new workspace must open at its primary controls");
             assert.equal(await nav.locator(`[${attribute}="${destination}"]`).getAttribute("aria-current"), "page");
             await measure(destination, [[320,568],[360,800],[390,844],[430,932],[640,360],[768,1024],[1440,900]]);
           }
         }
         await correctionFlows(page, surface, route.id, lang, out);
+        // correctionFlows may reload fixtures; reacquire the current frame.
+        if (["tc-sim", "tc-sim-devlet"].includes(route.id)) surface = await (await page.locator("iframe").elementHandle()).contentFrame();
+        await deskFlows(page, surface, route.id, lang, out);
         await townBrowser(page, surface, route.id, lang, out);
         if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });

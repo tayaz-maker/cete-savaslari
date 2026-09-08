@@ -15,6 +15,7 @@ import {
   text as t,
 } from "../next-wave/shared/runtime.js";
 import { screenHtml, helpHtml, visibleSnapshot } from "./presentation.js";
+import { arrangeStateDesk } from "./desk.js";
 
 const axisLabel = {
   centralization: ["Merkezileşme", "Centralization"],
@@ -83,9 +84,11 @@ const nav = [
 let view = "menu";
 let setupDraft = { era: null, mode: null, goal: null, doctrine: null, alt: null };
 const legacyPeriodScreen = "periods";
+let selectedScreen = null;
 let feedback = null;
 let renderedState = null;
-const renderScreen = state => screenHtml(state, { screen: state.ui?.screen === legacyPeriodScreen ? "period-file" : state.ui?.screen, formOf, feedback });
+const currentScreen = state => selectedScreen || (state.ui?.screen === legacyPeriodScreen ? "period-file" : state.ui?.screen) || "home";
+const renderScreen = state => screenHtml(state, { screen: currentScreen(state), formOf, feedback });
 
 const setupReady = () =>
   Boolean(
@@ -164,6 +167,7 @@ function draw(session) {
   const freshState = state && state !== renderedState;
   if (state !== renderedState) {
     feedback = null;
+    selectedScreen = null;
     renderedState = state;
   }
   if (!state) {
@@ -187,13 +191,13 @@ function draw(session) {
     });
     return;
   }
-  const screen = state.ui?.screen || "home";
+  const screen = currentScreen(state);
   const remaining = state.flags.decisionsRemaining ?? 2;
   root.innerHTML = `<main class="game-root"><header class="topbar"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">TC SIM: DEVLET</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="state-head"><div><p class="eyebrow">${state.time.year}/${String(state.time.month).padStart(2, "0")} · ${h(loc(PERIODS[state.eraId]?.name || state.eraId))}</p><h1>${t("Devlet Merkezi", "State Center")}</h1></div><div class="state-metrics"><span class="pill">${t("Bu ay", "This month")}: ${2-remaining}/2 ${t("karar kullanıldı", "decisions used")}</span></div></section><section class="state-layout"><nav class="state-nav" aria-label="${t("Devlet bölümleri", "State sections")}">${nav.map((item) => `<button type="button" class="${screen === item[0] ? "is-active" : ""}" data-screen="${item[0]}">${t(item[1], item[2])}</button>`).join("")}</nav><div class="state-center">${renderScreen(state)}<div class="month-bar"><span><strong>${t("BU AYKİ KARARLAR", "THIS MONTH'S DECISIONS")} ${2 - remaining}/2 ${t("kullanıldı", "used")}</strong><br><small class="muted">${remaining ? t(`${remaining} karar hakkın kaldı. Ayı ilerletirsen kullanılmayan haklar kaybolur.`, `${remaining} decisions left. Advancing forfeits unused decisions.`) : t("Kurumlar iki kararı uygulamaya hazır.", "Institutions are ready to implement both decisions.")}</small></span><button type="button" id="advance" ${state.flags.campaignEnd ? "disabled" : ""}>${state.flags.campaignEnd ? t("DÖNEM KAPANDI", "PERIOD CLOSED") : t("AYI İLERLET", "ADVANCE MONTH")}</button></div></div></section><p class="notice">${h(session.notice)}</p>${helpHtml()}<footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
   root
     .querySelectorAll("[data-screen]")
     .forEach((button) =>
-      button.addEventListener("click", () => session.setUI("screen", button.dataset.screen)),
+      button.addEventListener("click", () => { selectedScreen = button.dataset.screen; session.render(); if (document.scrollingElement) document.scrollingElement.scrollTop = 0; }),
     );
   root
     .querySelectorAll("[data-policy]")
@@ -203,18 +207,22 @@ function draw(session) {
         session.act(`policy:${button.dataset.policy}`);
       }),
     );
-  root.querySelector("[data-open-policy]")?.addEventListener("click", () => session.setUI("screen", "policy"));
+  root.querySelector("[data-open-policy]")?.addEventListener("click", () => { selectedScreen = "policy"; session.render(); if (document.scrollingElement) document.scrollingElement.scrollTop = 0; });
   root.querySelector("#advance").addEventListener("click", () => {
     const previous = feedback;
     const before = visibleSnapshot(state);
     feedback = { kind: "month", before };
     if (!session.act("advance")) { feedback = previous; session.render(); }
     else {
-      session.setUI("screen", "home");
+      selectedScreen = "home";
+      session.render();
+      const reportDeck = root.querySelector(".action-feedback")?.closest("details");
+      if (reportDeck) reportDeck.open = true;
       root.querySelector(".action-feedback")?.scrollIntoView({ block: "start" });
     }
   });
   bindSavePanel(root, session);
+  arrangeStateDesk(root, screen, t);
   if (freshState && document.scrollingElement) document.scrollingElement.scrollTop = 0;
 }
 

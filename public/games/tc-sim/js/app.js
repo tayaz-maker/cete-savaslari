@@ -1,4 +1,5 @@
 import { compactNavigation } from "../../shared/compact-navigation.js";
+import { arrangeLifeDesk } from "./desk.js?v=9";
 import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, MARKET,
@@ -569,6 +570,11 @@ function renderWeekControl() {
   return `<div class="week-control"><span>Karar <b>${state.weekly.used} / ${Math.max(getWeeklyActivityLimit(state), state.weekly.used)}</b></span><button class="button button-primary" id="advance-week" ${state.events.active ? "disabled" : ""}>Haftayı ilerlet</button></div>`;
 }
 
+function renderDeskLedger() {
+  const entries = [...state.finances.ledger].reverse().slice(0, 40);
+  return `<details class="management-deck life-ledger" open><summary>${confirmText("KASA / SON HAREKETLER", "CASH / RECENT TRANSACTIONS")}</summary><div class="ledger-scroll"><table><thead><tr><th>${confirmText("Zaman", "When")}</th><th>${confirmText("Açıklama", "Description")}</th><th>${confirmText("Tutar (TRY)", "Amount (TRY)")}</th></tr></thead><tbody>${entries.map(entry => `<tr><td>${escapeText(weeksAgoLabel(entry.week))}</td><td>${escapeText(entry.reason)}</td><td>${money(entry.amount)}</td></tr>`).join("") || `<tr><td colspan="3">${confirmText("Henüz işlem yok.", "No transactions yet.")}</td></tr>`}</tbody></table></div></details>`;
+}
+
 function renderCareer() {
   const active = getJobById(state.career.jobId);
   const retired = state.career.retirement?.status === "retired";
@@ -1105,11 +1111,16 @@ function render() {
         <nav class="side-nav" aria-label="Oyun bölümleri">${terminal ? "Yaşam raporu" : renderNav()}</nav>
         <section class="workspace">${workspace}</section>
       </div>
-      ${renderEvent()}
+    ${terminal ? "" : renderDeskLedger()}
+    ${renderEvent()}
       ${helpOpen ? renderHelpModal() : ""}
       <footer class="game-footer">© 2026 TarikLab. Tüm hakları saklıdır.<br>Oyun tasarımı ve özgün içerik: Tarık Halil Ayaz.</footer>
     </main>`;
   applyLangPhrases();
+  if (!terminal) {
+    arrangeLifeDesk(activeView, confirmText);
+    applyLangPhrases();
+  }
   compactNavigation(document.querySelector(".side-nav"), confirmText("Diğer bölümler", "More sections"));
 
   document.querySelectorAll("[data-successor]").forEach(button => button.addEventListener("click", () => {
@@ -1141,6 +1152,7 @@ function render() {
       activeView = target;
       notice = "";
       render();
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     }),
   );
   document.querySelectorAll("[data-person]").forEach((button) =>
