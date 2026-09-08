@@ -212,6 +212,21 @@
     "Dış bağımlılık ile kapasite aynı cümlede.": "External dependence and capacity share one sentence.",
     "Kayıt dışı sınır ticareti resmiyete zorlanır.": "Informal border trade is pushed onto the books.",
     "Sayı görünür olur; siyasi maliyet çıkar.": "The number becomes visible; a political cost appears.",
+    "Koridor sızıntısı": "A corridor leak",
+    "Brüksel dipnotu": "A Brussels footnote",
+    "Washington teyidi": "Washington confirmation",
+    "Ege notası": "Aegean note",
+    "Enerji komşu hattı": "Neighbour energy line",
+    "Fasıl temposu raporu": "Chapter-tempo report",
+    "Körfez sermaye ziyareti": "Gulf capital visit",
+    "Afet artığı dosya": "Disaster leftover file",
+    "Su kaybı raporu": "Water-loss report",
+    "Derslik hesabı": "Classroom arithmetic",
+    "Poliklinik kuyruğu": "Clinic queue",
+    "Tahsilat boşluğu": "Collection gap",
+    "Gecikmiş seri": "Lagging series",
+    "İkinci ihale turu": "Second tender round",
+    "İttifak yükümlülüğü notu": "Alliance-obligation note",
   };
   root.tlabI18n = root.tlabI18n || { PHRASE: {} };
   Object.assign(root.tlabI18n.PHRASE, extra);
