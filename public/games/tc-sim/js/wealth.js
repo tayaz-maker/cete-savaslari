@@ -26,6 +26,12 @@ export const DURABLES = {
   entertainment: { label: "Ev eğlence sistemi", price: 12000, resale: 0.38 },
   bed: { label: "Kaliteli yatak", price: 8500, resale: 0.3 },
   office: { label: "Ev çalışma düzeni", price: 11000, resale: 0.35 },
+  headphones: { label: "Kulaklık", price: 2500, resale: 0.3 },
+  furniture: { label: "Mobilya parçası", price: 4500, resale: 0.3 },
+  appliance: { label: "Küçük beyaz eşya", price: 3800, resale: 0.35 },
+  bike: { label: "Bisiklet", price: 6500, resale: 0.4 },
+  scooter: { label: "İkinci el motor", price: 28000, resale: 0.45 },
+  luxury_watch: { label: "Saat / aksesuar", price: 12000, resale: 0.3 },
 };
 export const VEHICLES = {
   used: { label: "Ekonomik ikinci el", price: 180000, monthly: 3200, resale: 0.68 },
@@ -194,6 +200,55 @@ export const MARKET = {
 
 const integer = (v, fallback = 0) => (Number.isFinite(v) ? Math.max(0, Math.round(v)) : fallback);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const tr = (a, b) => globalThis.window?.tlabI18n?.getLang?.() === "en" ? b : a;
+export const economyText = tr;
+const tl = (n) => `₺${Math.round(n).toLocaleString("tr-TR")}`;
+export const MARKET_OWNERSHIP = { new_phone: "phone", laptop: "computer", headphones: "headphones", furniture: "furniture", appliance: "appliance", bike: "bike", scooter: "scooter", luxury_watch: "luxury_watch" };
+const care = { dentist: 5, private_clinic: 3, therapy: 2, gym_drop: 2, sports: 2 };
+export function durableBenefit(id) {
+  const descriptions = {
+    phone: ["Buluşmalarda enerji maliyeti 2 azalır", "Meetups cost 2 less energy"],
+    computer: ["Okuma ve hobi etkinliklerinde enerji +2", "Reading and hobby activities gain +2 energy"],
+    entertainment: ["Evde film/oyunda stres 3 daha azalır", "Home films/gaming relieve 3 extra stress"],
+    bed: ["Haftalık toparlanma: enerji +3", "Weekly recovery: +3 energy"],
+    office: ["Haftalık toparlanma: enerji +1", "Weekly recovery: +1 energy"],
+    headphones: ["Evde film/oyunda stres 1 daha azalır", "Home films/gaming relieve 1 extra stress"],
+    furniture: ["Haftalık ev rahatlığı: stres −1", "Weekly home comfort: −1 stress"],
+    appliance: ["Haftalık ev kolaylığı: enerji +1", "Weekly household convenience: +1 energy"],
+    bike: ["Haftalık sağlık +1; aylık bakım ₺30", "Weekly health +1; monthly upkeep ₺30"],
+    scooter: ["Haftalık enerji +2; aylık gider ₺250", "Weekly energy +2; monthly cost ₺250"],
+    luxury_watch: ["Hediye verirken stres 1 daha azalır", "Giving gifts relieves 1 extra stress"],
+  };
+  return tr(...descriptions[id]);
+}
+export function marketPreview(state, id) {
+  const item = MARKET[id], owned = new Set((state.wealth?.durables || []).map(x => x.id));
+  let energy = item.energy, stress = item.stress;
+  if (owned.has("phone") && ["cafe", "romantic"].includes(id)) energy += 2;
+  if (owned.has("computer") && ["reading", "hobby"].includes(id)) energy += 2;
+  if (["homefilm", "gaming"].includes(id)) stress -= (owned.has("entertainment") ? 3 : 0) + (owned.has("headphones") ? 1 : 0);
+  if (id.includes("gift") && owned.has("luxury_watch")) stress -= 1;
+  return { energy, stress, health: care[id] || (item.risk === "alcohol" ? -2 : 0), durable: MARKET_OWNERSHIP[id] || null,
+    kind: MARKET_OWNERSHIP[id] ? tr("Kalıcı eşya", "Owned item") : id.includes("gift") ? tr("Hediye", "Gift") : item.risk ? tr("Riskli deneyim", "Risky experience") : care[id] || ["cleaning", "haircut", "repair", "car_service", "phone_plan"].includes(id) ? tr("Hizmet", "Service") : tr("Tüketim / deneyim", "Consumption / experience") };
+}
+export function marketEffectText(state, id) {
+  const item = MARKET[id], p = marketPreview(state, id);
+  return `${p.kind} · ${tr("Karar", "Decisions")} ${item.time || 1} · ${tr("Enerji", "Energy")} ${p.energy >= 0 ? "+" : ""}${p.energy} · ${tr("Stres", "Stress")} ${p.stress >= 0 ? "+" : ""}${p.stress}${p.health ? ` · ${tr("Sağlık", "Health")} ${p.health > 0 ? "+" : ""}${p.health}` : ""}${p.durable ? ` · ${durableBenefit(p.durable)} · ${tr("Tek sahiplik; ikinci el değeri alıştan düşüktür", "Single ownership; resale value is below purchase price")}` : ""}${id.includes("gift") ? ` · ${tr("Uygun mevcut ilişkide yakınlık +3/+4", "Existing eligible relationship +3/+4")}` : ""}${item.risk ? ` · ${tr("Risk", "Risk")}: ${tr(({alcohol:"alkol geçmişi",illegal:"yasal risk +8",gambling:"bahis kaybı/kazancı; tekrar stres yaratır",sexwork:"mevcut ilişkide sadakatsizlik riski"})[item.risk],({alcohol:"alcohol history",illegal:"legal risk +8",gambling:"stake can win or be lost; repetition adds stress",sexwork:"infidelity risk in an existing relationship"})[item.risk])}` : ""}`;
+}
+export function processOwnedBenefits(state) {
+  const w = state.wealth;
+  if (!w || w.cooldowns.ownedBenefitsWeek === state.time.absoluteWeek) return;
+  const owns = id => w.durables.some(x => x.id === id);
+  const energy = Math.min(6, (owns("bed") ? 3 : 0) + (owns("office") ? 1 : 0) + (owns("appliance") ? 1 : 0) + (owns("scooter") ? 2 : 0));
+  state.health.energy = clamp(state.health.energy + energy, 0, 100);
+  state.health.stress = clamp(state.health.stress - (owns("furniture") ? 1 : 0), 0, 100);
+  state.health.health = clamp(state.health.health + (owns("bike") ? 1 : 0), 0, 100);
+  w.cooldowns.ownedBenefitsWeek = state.time.absoluteWeek;
+}
+export function investmentPL(position) {
+  const value = position?.value || 0, basis = position?.basis || 0;
+  return { value, basis, amount: value - basis, percent: basis ? (value - basis) / basis * 100 : 0 };
+}
 const uniqueBy = (items, key) => [...new Map(items.map((x) => [x[key], x])).values()];
 export function neutralWealth() {
   return {
@@ -386,22 +441,33 @@ export function spendLifestyle(state, id) {
   const last = state.wealth.cooldowns[id] || 0;
   if (last && state.time.absoluteWeek - last < 4)
     return { ok: false, reason: "Bu deneyimi yeniden planlamak için biraz beklemelisin." };
+  const preview = marketPreview(state, id);
+  if (preview.durable && state.wealth.durables.some(d => d.id === preview.durable)) return { ok: false, reason: tr("Bu eşya zaten sende; ikinci bir fayda birikmez.", "You already own this item; benefits do not stack.") };
+  if (preview.durable && state.wealth.durables.length >= WEALTH_LIMITS.durables) return { ok: false, reason: tr("Eşya sınırına ulaştın.", "Owned item limit reached.") };
+  const before = { cash: state.finances.balance, ...state.health };
   ledger(state, -x.cost, x.label, "market");
-  state.health.energy = clamp(state.health.energy + x.energy, 0, 100);
-  state.health.stress = clamp(state.health.stress + x.stress, 0, 100);
+  state.health.energy = clamp(state.health.energy + preview.energy, 0, 100);
+  state.health.stress = clamp(state.health.stress + preview.stress, 0, 100);
+  state.health.health = clamp(state.health.health + preview.health, 0, 100);
+  if (preview.durable) state.wealth.durables.push({ id: preview.durable, price: x.cost, acquiredWeek: state.time.absoluteWeek });
   if (x.risk === "alcohol") {
     state.flags.alcoholWeeks = (state.flags.alcoholWeeks || 0) + 1;
-    if (state.health.health > 8) state.health.health = clamp(state.health.health - 2, 0, 100);
   }
   if (x.risk === "illegal") {
     state.flags.illegalRisk = Math.min(100, (state.flags.illegalRisk || 0) + 8);
     state.flags.lastIllegalWeek = state.time.absoluteWeek;
   }
+  let payout = null;
   if (x.risk === "gambling") {
-    const swing = ((state.meta.rngState >>> 0) % 5) - 2;
-    const delta = Math.round(x.cost * swing * 0.25);
-    if (delta) ledger(state, delta, delta > 0 ? "Bahis kazancı" : "Bahis kaybı", "market");
+    let seed = state.meta.rngState >>> 0 || 1;
+    seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+    state.meta.rngState = seed >>> 0 || 1;
+    const roll = state.meta.rngState / 4294967296;
+    const multiplier = roll < .45 ? 0 : roll < .65 ? .5 : roll < .8 ? 1 : roll < .95 ? 2 : 5;
+    payout = Math.round(x.cost * multiplier);
+    if (payout) ledger(state, payout, tr("Bahis geri dönüşü", "Gambling payout"), "market");
     state.flags.gamblingWeeks = (state.flags.gamblingWeeks || 0) + 1;
+    state.health.stress = clamp(state.health.stress + Math.min(6, Math.floor(state.flags.gamblingWeeks / 3)), 0, 100);
   }
   if (x.risk === "sexwork") {
     state.flags.paidEncounterWeek = state.time.absoluteWeek;
@@ -417,9 +483,11 @@ export function spendLifestyle(state, id) {
       if (Number.isFinite(state.relationships[pid]))
         state.relationships[pid] = Math.min(100, state.relationships[pid] + 3);
   }
+  if (["gift", "friend_gift"].includes(id) && Number.isFinite(state.relationships.mehmet)) state.relationships.mehmet = Math.min(100, state.relationships.mehmet + 3);
   state.wealth.cooldowns[id] = state.time.absoluteWeek;
   mark(state, action, time);
-  return { ok: true, message: `${x.label} gerçekleşti.` };
+  const effects = { cash: state.finances.balance - before.cash, energy: state.health.energy - before.energy, stress: state.health.stress - before.stress, health: state.health.health - before.health };
+  return { ok: true, effects, payout, message: `${x.label} · ${payout !== null ? `${tr("Bahis", "Stake")}: ${tl(x.cost)} · ${tr("Geri dönüş", "Payout")}: ${tl(payout)} · ` : ""}${tr("Net nakit", "Net cash")}: ${tl(effects.cash)} · ${tr("Enerji", "Energy")} ${effects.energy} · ${tr("Stres", "Stress")} ${effects.stress} · ${tr("Sağlık", "Health")} ${effects.health}${preview.durable ? ` · ${tr("Artık sende", "Now owned")}: ${durableBenefit(preview.durable)}` : ""}` };
 }
 export function toggleSubscription(state, id) {
   normalizeWealth(state);
@@ -452,14 +520,14 @@ export function buyDurable(state, id) {
   if (blocked) return { ok: false, reason: blocked };
   if (state.finances.balance < x.price) return { ok: false, reason: "Yeterli paran yok." };
   const old = state.wealth.durables.find((d) => d.id === id);
-  if (old) ledger(state, Math.round(old.price * x.resale), `${x.label} ikinci el satışı`);
+  if (old) return { ok: false, reason: tr("Bu eşya zaten sende.", "You already own this item.") };
   else if (state.wealth.durables.length >= 10)
     return { ok: false, reason: "Dayanıklı eşya sınırına ulaştın." };
   ledger(state, -x.price, x.label, "asset");
   state.wealth.durables = state.wealth.durables.filter((d) => d.id !== id);
   state.wealth.durables.push({ id, price: x.price, acquiredWeek: state.time.absoluteWeek });
   mark(state, action);
-  return { ok: true, message: `${x.label} alındı.` };
+  return { ok: true, message: `${x.label} · −${tl(x.price)} · ${durableBenefit(id)}` };
 }
 export function tradeInvestment(state, id, amount) {
   normalizeWealth(state);
@@ -474,7 +542,7 @@ export function tradeInvestment(state, id, amount) {
   if (amount > 0) {
     const cost = Math.ceil(amount * 1.01);
     if (state.finances.balance < cost) return { ok: false, reason: "Yeterli paran yok." };
-    if (!pos && state.wealth.investments.length >= 5)
+    if (!pos && state.wealth.investments.length >= WEALTH_LIMITS.investments)
       return { ok: false, reason: "Yatırım sınıfı sınırına ulaştın." };
     ledger(state, -cost, `${x.label} alımı ve işlem farkı`, "investment");
     if (pos) {
@@ -483,11 +551,15 @@ export function tradeInvestment(state, id, amount) {
     } else state.wealth.investments.push({ id, value: amount, basis: cost, lastMonth: null });
   } else {
     if (!pos || pos.value < Math.abs(amount)) return { ok: false, reason: "Satılacak tutar yok." };
-    const proceeds = Math.floor(Math.abs(amount) * 0.99);
-    ledger(state, proceeds, `${x.label} satışı`, "investment");
+    const sold = Math.abs(amount), basisSold = sold === pos.value ? pos.basis : Math.round(pos.basis * sold / pos.value);
+    const proceeds = Math.floor(sold * 0.99), realized = proceeds - basisSold;
+    const message = `${x.label} · ${tr("Net satış", "Net proceeds")} ${tl(proceeds)} · ${tr("İşlem farkı", "Fee")} ${tl(sold - proceeds)} · ${tr("Satılan maliyet", "Allocated basis")} ${tl(basisSold)} · ${tr("Gerçekleşmiş kâr/zarar", "Realized P/L")} ${tl(realized)}`;
+    ledger(state, proceeds, message, "investment");
     pos.value -= Math.abs(amount);
-    pos.basis = Math.max(0, pos.basis - Math.abs(amount));
+    pos.basis = Math.max(0, pos.basis - basisSold);
     if (!pos.value) state.wealth.investments = state.wealth.investments.filter((p) => p !== pos);
+    state.wealth.cooldowns[key] = 1;
+    return { ok: true, message, proceeds, basisSold, realized };
   }
   state.wealth.cooldowns[key] = 1;
   return { ok: true, message: `${x.label} işlemi tamamlandı.` };
@@ -622,7 +694,7 @@ export function getWealthMonthlySummary(state) {
     rental = w.properties
       .filter((p) => p.occupancy === "rental")
       .reduce((n, p) => n + p.monthlyRent, 0),
-    maintenance = w.properties.reduce((n, p) => n + p.maintenance, 0),
+    maintenance = w.properties.reduce((n, p) => n + p.maintenance, 0) + w.durables.reduce((n,d)=>n+(d.id==="bike"?30:d.id==="scooter"?250:0),0),
     subscriptions = w.subscriptions.reduce((n, s) => n + SUBSCRIPTIONS[s.id].monthly, 0),
     vehicle = w.vehicle ? VEHICLES[w.vehicle.tier].monthly : 0,
     debt = w.debts.reduce((n, d) => n + Math.min(d.principal, d.monthlyPayment), 0);
@@ -663,13 +735,18 @@ export function processWealthMonthEnd(state) {
     }
     if (!d.principal) w.debts = w.debts.filter((x) => x !== d);
   }
+  let valuation = 0;
   for (const p of w.investments) {
     if (p.lastMonth === month) continue;
     const rates = INVESTMENTS[p.id].monthlyRates;
     const rate = rates[month % rates.length];
+    const before = p.value;
     p.value = Math.max(0, Math.round(p.value * (1 + rate)));
     p.lastMonth = month;
+    valuation += p.value - before;
+    ledger(state, 0, `${INVESTMENTS[p.id].label} · ${tr("Gerçekleşmemiş aylık değer değişimi (nakit değil)", "Unrealized monthly value change (not cash)")}: ${tl(p.value - before)}`, "valuation");
   }
+  if (w.investments.length) ledger(state, 0, `${tr("Yatırım raporu — toplam gerçekleşmemiş aylık değişim (nakit değil)", "Investment report — total unrealized monthly change (not cash)")}: ${tl(valuation)}`, "valuation");
   for (const p of w.properties)
     p.currentValue = Math.round(p.currentValue * (1 + (month % 6 === 0 ? 0.004 : 0.001)));
   if (w.vehicle) w.vehicle.currentValue = Math.max(0, Math.round(w.vehicle.currentValue * 0.994));
@@ -710,6 +787,9 @@ export function getWealthActionAvailability(state, action, value) {
   }
   if (action === "spend") {
     const item = MARKET[value] || SPENDING[value]; if (!item) return { ok: false, reason: "Harcama geçersiz." };
+    const durable = MARKET_OWNERSHIP[value];
+    if (durable && w.durables.some(d => d.id === durable)) return { ok: false, reason: tr("Bu eşya zaten sende.", "You already own this item.") };
+    if (durable && w.durables.length >= WEALTH_LIMITS.durables) return { ok: false, reason: tr("Eşya sınırına ulaştın.", "Owned item limit reached.") };
     const blocked = weekBlocked(`wealth-spend:${value}`, item.time || 1); if (blocked) return { ok: false, reason: blocked };
     const last = w.cooldowns[value] || 0; if (last && state.time.absoluteWeek - last < 4) return { ok: false, reason: "Bu deneyimi yeniden planlamak için biraz beklemelisin." };
     return state.finances.balance < item.cost ? { ok: false, reason: `Bu işlem için ₺${item.cost.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
@@ -722,6 +802,7 @@ export function getWealthActionAvailability(state, action, value) {
   }
   if (action === "durable") {
     const item = DURABLES[value]; if (!item) return { ok: false, reason: "Ürün geçersiz." };
+    if (w.durables.some(d => d.id === value)) return { ok: false, reason: tr("Bu eşya zaten sende.", "You already own this item.") };
     const blocked = weekBlocked(`wealth-durable:${value}`); if (blocked) return { ok: false, reason: blocked };
     return state.finances.balance < item.price ? { ok: false, reason: `Bu ürün için ₺${item.price.toLocaleString("tr-TR")} gerekiyor.` } : { ok: true };
   }

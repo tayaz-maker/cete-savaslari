@@ -19,7 +19,7 @@ body {
 }
 .state-head h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.65rem, 3vw, 2.3rem);
   letter-spacing: 0.02em;
 }
 .state-metrics {
@@ -30,7 +30,7 @@ body {
 }
 .state-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 12px;
 }
 .state-nav {
@@ -69,10 +69,21 @@ body {
 .report-card strong {
   display: block;
   font:
-    800 1.7rem ui-monospace,
+    800 1.2rem ui-monospace,
     monospace;
   margin: 0.3rem 0;
 }
+.state-center > * + * { margin-top: 12px; }
+.report-card h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.report-card p, .metric-help p { font-size: 0.88rem; }
+.state-center h2 { font-size: 1.2rem; }
+.loop-guide, .action-feedback { border: 1px solid var(--accent); border-radius: 10px; padding: 12px; background: #18221d; }
+.loop-guide summary, .metric-help summary { min-height: 44px; display: list-item; cursor: pointer; padding: 10px 0; }
+.loop-guide p { margin-bottom: 0; }
+.metric-help { border-top: 1px solid var(--line); margin-top: 8px; }
+.metric-line { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; }
+.report-card meter { width: 100%; height: 12px; accent-color: var(--accent); }
+.decision b { font-size: 0.8rem; color: var(--accent); }
 .confidence {
   color: #d6bd79;
   font-size: 0.76rem;

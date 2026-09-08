@@ -2,7 +2,7 @@ import { compactNavigation } from "../../shared/compact-navigation.js";
 import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, MARKET,
-  getWealthActionAvailability, applyWealthAction, netWorth,
+  getWealthActionAvailability, applyWealthAction, netWorth, marketEffectText, durableBenefit, investmentPL, economyText,
 } from "./wealth.js?v=9";
 import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=9";
 import { parenthoodSummary } from "./parenthood.js?v=9";
@@ -771,22 +771,12 @@ function renderFinance() {
     )
       .map(([id, item]) => {
         const p = state.wealth.investments.find((x) => x.id === id);
-        return `<article class="wealth-card"><strong>${escapeText(item.label)}</strong><small>Değer ${money(p?.value || 0)} · Maliyet ${money(p?.basis || 0)}</small><div class="wealth-actions">${wealthButton("invest-buy", id, "₺5.000 al", "İşlem farkı dahil", state.finances.balance < 5050)}${wealthButton("invest-sell", id, "₺5.000 sat", "Nakit yarat", (p?.value || 0) < 5000)}</div></article>`;
+        const pl = investmentPL(p), risk = Math.max(...item.monthlyRates.map(Math.abs)) >= .04 ? economyText("Yüksek", "High") : item.monthlyRates.some(r=>r<0) ? economyText("Orta", "Moderate") : economyText("Düşük", "Low");
+        return `<article class="wealth-card"><strong>${escapeText(item.label)}</strong><small>Değer ${money(p?.value || 0)} · Maliyet ${money(p?.basis || 0)}</small><p class="investment-pl">${economyText("Gerçekleşmemiş kâr/zarar", "Unrealized P/L")}: ${money(pl.amount)} (${pl.percent.toFixed(1)}%)</p><small>${economyText("Risk", "Risk")}: ${risk} · ${economyText("Satışta %1 işlem farkı daha düşülür.", "Selling deducts a further 1% fee.")}</small><div class="wealth-actions">${wealthButton("invest-buy", id, "₺5.000 al", "İşlem farkı dahil", state.finances.balance < 5050)}${wealthButton("invest-sell", id, "₺5.000 sat", "Nakit yarat", (p?.value || 0) < 5000)}</div></article>`;
       })
       .join("")}</div></section>
-    <section class="panel"><div class="panel-head"><div><p class="eyebrow">ÖNEMLİ EŞYALAR</p><h2>Kalıcı kullanım ve ikinci el değeri</h2></div><span>${money(worth.durables)}</span></div><div class="wealth-grid">${Object.entries(
-      DURABLES,
-    )
-      .map(([id, item]) =>
-        wealthButton(
-          "durable",
-          id,
-          item.label,
-          `${money(item.price)} · yenilemede eskisi satılır`,
-          state.finances.balance < item.price,
-        ),
-      )
-      .join("")}</div></section>
+    <section class="panel"><h2>${economyText("Sahip olduğun eşyalar", "Owned items")}</h2>${state.wealth.durables.map(d=>`<p>${escapeText(DURABLES[d.id].label)} · ${escapeText(durableBenefit(d.id))} · ${economyText("İkinci el değeri", "Resale value")} ${money(Math.round(d.price*DURABLES[d.id].resale))}</p>`).join("") || economyText("Henüz kalıcı eşya yok. Market'ten alabilirsin.", "No owned items yet. Buy them in Market.")}</section>
+    <section class="panel"><h2>${economyText("Yatırım raporu", "Investment report")}</h2>${state.finances.ledger.filter(row=>row.category==="valuation").slice(-11).map(row=>`<p>${economyText("Hafta", "Week")} ${row.week}: ${escapeText(row.reason)}</p>`).join("") || economyText("İlk ay kapanışında gerçekleşmemiş değer değişimleri görünür.", "Unrealized value changes appear at the first month close.")}</section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">ARAÇ</p><h2>Ulaşım varlığı</h2></div><span>${state.wealth.vehicle ? escapeText(VEHICLES[state.wealth.vehicle.tier].label) : "Araç yok"}</span></div><div class="wealth-grid">${
       state.wealth.vehicle
         ? wealthButton(
@@ -826,14 +816,15 @@ function renderMarket() {
       .map(
         ([cat, rows]) =>
           `<section class="panel"><div class="panel-head"><div><p class="eyebrow">KATEGORİ</p><h2>${escapeText(cat)}</h2></div><span>${rows.length}</span></div><div class="wealth-grid">${rows
-            .map(([id, item]) => wealthButton("spend", id, item.label, `${money(item.cost)}${item.risk ? " · riskli" : ""}`))
+            .map(([id, item]) => wealthButton("spend", id, item.label, `${money(item.cost)} · ${marketEffectText(state, id)}`))
             .join("")}</div></section>`,
       )
       .join("")}
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">EŞYA</p><h2>Kalıcı kullanım</h2></div></div><div class="wealth-grid">${Object.entries(
       DURABLES,
     )
-      .map(([id, item]) => wealthButton("durable", id, item.label, money(item.price), state.finances.balance < item.price))
+      .filter(([id]) => ["bed", "office", "entertainment"].includes(id))
+      .map(([id, item]) => wealthButton("durable", id, item.label, `${money(item.price)} · ${durableBenefit(id)} · ${economyText("1 karar; tek sahiplik", "1 decision; single ownership")}`, state.finances.balance < item.price))
       .join("")}</div></section>
     <section class="panel"><div class="panel-head"><div><p class="eyebrow">Ulaşım</p><h2>Araç</h2></div></div><div class="wealth-grid">${
       state.wealth.vehicle

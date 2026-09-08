@@ -154,15 +154,15 @@ test("DEVLET status panel reports, it does not leak simulation truth", () => {
   // Defect: the Durum panel printed actual.inflation / actual.treasury /
   // actual.unemployment straight to the player next to the reported values,
   // which defeats the actual-vs-reported-vs-known mechanic the game is built on.
-  const src = readFileSync(root + "public/games/tc-sim-devlet/app.js", "utf8");
+  const src = readFileSync(root + "public/games/tc-sim-devlet/app.js", "utf8") + readFileSync(root + "public/games/tc-sim-devlet/presentation.js", "utf8");
   assert.equal(
-    /state\.actual\./.test(src),
+    /(?:state|s)\.actual\./.test(src),
     false,
     "no direct state.actual render anywhere in the DEVLET experience",
   );
-  assert.ok(/state\.reported\.inflation/.test(src));
+  assert.ok(/(?:state|s)\.reported\.inflation/.test(src));
   assert.ok(
-    /state\.known/.test(src),
+    /(?:state|s)\.known/.test(src),
     "player-facing figures are reported values with a confidence readout",
   );
 });

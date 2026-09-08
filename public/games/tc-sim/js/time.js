@@ -26,7 +26,7 @@ import {
 import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=9";
 import { activateNextEvent, processDueOpenCases } from "./events.js?v=9";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=9";
-import { processWealthMonthEnd, netWorth } from "./wealth.js?v=9";
+import { processWealthMonthEnd, processOwnedBenefits, netWorth } from "./wealth.js?v=9";
 import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=9";
 import {
   getReputationContext,
@@ -528,6 +528,7 @@ export function advanceWeek(state) {
     state.player.age < 45 ? 7 : state.player.age < 55 ? 6 : state.player.age < 65 ? 5 : 4;
   const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
   adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
+  processOwnedBenefits(state);
   processLifetimeWeek(state);
   if (state.lifetime?.death) {
     assertValidState(state);

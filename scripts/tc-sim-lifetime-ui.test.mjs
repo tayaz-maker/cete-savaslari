@@ -215,6 +215,7 @@ test("wealth controls route through real domain state, persist, and stale clicks
   ui.click(subscription);
   assert.equal(ui.saved().wealth.subscriptions.length, 1);
   const before = ui.saved().finances.balance;
+  ui.click(ui.find("view", "market"));
   const durable = ui.find("wealthAction", "durable");
   ui.click(durable);
   assert.equal(ui.saved().wealth.durables.length, 1);
