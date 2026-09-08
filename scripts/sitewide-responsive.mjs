@@ -34,7 +34,7 @@ try {
       const page = await context.newPage();
       page.on("pageerror", (error) => errors.push(`${route.id}/${lang}: ${error.message}`));
       page.on("console", (message) => {
-        if (message.type() === "error" && message.location().url.startsWith(origin)) errors.push(`${route.id}/${lang}: ${message.text()}`);
+        if (message.type() === "error" && message.location().url.startsWith(origin)) errors.push(`${route.id}/${lang}: ${message.text()} ${message.location().url}`);
       });
       page.on("response", (response) => {
         if (response.url().startsWith(origin) && response.status() >= 400) errors.push(`${route.id}: HTTP ${response.status()} ${response.url()}`);
@@ -66,7 +66,7 @@ try {
         }
         await measure("entry");
         if (route.id === "portal") {
-          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/"]').count(), 14);
+          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/index.html"]').count(), 14);
         }
         if (nextWave.has(route.id)) {
           assert.equal(await surface.locator(".slot-card").count(), 3);

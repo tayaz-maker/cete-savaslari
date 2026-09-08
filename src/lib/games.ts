@@ -66,7 +66,7 @@ export const GAMES: CatalogGame[] = [
     title: "Son Mahalle Bükücü",
     subtitle: "İstanbul tapusu. Semti tutan büker. Para TL.",
     status: "live",
-    href: "/games/bukucu/",
+    href: "/games/bukucu/index.html",
     icon: "bukucu",
   },
   {
