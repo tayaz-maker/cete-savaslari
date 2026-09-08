@@ -76,6 +76,17 @@ test("invalid actions and insufficient budget never partially mutate a town", ()
     assert.deepEqual(s, before, a);
   }
 });
+test("fully restored infrastructure cannot consume budget and capacity for no benefit", () => {
+  const s = createTown();
+  s.metrics.water = 100;
+  const before = copy(s);
+  assert.ok(actionInfo(s, "civic:water").reason);
+  assert.equal(applyTownAction(s, "civic:water"), false);
+  assert.deepEqual(s, before);
+  s.metrics.water = 99;
+  assert.equal(applyTownAction(s, "civic:water"), true);
+  assert.equal(s.metrics.water, 100);
+});
 test("road → supply → price → household migration is a mechanical chain", () => {
   const broken = createTown(),
     repaired = copy(broken);
@@ -289,6 +300,14 @@ test("corrupt, partial, cross-game and nonfinite saves reject without a new town
     },
     (s) => {
       s.report = {};
+    },
+    (s) => {
+      advanceTown(s);
+      s.report.cohorts[0].id = "ghost";
+    },
+    (s) => {
+      advanceTown(s);
+      delete s.report.before.budget;
     },
   ]) {
     const s = createTown();

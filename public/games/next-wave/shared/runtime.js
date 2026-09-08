@@ -276,6 +276,7 @@ export function bootGame(id, draw, engine = {}) {
         return false;
       }
       state = JSON.parse(JSON.stringify(slots[active - 1]));
+      if (safe) rememberActive();
       notice = text(`Slot ${active} yüklendi.`, `Loaded slot ${active}.`);
       render();
       return true;

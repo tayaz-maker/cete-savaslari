@@ -33,6 +33,13 @@ test("safe local sessions isolate slots, preserve active state on failed load, r
     session.save(2);
     session.load(1);
     assert.equal(session.state.playerName, "Bir");
+    const menu = bootGame("hayat", () => {});
+    menu.select(2);
+    menu.continue();
+    assert.equal(menu.state.playerName, "İki");
+    const reloaded = bootGame("hayat", () => {});
+    assert.equal(reloaded.active, 2);
+    assert.equal(reloaded.state, null);
     const state = session.state;
     assert.equal(session.load(3), false);
     assert.equal(session.state, state);

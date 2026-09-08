@@ -288,7 +288,16 @@ export function validateTown(s) {
       !Number.isFinite(s.report.finance.totalIncome) ||
       !Number.isFinite(s.report.finance.totalCosts) ||
       !Array.isArray(s.report.cohorts) ||
-      s.report.cohorts.length !== COHORTS.length)
+      s.report.cohorts.length !== COHORTS.length ||
+      new Set(s.report.cohorts.map((c) => c.id)).size !== COHORTS.length ||
+      s.report.cohorts.some(
+        (c) => !COHORTS.some((d) => d.id === c.id) || !Number.isInteger(c.delta),
+      ) ||
+      [s.report.before, s.report.after].some(
+        (r) =>
+          ["population", "budget", "debt", "trust"].some((k) => !Number.isFinite(r[k])) ||
+          !Object.hasOwn(IDENTITIES, r.identity),
+      ))
   )
     return false;
   if (
@@ -484,6 +493,12 @@ export function actionInfo(s, command) {
     else {
       cost = a.cost;
       label = a.label;
+      if (
+        Object.entries(a.effects).every(
+          ([k, v]) => k in s.metrics && (v > 0 ? s.metrics[k] >= 100 : s.metrics[k] <= 0),
+        )
+      )
+        no("Bu alanda ek iyileştirme gerekmiyor", "No further improvement needed here");
       if (id === "loan" && s.debt >= 200000) no("Borç sınırına ulaştın", "Debt limit reached");
       if (id === "repay" && s.debt < 10000) no("Borç 10.000 TL altında", "Debt below 10,000 TL");
     }
