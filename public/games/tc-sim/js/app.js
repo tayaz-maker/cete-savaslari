@@ -1279,6 +1279,15 @@ function render() {
   });
 }
 
+// Keep the standalone language control outside the rebuilt app. Embedded play
+// uses the portal toggle; this replaces the static-page boot/reload handler.
+window.tlabI18n?.applyHtmlLang?.();
+const languageHost = document.querySelector("#tc-sim-language");
+if (languageHost && window.self === window.top) {
+  languageHost.hidden = false;
+  window.tlabI18n?.mountLangToggle?.(languageHost);
+}
+
 // Language changes are presentation-only: rebuild canonical templates without
 // loading/saving again, advancing time, or losing an unfinished setup form.
 window.tlabI18n?.onLang?.(() => {
