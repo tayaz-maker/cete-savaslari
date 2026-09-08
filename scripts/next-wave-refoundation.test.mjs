@@ -42,7 +42,7 @@ test("every experience exposes its signature loop and binds every primary contro
       "session.act(`proposal:",
     ],
     "son-100-gun": ["data-scenario", "data-action", 'id="finish-day"', "session.act(`act:"],
-    hayat: ["data-choice", 'id="next"', "session.act(`choose:", 'session.act("advance")'],
+    hayat: ["data-choice", 'id="next"', "session.act(`choose:", 'session.act(`advance@'],
     "kayip-telefon": [
       "data-app",
       "data-item",

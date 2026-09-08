@@ -33,6 +33,7 @@ import {
   EVENTS as SON_EVENTS,
 } from "./next-wave/son100-data.js";
 import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState } from "./next-wave/son100-sim.js";
+import { ensureLife, applyLife, lifePassage } from "./next-wave/hayat-life.js";
 import { MAJORS, SHADOWS } from "./next-wave/hayat-data.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
 import { PERIODS, POLICIES_2002, POLICIES } from "./next-wave/devlet-data.js";
@@ -136,7 +137,7 @@ const defs = {
       openCases: [],
       history: [],
       flags: {},
-      ui: { screen: "decisions" },
+      ui: { screen: "actions" },
     }),
   },
   "kayip-telefon": {
@@ -186,6 +187,7 @@ const defs = {
 
 export function create(id) {
   const s = defs[id].initial();
+  if (id === "hayat") ensureLife(s);
   s.meta.seed = 12345;
   return s;
 }
@@ -201,13 +203,8 @@ export function validate(s, id) {
 export function normalize(id, raw) {
   if (!validate(raw, id)) return raw ? null : create(id);
   if (id === "hayat") {
-    raw.playerName =
-      typeof raw.playerName === "string" && raw.playerName.trim()
-        ? raw.playerName.trim().slice(0, 28)
-        : "İsimsiz";
-    raw.ui ||= {};
-    const screens = ["decisions", "me", "path", "money", "people", "home", "shadows", "history"];
-    if (!screens.includes(raw.ui.screen)) raw.ui.screen = "decisions";
+    raw.playerName = typeof raw.playerName === "string" && raw.playerName.trim() ? raw.playerName.trim().slice(0,28) : "İsimsiz";
+    if (!ensureLife(raw)) return null;
   }
   if (id === "son-100-gun") ensureSonState(raw);
   return raw;
@@ -370,12 +367,16 @@ function tickApartman(s) {
 }
 
 function hayatApplyChoice(s, choiceKey) {
-  if (s.flags.majorTurn === s.turn) return;
+  if (!ensureLife(s) || s.age >= 36 || s.flags.majorTurn === s.turn || s.life.used.length >= 2 || (s.turn !== 1 && s.turn % 3 !== 0)) return;
   const used = new Set((s.decisionsLog || []).map((d) => d.event));
   const chapterEvents = MAJORS.filter((m) => m.chapter === s.chapter && !used.has(m.id));
   const pool = chapterEvents.length ? chapterEvents : MAJORS.filter((m) => m.chapter === s.chapter);
   const ev = pool[s.turn % Math.max(1, pool.length)] || MAJORS[0];
   const choice = choiceKey || ev.choice || "ambition";
+  if (![...MAJORS.map(m=>m.choice), "ambition", "give", "help", "stay", "move", "free", "save", "slow", "delay"].includes(choice)) return;
+  if (["give","help","return"].includes(choice) && s.resources.money < 200) return;
+  if (choice === "school" && s.resources.money < 150) return;
+  s.life.used.push("major");
   s.flags.majorTurn = s.turn;
   s.decisionsLog.push({ turn: s.turn, choice, event: ev.id, title: ev.title });
   const tmpl =
@@ -411,7 +412,9 @@ function hayatApplyChoice(s, choiceKey) {
 }
 
 function hayatAdvance(s) {
+  if (!ensureLife(s) || s.age >= 36) return;
   s.turn += 1;
+  lifePassage(s);
   if (s.turn % 4 === 0) s.age += 1;
   s.chapter = Math.min(5, Math.floor((s.age - 18) / 4) + 1);
   const sh = s.shadows.find((x) => x.status === "open" && s.age >= x.eligibleFrom);
@@ -517,6 +520,11 @@ function devletAdvance(s) {
 export function applyAction(id, s, action) {
   if (!s) return null;
   if (typeof action !== "string") return s;
+  if (id === "hayat" && action.includes("@")) {
+    const [command, turn] = action.split("@");
+    if (Number(turn) !== s.turn) return s;
+    action = command;
+  }
   if (id === "apartman" && action.startsWith("focus:")) {
     const issueId = action.slice(6);
     if (s.issues.some((issue) => issue.id === issueId && issue.status === "acik"))
@@ -560,6 +568,8 @@ export function applyAction(id, s, action) {
     if (s.actionsRemaining === 0 && !s.flags.finalReport) sonAdvanceDay(s);
   } else if (id === "son-100-gun" && action.startsWith("scenario:")) {
     applySonScenario(s, action.slice(9));
+  } else if (id === "hayat" && action.startsWith("act:")) {
+    if (ensureLife(s)) applyLife(s, action.slice(4));
   } else if (id === "hayat" && action === "major-choice") {
     hayatApplyChoice(s, "ambition");
   } else if (id === "hayat" && action.startsWith("choose:")) {

@@ -1,3 +1,4 @@
+import { LIFE_ACTIONS, lifeReason, PEOPLE } from "../next-wave/hayat-life.js";
 import { MAJORS } from "../next-wave.js";
 import { CHAPTERS } from "../next-wave/hayat-data.js";
 import {
@@ -40,36 +41,10 @@ function labelShadow(category) {
   return row ? t(row[0], row[1]) : loc(category);
 }
 
-function labelType(type) {
-  const map = {
-    decision: ["Karar", "Decision"],
-    shadow: ["Uzun Gölge", "Long Shadow"],
-    advance: ["Dönem", "Passage"],
-    milestone: ["Eşik", "Milestone"],
-  };
-  const row = map[type];
-  return row ? t(row[0], row[1]) : loc(type);
-}
-
-function labelRelation(id) {
-  const map = {
-    family: ["Aile", "Family"],
-    friend: ["Arkadaş", "Friend"],
-    partner: ["Partner", "Partner"],
-    work: ["İş", "Work"],
-  };
-  const row = map[id];
-  return row ? t(row[0], row[1]) : loc(id);
-}
 const screens = [
-  ["decisions", "KARARLAR", "DECISIONS"],
-  ["me", "BEN", "ME"],
-  ["path", "YOL", "PATH"],
-  ["money", "PARA", "MONEY"],
-  ["people", "İNSANLAR", "PEOPLE"],
-  ["home", "EV", "HOME"],
-  ["shadows", "UZUN GÖLGE", "LONG SHADOW"],
-  ["history", "GEÇMİŞ", "HISTORY"],
+ ["actions","EYLEMLER","ACTIONS"], ["me","BEN","ME"], ["work","İŞ","WORK"], ["path","EĞİTİM","EDUCATION"],
+ ["money","FİNANS","FINANCE"], ["market","MARKET","MARKET"], ["people","İNSANLAR","PEOPLE"], ["home","EV","HOME"],
+ ["family","İLİŞKİLER / AİLE","RELATIONSHIPS / FAMILY"], ["body","BEDEN","BODY"], ["decisions","DÖNÜM NOKTASI","TURNING POINT"], ["shadows","UZUN GÖLGE","LONG SHADOW"], ["history","GEÇMİŞ","HISTORY"]
 ];
 const root = document.body;
 let view = "menu";
@@ -161,69 +136,39 @@ function setup(session) {
     session.commitNew({
       configure: (state) => {
         state.playerName = draftName.trim().slice(0, 28);
-        state.ui = { ...state.ui, screen: "decisions" };
+        state.ui = { ...state.ui, screen: "actions" };
       },
     });
   });
 }
 
+function actionCards(state, filter = () => true) {
+ return `<div class="choice-grid">${LIFE_ACTIONS.filter(filter).map(a=>{const reason=lifeReason(state,a.id);return `<button type="button" class="choice" data-life-action="${a.id}" ${reason?"disabled":""}><strong>${h(t(...a.label))}</strong><small>${t("1 hak", "1 action")} · ₺${a.cost} · ${t("Enerji","Energy")} ${a.energy>0?"+":""}${a.energy} · ${t("Stres","Stress")} ${a.stress>0?"+":""}${a.stress}${a.income?` · ${t("Gelir","Income")} +₺${Math.round(a.income*(state.life.job==="qualified"?1.5:1))}`:""}${a.health?` · ${t("Beden","Health")} +${a.health}`:""}</small>${reason?`<small>${h(t(...reason))}</small>`:""}</button>`}).join("")}</div>`;
+}
+function historyRows(state, count=12) {
+ return state.history.slice(-count).reverse().map(row=>`<div><small>${row.age??""} · ${t("Dönem","Passage")} ${row.turn??"—"}</small><span>${h(row.en?t(row.text,row.en):loc(row.title||row.text||t("Karar kaydedildi","Decision recorded")))}</span></div>`).join("") || `<p>${t("Hayatın ilk adımını bekliyor.","Waiting for your first step.")}</p>`;
+}
+const jobName=s=>s.life.job===null?t("İş arıyor","Looking for work"):s.life.job==="qualified"?t("Nitelikli çalışan","Skilled employee"):t("Mağaza yardımcısı","Shop assistant");
+const homeName=s=>s.life.home==="family"?t("Aile evi","Family home"):t("Paylaşımlı ev","Shared flat");
 function panel(state) {
-  const screen = state.ui?.screen || "decisions";
-  const event = currentEvent(state);
-  const decided = state.flags.majorTurn === state.turn;
-  const open = state.shadows.filter((shadow) => shadow.status === "open");
-  if (screen === "decisions")
-    return `<section class="active-panel decision-surface"><p class="eyebrow">${decided ? t("KARAR VERİLDİ", "DECISION MADE") : t("ANA KARAR", "MAIN DECISION")}</p><h2>${h(loc(event.title))}</h2><p>${h(loc(event.text))}</p>${
-      decided
-        ? `<div class="result-card"><strong>${t("Karar işlendi.", "Decision recorded.")}</strong><p>${open.some((shadow) => shadow.event === event.id) ? t("Bir Uzun Gölge doğdu. Ne zaman döneceği gizli.", "A Long Shadow was born. Its return remains hidden.") : t("Bu karar açık gölge bırakmadı.", "This decision left no open shadow.")}</p></div><button id="next" type="button">${t("SONRAKİ DÖNEM", "NEXT PASSAGE")}</button>`
-        : `<div class="choice-grid">${choicesFor(event)
-            .map((choice) => {
-              const c = choiceCopy[choice] || [
-                choice,
-                "Sonucu şimdi, gölgesi sonra",
-                choice,
-                "Result now; shadow later",
-              ];
-              return `<button type="button" class="choice" data-choice="${h(choice)}"><strong>${h(t(c[0], c[2]))}</strong><small>${h(t(c[1], c[3]))}</small></button>`;
-            })
-            .join("")}</div>`
-    }</section>`;
-  if (screen === "me")
-    return `<section class="active-panel"><p class="eyebrow">${t("BEN", "ME")}</p><h2>${h(state.playerName || t("İsimsiz", "Unnamed"))}</h2><div class="management-grid"><article><span>${t("Yaş", "Age")}</span><b>${state.age}</b></article><article><span>${t("Enerji", "Energy")}</span><b>${state.resources.energy}</b></article><article><span>${t("Beden", "Health")}</span><b>${state.resources.health}</b></article></div></section>`;
-  if (screen === "path")
-    return `<section class="active-panel"><p class="eyebrow">${t("YOL", "PATH")}</p><h2>${h(CHAPTERS.find((c) => c.id === state.chapter)?.name || String(state.chapter))}</h2><p>${t("Verdiğin ana kararlar yolunu ve açılan seçenekleri belirler.", "Main decisions determine your path and the options that open.")}</p><div class="result-feed">${
-      state.decisionsLog
-        .slice(-5)
-        .reverse()
-        .map((d) => `<div><b>${h(loc(d.title))}</b><span>${h(t(choiceCopy[d.choice]?.[0] || d.choice, choiceCopy[d.choice]?.[2] || d.choice))}</span></div>`)
-        .join("") || `<p>${t("Henüz karar yok.", "No decisions yet.")}</p>`
-    }</div></section>`;
-  if (screen === "money")
-    return `<section class="active-panel"><p class="eyebrow">${t("PARA", "MONEY")}</p><div class="management-grid"><article><span>${t("Nakit", "Cash")}</span><b>₺${state.resources.money}</b></article><article><span>${t("Kariyer", "Career")}</span><b>${state.resources.career || 0}</b></article></div></section>`;
-  if (screen === "people")
-    return `<section class="active-panel"><p class="eyebrow">${t("İNSANLAR", "PEOPLE")}</p><div class="management-grid">${
-      (state.relationships || [])
-        .map(
-          (relationship) =>
-            `<article><span>${h(labelRelation(relationship.id))}</span><b>${Math.round(relationship.value)}</b></article>`,
-        )
-        .join("") ||
-      `<p>${t("Bağlar kararlarla oluşacak.", "Bonds will form through decisions.")}</p>`
-    }</div></section>`;
-  if (screen === "home")
-    return `<section class="active-panel"><p class="eyebrow">${t("EV", "HOME")}</p><h2>${h(state.home || t("Başlangıç evi", "Starting home"))}</h2><p>${t("Barınma ve aile kararlarının sonuçları burada görünür.", "Housing and family decisions appear here.")}</p></section>`;
-  if (screen === "shadows")
-    return `<section class="active-panel"><p class="eyebrow">${t("UZUN GÖLGE", "LONG SHADOW")}</p>${open.map((s) => `<article class="shadow"><strong>${h(labelShadow(s.category))}</strong><p>${t("Açık · dönüş zamanı bilinmiyor", "Open · return time unknown")}</p></article>`).join("") || `<p>${t("Henüz açık gölge yok.", "No open shadow yet.")}</p>`}</section>`;
-  return `<section class="active-panel"><p class="eyebrow">${t("GEÇMİŞ", "HISTORY")}</p><div class="result-feed">${
-    state.history
-      .slice(-12)
-      .reverse()
-      .map(
-        (row) =>
-          `<div><b>${h(labelType(row.type))}</b><span>${h(loc(row.title || row.text || choiceCopy[row.choice]?.[0] || row.choice || ""))}</span></div>`,
-      )
-      .join("") || `<p>${t("Kayıt henüz boş.", "The record is empty.")}</p>`
-  }</div></section>`;
+ const screen=state.ui?.screen||"actions",l=state.life,r=state.resources;
+ let body="";
+ if(screen==="actions") body=`<p>${t("Bir dönem hayatının bir mevsimini özetler. İki farklı ana eylem seç; dört dönem bir yıl eder. Kullanmadığın haklar sonraki döneme taşınmaz.","A passage represents a season of your life. Choose two different main actions; four passages make a year. Unused actions do not carry over.")}</p>${actionCards(state,a=>["work","search","friend","date","family","study","rest","exercise","groceries","hobby"].includes(a.id))}`;
+ else if(screen==="me") body=`<h3>${h(state.playerName)}</h3><p>${h(jobName(state))} · ${h(homeName(state))} · ${t("Bölüm","Chapter")} ${h(loc(CHAPTERS.find(c=>c.id===state.chapter)?.name))}</p><p>${t("Yaşam yolu","Life path")}: ${state.decisionsLog.length} ${t("büyük karar","major decisions")} · ${state.shadows.filter(s=>s.status==="resolved").length} ${t("dönen gölge","returned shadows")}</p><div class="result-feed">${historyRows(state,5)}</div>`;
+ else if(screen==="work") body=`<h3>${h(jobName(state))}</h3><p>${t("Gelir işe gittiğinde kazanılır; otomatik maaş yok. İş zamanı ve stres bedeli taşır.","Income is earned when you work; there is no automatic salary. Work costs time and adds stress.")}</p><p>${t("Deneyim","Experience")}: ${l.experience}/4 · ${t("Kurs becerisi","Course skill")}: ${l.skill}/3</p>${actionCards(state,a=>a.panel==="work")}`;
+ else if(screen==="path") body=`<p>${l.skill>=3?t("Kurs tamamlandı. Nitelikli işlere başvurabilirsin.","Course complete. You can apply for skilled work."):l.course?t(`Kurs ilerlemesi: ${l.course.progress}/3. Her çalışma bir adım, kitapla iki adım.`,`Course progress: ${l.course.progress}/3. Each study action adds one step, or two with a book.`):t("Üç çalışmada tamamlanan meslek kursu; işe başvuruda yeni kapı açar.","A vocational course completed in three study actions; opens a new job route.")}</p>${actionCards(state,a=>a.panel==="path")}`;
+ else if(screen==="money") body=`<div class="management-grid"><article>${t("Nakit","Cash")}<b>₺${r.money}</b></article><article>${t("Birikim","Savings")}<b>₺${l.savings}</b></article><article>${t("Borç","Debt")}<b>₺${l.debt}</b></article></div><p>${t("Dönem sonu temel gider","End-of-passage essentials")}: ₺${(l.home==="shared"?280:120)+(l.married?70:0)} + ${t("borcun %2 faizi. Ödenemeyen tutar borca eklenir.","2% debt interest. Unpaid costs become debt.")}</p>${actionCards(state,a=>a.panel==="money")}<div class="result-feed">${historyRows(state,8)}</div>`;
+ else if(screen==="people") body=`<div class="management-grid">${PEOPLE.map(p=>{const n=l.people.find(x=>x.id===p.id);return `<article><h3>${h(p.name)}</h3><p>${t(...p.role)} · ${t("Yakınlık","Closeness")} ${n.value}/100</p><p>${n.memory.length?h(t(n.memory.at(-1).tr,n.memory.at(-1).en)):t("Henüz özel bir anı yok.","No shared memory yet.")}</p></article>`}).join("")}</div>${actionCards(state,a=>a.panel==="people")}`;
+ else if(screen==="home") body=`<h3>${homeName(state)}</h3><p>${l.home==="family"?t("Dönem gideri 120 TL. Daha az mahremiyet, daha düşük gider.","120 TL per passage. Less privacy, lower costs."):t("Dönem gideri 280 TL. Ayrı yaşam alanı; daha yüksek sorumluluk.","280 TL per passage. Independent space and greater responsibility.")}</p>${actionCards(state,a=>a.panel==="home")}`;
+ else if(screen==="family") body=`<p>${l.married?t("Ece ile evli; ortak gider +70 TL/dönem.","Married to Ece; shared costs +70 TL per passage."):l.partner?t("Ece ile ilişkide.","In a relationship with Ece."):t("Şu anda partner yok. Görüşmeler yakınlığı güçlendirir.","No partner currently. Spending time together builds closeness.")}</p>${actionCards(state,a=>a.panel==="family")}`;
+ else if(screen==="body") body=`<p>${t("Enerji","Energy")} ${r.energy}/100 · ${t("Beden","Health")} ${r.health}/100 · ${t("Stres","Stress")} ${l.stress}/100</p><p>${t("Stres 75 üzerindeyse dönem sonunda beden 4 azalır. Her dönem enerji 16 toparlanır.","Stress above 75 costs 4 health at passage end. Each passage restores 16 energy.")}</p>${actionCards(state,a=>a.panel==="body")}`;
+ else if(screen==="market") body=`<p>${t("Küçük tüketimler zaman ve nakit harcar. Çalışma kitabı kalıcıdır: kurs çalışmasını iki kat ilerletir.","Small purchases cost time and cash. The study book is permanent: it doubles course progress.")}</p>${actionCards(state,a=>a.panel==="market")}`;
+ else if(screen==="decisions") {
+  const event=currentEvent(state),due=state.turn===1||state.turn%3===0,decided=state.flags.majorTurn===state.turn;
+  body=!due?`<p>${t("Şu anda büyük bir dönüm noktası yok. Normal hayat eylemleriyle devam et.","No major turning point right now. Continue with everyday life actions.")}</p>`:`<p class="eyebrow">${t("ÖZEL DÖNÜM NOKTASI · 1 HAK","SPECIAL TURNING POINT · 1 ACTION")}</p><h3>${h(loc(event.title))}</h3><p>${h(loc(event.text))}</p>${decided?`<p>${t("Karar kaydedildi. Normal eylemlerine dönebilirsin.","Decision recorded. You can return to everyday actions.")}</p>`:`<div class="choice-grid">${choicesFor(event).map(choice=>{const c=choiceCopy[choice]||["Bu yolu seç","Sonucu şimdi, gölgesi sonra","Choose this path","Result now; shadow later"];const cost=["give","help","return"].includes(choice)?200:choice==="school"?150:0;return `<button type="button" class="choice" data-choice="${choice}" ${l.used.length>=2||r.money<cost||state.age>=36?"disabled":""}><strong>${h(t(c[0],c[2]))}</strong><small>${h(t(c[1],c[3]))} · ₺${cost} · ${t("1 hak","1 action")}</small></button>`}).join("")}</div>`}`;
+ } else if(screen==="shadows") body=state.shadows.map(s=>`<article class="shadow"><h3>${h(labelShadow(s.category))}</h3><p>${t("Kaynak yaş","Source age")}: ${s.createdAt} · ${s.status==="open"?t("Açık · dönüş zamanı gizli","Open · return time hidden"):t("Sonuçlandı","Resolved")}</p>${s.text?`<p>${h(loc(s.text))}</p>`:""}</article>`).join("")||`<p>${t("Henüz gölge yok. Büyük kararlar ileride iz bırakabilir.","No shadows yet. Major decisions can leave a later mark.")}</p>`;
+ else body=`<div class="result-feed">${historyRows(state,60)}</div>`;
+ return `<section class="active-panel"><p class="eyebrow">${h(t(...(screens.find(x=>x[0]===screen)||screens[0]).slice(1)))}</p><h2>${screen==="actions"?t("Bugün hangi hayata emek vereceksin?","Which part of life will you work on?"):h(t(...(screens.find(x=>x[0]===screen)||screens[0]).slice(1)))}</h2>${state.age>=36?`<p class="result-card">${t("Hayat dosyası tamamlandı. Kararlarını ve dönen gölgelerini geçmişte inceleyebilirsin.","Life file complete. Review your decisions and returned shadows in history.")}</p>`:""}${body}</section>`;
 }
 
 function draw(session) {
@@ -234,8 +179,8 @@ function draw(session) {
       title: "HAYAT",
       eyebrow: t("BİR YAŞAM YÖNETİM OYUNU", "A LIFE MANAGEMENT GAME"),
       pitch: t(
-        "Dönüm noktalarını yönet; seçimlerinin yıllar sonra dönen gölgeleriyle yaşa.",
-        "Manage turning points and live with choices whose shadows return years later.",
+        "İş, insanlar, ev ve beden: iki eylemle hayatına yön ver. Büyük kararların gölgeleri yıllar sonra döner.",
+        "Work, people, home and health: shape life with two actions. Major choices cast shadows years later.",
       ),
       slotSummary: (s) =>
         `${h(s.playerName || t("İsimsiz", "Unnamed"))} · ${s.age} ${t("yaş", "years")} · ${t("Bölüm", "Chapter")} ${s.chapter}`,
@@ -249,29 +194,13 @@ function draw(session) {
     });
     return;
   }
-  const screen = state.ui?.screen || "decisions";
-  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">HAYAT</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="life-hud"><div><p class="eyebrow">${h(state.playerName || t("İsimsiz", "Unnamed"))}</p><h1>${state.age} ${t("YAŞ", "YEARS")}</h1></div><div class="hud-metrics"><span>₺${state.resources.money}</span><span>${t("Enerji", "Energy")} ${state.resources.energy}</span><span>${t("Beden", "Health")} ${state.resources.health}</span><span>${t("Bölüm", "Chapter")} ${state.chapter}</span></div></section><section class="life-management"><nav class="life-nav" aria-label="${t("Hayat bölümleri", "Life sections")}">${screens.map((item) => `<button type="button" data-screen="${item[0]}" class="${screen === item[0] ? "is-active" : ""}">${t(item[1], item[2])}</button>`).join("")}</nav><div>${panel(state)}<section class="result-feed live-log"><p class="eyebrow">${t("CANLI SONUÇ AKIŞI", "LIVE RESULT FEED")}</p>${
-    state.history
-      .slice(-4)
-      .reverse()
-      .map(
-        (row) =>
-          `<div><b>${h(labelType(row.type))}</b><span>${h(loc(row.title || choiceCopy[row.choice]?.[0] || row.choice || row.text || ""))}</span></div>`,
-      )
-      .join("") || `<p>${t("İlk kararını bekliyor.", "Waiting for your first decision.")}</p>`
-  }</section></div></section><p class="notice">${h(session.notice)}</p><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
-  root
-    .querySelectorAll("[data-screen]")
-    .forEach((button) =>
-      button.addEventListener("click", () => session.setUI("screen", button.dataset.screen)),
-    );
-  root
-    .querySelectorAll("[data-choice]")
-    .forEach((button) =>
-      button.addEventListener("click", () => session.act(`choose:${button.dataset.choice}`)),
-    );
-  root.querySelector("#next")?.addEventListener("click", () => session.act("advance"));
-  bindSavePanel(root, session);
+  const screen = state.ui?.screen || "actions";
+  const renderedTurn = state.turn;
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar","← Games")}</a><span class="topbar__title">HAYAT</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="life-hud"><div><p class="eyebrow">${h(state.playerName)}</p><h1>${state.age} ${t("YAŞ","YEARS")}</h1><small>${h(jobName(state))} · ${h(homeName(state))}</small></div><div class="hud-metrics"><span>₺${state.resources.money}</span><span>${t("Enerji","Energy")} ${state.resources.energy}</span><span>${t("Beden","Health")} ${state.resources.health}</span><span>${t("Stres","Stress")} ${state.life.stress}</span></div></section><section class="life-management"><nav class="life-nav" aria-label="${t("Hayat bölümleri","Life sections")}">${screens.map(x=>`<button type="button" data-screen="${x[0]}" class="${screen===x[0]?"is-active":""}">${t(x[1],x[2])}</button>`).join("")}</nav><div class="life-center"><div class="passage-bar"><strong>${t("Dönem","Passage")} ${state.turn} · ${state.life.used.length}/2 ${t("hak kullanıldı","actions used")}</strong><button id="next" type="button" ${state.age>=36?"disabled":""}>${t("DÖNEMİ İLERLET","ADVANCE PASSAGE")}</button></div>${panel(state)}<p class="notice" role="status">${h(session.notice)}</p><details class="life-help"><summary>${t("Nasıl oynanır?","How to play?")}</summary><p>${t("Eylemlerden iki farklı iş seç. İş para kazandırır; dinlenme enerji verir. Kurs, iş ve insanlar birbirini açar. Büyük dönüm noktası ara sıra gelir; bir hakkını kullanır ve yıllar sonra Uzun Gölge bırakabilir. Dört dönem bir yıl eder. Dönem sonu giderleri ödenir; para yetmezse borç oluşur. Kullanılmayan haklar kaybolur. Üç kayıt bağımsızdır.","Choose two different everyday actions. Work earns money; rest restores energy. Courses, jobs and people open new paths. Major turning points appear occasionally, cost one action and may return years later as a Long Shadow. Four passages make a year. Essentials are charged at passage end; unpaid costs become debt. Unused actions expire. Three saves are independent.")}</p></details></div><details class="result-feed live-log" open><summary>${t("HAYAT AKIŞI","LIFE FEED")}</summary>${historyRows(state,8)}</details></section><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
+  root.querySelectorAll("[data-screen]").forEach(b=>b.addEventListener("click",()=>session.setUI("screen",b.dataset.screen)));
+  root.querySelectorAll("[data-life-action]").forEach(b=>b.addEventListener("click",()=>session.act(`act:${b.dataset.lifeAction}@${renderedTurn}`)));
+  root.querySelectorAll("[data-choice]").forEach(button=>button.addEventListener("click",()=>session.act(`choose:${button.dataset.choice}@${renderedTurn}`)));
+  root.querySelector("#next")?.addEventListener("click",()=>session.act(`advance@${renderedTurn}`));
+  bindSavePanel(root,session);
 }
-
-bootGame("hayat", draw);
+bootGame("hayat",draw);
