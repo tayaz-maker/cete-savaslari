@@ -25,7 +25,7 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   assert.ok(ready, "production preview did not start");
-  browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined, args: ["--no-sandbox"] });
   for (const lang of ["tr", "en"]) {
     for (const route of [{ id: "portal", href: "/" }, ...routes, { id: "credits", href: "/credits.html" }, { id: "ihtilal", href: "/ihtilal" }]) {
       const context = await browser.newContext({ viewport: { width: 390, height: 844 } });

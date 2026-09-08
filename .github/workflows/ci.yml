@@ -22,7 +22,13 @@ jobs:
       - run: npm run build
       - name: Install Chromium for responsive regression
         timeout-minutes: 5
-        run: npx playwright install --with-deps chromium --only-shell
+        run: |
+          browser_path="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$browser_path" ]; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$browser_path" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium --only-shell
+          fi
       - name: Responsive and interaction regression (TR/EN, 14 live routes)
         timeout-minutes: 10
         run: node scripts/sitewide-responsive.mjs
