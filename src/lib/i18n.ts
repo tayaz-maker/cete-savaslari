@@ -81,6 +81,7 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
     title: "Son 100 Gün",
     subtitle: "The last hundred days. Every choice weighs more.",
   },
+  "son-kasaba": { title: "Son Kasaba", subtitle: "Everyone is leaving. You stay and try to keep the town alive." },
   "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
   ihtilal: { title: "İhtilâl", subtitle: "Elections are won. Power is not kept." },
 };

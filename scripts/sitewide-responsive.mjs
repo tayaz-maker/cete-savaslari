@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
+import { townBrowser } from "./son-kasaba-browser.mjs";
 import { correctionFlows } from "./playability-browser.mjs";
 
 const origin = "http://127.0.0.1:8081";
@@ -13,9 +14,9 @@ mkdirSync(out, { recursive: true });
 const catalog = readFileSync("src/lib/games.ts", "utf8").split("export const GAMES:")[1];
 const routes = [...catalog.matchAll(/slug: "([^"]+)"[\s\S]*?status: "live",\s*href: "([^"]+)"/g)]
   .map((match) => ({ id: match[1], href: match[2] }));
-assert.equal(routes.length, 14);
+assert.equal(routes.length, 15);
 const viewports = [[320,568],[360,800],[390,844],[430,932],[640,360],[740,390],[844,390],[768,1024],[820,1180],[1024,768],[1280,800],[1440,900]];
-const nextWave = new Set(["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon"]);
+const nextWave = new Set(["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon", "son-kasaba"]);
 const errors = [], results = [];
 const server = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", "8081"], { stdio: "inherit" });
 let browser;
@@ -67,7 +68,7 @@ try {
         }
         await measure("entry");
         if (route.id === "portal") {
-          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/index.html"]').count(), 14);
+          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/index.html"]').count(), 15);
         }
         if (nextWave.has(route.id)) {
           assert.equal(await surface.locator(".slot-card").count(), 3);
@@ -96,7 +97,7 @@ try {
           await surface.locator('#new-game-form button[type="submit"]').click();
           await measure("game");
         }
-        if (["tc-sim", "tc-sim-devlet", "hayat"].includes(route.id)) {
+        if (["tc-sim", "tc-sim-devlet", "hayat", "son-kasaba"].includes(route.id)) {
           await page.setViewportSize({ width: 390, height: 844 });
           const nav = surface.locator(".compact-nav");
           const more = nav.locator(".nav-more");
@@ -116,6 +117,7 @@ try {
           }
         }
         await correctionFlows(page, surface, route.id, lang, out);
+        await townBrowser(page, surface, route.id, lang, out);
         if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });
           await page.setViewportSize({ width: 390, height: 844 });

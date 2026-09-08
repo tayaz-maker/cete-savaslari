@@ -47,6 +47,7 @@ const LIVE = [
   "satranc",
   "amiral-batti",
   "hayat",
+  "son-kasaba",
   "apartman",
   "kayip-telefon",
   "son-100-gun",
@@ -75,7 +76,7 @@ test("required EN keys missing = 0", () => {
   assert.equal(missing.length, 0, missing.join(", "));
 });
 
-test("catalog EN covers 14 LIVE games and does not LIVE İhtilâl", () => {
+test("catalog EN covers 15 LIVE games and does not LIVE İhtilâl", () => {
   for (const slug of LIVE) {
     assert.ok(I.CATALOG_EN[slug], slug);
     assert.ok(I.CATALOG_EN[slug].subtitle.length > 8, slug);
