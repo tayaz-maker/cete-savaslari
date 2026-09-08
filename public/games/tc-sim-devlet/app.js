@@ -197,7 +197,7 @@ function draw(session) {
   root
     .querySelectorAll("[data-screen]")
     .forEach((button) =>
-      button.addEventListener("click", () => { selectedScreen = button.dataset.screen; session.render(); }),
+      button.addEventListener("click", () => { selectedScreen = button.dataset.screen; session.render(); if (document.scrollingElement) document.scrollingElement.scrollTop = 0; }),
     );
   root
     .querySelectorAll("[data-policy]")
@@ -207,7 +207,7 @@ function draw(session) {
         session.act(`policy:${button.dataset.policy}`);
       }),
     );
-  root.querySelector("[data-open-policy]")?.addEventListener("click", () => { selectedScreen = "policy"; session.render(); });
+  root.querySelector("[data-open-policy]")?.addEventListener("click", () => { selectedScreen = "policy"; session.render(); if (document.scrollingElement) document.scrollingElement.scrollTop = 0; });
   root.querySelector("#advance").addEventListener("click", () => {
     const previous = feedback;
     const before = visibleSnapshot(state);

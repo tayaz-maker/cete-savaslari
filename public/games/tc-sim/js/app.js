@@ -1152,6 +1152,7 @@ function render() {
       activeView = target;
       notice = "";
       render();
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     }),
   );
   document.querySelectorAll("[data-person]").forEach((button) =>

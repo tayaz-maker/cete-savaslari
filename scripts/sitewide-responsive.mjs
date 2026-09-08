@@ -113,6 +113,7 @@ try {
             const target = nav.locator(`[${attribute}="${destination}"]`);
             if (!(await target.isVisible())) await more.click();
             await target.click();
+            if (["tc-sim", "tc-sim-devlet"].includes(route.id)) assert.equal(await surface.evaluate(() => document.scrollingElement.scrollTop), 0, "A new workspace must open at its primary controls");
             assert.equal(await nav.locator(`[${attribute}="${destination}"]`).getAttribute("aria-current"), "page");
             await measure(destination, [[320,568],[360,800],[390,844],[430,932],[640,360],[768,1024],[1440,900]]);
           }
