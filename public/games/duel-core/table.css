@@ -16,6 +16,11 @@
   --line: #81735355;
   --paper: #e2d5b4;
   --ink: #292b25;
+  /* Single source of truth for physical card shape: ~59:86 trading-card
+     portrait, referenced by every surface that renders a playing-card
+     (board zones, hand, archive, inspector) so front/back and all
+     contexts stay the same shape. */
+  --card-ratio: 59 / 86;
 }
 * {
   box-sizing: border-box;
@@ -525,6 +530,7 @@ dialog {
   padding: 0;
   width: min(680px, calc(100% - 24px));
   max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   box-shadow: 0 20px 100px #000c;
 }
 dialog::backdrop {
@@ -939,9 +945,14 @@ body[data-motion="reduced"] *::before {
 /* Keep the entire decision surface in reach, with depth coming from layers,
    not oversized empty slots. Card detail remains full-size in the inspector. */
 @media (min-width: 761px) {
-  .zone {
-    aspect-ratio: auto;
-    height: clamp(70px, 12dvh, 112px);
+  /* Unit zones only: the slot itself becomes card-shaped (auto width,
+     derived from height via --card-ratio) instead of stretching to the
+     grid column, which was the source of the landscape-shaped cards.
+     Support-row (spell/trap strip) keeps its existing compact design. */
+  .zones:not(.support-row) > .zone {
+    aspect-ratio: var(--card-ratio);
+    justify-self: center;
+    height: clamp(84px, 13dvh, 132px);
   }
   .support-row .zone {
     aspect-ratio: auto;
@@ -1156,24 +1167,21 @@ body[data-motion="reduced"] *::before {
   padding-left: 4px;
 }
 .hand-row .playing-card {
-  flex: 0 0 clamp(125px, 10vw, 175px);
-  min-height: 176px;
+  flex: 0 0 clamp(132px, 10vw, 186px);
+  aspect-ratio: var(--card-ratio);
+  min-height: 0;
 }
 .hand-row {
   padding-top: 14px;
   padding-bottom: 12px;
 }
-.hand-row .card-art {
-  aspect-ratio: 4/3;
-}
+/* Card art no longer forces its own 4:3 landscape sub-box: the outer
+   .playing-card now carries --card-ratio directly, so removing this lets
+   .card-art's base `flex: 1` fill whatever space remains under the name
+   and above the stats row, exactly like it already does on the board. */
 .archive-grid .playing-card {
   min-height: 0;
-}
-.archive-grid .card-art,
-.inspector .card-art,
-.inspector-sheet .card-art {
-  aspect-ratio: 4/3;
-  flex: auto;
+  aspect-ratio: var(--card-ratio);
 }
 .archive-grid .card-name {
   font-size: 0.9rem;
@@ -1183,6 +1191,7 @@ body[data-motion="reduced"] *::before {
   width: 100%;
   min-height: 0;
   max-width: 400px;
+  aspect-ratio: var(--card-ratio);
   margin-inline: auto;
 }
 .inspector .card-name,
@@ -1276,8 +1285,9 @@ body[data-motion="reduced"] *::before {
     font-size: 0.58rem;
   }
   .hand-row .playing-card {
-    min-height: 172px;
-    flex-basis: 132px;
+    flex-basis: 138px;
+    aspect-ratio: var(--card-ratio);
+    min-height: 0;
   }
   .hand-row .card-name,
   .archive-grid .card-name {
