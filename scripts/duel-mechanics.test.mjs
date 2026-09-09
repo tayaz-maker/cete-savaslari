@@ -491,3 +491,51 @@ test("a negated special summon consumes declared ritual materials before the res
   assert.ok(s.players[0].grave.includes(ritual));
   assert.equal(s.players[0].units.filter(Boolean).length, 0);
 });
+
+test("Consensus cannot exchange a single low-level unit for a two-material auxiliary summon", () => {
+  const s = fixture();
+  const consensus = place(s, "SND-062", 0, "units"),
+    low = place(s, "SND-001", 0, "units", 1);
+  place(s, "SND-068", 0, "auxiliary");
+  const before = serialize(s);
+  assert.equal(
+    rejection(s, { type: "activate", player: 0, revision: s.revision, card: consensus }),
+    "no-legal-target",
+  );
+  assert.equal(serialize(s), before);
+  assert.ok(s.players[0].units.includes(low));
+  place(s, "SND-002", 0, "units", 2);
+  assert.equal(
+    rejection(s, { type: "activate", player: 0, revision: s.revision, card: consensus }),
+    null,
+  );
+});
+
+test("losing a required material in the response fizzles the exchange without a partial payment", () => {
+  let s = fixture();
+  const consensus = place(s, "SND-062", 0, "units"),
+    first = place(s, "SND-001", 0, "units", 1),
+    second = place(s, "SND-002", 0, "units", 2);
+  s.cards[second].face = "down";
+  const auxiliary = place(s, "SND-068", 0, "auxiliary"),
+    trap = place(s, "SND-135", 1, "support");
+  s = act(s, { type: "activate", card: consensus });
+  s = act(s, { type: "respond", card: trap });
+  assert.ok(s.choice);
+  s = act(s, { type: "choose", targets: [second] });
+  assert.ok(s.players[0].units.includes(first));
+  assert.ok(s.players[0].grave.includes(second));
+  assert.ok(s.players[0].auxiliary.includes(auxiliary));
+  assert.ok(s.log.some((e) => e.event === "targets-unavailable"));
+  assert.equal(s.choice, null);
+});
+
+test("a targeted response is unavailable until a real legal target exists", () => {
+  const s = fixture(),
+    trap = place(s, "SND-135", 1, "support");
+  s.pending = { action: { type: "draw", player: 0 }, responding: 1, negated: false };
+  assert.equal(responseCards(s).includes(trap), false);
+  const target = place(s, "SND-002", 0, "units");
+  s.cards[target].face = "down";
+  assert.equal(responseCards(s).includes(trap), true);
+});

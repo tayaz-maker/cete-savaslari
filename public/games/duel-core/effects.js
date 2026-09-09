@@ -8,6 +8,13 @@ import { specialPlans, ritualPlans, specialAllowed } from "./summoning.js";
 export const primitives = {
   select(ctx, op) {
     const ids = candidates(ctx.state, ctx.player, { ...op.selector, reference: ctx.source });
+    if (!op.all && op.count > 1 && ids.length < op.count) {
+      const job = ctx.state.work.find((item) => item.id === ctx.jobId);
+      if (job) job.effects = [];
+      ctx.targets.length = 0;
+      log(ctx.state, "targets-unavailable", { player: ctx.player, uid: ctx.source });
+      return;
+    }
     if (op.all) ctx.targets.push(...ids);
     else {
       const chosen = ctx.selections?.[op.key] || [];

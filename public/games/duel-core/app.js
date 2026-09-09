@@ -930,6 +930,7 @@ export async function startApp(theme, designs) {
       return `${who}: ${cname(e.uid, v)} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
     if (e.event === "phase") return `${who}: ${t(e.phase)}`;
     if (e.event === "result") return t("finished");
+    if (e.event === "targets-unavailable") return t("targetsUnavailable");
     return `${who}: ${t(e.event === "start" ? "start" : e.event === "look" ? "select" : e.event === "reveal" ? "effect" : e.event === "token" ? "summon" : "effect")}`;
   }
   function board() {

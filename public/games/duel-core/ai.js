@@ -32,6 +32,20 @@ export function chooseAction(view, actions) {
     if (action.type === "set-support")
       value = card.kind === "trap" || card.subtype === "quick" ? 60 : -20;
     if (action.type === "activate") value = 80;
+    if (["activate", "respond"].includes(action.type)) {
+      const effects = card?.effects || [];
+      const destroys = (owner) =>
+        effects.some(
+          (op, i) =>
+            op.op === "select" && op.selector.owner === owner && effects[i + 1]?.op === "destroy",
+        );
+      // Public field occupancy is enough to avoid paying for an empty opposing side.
+      if (destroys("own") && destroys("opponent") && !opponent.units.some(Boolean)) value = -100;
+      const damage = effects
+        .filter((op) => op.op === "points" && op.opponent && op.amount < 0)
+        .reduce((sum, op) => sum - op.amount, 0);
+      if (damage >= opponent.points) value = 10000;
+    }
     if (action.type === "position")
       value =
         card.face === "down" || (card.position === "defense" && card.attack > card.defense)

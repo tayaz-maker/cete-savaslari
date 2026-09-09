@@ -694,7 +694,8 @@ export function rejection(state, action) {
       !def.effects
         .slice(0, def.effects.indexOf(firstSelect))
         .some((op) => ["draw", "drawSetTrap", "move", "summon"].includes(op.op)) &&
-      !candidates(state, action.player, { ...firstSelect.selector, reference: action.card }).length
+      candidates(state, action.player, { ...firstSelect.selector, reference: action.card }).length <
+        (firstSelect.count || 1)
     )
       return "no-legal-target";
     if (
@@ -744,6 +745,16 @@ export function responseCards(state) {
     .filter((uid) => {
       const def = definition(state, uid);
       if (state.pending.allowed && !state.pending.allowed.includes(uid)) return false;
+      const selection = def.effects.find((op) => op.op === "select" && !op.all);
+      if (
+        selection &&
+        !def.effects
+          .slice(0, def.effects.indexOf(selection))
+          .some((op) => ["draw", "drawSetTrap", "move", "summon", "token"].includes(op.op)) &&
+        candidates(state, who, { ...selection.selector, reference: uid }).length <
+          (selection.count || 1)
+      )
+        return false;
       return (
         (def.response?.includes(state.pending.action.type) ||
           (def.kind === "spell" && modified(state, uid, "quick"))) &&

@@ -107,3 +107,10 @@ the consumed attack right. Catalog/resources release follows this checkpoint.
 Vercel preview succeeded. The separate Cloudflare Workers check already
 failed on accepted main 73a7ee36 and continues to fail on the feature branch;
 no Cloudflare account or deployment settings were changed.
+
+A final interactive check exposed an AI mutual-destruction play against an empty
+opposing field. The public-information heuristic now declines that harmful trade.
+A related exact-count regression prevents Consensus from exchanging one unit for
+a two-material summon; if a response removes a required material, the remaining
+exchange fizzles visibly without taking a partial payment. Both paths have targeted
+regressions and require the final complete CI gate again before main integration.

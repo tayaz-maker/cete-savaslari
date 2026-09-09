@@ -61,6 +61,7 @@ export const labels = {
     materials: "Malzemeler",
     tributes: "Adaklar",
     noActions: "Bu kart için şu anda yasal işlem yok.",
+    targetsUnavailable: "Gerekli hedefler kalmadığı için etki tamamlanamadı.",
     thinking: "Rakip düşünüyor…",
     yourMove: "Sıra sizde",
     response: "Rakibin işlemine tek tepki verebilirsiniz.",
@@ -177,6 +178,8 @@ export const labels = {
     zone: "Zone",
     materials: "Materials",
     tributes: "Tributes",
+    targetsUnavailable:
+      "The effect could not finish because required targets are no longer available.",
     noActions: "This card has no legal action right now.",
     thinking: "Opponent is thinking…",
     yourMove: "Your move",

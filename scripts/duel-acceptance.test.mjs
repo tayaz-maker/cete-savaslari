@@ -104,3 +104,21 @@ test("TR and EN UI keys are complete and symmetrical", () => {
   for (const dict of Object.values(labels))
     assert.ok(Object.values(dict).every((v) => typeof v === "string" && v.length));
 });
+
+test("AI passes a self-destructive mutual trade against an empty public field and spots lethal effects", () => {
+  const clash = pools["gett-oh"].find((c) => c.id === "RCN-139");
+  const view = {
+    viewer: 0,
+    players: [
+      { points: 8000, units: ["own"] },
+      { points: 400, units: [null, null, null, null, null] },
+    ],
+    cards: { clash },
+  };
+  const pass = { type: "pass", player: 0 },
+    respond = { type: "respond", player: 0, card: "clash" };
+  assert.deepEqual(chooseAction(view, [pass, respond]), pass);
+  const lethal = { type: "activate", player: 0, card: "damage" };
+  view.cards.damage = { effects: [{ op: "points", opponent: true, amount: -500 }] };
+  assert.deepEqual(chooseAction(view, [pass, lethal]), lethal);
+});
