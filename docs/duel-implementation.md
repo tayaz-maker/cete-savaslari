@@ -33,3 +33,39 @@ reduced-motion eliminates movement. No WebGL or baked screenshot UI.
 - Master overrides first-turn draw, names/routes and independent game menus.
 
 Status: implementation in progress, not released.
+
+## Explicit source resolutions
+
+- RCN-149 keeps **Tanımıyorum**, with **Semt Korudu** as an alternate timing mode.
+  Targeted-effect mode negates the declared effect; battle mode prevents one
+  destruction of the defending unit while preserving damage. RCN-150 remains
+  **Konsey Durdurdu**. This combines two source entries into one dual-mode record
+  because the source supplies 25 trap names for 24 IDs. No effect is discarded.
+- No separate **Kurultay** ritual spell exists in the supplied SND rows. Rather
+  than invent card 151, SND-065/066 **Kurultay Delegesi** enables the rite and is
+  consumed in addition to level materials. This authored interpretation is shown
+  in TR/EN card details and must be reported as a source clarification.
+- RCN-090 **Yemin Metni** retains its source unit statistics and also enables the
+  ritual action, being consumed when used as the rite. Ritual summons without an
+  enabler are not legal.
+- The source section headings disagree with the actual row categories. The
+  implemented row totals are SND 82 units / 42 spells / 26 traps and RCN
+  90 units / 36 spells / 24 traps, with 150 IDs in each theme.
+- Activated unit abilities without an explicit repetition limit use one activation
+  per turn; explicitly once-per-duel effects keep their separate persistent right.
+- RCN-034 uses the source's explicit Wall-token alternative (0 ATK / 1000 DEF).
+- Destruction-specific reactions have their own single post-destruction window,
+  restricted to that trigger. They do not reopen the original attack/effect chain.
+
+## Checkpoints
+
+- 261ecbed708a9dfdfff59205c8eaaca6f688a502: preserved WIP engine, definitions,
+  menus/archive and original CSS 2.5D table; no catalog changes. Vercel preview
+  reported success; preview requires Vercel login in the cloud browser.
+- 73e176441492a6de021d9f8b33b5bfc545d40fee: targeted acceptance and CI Chromium
+  harness; source/cost/ritual refinements. Still not accepted for release.
+
+Current evidence (not a release verdict): 17 targeted tests including 10,000 deck
+seeds per theme; prior 500 AI duels per theme without cap hits; local full
+regression 891 MJS / 50 TS. Rule refinements require refreshed final evidence.
+Card primitive registration alone is not proof of semantic correctness.

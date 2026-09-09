@@ -11,4 +11,6 @@ export function shuffle(values, state) {
   }
   return out;
 }
-export function pick(values, state) { return values[Math.floor(random(state) * values.length)]; }
+export function pick(values, state) {
+  return values[Math.floor(random(state) * values.length)];
+}
