@@ -330,6 +330,58 @@ export async function startApp(theme, designs) {
         "State changed; select the action again.",
       ],
     };
+    Object.assign(map, {
+      "unit-zone-required": [
+        "Boş bir kadro bölgesi veya o bölgeden adak gerekli.",
+        "Requires an empty unit zone or a tribute from that zone.",
+      ],
+      "support-zone-required": [
+        "Boş bir destek bölgesi gerekli.",
+        "Requires an empty support zone.",
+      ],
+      "insufficient-points": [
+        "Etki bedelini ödeyecek puan yok.",
+        "Not enough points to pay the effect cost.",
+      ],
+      "no-legal-target": [
+        "Etki koşullarını karşılayan hedef yok.",
+        "No target meets the effect requirements.",
+      ],
+      "special-requirements": [
+        "Gerekli malzemeler, ritüel kartı veya boş bölge eksik.",
+        "Missing required materials, ritual enabler or an empty zone.",
+      ],
+      "flip-required": ["Kapalı kart önce açılmalı.", "Flip this face-down card first."],
+      "effect-negated": [
+        "Etki bir saha kuralıyla engelleniyor.",
+        "An active field rule blocks this effect.",
+      ],
+      "response-pending": [
+        "Önce bekleyen tepkiyi tamamlayın.",
+        "Complete the pending response first.",
+      ],
+      "choice-required": [
+        "Önce bekleyen kart seçimini tamamlayın.",
+        "Complete the pending card choice first.",
+      ],
+      "series-required": [
+        "Gerekli seriden bir kart sahada olmalı.",
+        "Requires the specified series on the field.",
+      ],
+      "name-locked": ["Bu isim bu tur kilitlendi.", "This name is locked for this turn."],
+      "hand-limit": [
+        "Bitişte elinizi altı karta indirin.",
+        "Reduce your hand to six cards at End.",
+      ],
+      "invalid-unit": [
+        "Bu işlem eldeki bir kadro içindir.",
+        "This action requires a unit in hand.",
+      ],
+      "attack-used": [
+        "Saldırı pozisyonu veya kullanılmamış saldırı hakkı gerekli.",
+        "Requires attack position and an unused attack right.",
+      ],
+    });
     return map[code]?.[lang === "tr" ? 0 : 1] || t("notLegal");
   }
   function scheduleAI() {
@@ -709,7 +761,17 @@ export async function startApp(theme, designs) {
     ];
     if (!available.length) body.push($("p", {}, t("noActions")));
     if (card.name && card.owner === 0)
-      for (const type of ["summon", "activate", "position", "attack"])
+      for (const type of card.kind === "unit"
+        ? card.zone === "hand"
+          ? ["summon", "set-unit", ...(card.effects.length ? ["activate"] : [])]
+          : card.zone === "units"
+            ? ["position", "attack", ...(card.effects.length ? ["activate"] : [])]
+            : []
+        : card.zone === "hand"
+          ? ["activate", card.subtype === "field" ? "set-field" : "set-support"]
+          : card.face === "down"
+            ? ["activate"]
+            : [])
         if (!groups.includes(type)) {
           const error = rejection(state, {
             type,

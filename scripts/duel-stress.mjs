@@ -36,6 +36,10 @@ for (const [theme, pool] of Object.entries(pools)) {
       count,
       wins,
       mean: turns.reduce((a, b) => a + b, 0) / count,
+      median: (() => {
+        const a = [...turns].sort((x, y) => x - y);
+        return (a[Math.floor((a.length - 1) / 2)] + a[Math.floor(a.length / 2)]) / 2;
+      })(),
       max: Math.max(...turns),
     }),
   );

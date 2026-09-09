@@ -17,6 +17,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Duel deterministic stress (500 per theme)
+        timeout-minutes: 5
+        run: node scripts/duel-stress.mjs 500
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build

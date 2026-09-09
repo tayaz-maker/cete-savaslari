@@ -78,11 +78,11 @@ export function buildCards(source, designs, theme) {
         tr:
           raw.kind === "unit"
             ? "Kademe, çağrı maliyetini belirler. Ayrıntıda yasal işlemleri kontrol et."
-            : "Zamanlama ve hedef koşullarını kontrol et; set kartları beklemek zorundadır.",
+            : "Tuzaklar ve set Hızlı kartlar sonraki turu bekler. Hedef ve zamanlama koşullarını kontrol et.",
         en:
           raw.kind === "unit"
             ? "Level determines the summon cost. Check legal actions in the inspector."
-            : "Check timing and target requirements; Set cards must wait.",
+            : "Traps and Set Quick-Play cards must wait until a later turn. Check timing and target requirements.",
       },
       effects,
       costs,

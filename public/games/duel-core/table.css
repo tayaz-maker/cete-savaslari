@@ -205,7 +205,7 @@ small {
 }
 .table-workspace {
   min-width: 0;
-  perspective: 1300px;
+  /* Perspective belongs to the table: an ancestor perspective captures fixed controls. */
 }
 .duel-table {
   position: relative;
@@ -218,7 +218,7 @@ small {
     0 20px 26px #000a,
     inset 0 0 30px #000b,
     inset 0 2px 1px #d8ba7266;
-  transform: rotateX(3deg);
+  transform: perspective(1300px) rotateX(3deg);
   transform-style: preserve-3d;
   padding: 12px;
 }
@@ -740,7 +740,7 @@ body[data-theme="gett-oh"] .playing-card.face-down {
   .duel-table {
     border-width: 5px;
     padding: 6px;
-    transform: rotateX(1deg);
+    transform: perspective(1300px) rotateX(1deg);
     border-radius: 8px;
   }
   .player-field {
@@ -1046,7 +1046,7 @@ body[data-motion="reduced"] *::before {
 }
 @media (min-width: 761px) {
   .duel-table {
-    transform: rotateX(7deg) scale(0.99);
+    transform: perspective(1300px) rotateX(7deg) scale(0.99);
   }
   .player-field.player {
     transform: translateZ(14px);

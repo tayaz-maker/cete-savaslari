@@ -95,7 +95,7 @@ try {
             const dock = await page.locator(".action-dock").boundingBox();
             assert.ok(
               dock && dock.y >= 0 && dock.y + dock.height <= height + 1,
-              `${theme}/${width}: action dock outside viewport`,
+              `${theme}/${width}: action dock outside viewport ${JSON.stringify(dock)}`,
             );
           }
           metrics.push({ theme, lang, stage, width, overflow: d.scroll - d.width });
@@ -189,12 +189,10 @@ try {
       const hand = page.locator('.hand-row [data-kind="unit"]');
       for (let i = 0; i < (await hand.count()); i++) {
         await hand.nth(i).click();
-        const summon = page
-          .locator(".inspector-actions")
-          .getByRole("button", {
-            name: lang === "tr" ? "Normal Çağır" : "Normal Summon",
-            exact: true,
-          });
+        const summon = page.locator(".inspector-actions").getByRole("button", {
+          name: lang === "tr" ? "Normal Çağır" : "Normal Summon",
+          exact: true,
+        });
         if (await summon.count()) {
           await summon.click();
           if (await page.locator("dialog .choice-list button").count())

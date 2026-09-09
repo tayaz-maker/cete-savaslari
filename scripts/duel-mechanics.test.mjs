@@ -298,3 +298,134 @@ test("face-up passive support does not expose a no-op reactivation", () => {
     "no-activated-effect",
   );
 });
+
+test("Level 7+ requires two distinct tributes; full board cannot gain a free summon", () => {
+  let s = fixture("gett-oh");
+  const boss = place(s, "RCN-071", 0, "hand"),
+    a = place(s, "RCN-001", 0, "units", 0),
+    b = place(s, "RCN-002", 0, "units", 1);
+  for (const tributes of [[], [a], [a, a]])
+    assert.equal(
+      rejection(s, {
+        type: "summon",
+        card: boss,
+        tributes,
+        slot: 0,
+        player: 0,
+        revision: s.revision,
+      }),
+      "tributes-required",
+    );
+  s = act(s, { type: "summon", card: boss, tributes: [a, b], slot: 0 });
+  assert.equal(s.players[0].units[0], boss);
+  assert.ok(s.players[0].grave.includes(a) && s.players[0].grave.includes(b));
+  const full = fixture();
+  for (let i = 0; i < 5; i++) place(full, `SND-00${i + 1}`, 0, "units", i);
+  const extra = place(full, "SND-007", 0, "hand");
+  assert.equal(
+    rejection(full, {
+      type: "summon",
+      card: extra,
+      tributes: [],
+      slot: 0,
+      player: 0,
+      revision: full.revision,
+    }),
+    "unit-zone-required",
+  );
+});
+test("Main 2 uses the same normal-summon right as Main 1", () => {
+  let s = fixture();
+  s.phase = "main2";
+  const a = place(s, "SND-002", 0, "hand"),
+    b = place(s, "SND-007", 0, "hand");
+  s = act(s, { type: "summon", card: a, slot: 0, tributes: [] });
+  assert.equal(
+    rejection(s, {
+      type: "set-unit",
+      card: b,
+      slot: 1,
+      tributes: [],
+      player: 0,
+      revision: s.revision,
+    }),
+    "normal-used",
+  );
+});
+test("end-phase hand limit requires explicit discards before exactly one turn reset", () => {
+  let s = fixture();
+  s.phase = "end";
+  for (let i = 1; i <= 7; i++) place(s, `SND-00${i}`, 0, "hand");
+  assert.equal(rejection(s, { type: "phase", player: 0, revision: s.revision }), "hand-limit");
+  s = act(s, { type: "discard", card: s.players[0].hand[0] });
+  const command = { type: "phase", player: 0, revision: s.revision };
+  s = act(s, command);
+  assert.equal(s.turn, 4);
+  assert.equal(s.active, 1);
+  assert.equal(dispatch(s, command).error, "stale-action");
+});
+test("standby effects trigger once on entry and do not rerun on hydration", () => {
+  let s = fixture("gett-oh");
+  s.phase = "draw";
+  place(s, "RCN-039", 0, "units");
+  s = act(s, { type: "phase" });
+  assert.equal(s.phase, "standby");
+  assert.equal(s.players[1].points, 7800);
+  const restored = deserialize(serialize(s), pools["gett-oh"], "gett-oh");
+  assert.equal(restored.ok, true);
+  s = act(restored.state, { type: "phase" });
+  assert.equal(s.players[1].points, 7800);
+});
+test("face-down defense is revealed before battle and a later manual flip consumes position rights", () => {
+  let s = fixture("gett-oh");
+  s.phase = "battle";
+  const attacker = place(s, "RCN-071", 0, "units"),
+    victim = place(s, "RCN-001", 1, "units");
+  s.cards[victim].face = "down";
+  s.cards[victim].position = "defense";
+  s = act(s, { type: "attack", card: attacker, target: victim });
+  assert.equal(s.cards[victim].face, "up");
+  assert.ok(s.players[1].grave.includes(victim));
+  assert.equal(s.players[1].points, 8000);
+  let later = fixture();
+  const unit = place(later, "SND-002", 0, "units");
+  later.cards[unit].face = "down";
+  later.cards[unit].position = "defense";
+  later = decisions(act(later, { type: "position", card: unit }));
+  assert.equal(later.cards[unit].face, "up");
+  assert.equal(later.cards[unit].position, "attack");
+  assert.equal(
+    rejection(later, { type: "position", card: unit, player: 0, revision: later.revision }),
+    "position-used",
+  );
+});
+test("two-attack effect has an exact cap and cannot refresh through save/reload", () => {
+  let s = fixture("gett-oh");
+  s.phase = "battle";
+  const uid = place(s, "RCN-061", 0, "units");
+  const damage = Math.floor(stat(s, uid, "attack") / 2);
+  s = act(s, { type: "attack", card: uid, target: null });
+  s = deserialize(serialize(s), pools["gett-oh"], "gett-oh").state;
+  s = act(s, { type: "attack", card: uid, target: null });
+  assert.equal(s.players[1].points, 8000 - 2 * damage);
+  assert.equal(
+    rejection(s, { type: "attack", card: uid, target: null, player: 0, revision: s.revision }),
+    "attack-used",
+  );
+  assert.equal(
+    rejection(s, { type: "position", card: uid, player: 0, revision: s.revision }),
+    "main-phase-only",
+  );
+});
+test("auxiliary cards cannot be summoned without their specified material requirements", () => {
+  const s = fixture();
+  const uid = place(s, "SND-069", 0, "auxiliary");
+  assert.equal(
+    specialPlans(s, 0).some((p) => p.card === uid),
+    false,
+  );
+  assert.equal(
+    rejection(s, { type: "special", card: uid, materials: [], player: 0, revision: s.revision }),
+    "special-requirements",
+  );
+});
