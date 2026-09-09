@@ -46,7 +46,6 @@ const LIVE = [
   "peg-solitaire",
   "satranc",
   "amiral-batti",
-  "hayat",
   "son-kasaba",
   "veto-h",
   "gett-oh",
@@ -90,7 +89,6 @@ test("Next Wave deep titles have EN phrases", () => {
   const files = [
     "public/games/next-wave/apartman-data.js",
     "public/games/next-wave/son100-data.js",
-    "public/games/next-wave/hayat-data.js",
     "public/games/next-wave/kayip-data.js",
     "public/games/next-wave/devlet-data.js",
   ];
@@ -108,9 +106,6 @@ test("Next Wave deep titles have EN phrases", () => {
 });
 
 test("Hayat and DEVLET help describe current shells", () => {
-  assert.match(I.HELP_EN.hayat, /Long Shadow/);
-  assert.match(I.HELP_EN.hayat, /Decisions/);
-  assert.doesNotMatch(I.HELP_EN.hayat, /diary/i);
   assert.match(I.HELP_EN["tc-sim-devlet"], /Advance Month/);
   assert.match(I.HELP_EN["tc-sim-devlet"], /reported/i);
   assert.doesNotMatch(I.HELP_EN["tc-sim-devlet"], /in-game period selector/i);
@@ -120,7 +115,6 @@ test("Turkish canonical strings remain in source", () => {
   assert.match(read("src/components/portal/portal-home.tsx"), /Yakında/);
   assert.match(read("public/games/apartman/app.js"), /YÖNETİMİ DEVRAL/);
   assert.match(read("public/games/tc-sim-devlet/app.js"), /DEVLETİ DEVRAL/);
-  assert.match(read("public/games/hayat/app.js"), /HAYATA BAŞLA/);
   assert.match(read("public/games/next-wave/apartman-data.js"), /Asansör ses yapıyor/);
 });
 
@@ -133,7 +127,6 @@ test("Next Wave shells wrap data through loc and load deep-en", () => {
   for (const file of [
     "public/games/apartman/app.js",
     "public/games/son-100-gun/app.js",
-    "public/games/hayat/app.js",
     "public/games/kayip-telefon/app.js",
     "public/games/tc-sim-devlet/app.js",
   ]) {
@@ -141,19 +134,12 @@ test("Next Wave shells wrap data through loc and load deep-en", () => {
   }
   for (const file of [
     "public/games/apartman/index.html",
-    "public/games/hayat/index.html",
     "public/games/tc-sim/index.html",
     "public/games/racon/index.html",
   ]) {
     assert.match(read(file), /\/i18n\/deep-en\.js/, file);
     assert.match(read(file), /\/i18n\/deep-en-final\.js/, file);
   }
-});
-
-test("Hayat does not leak raw shadow category ids", () => {
-  assert.match(read("public/games/hayat/app.js"), /labelShadow/);
-  assert.doesNotMatch(read("public/games/hayat/app.js"), /h\(s\.category\)/);
-  assert.doesNotMatch(read("public/games/hayat/app.js"), /h\(d\.choice\)/);
 });
 
 test("DEVLET does not leak raw foreign/policy-debt keys", () => {

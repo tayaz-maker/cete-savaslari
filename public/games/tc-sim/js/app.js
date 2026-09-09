@@ -1071,12 +1071,35 @@ function phraseText(value) {
   return window.tlabI18n?.phrase?.(value) ?? value;
 }
 
+/**
+ * Olay metni. Taşınan içerik kendi EN karşılığını olay tanımında taşır; kısa
+ * ve genel etiketleri ("Ara", "Git") site geneli sözlüğe koymak başka oyunların
+ * metinlerini de çevireceği için bilinçli olarak olaya bağlı tutuldu.
+ * TR kanonik: EN yoksa mevcut sözlük davranışı aynen sürer.
+ */
+function eventTitle(definition) {
+  if (window.tlabI18n?.getLang?.() === "en" && definition.en?.title) return definition.en.title;
+  return phraseText(definition.title);
+}
+function eventBody(definition) {
+  if (window.tlabI18n?.getLang?.() === "en" && definition.en?.text) return definition.en.text;
+  return phraseText(definition.text);
+}
+function eventChoiceLabel(definition, choice) {
+  if (window.tlabI18n?.getLang?.() === "en" && definition.en?.choices?.[choice.id])
+    return definition.en.choices[choice.id];
+  return phraseText(choice.label);
+}
+
 function renderEvent() {
   if (!state.events.active) return "";
   const base = getEventDefinition(state.events.active.eventId);
-  const definition = base && { ...base, text: `${base.text} ${adultEventContext(state)}` };
+  // Bağlam boşken metni olduğu gibi bırak: sondaki boşluk, sözlük aramasını
+  // (tam eşleşme) kaçırdığı için EN çevirisini sessizce devre dışı bırakıyordu.
+  const eventContext = adultEventContext(state);
+  const definition = base && { ...base, text: eventContext ? `${base.text} ${eventContext}` : base.text };
   if (!definition) return "";
-  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(phraseText(definition.title))}</h2><p>${escapeText(phraseText(definition.text))}</p>${getBodyEventContext(state, definition) ? `<p>${escapeText(phraseText(getBodyEventContext(state, definition)))}</p>` : ""}<div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}" ${getEventChoiceAvailability(state, choice.id).ok ? "" : "disabled"} title="${escapeText(phraseText(getEventChoiceAvailability(state, choice.id).reason || ""))}"><strong>${escapeText(phraseText(choice.label))}</strong><small>${escapeText(phraseText(getChoiceEffectSummary(choice)))}</small></button>`).join("")}</div></section></div>`;
+  return `<div class="event-backdrop" role="presentation"><section class="event-card" role="dialog" aria-modal="true" aria-labelledby="event-title"><h2 id="event-title">${escapeText(eventTitle(definition))}</h2><p>${escapeText(eventBody(definition))}</p>${getBodyEventContext(state, definition) ? `<p>${escapeText(phraseText(getBodyEventContext(state, definition)))}</p>` : ""}<div class="event-choices">${definition.choices.map((choice) => `<button class="button event-choice" data-event-choice="${choice.id}" ${getEventChoiceAvailability(state, choice.id).ok ? "" : "disabled"} title="${escapeText(phraseText(getEventChoiceAvailability(state, choice.id).reason || ""))}"><strong>${escapeText(eventChoiceLabel(definition, choice))}</strong><small>${escapeText(phraseText(getChoiceEffectSummary(choice)))}</small></button>`).join("")}</div></section></div>`;
 }
 
 const VIEW_RENDERERS = {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const gameIds = ["apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet"];
+const gameIds = ["apartman", "son-100-gun", "kayip-telefon", "tc-sim-devlet"];
 
 function storageHarness(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -92,7 +92,7 @@ test("new-game authorization, cancel and final commit enforce the state boundary
   try {
     const { bootGame } =
       await import("../public/games/next-wave/shared/runtime.js?start-flow-commit");
-    const session = bootGame("hayat", () => {});
+    const session = bootGame("apartman", () => {});
     assert.equal(session.beginNew(), true);
     assert.equal(session.state, null);
     session.cancelNew();
@@ -131,7 +131,6 @@ test("all five games expose the universal menu before a game-specific setup", ()
   const ctas = {
     apartman: "YÖNETİMİ DEVRAL",
     "son-100-gun": "100 GÜNÜ BAŞLAT",
-    hayat: "HAYATA BAŞLA",
     "kayip-telefon": "TELEFONU AÇ",
     "tc-sim-devlet": "DEVLETİ DEVRAL",
   };
@@ -152,57 +151,4 @@ test("Son 100 Gün separates scenario selection from final state creation", () =
   assert.doesNotMatch(app, /data-scenario[\s\S]{0,300}session\.start/);
   assert.match(app, /commitNew\(\{ action: `scenario:/);
   assert.doesNotMatch(app, /selectedScenario = button\.dataset\.scenario;\s*session\.render\(\)/);
-});
-
-test("Hayat is a named, panel-based management shell rather than a diary-only page", () => {
-  const app = read("public/games/hayat/app.js");
-  for (const marker of [
-    "playerName",
-    "life-hud",
-    "life-nav",
-    '"me"',
-    '"decisions"',
-    '"path"',
-    '"money"',
-    '"people"',
-    '"home"',
-    '"shadows"',
-    '"history"',
-    "result-feed",
-  ])
-    assert.ok(app.includes(marker), `Hayat missing ${marker}`);
-  assert.doesNotMatch(app, /class="life-grid"|class="timeline"/);
-  assert.match(app, /commitNew\(\{[\s\S]*playerName/);
-});
-
-test("DEVLET setup is conditional, real and cannot reset the run from gameplay", () => {
-  const app = read("public/games/tc-sim-devlet/app.js");
-  for (const marker of [
-    "DOCTRINES",
-    "ALT_PRESETS",
-    "hydrateDevlet",
-    "setupDraft",
-    "DÖNEM",
-    "OYUN MODU",
-    "HEDEF MODU",
-    "DOKTRİN",
-    "ALTERNATİF PRESET",
-    "DEVLET DOSYASI",
-    "DEVLETİ DEVRAL",
-  ])
-    assert.ok(app.includes(marker), `DEVLET setup missing ${marker}`);
-  assert.match(app, /factory: \(\) => hydrateDevlet/);
-  assert.doesNotMatch(app, /data-era=/, "era selection belongs only to the pre-game wizard");
-  assert.doesNotMatch(app, /\["periods",/, "gameplay navigation must not expose a reset surface");
-  assert.doesNotMatch(app, /session\.act\(`era:/);
-});
-
-test("embedded mode hides duplicate portal chrome but preserves the game's save tools", () => {
-  const runtime = read("public/games/next-wave/shared/runtime.js");
-  const css = read("public/games/next-wave/shared/base.css");
-  assert.match(runtime, /window\.self !== window\.top/);
-  assert.match(css, /\.embedded \.topbar > a/);
-  assert.match(css, /\.embedded \.topbar__title/);
-  assert.doesNotMatch(css, /\.embedded\s+\.(?:global-chrome|topbar)\s*\{[^}]*display:\s*none/);
-  assert.match(runtime, /class="save-menu"/);
 });

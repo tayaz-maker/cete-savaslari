@@ -10,7 +10,9 @@ class MemoryStorage { constructor() { this.data = new Map(); } getItem(k) { retu
 
 test("depth3 roster and state normalize without changing save version", () => {
   const state = createNewGame();
-  assert.deepEqual(state.people.map((person) => person.id), ["anne", "baba", "mehmet", "elif", "selin", "emre", "burak"]);
+  // "kardes": Hayat aktarımıyla modellenen kardeş. Aile tiplerinin householdSize
+  // ve siblingDuty değerleri zaten bir kardeşi varsayıyordu.
+  assert.deepEqual(state.people.map((person) => person.id), ["anne", "baba", "mehmet", "elif", "selin", "emre", "burak", "kardes"]);
   assert.equal(validateState(state).ok, true);
   const storage = new MemoryStorage();
   assert.equal(saveGame(storage, state).ok, true);

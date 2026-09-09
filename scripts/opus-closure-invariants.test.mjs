@@ -186,16 +186,16 @@ test("Son 100 Gün cannot be played past its own final report", () => {
 });
 
 test("next-wave saves never load into the wrong game", () => {
-  // Defect: validate() only checked meta.version plus two arrays, so an
-  // apartman payload validated cleanly as a hayat save.
+  // Defect: validate() only checked meta.version plus two arrays, so one
+  // game's payload validated cleanly as another game's save.
   const apartman = create("apartman");
-  assert.equal(normalize("hayat", JSON.parse(JSON.stringify(apartman))), null);
+  assert.equal(normalize("kayip-telefon", JSON.parse(JSON.stringify(apartman))), null);
   assert.equal(normalize("tc-sim-devlet", JSON.parse(JSON.stringify(apartman))), null);
-  const hayat = create("hayat");
-  assert.equal(normalize("hayat", JSON.parse(JSON.stringify(hayat))).meta.id, "hayat");
+  const phone = create("kayip-telefon");
+  assert.equal(normalize("kayip-telefon", JSON.parse(JSON.stringify(phone))).meta.id, "kayip-telefon");
   assert.equal(
-    normalize("hayat", null).meta.id,
-    "hayat",
+    normalize("kayip-telefon", null).meta.id,
+    "kayip-telefon",
     "an empty slot still starts a fresh game",
   );
 });

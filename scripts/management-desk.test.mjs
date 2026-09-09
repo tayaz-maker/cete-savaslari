@@ -9,20 +9,23 @@ import { MARKET } from "../public/games/tc-sim/js/wealth.js";
 import { POLICIES, EVENTS, REGIONS, FOREIGN_AXES } from "../public/games/next-wave/devlet-data.js";
 import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 
-test("782a495 baseline: all 34 content, simulation, persistence and projection sources are byte-identical", () => {
+// Donmuş taban: içerik/simülasyon kaynakları yalnız bilinçli bir ürün kararıyla
+// değişir. Taban en son Hayat→TC SIM değer aktarımında yenilendi (life-echo
+// paketi + kardeş kadrosu); masa yeniden tasarımı bu dosyalara hâlâ dokunmuyor.
+test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
     .map(f => `public/games/tc-sim/js/${f}`)
     .concat(["public/games/next-wave.js", "public/games/next-wave/devlet-data.js", "public/games/next-wave/devlet-sim.js", "public/games/next-wave/shared/runtime.js", "public/games/tc-sim-devlet/presentation.js"]).sort();
-  assert.equal(files.length, 34);
+  assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "d1575de0181639b20f57dad411d4e66533fff3e45bc032b9266c1565ee8bb3ef");
+  assert.equal(hash.digest("hex"), "41b96416ba3aca16783a51d5d1f6baa00c828b170bcf2ebecc1f99a2a667d5a5");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);
   assert.equal(EDUCATION_PATHS.length, 18);
-  assert.equal(NETWORK_CAST.length, 40);
+  assert.equal(NETWORK_CAST.length, 41); // 40 + kardeş
   assert.equal(Object.keys(MARKET).length, 53);
   assert.equal(POLICIES["2002"].length, 48);
   assert.equal(EVENTS["2002"].length, 62);

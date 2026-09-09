@@ -41,28 +41,8 @@ async function scrollNav(page,frame,screen,attribute) {
   await frame.evaluate(()=>{document.scrollingElement.scrollTop=0;});
 }
 export async function correctionFlows(page,surface,id,lang,out) {
-  if(!["tc-sim","tc-sim-devlet","hayat"].includes(id))return;
+  if(!["tc-sim","tc-sim-devlet"].includes(id))return;
   await page.setViewportSize({width:1440,height:900});
-  if(id==="hayat"){
-    // Its compact navigation shares the exact desktop sticky rule; ensure the
-    // DOM is attached to the document scroll owner, without manufacturing content.
-    assert.equal(await surface.locator(".compact-nav").evaluate(n=>getComputedStyle(n).position),"sticky");
-    await surface.locator('[data-screen="actions"]').click();
-    const key="tariklab.nextwave.hayat.slot1";
-    const read=()=>page.evaluate(k=>JSON.parse(localStorage.getItem(k)),key);
-    const before=await read();
-    await surface.locator('[data-life-action="work"]').dblclick();
-    let state=await read();assert.equal(state.life.used.length,1);assert.equal(state.resources.money,before.resources.money+420);
-    await page.waitForTimeout(180);await surface.locator('[data-life-action="rest"]').click();
-    assert.equal((await read()).life.used.length,2);assert.equal(await surface.locator('[data-life-action="friend"]').isDisabled(),true);
-    await page.reload({waitUntil:"networkidle"});surface=await(await page.locator("iframe").elementHandle()).contentFrame();
-    await surface.locator("#menu-continue").click();assert.equal((await read()).life.used.length,2);
-    await surface.locator("#next").dblclick();state=await read();assert.equal(state.turn,before.turn+1);assert.equal(state.life.used.length,0);
-    for(const screen of ["work","path","money","market","people","home","family","body","decisions","shadows","history","actions"]){
-      await surface.locator(`[data-screen="${screen}"]`).click();assert.ok((await surface.locator(".active-panel").innerText()).length>50);
-    }
-    await page.screenshot({path:`${out}/hayat-${lang}-actions.png`,fullPage:false});return;
-  }
   if(id==="tc-sim"){
     let frame=await loadFixture(page);
     await scrollNav(page,frame,"market","data-view");

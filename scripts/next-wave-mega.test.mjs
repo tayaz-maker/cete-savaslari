@@ -8,7 +8,6 @@ import {
   SYSTEMS,
   MEETINGS,
   SCENARIOS,
-  MAJORS,
   DISCOVERABLES,
   PERIODS,
   POLICIES_2002,
@@ -68,19 +67,6 @@ test("son 100 gun missed obligation worsens and always-work is not free", () => 
   assert.ok(work.missed.length >= 1 || rest.resources.energy > work.resources.energy);
 });
 
-test("hayat majors and mixed shadow outcomes", () => {
-  assert.ok(MAJORS.length >= 20);
-  const a = create("hayat");
-  applyAction("hayat", a, "choose:ambition");
-  for (let i = 0; i < 12; i += 1) applyAction("hayat", a, "advance");
-  const cb = a.history.filter((h) => h.type === "shadow-callback");
-  assert.ok(cb.length >= 1);
-  const b = create("hayat");
-  applyAction("hayat", b, "choose:give");
-  for (let i = 0; i < 16; i += 1) applyAction("hayat", b, "advance");
-  assert.ok(b.age >= 21);
-  assert.ok(a.decisionsLog[0].choice !== b.decisionsLog[0].choice);
-});
 
 test("kayip telefon apps clues corroboration endings", () => {
   const s = create("kayip-telefon");
@@ -127,18 +113,16 @@ test("devlet 2002 playable packs and actual/reported isolation", () => {
 test("identity firewall: games keep distinct signature fields", () => {
   const a = create("apartman");
   const b = create("son-100-gun");
-  const c = create("hayat");
   const d = create("kayip-telefon");
   const e = create("tc-sim-devlet");
   assert.ok(a.residents && a.building);
   assert.ok(b.remainingDays && b.obligations);
-  assert.ok("shadows" in c && c.age === 18);
   assert.ok(d.unlockedApps && d.privacyPressure === 0);
   assert.ok(e.actual && e.reported && e.known);
-  assert.equal(Object.keys(defs).length, 5);
+  assert.equal(Object.keys(defs).length, 4);
 });
 
 test("save namespaces do not collide", () => {
   const keys = Object.keys(defs).map((id) => "tariklab.nextwave." + id + ".slot1");
-  assert.equal(new Set(keys).size, 5);
+  assert.equal(new Set(keys).size, 4);
 });

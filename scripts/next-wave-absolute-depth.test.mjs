@@ -10,8 +10,6 @@ import {
   tickDevletN,
   DOCTRINES,
   ALT_PRESETS,
-  MAJORS,
-  SHADOWS,
   DISCOVERABLES,
   RESIDENTS,
   ISSUE_TEMPLATES,
@@ -130,15 +128,6 @@ test("son 100 has 16+ distinct scenarios that finish", () => {
   }
 });
 
-test("hayat depth shadows combine and paths diverge", () => {
-  assert.ok(MAJORS.length >= 36);
-  assert.ok(SHADOWS.length >= 12);
-  const a = create("hayat");
-  applyAction("hayat", a, "choose:ambition");
-  applyAction("hayat", a, "choose:give");
-  for (let i = 0; i < 20; i += 1) applyAction("hayat", a, "advance");
-  assert.ok(a.history.filter((h) => h.type === "shadow-callback").length >= 1);
-});
 
 test("apartman resident politics scale", () => {
   assert.ok(RESIDENTS.length >= 16);

@@ -26,11 +26,12 @@ class MemoryStorage {
   }
 }
 
-test("varsayılan hayat hâlâ 7 kişi ve ay sonu +2500", async () => {
+test("varsayılan hayat çekirdek yedi + kardeş ve ay sonu +2500", async () => {
   const { advanceWeek } = await import("../public/games/tc-sim/js/time.js");
   const { getEventDefinition, resolveEvent } = await import("../public/games/tc-sim/js/events.js");
   const state = createNewGame({ name: "Test", seed: 42, now: "2027-01-01T00:00:00.000Z" });
-  assert.equal(state.people.length, 7);
+  // 7 çekirdek kişi + Hayat aktarımıyla modellenen kardeş.
+  assert.equal(state.people.length, 8);
   assert.equal(state.flags.familyType, "nuclear");
   assert.equal(state.flags.networkMode, "tight");
   const start = state.finances.balance;

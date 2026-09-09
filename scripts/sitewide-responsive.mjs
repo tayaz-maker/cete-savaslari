@@ -15,9 +15,9 @@ mkdirSync(out, { recursive: true });
 const catalog = readFileSync("src/lib/games.ts", "utf8").split("export const GAMES:")[1];
 const routes = [...catalog.matchAll(/slug: "([^"]+)"[\s\S]*?status: "live",\s*href: "([^"]+)"/g)]
   .map((match) => ({ id: match[1], href: match[2] }));
-assert.equal(routes.length, 17);
+assert.equal(routes.length, 16);
 const viewports = [[320,568],[360,800],[390,844],[430,932],[640,360],[740,390],[844,390],[768,1024],[820,1180],[1024,768],[1280,800],[1440,900]];
-const nextWave = new Set(["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon", "son-kasaba"]);
+const nextWave = new Set(["apartman", "tc-sim-devlet", "son-100-gun", "kayip-telefon", "son-kasaba"]);
 const errors = [], results = [];
 const server = spawn("npm", ["run", "dev", "--", "--host", "127.0.0.1", "--port", "8081"], { stdio: "inherit" });
 let browser;
@@ -88,7 +88,6 @@ try {
             await surface.locator('[data-setup-field="era"][data-setup-value="2002"]').click();
             await surface.locator('[data-setup-field="doctrine"][data-setup-value="none"]').click();
           }
-          if (route.id === "hayat") await surface.locator("#player-name").fill("Uzun İsimli Deneme Karakteri QA");
           if (route.id === "son-100-gun") await surface.locator("[data-scenario]").first().click();
           await surface.locator("#confirm-start").click();
           if (route.id === "tc-sim-devlet") assert.equal(await surface.evaluate(() => document.scrollingElement.scrollTop), 0, "New state opens at its overview");
@@ -108,7 +107,7 @@ try {
           await surface.locator('#new-game-form button[type="submit"]').click();
           await measure("game");
         }
-        if (["tc-sim", "tc-sim-devlet", "hayat", "son-kasaba"].includes(route.id)) {
+        if (["tc-sim", "tc-sim-devlet", "son-kasaba"].includes(route.id)) {
           await page.setViewportSize({ width: 390, height: 844 });
           const nav = surface.locator(".compact-nav");
           const more = nav.locator(".nav-more");
@@ -133,7 +132,7 @@ try {
         if (["tc-sim", "tc-sim-devlet"].includes(route.id)) surface = await (await page.locator("iframe").elementHandle()).contentFrame();
         await deskFlows(page, surface, route.id, lang, out);
         await townBrowser(page, surface, route.id, lang, out);
-        if (["portal", "hayat", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
+        if (["portal", "tc-sim-devlet", "tc-sim"].includes(route.id)) {
           await page.screenshot({ path: `${out}/${route.id}-${lang}.png`, fullPage: true });
           await page.setViewportSize({ width: 390, height: 844 });
           await page.screenshot({ path: `${out}/${route.id}-${lang}-mobile.png`, fullPage: true });

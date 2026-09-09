@@ -17,7 +17,6 @@ export const HTML5_SLUGS = [
   "tc-sim",
   "apartman",
   "son-100-gun",
-  "hayat",
   "kayip-telefon",
   "tc-sim-devlet",
   "son-kasaba",
@@ -103,14 +102,6 @@ export const GAMES: CatalogGame[] = [
     status: "live",
     href: "/oyna/amiral-batti",
     icon: "amiral",
-  },
-  {
-    slug: "hayat",
-    title: "Hayat",
-    subtitle: "Bir hayat. Aldığın kararların uzun gölgesi.",
-    status: "live",
-    href: "/oyna/hayat",
-    icon: "hayat",
   },
   {
     slug: "apartman",

@@ -14,7 +14,7 @@ function catalogBlock(slug) {
 }
 
 test("all five Next Wave games are live and resolve to playable catalog routes", () => {
-  for (const slug of ["apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet"]) {
+  for (const slug of ["apartman", "son-100-gun", "kayip-telefon", "tc-sim-devlet"]) {
     const block = catalogBlock(slug);
     assert.match(block, /status: "live"/);
     assert.match(block, new RegExp(`href: "/oyna/${slug}"`));
@@ -25,7 +25,7 @@ test("all five Next Wave games are live and resolve to playable catalog routes",
     games.indexOf("export const HTML5_SLUGS"),
     games.indexOf("] as const"),
   );
-  for (const slug of ["apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet"]) {
+  for (const slug of ["apartman", "son-100-gun", "kayip-telefon", "tc-sim-devlet"]) {
     assert.match(html5List, new RegExp(`"${slug}"`));
   }
 });

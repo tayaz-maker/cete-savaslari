@@ -39,6 +39,7 @@ import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=9";
 import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=9";
 import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=9";
 import { EXPANSION_EVENTS, EXPANSION_CALLBACK_EVENTS, applyExpansionResolution } from "./expansion-events.js?v=9";
+import { LIFE_ECHO_EVENTS, LIFE_ECHO_CALLBACK_EVENTS, applyLifeEchoResolution, ensureLifeEchoState } from "./life-echo-events.js?v=9";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -1422,6 +1423,8 @@ export const EVENT_DEFINITIONS = [
   ...PARENTING_EVENTS,
   ...EXPANSION_EVENTS.map((event) => ({ ...event, expansion: true })),
   ...EXPANSION_CALLBACK_EVENTS.map((event) => ({ ...event, expansion: true })),
+  ...LIFE_ECHO_EVENTS,
+  ...LIFE_ECHO_CALLBACK_EVENTS,
 ];
 
 export function getEventDefinition(eventId) {
@@ -1472,10 +1475,13 @@ export function activateNextEvent(state) {
   if (state.lifetime?.death) return null;
   seedDepth2Secrets(state);
   ensureDepth3State(state);
+  ensureLifeEchoState(state);
   updatePerceivedIdentity(state);
   if (state.events.active) return state.events.active;
   if (!state.events.queue.length) {
-    const definition = EVENT_DEFINITIONS.find((candidate) => isEligible(state, candidate));
+    const definition =
+      EVENT_DEFINITIONS.find((candidate) => candidate.lifeEcho && isEligible(state, candidate)) ||
+      EVENT_DEFINITIONS.find((candidate) => isEligible(state, candidate));
     if (definition) enqueueEvent(state, definition.id);
   }
   state.events.active = state.events.queue.shift() || null;
@@ -1663,6 +1669,7 @@ export function resolveEvent(state, choiceId) {
   if (definition.household) resolveHouseholdChoice(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyBodyResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyExpansionResolution(state, definition, choiceId);
+  applyLifeEchoResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   if (definition.social3D) state.flags.lastSocial3DWeek = state.time.absoluteWeek;
   state.flags.lastEventResolvedWeek = state.time.absoluteWeek;
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);

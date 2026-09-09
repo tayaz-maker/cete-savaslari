@@ -68,7 +68,6 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
   "peg-solitaire": { title: "Tek Taş", subtitle: "Jump. Leave one." },
   satranc: { title: "Satranç", subtitle: "Board, move, checkmate." },
   "amiral-batti": { title: "Amiral Battı", subtitle: "Fleet on a grid. Hit, miss, sunk." },
-  hayat: { title: "Hayat", subtitle: "One life. The long shadow of what you chose." },
   apartman: {
     title: "Apartman: Apartman Yöneticisi",
     subtitle: "One building, dozens of people, issues that do not end.",
