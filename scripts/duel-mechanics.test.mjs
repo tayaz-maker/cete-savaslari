@@ -213,3 +213,88 @@ test("incomplete card bookkeeping is rejected at hydration", () => {
   delete s.cards[Object.keys(s.cards)[0]].knownTo;
   assert.equal(validateState(s), false);
 });
+
+test("face-down units cannot activate until flipped", () => {
+  const s = fixture("gett-oh"),
+    uid = place(s, "RCN-038", 0, "units");
+  s.cards[uid].face = "down";
+  assert.equal(
+    rejection(s, { type: "activate", card: uid, player: 0, revision: s.revision }),
+    "flip-required",
+  );
+});
+test("advertising response shield blocks exactly the next declaration", () => {
+  let s = fixture();
+  const shield = place(s, "SND-113", 0, "hand"),
+    unit = place(s, "SND-002", 0, "hand");
+  place(s, "SND-120", 1, "support");
+  s = act(s, { type: "activate", card: shield });
+  assert.ok(s.players[1].flags.blockNextResponse);
+  s = act(s, { type: "summon", card: unit, slot: 0, tributes: [] });
+  assert.equal(s.pending, null);
+  assert.equal(s.players[0].units[0], unit);
+  assert.equal(s.players[1].flags.blockNextResponse, undefined);
+});
+test("converted quick-play timing works in Battle, not just in Main phases", () => {
+  const s = fixture(),
+    card = place(s, "SND-083", 0, "hand");
+  s.phase = "battle";
+  s.cards[card].modifiers.push({ quick: true, until: s.turn });
+  assert.equal(rejection(s, { type: "activate", card, player: 0, revision: s.revision }), null);
+});
+
+test("destruction-specific recovery waits for actual destruction and preserves dealt damage", () => {
+  let s = fixture("gett-oh");
+  s.phase = "battle";
+  const attacker = place(s, "RCN-071", 0, "units"),
+    victim = place(s, "RCN-001", 1, "units"),
+    trap = place(s, "RCN-141", 1, "support");
+  const damage = stat(s, attacker, "attack") - stat(s, victim, "attack");
+  s = act(s, { type: "attack", card: attacker, target: victim });
+  assert.equal(s.pending?.action.type, "destroy");
+  assert.ok(s.players[1].grave.includes(victim));
+  assert.equal(s.players[1].points, 8000 - damage);
+  s = act(s, { type: "respond", card: trap });
+  assert.ok(s.players[1].hand.includes(victim));
+  assert.equal(s.players[1].points, 8000 - damage);
+  assert.equal(s.pending, null);
+});
+test("unknown effect jobs in a corrupted save cannot be resumed", () => {
+  const s = fixture();
+  s.work = [
+    {
+      type: "effects",
+      id: 1,
+      player: 0,
+      source: null,
+      targets: [],
+      effects: [{ op: "not-a-rule" }],
+    },
+  ];
+  assert.equal(validateState(s), false);
+});
+
+test("field set uses only the field zone and can then be activated", () => {
+  let s = fixture();
+  const card = place(s, "SND-114", 0, "hand");
+  s = act(s, { type: "set-field", card });
+  assert.equal(s.players[0].field, card);
+  assert.equal(s.cards[card].face, "down");
+  assert.ok(s.players[0].support.every((x) => x === null));
+  s = act(s, { type: "activate", card });
+  assert.equal(s.cards[card].face, "up");
+  assert.equal(s.players[0].field, card);
+  assert.equal(
+    rejection(s, { type: "activate", card, player: 0, revision: s.revision }),
+    "no-activated-effect",
+  );
+});
+test("face-up passive support does not expose a no-op reactivation", () => {
+  const s = fixture();
+  const card = place(s, "SND-148", 0, "support");
+  s.cards[card].face = "up";
+  assert.equal(
+    rejection(s, { type: "activate", card, player: 0, revision: s.revision }),
+    "no-activated-effect",
+  );
+});

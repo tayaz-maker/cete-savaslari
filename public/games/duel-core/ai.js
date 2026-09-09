@@ -9,6 +9,7 @@ export function chooseAction(view, actions) {
       target = view.cards[action.target];
     let value = -1000;
     if (action.type === "phase") value = 0;
+    if (action.type === "end-main") value = -1;
     if (action.type === "pass") value = 1;
     if (action.type === "choose") value = 100;
     if (action.type === "respond") value = 250;

@@ -1,3 +1,4 @@
+import { operationNames } from "./operations.js";
 export const PHASES = ["draw", "standby", "main1", "battle", "main2", "end"];
 export const PILES = ["deck", "hand", "grave", "banished", "auxiliary"];
 export const ROWS = ["units", "support"];
@@ -146,7 +147,7 @@ export function validateState(state) {
       (!Array.isArray(job.effects) ||
         !Array.isArray(job.targets) ||
         !Number.isSafeInteger(job.id) ||
-        !job.effects.every((op) => record(op) && typeof op.op === "string"))
+        !job.effects.every((op) => record(op) && operationNames.has(op.op)))
     )
       return false;
   }
@@ -161,7 +162,12 @@ export function validateState(state) {
       if (
         !Array.isArray(c.options) ||
         !c.options.length ||
-        !c.options.every((o) => typeof o.id === "string" && Array.isArray(o.effects))
+        !c.options.every(
+          (o) =>
+            typeof o.id === "string" &&
+            Array.isArray(o.effects) &&
+            o.effects.every((op) => operationNames.has(op.op)),
+        )
       )
         return false;
     } else if (

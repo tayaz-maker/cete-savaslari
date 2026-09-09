@@ -53,14 +53,72 @@ export async function startApp(theme, designs) {
     archivePage = 0;
   const name = theme === "veto-h" ? "VETO-H!" : "GETT-OH!",
     point = theme === "veto-h" ? "OP" : "RP";
-  const t = (key) => labels[lang][key] || key;
+  const themeLabels =
+    theme === "veto-h"
+      ? {
+          tr: {
+            unit: "Kadro",
+            spell: "Kampanya",
+            trap: "Skandal",
+            battle: "Tartışma",
+            auxiliary: "Koalisyon",
+            "end-main": "Bitişe Geç",
+            "set-field": "Alanı Set Et",
+          },
+          en: {
+            unit: "Campaigner",
+            spell: "Campaign",
+            trap: "Scandal",
+            battle: "Debate",
+            auxiliary: "Coalition",
+            "end-main": "Go to End",
+            "set-field": "Set Field",
+          },
+        }
+      : {
+          tr: {
+            unit: "Adam",
+            spell: "Racon",
+            trap: "İhbar",
+            battle: "Kapışma",
+            auxiliary: "Birleşim",
+            "end-main": "Bitişe Geç",
+            "set-field": "Alanı Set Et",
+          },
+          en: {
+            unit: "Crew",
+            spell: "Racon",
+            trap: "Tip-off",
+            battle: "Clash",
+            auxiliary: "Alliance",
+            "end-main": "Go to End",
+            "set-field": "Set Field",
+          },
+        };
+  const t = (key) => themeLabels[lang][key] || labels[lang][key] || key;
   const text = (value) => (typeof value === "object" ? value[lang] : value);
   const button = (label, fn, attrs = {}) =>
     $("button", { type: "button", onclick: fn, ...attrs }, label);
   const actor = () => state?.choice?.player ?? state?.pending?.responding ?? state?.active;
   const view = () => publicView(state, 0);
-  const actions = () => (state ? legalActions(state, 0) : []);
-  const cname = (uid, v = view()) => text(v.cards[uid]?.name) || t("hidden");
+  let actionCacheState = null,
+    actionCache = [];
+  const actions = () => {
+    if (state !== actionCacheState) {
+      actionCacheState = state;
+      actionCache = state ? legalActions(state, 0) : [];
+    }
+    return actionCache;
+  };
+  const cname = (uid, v = view()) => {
+    const c = v.cards[uid];
+    return (
+      text(c?.name) ||
+      (c
+        ? `${t("hidden")} · ${t(c.owner === 0 ? "you" : "opponent")} · ${t(c.zone === "units" ? "unit" : c.zone)} ${(c.slot ?? 0) + 1}`
+        : t("hidden"))
+    );
+  };
   const displayError = (error) =>
     error === "storage-failed" ? t("saveError") : error === "no-save" ? t("noSave") : t("corrupt");
   const dialog = $("dialog", { "aria-labelledby": "dialog-title" });
@@ -89,7 +147,11 @@ export async function startApp(theme, designs) {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       selected = null;
-      if (!dialog.open && screen === "duel") render();
+      if (dialog.open) {
+        e.preventDefault();
+        close();
+      }
+      if (screen === "duel") render();
     }
   });
   function ask(message, yes) {
@@ -143,12 +205,14 @@ export async function startApp(theme, designs) {
   }
   function animateTransition(oldCards) {
     if (motion !== "on" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const current = new Map(
-      [...root.querySelectorAll(".zone [data-card],.hand-row [data-card]")].map((el) => [
-        el.dataset.card,
-        el,
-      ]),
-    );
+    const v = view(),
+      current = new Map(
+        [...root.querySelectorAll(".zone [data-card],.hand-row [data-card]")].map((el) => [
+          el.dataset.card,
+          el,
+        ]),
+      );
+    const battle = v.log.findLast((e) => e.event === "battle" && e.revision === v.revision);
     for (const [uid, el] of current) {
       const old = oldCards.get(uid),
         rect = el.getBoundingClientRect();
@@ -163,27 +227,62 @@ export async function startApp(theme, designs) {
             ],
             { duration: 250, easing: "ease-out" },
           );
-      } else
+        else if (old.clone.classList.contains("face-down") !== el.classList.contains("face-down"))
+          el.animate(
+            [
+              { transform: "scaleX(.15)", filter: "brightness(1.7)" },
+              { transform: "scaleX(1)", filter: "brightness(1)" },
+            ],
+            { duration: 220, easing: "ease-out" },
+          );
+      } else {
+        const from = root
+          .querySelector(`[data-pile="${v.cards[uid]?.owner}:deck"]`)
+          ?.getBoundingClientRect();
+        const dx = from ? from.x - rect.x : 0,
+          dy = from ? from.y - rect.y : -18;
         el.animate(
           [
-            { transform: "translateY(-18px) scale(.93)", opacity: 0 },
-            { transform: "translateY(0) scale(1)", opacity: 1 },
+            { transform: `translate(${dx}px,${dy}px) scale(.55)`, opacity: 0 },
+            { transform: "translate(0,0) scale(1)", opacity: 1 },
           ],
-          { duration: 250, easing: "ease-out" },
+          { duration: 280, easing: "ease-out" },
+        );
+      }
+      if (battle?.attacker === uid)
+        el.animate(
+          [
+            { transform: "translateY(0)" },
+            { transform: `translateY(${battle.player === 0 ? -32 : 32}px) scale(1.06)` },
+            { transform: "translateY(0)" },
+          ],
+          { duration: 250, easing: "ease-in-out" },
         );
     }
-    for (const [uid, { rect, clone }] of oldCards)
+    for (const [uid, old] of oldCards)
       if (!current.has(uid)) {
+        const { rect } = old,
+          card = v.cards[uid],
+          clone = card?.name ? cardEl(card, uid, null) : old.clone;
         clone.removeAttribute("data-card");
         clone.setAttribute("aria-hidden", "true");
         clone.style.cssText = `position:fixed;pointer-events:none;left:${rect.x}px;top:${rect.y}px;width:${rect.width}px;height:${rect.height}px;z-index:9;`;
         document.body.append(clone);
+        const destination = state.players[card?.owner ?? 0].banished.includes(uid)
+          ? "banished"
+          : "grave";
+        const target = root
+          .querySelector(`[data-pile="${card?.owner ?? 0}:${destination}"]`)
+          ?.getBoundingClientRect();
+        const dx = target ? target.x - rect.x : 24,
+          dy = target ? target.y - rect.y : 35;
         const effect = clone.animate(
           [
-            { opacity: 0.8, transform: "translate(0,0)" },
-            { opacity: 0, transform: "translate(24px,35px) scale(.5)" },
+            { opacity: 0.9, transform: "translate(0,0) scale(1)" },
+            { opacity: 0.8, transform: "translate(0,0) scale(1.04)", offset: 0.25 },
+            { opacity: 0, transform: `translate(${dx}px,${dy}px) scale(.25)` },
           ],
-          { duration: 220, easing: "ease-in" },
+          { duration: 320, easing: "ease-in" },
         );
         effect.onfinish = () => clone.remove();
       }
@@ -339,7 +438,7 @@ export async function startApp(theme, designs) {
           }),
           button(t("help"), () => show(t("help"), $("p", {}, t("rules")))),
           button(t("settings"), settings),
-          $("a", { href: "/" }, `← ${t("back")}`),
+          $("a", { href: "/", target: "_top" }, `← ${t("back")}`),
         ),
       ),
     );
@@ -441,7 +540,7 @@ export async function startApp(theme, designs) {
   }
   function cardEl(card, uid, onClick, attrs = {}) {
     const hidden = !card?.name,
-      down = hidden || card.face === "down";
+      down = hidden || (card.face === "down" && ["units", "support", "field"].includes(card.zone));
     return makeCard();
     function makeCard() {
       return $(
@@ -459,7 +558,13 @@ export async function startApp(theme, designs) {
         $(
           "span",
           { class: "card-art", "aria-hidden": "true" },
-          down ? "◈" : card.kind === "unit" ? "♜" : card.kind === "spell" ? "✦" : "◇",
+          down
+            ? "◈"
+            : card.kind === "unit"
+              ? $("img", { src: `/games/${theme}/assets/emblem.svg`, alt: "", loading: "lazy" })
+              : card.kind === "spell"
+                ? "✦"
+                : "◇",
         ),
         hidden
           ? null
@@ -475,8 +580,8 @@ export async function startApp(theme, designs) {
   }
   function selectCard(uid) {
     selected = uid;
+    render();
     if (innerWidth <= 760) inspect(uid);
-    else render();
   }
   function actionTitle(action, v = view()) {
     let title = t(action.type);
@@ -494,18 +599,29 @@ export async function startApp(theme, designs) {
   }
   function optionName(id) {
     const option = state?.choice?.options?.find((o) => o.id === id);
-    return option?.card
-      ? cname(option.card)
-      : {
-          pay: lang === "tr" ? "Puan öde" : "Pay points",
-          keep: lang === "tr" ? "Tut" : "Keep",
-          destroy: lang === "tr" ? "Yok et" : "Destroy",
-          discard: t("discard"),
-          tribute: t("tributes"),
-          set: t("set-support"),
-        }[id] || t("choose");
+    if (option?.card)
+      return `${cname(option.card)}${option.materials?.length ? ` · ${t("materials")}: ${option.materials.map((uid) => cname(uid)).join(", ")}` : ""}`;
+    if (id.startsWith("zone-")) return `${t("zone")} ${id.slice(5)}`;
+    const cost = option?.effects?.find((op) => op.op === "points" && op.amount < 0)?.amount;
+    return (
+      {
+        pay: `${lang === "tr" ? "Puan öde" : "Pay points"}${cost ? ` · ${-cost} ${point}` : ""}`,
+        keep: lang === "tr" ? "Tut" : "Keep",
+        destroy: lang === "tr" ? "Yok et" : "Destroy",
+        discard: t("discard"),
+        tribute: t("tributes"),
+        set: t("set-support"),
+        accept: t("confirm"),
+      }[id] || t("choose")
+    );
   }
   function selectAction(list) {
+    if (!list.length) {
+      notice = t("noActions");
+      close();
+      render();
+      return;
+    }
     if (list.length === 1) {
       confirmAction(list[0]);
       return;
@@ -569,7 +685,7 @@ export async function startApp(theme, designs) {
     const available = actions().filter((a) => a.card === uid),
       groups = [...new Set(available.map((a) => a.type))];
     const body = [
-      cardEl(card, uid, null),
+      cardEl({ ...card, face: card.name ? "up" : card.face }, uid, null),
       card.name
         ? $(
             "small",
@@ -623,7 +739,7 @@ export async function startApp(theme, designs) {
     const ids =
       key === "auxiliary"
         ? Object.values(v.cards)
-            .filter((c) => c.owner === player && c.deckLocation === "auxiliary")
+            .filter((c) => c.owner === player && c.zone === "auxiliary")
             .map((c) => c.uid)
         : key === "field"
           ? [v.players[player].field].filter(Boolean)
@@ -714,12 +830,12 @@ export async function startApp(theme, designs) {
       $(
         "div",
         { class: "piles" },
-        $("span", {}, `${t("deck")} ${p.deckCount}`),
+        $("span", { "data-pile": `${player}:deck` }, `${t("deck")} ${p.deckCount}`),
         ...["auxiliary", "grave", "banished", "field"].map((key) =>
           button(
             `${t(key)} ${key === "auxiliary" ? p.auxiliaryCount : key === "field" ? (p.field ? 1 : 0) : p[key].length}`,
             () => pile(player, key, v),
-            { disabled: key === "auxiliary" && player === 1 },
+            { disabled: key === "auxiliary" && player === 1, "data-pile": `${player}:${key}` },
           ),
         ),
       ),
@@ -803,6 +919,11 @@ export async function startApp(theme, designs) {
           $("p", { "aria-live": "polite" }, `${t("turn")} ${v.turn} · ${status}`),
           phase ? button(t("phase"), () => confirmAction(phase), { class: "primary" }) : null,
           pass ? button(t("pass"), () => command(pass)) : null,
+          approved.some((a) => a.type === "end-main")
+            ? button(t("end-main"), () =>
+                confirmAction(approved.find((a) => a.type === "end-main")),
+              )
+            : null,
           v.choice && actor() === 0
             ? button(t("choose"), () => selectAction(approved), { class: "primary" })
             : null,
@@ -983,7 +1104,7 @@ export async function startApp(theme, designs) {
           $("h1", {}, name),
           $("p", {}, t("loadError")),
           button(t("retry"), () => location.reload()),
-          $("a", { href: "/" }, t("back")),
+          $("a", { href: "/", target: "_top" }, t("back")),
         ),
       ),
     );

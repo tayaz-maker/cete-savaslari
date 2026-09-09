@@ -16,7 +16,9 @@ export function suppressed(state, uid) {
     c.negated ||
     c.negatedUntil >= state.turn ||
     modified(state, uid, "negated") ||
-    (at && state.players[at.player].flags.negateField?.until >= state.turn)
+    (at &&
+      ["units", "support", "field"].includes(at.zone) &&
+      state.players[at.player].flags.negateField?.until >= state.turn)
   );
 }
 export function standing(state, player) {

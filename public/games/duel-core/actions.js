@@ -29,13 +29,17 @@ export function legalActions(state, player) {
         ];
   if (player !== state.active) return [];
   const p = state.players[player],
-    candidates = [command({ type: "phase" })];
+    candidates = [command({ type: "phase" }), command({ type: "end-main" })];
   if (["main1", "main2"].includes(state.phase))
     for (const plan of [...specialPlans(state, player), ...ritualPlans(state, player)])
       candidates.push(command({ type: "special", ...plan }));
   for (const card of p.hand) {
     const def = definition(state, card);
-    candidates.push(command({ type: "discard", card }), command({ type: "activate", card }));
+    candidates.push(
+      command({ type: "discard", card }),
+      command({ type: "activate", card }),
+      command({ type: "set-field", card }),
+    );
     if (def.kind === "unit") {
       const n = def.level >= 7 ? 2 : def.level >= 5 ? 1 : 0;
       const alternate = def.traits?.tributeAlternative;
@@ -59,7 +63,7 @@ export function legalActions(state, player) {
       for (let slot = 0; slot < 5; slot++)
         candidates.push(command({ type: "set-support", card, slot }));
   }
-  for (const card of [...p.units, ...p.support].filter(Boolean)) {
+  for (const card of [...p.units, ...p.support, p.field].filter(Boolean)) {
     candidates.push(command({ type: "activate", card }), command({ type: "position", card }));
     for (const target of [null, ...state.players[1 - player].units.filter(Boolean)])
       candidates.push(command({ type: "attack", card, target }));
@@ -77,5 +81,5 @@ export function legalActions(state, player) {
     }
     return variants;
   });
-  return expanded.filter((action) => !rejection(state, action));
+  return expanded.filter((action) => action.type === "special" || !rejection(state, action));
 }

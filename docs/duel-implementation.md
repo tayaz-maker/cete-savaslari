@@ -69,3 +69,8 @@ Current evidence (not a release verdict): 17 targeted tests including 10,000 dec
 seeds per theme; prior 500 AI duels per theme without cap hits; local full
 regression 891 MJS / 50 TS. Rule refinements require refreshed final evidence.
 Card primitive registration alone is not proof of semantic correctness.
+- SND-113's original “no further activation in this chain” text would do nothing
+  under the mandatory one-response cap. Its explicit single-window adaptation
+  protects the player's next declared action that turn against a response.
+  The card is proactive, not a response to an already single-response window;
+  TR/EN inspectors disclose this interpretation.

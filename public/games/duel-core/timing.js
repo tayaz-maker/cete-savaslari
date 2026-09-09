@@ -7,7 +7,7 @@ export function flagActive(state, player, name) {
 export function hasTrait(state, player, name) {
   return standing(state, player).some((uid) => definition(state, uid).traits?.[name]);
 }
-export function canRespond(state, uid, player) {
+export function canRespond(state, uid, player, fromDeck = false) {
   const p = state.players[player],
     d = definition(state, uid),
     c = state.cards[uid],
@@ -23,14 +23,20 @@ export function canRespond(state, uid, player) {
     (t.oncePerDuel && c.used.duelActivated)
   )
     return false;
-  const quickCost=d.subtype==="quick"?standing(state,player).reduce((sum,id)=>sum+(definition(state,id).traits?.quickCost||0),0):0;
-  const cost = quickCost+(d.costs || [])
-    .filter((op) => op.op === "points")
-    .reduce((sum, op) => sum - op.amount, 0);
+  const quickCost =
+    d.subtype === "quick"
+      ? standing(state, player).reduce(
+          (sum, id) => sum + (definition(state, id).traits?.quickCost || 0),
+          0,
+        )
+      : 0;
+  const cost =
+    quickCost +
+    (d.costs || []).filter((op) => op.op === "points").reduce((sum, op) => sum - op.amount, 0);
   if (p.points < cost) return false;
   const source = definition(state, a.card);
   const set = p.support.includes(uid),
-    hand = p.hand.includes(uid),
+    hand = fromDeck || p.hand.includes(uid),
     unit = p.units.includes(uid),
     grave = p.grave.includes(uid);
   if (
@@ -59,11 +65,17 @@ export function canRespond(state, uid, player) {
       return false;
   }
   if (d.kind === "spell") {
+    if (hand && !fromDeck && flagActive(state, player, "blockHandSpell")) return false;
     if (d.subtype !== "quick" && !modified(state, uid, "quick")) return false;
     if (hasTrait(state, 1 - player, "blockQuick")) return false;
     if (set && c.setTurn >= state.turn) return false;
-    if (hand && state.active !== player && !hasTrait(state, player, "quickEnemyHand")) return false;
-    if (hand && (hasTrait(state, 0, "quickMustSet") || hasTrait(state, 1, "quickMustSet")))
+    if (hand && !fromDeck && state.active !== player && !hasTrait(state, player, "quickEnemyHand"))
+      return false;
+    if (
+      hand &&
+      !fromDeck &&
+      (hasTrait(state, 0, "quickMustSet") || hasTrait(state, 1, "quickMustSet"))
+    )
       return false;
   }
   if (d.kind === "unit" && !t.responseFrom) return false;
@@ -99,6 +111,16 @@ export function canRespond(state, uid, player) {
   )
     return false;
   if (t.destroyedSeries && (!source?.series.includes(t.destroyedSeries) || a.type !== "destroy"))
+    return false;
+  if (
+    t.quickFromDeck &&
+    !p.deck.some(
+      (id) =>
+        definition(state, id).subtype === "quick" &&
+        definition(state, id).response?.includes(a.type) &&
+        canRespond(state, id, player, true),
+    )
+  )
     return false;
   return true;
 }

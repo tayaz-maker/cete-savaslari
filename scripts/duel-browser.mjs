@@ -91,6 +91,13 @@ try {
             d.scroll <= d.width + 1,
             `${theme}/${lang}/${stage}/${width}: ${JSON.stringify(d)}`,
           );
+          if (stage === "board") {
+            const dock = await page.locator(".action-dock").boundingBox();
+            assert.ok(
+              dock && dock.y >= 0 && dock.y + dock.height <= height + 1,
+              `${theme}/${width}: action dock outside viewport`,
+            );
+          }
           metrics.push({ theme, lang, stage, width, overflow: d.scroll - d.width });
         }
       }
@@ -130,6 +137,75 @@ try {
         const s = JSON.parse(e.payload);
         return (s.choice?.player ?? s.pending?.responding ?? s.active) === 0;
       }, key);
+      // Reach Main 1 through visible controls, completing any effect choices.
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      for (let step = 0; step < 30; step++) {
+        const live = await page.evaluate(
+          (k) => JSON.parse(JSON.parse(localStorage.getItem(k)).payload),
+          key,
+        );
+        if (live.result) break;
+        const who = live.choice?.player ?? live.pending?.responding ?? live.active;
+        if (who === 1) {
+          await page.waitForFunction((k) => {
+            const s = JSON.parse(JSON.parse(localStorage.getItem(k)).payload);
+            return s.result || (s.choice?.player ?? s.pending?.responding ?? s.active) === 0;
+          }, key);
+          continue;
+        }
+        if (live.choice) {
+          await page
+            .locator(".action-dock")
+            .getByRole("button", { name: lang === "tr" ? "Seç" : "Choose", exact: true })
+            .click();
+          if (await page.locator("dialog .choice-list button").count())
+            await page.locator("dialog .choice-list button").first().click();
+          await page
+            .locator("dialog")
+            .getByRole("button", { name: labels.confirm, exact: true })
+            .click();
+          continue;
+        }
+        if (live.pending) {
+          await page
+            .locator(".action-dock")
+            .getByRole("button", {
+              name: lang === "tr" ? "Tepki Verme" : "Pass Response",
+              exact: true,
+            })
+            .click();
+          continue;
+        }
+        if (live.phase === "main1") break;
+        await page
+          .locator(".action-dock")
+          .getByRole("button", { name: labels.next, exact: true })
+          .click();
+        await page
+          .locator("dialog")
+          .getByRole("button", { name: labels.confirm, exact: true })
+          .click();
+      }
+      const hand = page.locator('.hand-row [data-kind="unit"]');
+      for (let i = 0; i < (await hand.count()); i++) {
+        await hand.nth(i).click();
+        const summon = page
+          .locator(".inspector-actions")
+          .getByRole("button", {
+            name: lang === "tr" ? "Normal Çağır" : "Normal Summon",
+            exact: true,
+          });
+        if (await summon.count()) {
+          await summon.click();
+          if (await page.locator("dialog .choice-list button").count())
+            await page.locator("dialog .choice-list button").first().click();
+          await page
+            .locator("dialog")
+            .getByRole("button", { name: labels.confirm, exact: true })
+            .click();
+          break;
+        }
+      }
       await measure("board");
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.locator(".hand-row .playing-card").first().click();
@@ -148,12 +224,14 @@ try {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.locator(".hand-row .playing-card").first().click();
       assert.ok(await page.locator("dialog").isVisible());
-      await page.screenshot({
+      const mobileShot = await page.screenshot({
         path: `${out}/${theme}-${lang}-mobile.jpg`,
         type: "jpeg",
         quality: 65,
         fullPage: true,
       });
+      if (lang === "tr")
+        console.log(`DUEL_SCREENSHOT ${theme}-mobile ${mobileShot.toString("base64")}`);
       await page.getByRole("button", { name: labels.close, exact: true }).click();
       await page.getByRole("button", { name: labels.help, exact: true }).click();
       assert.ok(await page.locator("dialog p").innerText());

@@ -936,3 +936,129 @@ body[data-motion="reduced"] *::before {
   animation: none !important;
   transition: none !important;
 }
+/* Keep the entire decision surface in reach, with depth coming from layers,
+   not oversized empty slots. Card detail remains full-size in the inspector. */
+@media (min-width: 761px) {
+  .zone {
+    aspect-ratio: auto;
+    height: clamp(70px, 12dvh, 112px);
+  }
+  .support-row .zone {
+    aspect-ratio: auto;
+    height: clamp(42px, 6dvh, 56px);
+  }
+  .hand-row .playing-card {
+    min-height: clamp(100px, 14dvh, 132px);
+    flex-basis: 108px;
+  }
+  .hand-deck {
+    margin-top: 10px;
+    padding: 7px;
+  }
+  .hand-row {
+    padding-bottom: 10px;
+  }
+  .duel-table {
+    padding: 10px;
+  }
+  .card-art {
+    font-size: 25px;
+  }
+  .playing-card .card-name {
+    font-size: 0.74rem;
+  }
+  .support-row .card-art {
+    display: none;
+  }
+  .player-field.opponent {
+    transform: scale(0.96) translateZ(-10px);
+  }
+}
+@media (max-width: 760px) {
+  body {
+    padding-bottom: 86px;
+  }
+  .action-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    max-height: 35dvh;
+    overflow-y: auto;
+  }
+  .action-dock p {
+    flex-basis: 100%;
+    margin: 0;
+  }
+  .zone > .empty-zone {
+    color: #aaa68b;
+  }
+}
+.piles > span {
+  font-size: 0.68rem;
+  padding: 8px 4px;
+  white-space: nowrap;
+  color: var(--paper);
+}
+.zone > .empty-zone {
+  color: #a8a38d;
+}
+.inspector .playing-card {
+  min-height: 200px;
+}
+@media (min-width: 761px) {
+  body {
+    padding-bottom: 76px;
+  }
+  .action-dock {
+    position: fixed;
+    bottom: 10px;
+    left: 216px;
+    right: 316px;
+    max-height: 28dvh;
+    overflow-y: auto;
+  }
+}
+@media (min-width: 1500px) {
+  .action-dock {
+    left: max(236px, calc((100vw - 1800px) / 2 + 236px));
+    right: max(336px, calc((100vw - 1800px) / 2 + 336px));
+  }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .action-dock {
+    left: 14px;
+    right: 266px;
+  }
+}
+.card-art img {
+  height: 44px;
+  width: 44px;
+  max-height: 100%;
+  max-width: 75%;
+  filter: drop-shadow(0 3px 2px #503e3544);
+}
+.inspector .card-art img,
+.inspector-sheet .card-art img {
+  width: 88px;
+  height: 88px;
+}
+@media (min-width: 761px) {
+  .duel-table {
+    transform: rotateX(7deg) scale(0.99);
+  }
+  .player-field.player {
+    transform: translateZ(14px);
+  }
+}
+@media (max-width: 760px) {
+  .card-art img {
+    width: 25px;
+    height: 25px;
+  }
+  .hand-row .card-art img {
+    width: 40px;
+    height: 40px;
+  }
+}

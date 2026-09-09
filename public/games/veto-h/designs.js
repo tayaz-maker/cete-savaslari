@@ -268,10 +268,10 @@ export const designs = {
     "Media Emperor",
     "Once per turn, you may activate a Quick-Play Campaign directly from your deck.",
     [
-      select("quick", { zones: "deck", kind: "spell", subtype: "quick" }),
+      select("quick", { zones: "deck", kind: "spell", subtype: "quick", quickForWindow: true }),
       { op: "activateSelected" },
     ],
-    { quickFromDeck: true },
+    { quickFromDeck: true, responseFrom: "units", allowProactive: true },
   ),
   48: card(
     "Ballot Minister",
@@ -633,9 +633,9 @@ export const designs = {
   }),
   113: card(
     "Advertising Strip",
-    "Your opponent cannot activate another card in this response window.",
-    [{ op: "negateResponse" }],
-    { responseTypes: ["activate"] },
+    "Your opponent cannot respond to your next declared action this turn.",
+    [flag("blockNextResponse", true, true)],
+    { noResponse: true },
   ),
   114: card(
     "Metropolitan Constituency",

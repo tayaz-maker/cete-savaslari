@@ -37,12 +37,18 @@ export function buildCards(source, designs, theme) {
     if (design.traits.extraSeries) series.push(design.traits.extraSeries);
     if (raw.kind === "trap")
       series.splice(0, series.length, theme === "veto-h" ? "Skandal" : "İhbar");
-    const responseOnly = Object.keys(design.traits).some((key) => key.startsWith("response"));
-    const response =
-      design.traits.responseTypes ||
-      (responseOnly || raw.kind === "trap" || raw.subtype === "quick"
-        ? ["activate", "attack", "summon", "special", "draw", "destroy", "battle-start"]
-        : null);
+    const responseOnly =
+      !design.traits.allowProactive &&
+      Object.keys(design.traits).some((key) => key.startsWith("response"));
+    const response = design.traits.noResponse
+      ? null
+      : design.traits.responseTypes ||
+        (responseOnly ||
+        design.traits.responseFrom ||
+        raw.kind === "trap" ||
+        raw.subtype === "quick"
+          ? ["activate", "attack", "summon", "special", "draw", "destroy", "battle-start"]
+          : null);
     const costs = [],
       effects = structuredClone(design.effects);
     while (
@@ -57,12 +63,17 @@ export function buildCards(source, designs, theme) {
       text: { tr: raw.text, en: design.text },
       series,
       rulesNote:
-        theme === "veto-h" && [65, 66, 74, 77].includes(n)
+        theme === "veto-h" && n === 113
           ? {
-              tr: "Kaynak açıklaması: Ayrı bir Kurultay büyüsü listelenmediği için Kurultay Delegesi ritüel işlemini başlatır; kendisi ritüel bedeline ek olarak mezarlığa gider.",
-              en: "Source clarification: no separate Congress spell is listed. Congress Delegate starts the ritual and goes to the grave in addition to the required materials.",
+              tr: "Tek tepki modeli uyarlaması: Bu kartı kendi sıranızda kullanın; bu tur ilan edeceğiniz sonraki işleme rakip tepki veremez.",
+              en: "Single-response adaptation: play this on your turn; the opponent cannot respond to your next declared action this turn.",
             }
-          : null,
+          : theme === "veto-h" && [65, 66, 74, 77].includes(n)
+            ? {
+                tr: "Kaynak açıklaması: Ayrı bir Kurultay büyüsü listelenmediği için Kurultay Delegesi ritüel işlemini başlatır; kendisi ritüel bedeline ek olarak mezarlığa gider.",
+                en: "Source clarification: no separate Congress spell is listed. Congress Delegate starts the ritual and goes to the grave in addition to the required materials.",
+              }
+            : null,
       hint: {
         tr:
           raw.kind === "unit"

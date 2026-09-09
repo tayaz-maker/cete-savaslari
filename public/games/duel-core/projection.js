@@ -6,6 +6,7 @@ export function publicView(state, viewer) {
   const cards = {};
   for (const [uid, card] of Object.entries(state.cards)) {
     const at = locate(state, uid);
+    if (at.zone === "auxiliary" && at.player !== viewer) continue;
     const choosing =
       state.choice?.player === viewer &&
       [...(state.choice.ids || []), ...(state.choice.revealed || [])].includes(uid);
@@ -30,9 +31,18 @@ export function publicView(state, viewer) {
           attack: stat(state, uid, "attack"),
           defense: stat(state, uid, "defense"),
           owner: at.player,
+          zone: at.zone,
+          ...(["units", "support"].includes(at.zone) ? { slot: at.index } : {}),
           used: { ...card.used },
         }
-      : { uid, face: "down", position: card.position, owner: at.player };
+      : {
+          uid,
+          face: "down",
+          position: card.position,
+          owner: at.player,
+          zone: at.zone,
+          slot: at.index,
+        };
   }
   return {
     theme: state.theme,

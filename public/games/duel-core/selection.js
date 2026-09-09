@@ -1,3 +1,5 @@
+import { canRespond } from "./timing.js";
+import { suppressed } from "./modifiers.js";
 import { definition, locate, faceUp } from "./model.js";
 import { effectTargetable } from "./combat-rules.js";
 
@@ -6,6 +8,15 @@ export function matches(state, uid, filter = {}, player = 0) {
     def = definition(state, uid),
     at = locate(state, uid);
   if (!card || !def || !at) return false;
+  if (filter.quickForWindow) {
+    if (state.pending?.responding === player) {
+      if (
+        !def.response?.includes(state.pending.action.type) ||
+        !canRespond(state, uid, player, true)
+      )
+        return false;
+    } else if (def.responseOnly) return false;
+  }
   if (filter.kind && def.kind !== filter.kind) return false;
   if (filter.subtype && ![].concat(filter.subtype).includes(def.subtype)) return false;
   if (filter.series && ![].concat(def.series).some((s) => [].concat(filter.series).includes(s)))
@@ -56,7 +67,6 @@ export function candidates(state, player, selector = {}) {
 export function trait(state, uid, key) {
   const card = state.cards[uid],
     def = definition(state, uid);
-  if (!card || !def || !faceUp(state, uid) || card.negated || card.negatedUntil >= state.turn)
-    return null;
+  if (!card || !def || !faceUp(state, uid) || suppressed(state, uid)) return null;
   return def.traits?.[key] ?? null;
 }

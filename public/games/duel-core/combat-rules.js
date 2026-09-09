@@ -44,7 +44,12 @@ export function attackTargets(state, player, uid) {
     t.direct ||
     t.directGraveCount <= state.players[player].grave.length ||
     (t.directWithField &&
-      state.players.some((p) => p.field && definition(state, p.field).id === t.directWithField));
+      state.players.some(
+        (p) =>
+          p.field &&
+          state.cards[p.field].face === "up" &&
+          definition(state, p.field).id === t.directWithField,
+      ));
   const mayDirect = !blocked && (!opponent.units.some(Boolean) || direct);
   return mayDirect ? [...defenders, null] : defenders;
 }

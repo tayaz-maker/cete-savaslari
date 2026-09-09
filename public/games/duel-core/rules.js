@@ -5,7 +5,6 @@ import {
   ROWS,
   definition,
   locate,
-  activeCards,
   log,
   finish,
   checkPoints,
@@ -237,13 +236,18 @@ function context(state, player, source = null, targets = []) {
     const t = suppressed(state, uid) ? {} : traits;
     if (
       (t.fieldProtection || (reason === "battle" && t.fieldBattleProtection)) &&
-      state.players.some((p) => p.field)
+      state.players.some((p) => p.field && state.cards[p.field].face === "up")
     )
       return false;
     if (
       reason === "battle" &&
       t.fieldBattleOnce &&
-      state.players.some((p) => p.field && definition(state, p.field).id === t.fieldBattleOnce) &&
+      state.players.some(
+        (p) =>
+          p.field &&
+          state.cards[p.field].face === "up" &&
+          definition(state, p.field).id === t.fieldBattleOnce,
+      ) &&
       !card.used.fieldProtection
     ) {
       card.used.fieldProtection = true;
@@ -291,7 +295,7 @@ function context(state, player, source = null, targets = []) {
   let depth = 0;
   ctx.emit = (event, data) => {
     if (++depth > 100) throw new Error("Effect trigger cycle");
-    const listeners = [...activeCards(state, 0), ...activeCards(state, 1)];
+    const listeners = [...standing(state, 0), ...standing(state, 1)];
     if (event === "destroy")
       for (const owner of [0, 1])
         for (const uid of state.players[owner].grave) {
@@ -497,6 +501,7 @@ export function rejection(state, action) {
   const p = state.players[action.player],
     card = state.cards[action.card],
     def = definition(state, action.card);
+  if (action.type === "end-main") return MAIN.includes(state.phase) ? null : "main-phase-only";
   if (action.type === "phase") {
     if (state.phase === "end" && p.hand.length > 6) return "hand-limit";
     return null;
@@ -562,7 +567,12 @@ export function rejection(state, action) {
       return "unit-zone-required";
     return null;
   }
+  if (action.type === "set-field")
+    return MAIN.includes(state.phase) && p.hand.includes(action.card) && def.subtype === "field"
+      ? null
+      : "invalid-field";
   if (action.type === "set-support") {
+    if (def?.subtype === "field") return "field-slot-only";
     if (
       !MAIN.includes(state.phase) ||
       !p.hand.includes(action.card) ||
@@ -585,11 +595,19 @@ export function rejection(state, action) {
       : null;
   }
   if (action.type === "activate") {
-    if (!MAIN.includes(state.phase) && !(def?.subtype === "quick" && state.phase === "battle"))
+    if (
+      !MAIN.includes(state.phase) &&
+      !(
+        (def?.subtype === "quick" || modified(state, action.card, "quick")) &&
+        state.phase === "battle"
+      )
+    )
       return "main-phase-only";
     const fromHand = p.hand.includes(action.card),
-      fromSupport = p.support.includes(action.card);
-    if (!fromHand && !fromSupport && !p.units.includes(action.card)) return "invalid-source";
+      fromSupport = p.support.includes(action.card),
+      fromField = p.field === action.card;
+    if (!fromHand && !fromSupport && !fromField && !p.units.includes(action.card))
+      return "invalid-source";
     if (
       def?.kind === "unit" &&
       fromHand &&
@@ -604,16 +622,26 @@ export function rejection(state, action) {
       return "series-required";
     if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === def.name.tr)
       return "name-locked";
+    if (p.units.includes(action.card) && card.face !== "up") return "flip-required";
+    if (def.kind === "spell" && fromHand && flagActive(state, action.player, "blockHandSpell"))
+      return "effect-negated";
     if (suppressed(state, action.card)) return "effect-negated";
     if (def?.kind === "trap") {
-      const early=card.setTurn===state.turn&&hasTrait(state,action.player,"sameTurnTrapOnce")&&p.used.sameTurnTrap!==state.turn;
-      const delay=standing(state,1-action.player).reduce((sum,uid)=>sum+(definition(state,uid).traits?.trapDelay||0),0);
-      if(fromHand||!early&&state.turn-card.setTurn<1+delay)return "trap-must-wait";
-      if(flagActive(state,action.player,"blockTrap"))return "effect-negated";
+      const early =
+        card.setTurn === state.turn &&
+        hasTrait(state, action.player, "sameTurnTrapOnce") &&
+        p.used.sameTurnTrap !== state.turn;
+      const delay = standing(state, 1 - action.player).reduce(
+        (sum, uid) => sum + (definition(state, uid).traits?.trapDelay || 0),
+        0,
+      );
+      if (fromHand || (!early && state.turn - card.setTurn < 1 + delay)) return "trap-must-wait";
+      if (flagActive(state, action.player, "blockTrap")) return "effect-negated";
     }
-    if(def?.subtype==="quick") {
-      if(hasTrait(state,1-action.player,"blockQuick"))return "effect-negated";
-      if(fromHand&&(hasTrait(state,0,"quickMustSet")||hasTrait(state,1,"quickMustSet")))return "quick-must-wait";
+    if (def?.subtype === "quick") {
+      if (hasTrait(state, 1 - action.player, "blockQuick")) return "effect-negated";
+      if (fromHand && (hasTrait(state, 0, "quickMustSet") || hasTrait(state, 1, "quickMustSet")))
+        return "quick-must-wait";
     }
     if (fromSupport && def?.subtype === "quick" && card.setTurn >= state.turn)
       return "quick-must-wait";
@@ -622,13 +650,20 @@ export function rejection(state, action) {
       !(def?.kind !== "unit" && ["continuous", "equip", "field"].includes(def?.subtype))
     )
       return "no-activated-effect";
+    if (!def.effects.length && card.face === "up" && !fromHand) return "no-activated-effect";
     if (card.used.activate === state.turn) return "effect-used";
     if (def.traits?.oncePerDuel && card.used.duelActivated) return "effect-used";
     if (def.responseOnly) return "response-only";
-    const quickCost=def.subtype==="quick"?standing(state,action.player).reduce((sum,uid)=>sum+(definition(state,uid).traits?.quickCost||0),0):0;
-    const cost = quickCost+(def.costs || [])
-      .filter((op) => op.op === "points")
-      .reduce((sum, op) => sum - op.amount, 0);
+    const quickCost =
+      def.subtype === "quick"
+        ? standing(state, action.player).reduce(
+            (sum, uid) => sum + (definition(state, uid).traits?.quickCost || 0),
+            0,
+          )
+        : 0;
+    const cost =
+      quickCost +
+      (def.costs || []).filter((op) => op.op === "points").reduce((sum, op) => sum - op.amount, 0);
     if (p.points < cost) return "insufficient-points";
     if (
       def.effects.some((op) => op.op === "ritual") &&
@@ -683,7 +718,7 @@ export function rejection(state, action) {
 }
 
 export function responseCards(state) {
-  if (!state.pending) return [];
+  if (!state.pending || state.pending.blocked) return [];
   const who = state.pending.responding,
     p = state.players[who];
   return [...p.support, ...p.hand, ...p.units, ...p.grave]
@@ -691,7 +726,11 @@ export function responseCards(state) {
     .filter((uid) => {
       const def = definition(state, uid);
       if (state.pending.allowed && !state.pending.allowed.includes(uid)) return false;
-      return def.response?.includes(state.pending.action.type) && canRespond(state, uid, who);
+      return (
+        (def.response?.includes(state.pending.action.type) ||
+          (def.kind === "spell" && modified(state, uid, "quick"))) &&
+        canRespond(state, uid, who)
+      );
     })
     .sort(
       (a, b) =>
@@ -784,11 +823,11 @@ export function dispatch(original, action) {
   state.revision++;
   if (["activate", "respond"].includes(action.type)) {
     const def = definition(state, action.card),
-      wasSet = card.face === "down" && p.support.includes(action.card);
+      wasSet = card.face === "down" && (p.support.includes(action.card) || p.field === action.card);
     for (const cost of def.costs || []) primitives[cost.op](ctx, cost);
     card.face = "up";
     card.knownTo = [true, true];
-    if(def.kind==="trap"&&card.setTurn===state.turn)p.used.sameTurnTrap=state.turn;
+    if (def.kind === "trap" && card.setTurn === state.turn) p.used.sameTurnTrap = state.turn;
     if (wasSet) ctx.emit("set-activate", { player: action.player, uid: action.card });
     if (def.kind === "spell") ctx.emit("spell", { player: action.player, uid: action.card });
   }
@@ -845,6 +884,10 @@ export function dispatch(original, action) {
       if (pending && !pending.negated && !state.result) resolve(state, pending.action);
       state.pending = null;
     }
+  } else if (action.type === "end-main") {
+    state.phase = "end";
+    log(state, "phase", { phase: "end" });
+    ctx.emit("end", { player: state.active });
   } else if (action.type === "phase") {
     if (state.phase === "draw" || (state.phase === "main1" && state.turn > 1)) {
       const declared = {
@@ -897,7 +940,13 @@ export function dispatch(original, action) {
     log(state, "phase", { phase: state.phase });
     if (state.phase !== "draw") ctx.emit(state.phase, { player: state.active });
   } else if (action.type === "discard") ctx.move(action.card, "grave", "hand-limit");
-  else if (action.type === "set-support") {
+  else if (action.type === "set-field") {
+    if (p.field) ctx.move(p.field, "grave", "field-replaced");
+    ctx.move(action.card, "field", "set", action.player);
+    card.face = "down";
+    card.setTurn = state.turn;
+    ctx.emit("set", { player: action.player, uid: action.card });
+  } else if (action.type === "set-support") {
     ctx.move(action.card, "support", "set", action.player, action.slot);
     card.face = "down";
     card.setTurn = state.turn;
@@ -918,6 +967,10 @@ export function dispatch(original, action) {
       card.used.duelActivated = true;
     }
     state.pending = { action, responding: 1 - action.player, negated: false };
+    if (flagActive(state, 1 - action.player, "blockNextResponse")) {
+      state.pending.blocked = true;
+      delete state.players[1 - action.player].flags.blockNextResponse;
+    }
     if (!responseCards(state).length) {
       resolve(state, action);
       state.pending = null;
