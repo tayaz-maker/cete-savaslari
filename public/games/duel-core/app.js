@@ -24,6 +24,12 @@ const $ = (tag, attrs = {}, ...children) => {
 };
 export async function startApp(theme, designs) {
   const root = document.querySelector("#app");
+  const motionLayer = $("div", { class: "duel-motion-layer", "aria-hidden": "true", inert: true });
+  document.body.append(motionLayer);
+  window.addEventListener("resize", () => {
+    for (const animation of root.getAnimations({ subtree: true })) animation.cancel();
+    motionLayer.replaceChildren();
+  });
   const storage = {
     getItem: (key) => localStorage.getItem(key),
     setItem: (key, value) => localStorage.setItem(key, value),
@@ -267,7 +273,7 @@ export async function startApp(theme, designs) {
         clone.removeAttribute("data-card");
         clone.setAttribute("aria-hidden", "true");
         clone.style.cssText = `position:fixed;pointer-events:none;left:${rect.x}px;top:${rect.y}px;width:${rect.width}px;height:${rect.height}px;z-index:9;`;
-        document.body.append(clone);
+        motionLayer.append(clone);
         const destination = state.players[card?.owner ?? 0].banished.includes(uid)
           ? "banished"
           : "grave";

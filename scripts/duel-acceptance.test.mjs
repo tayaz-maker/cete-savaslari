@@ -24,8 +24,20 @@ for (const [theme, pool] of Object.entries(pools)) {
       assert.equal(Number(c.id.slice(4)), i + 1);
       assert.ok(c.name.tr && c.name.en && c.text.tr && c.text.en);
       assert.ok(Number.isFinite(c.attack) && Number.isFinite(c.defense));
-      for (const op of [...c.effects, ...c.triggers.flatMap((t) => t.effects)])
-        assert.equal(typeof primitives[op.op], "function", `${c.id}: ${op.op}`);
+      assert.ok(["unit", "spell", "trap"].includes(c.kind));
+      assert.ok(["main", "auxiliary"].includes(c.deckLocation));
+      if (c.deckLocation === "auxiliary") assert.equal(c.kind, "unit");
+      const inspect = (value, path = c.id) => {
+        if (typeof value === "string" && /^(SND|RCN)-\d{3}$/.test(value))
+          assert.ok(
+            pool.some((card) => card.id === value),
+            `${path}: missing reference ${value}`,
+          );
+        if (!value || typeof value !== "object") return;
+        if (value.op) assert.equal(typeof primitives[value.op], "function", `${path}: ${value.op}`);
+        for (const [key, nested] of Object.entries(value)) inspect(nested, `${path}.${key}`);
+      };
+      inspect({ effects: c.effects, costs: c.costs, triggers: c.triggers, traits: c.traits });
     }
   });
   test(`${theme}: 10,000 seeded decks satisfy the composition and name-copy constraints`, () => {

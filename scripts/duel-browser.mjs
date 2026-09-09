@@ -85,6 +85,19 @@ try {
             width: document.documentElement.clientWidth,
             scroll: document.documentElement.scrollWidth,
             text: document.body.innerText.length,
+            offenders: [...document.querySelectorAll("body *")]
+              .filter((el) => {
+                const r = el.getBoundingClientRect();
+                return (
+                  r.width && r.right > innerWidth + 1 && getComputedStyle(el).position !== "fixed"
+                );
+              })
+              .slice(0, 8)
+              .map((el) => ({
+                tag: el.tagName,
+                class: el.className,
+                right: el.getBoundingClientRect().right,
+              })),
           }));
           assert.ok(d.text > 50);
           assert.ok(

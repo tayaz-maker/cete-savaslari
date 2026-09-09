@@ -50,7 +50,13 @@ export function attackTargets(state, player, uid) {
           state.cards[p.field].face === "up" &&
           definition(state, p.field).id === t.directWithField,
       ));
-  const mayDirect = !blocked && (!opponent.units.some(Boolean) || direct);
+  const onlyBypassable = opponent.units
+    .filter(Boolean)
+    .every(
+      (id) =>
+        traits(state, id).allowDirectWhenOnlyDefenders && state.cards[id].position === "defense",
+    );
+  const mayDirect = !blocked && (onlyBypassable || direct);
   return mayDirect ? [...defenders, null] : defenders;
 }
 export function attackBlocked(state, player, uid, target) {

@@ -429,3 +429,65 @@ test("auxiliary cards cannot be summoned without their specified material requir
     "special-requirements",
   );
 });
+
+test("Market Stall's explicit direct-attack exception does not bypass another defender", () => {
+  const s = fixture(),
+    attacker = place(s, "SND-001", 0, "units"),
+    stall = place(s, "SND-005", 1, "units");
+  s.cards[stall].position = "defense";
+  assert.deepEqual(attackTargets(s, 0, attacker), [null]);
+  const other = place(s, "SND-002", 1, "units", 1);
+  assert.deepEqual(attackTargets(s, 0, attacker), [other]);
+});
+test("a previously Set equip binds its target and applies stats exactly once after reload", () => {
+  let s = fixture();
+  const unit = place(s, "SND-001", 0, "units"),
+    equip = place(s, "SND-117", 0, "support");
+  const attack = stat(s, unit, "attack");
+  s = decisions(act(s, { type: "activate", card: equip, targets: [unit] }));
+  assert.equal(s.cards[equip].equippedTo, unit);
+  assert.equal(stat(s, unit, "attack"), attack + 500);
+  s = deserialize(serialize(s), pools["veto-h"], "veto-h").state;
+  assert.equal(stat(s, unit, "attack"), attack + 500);
+  assert.equal(
+    rejection(s, {
+      type: "activate",
+      player: 0,
+      revision: s.revision,
+      card: equip,
+      targets: [unit],
+    }),
+    "no-activated-effect",
+  );
+});
+test("Quick-Play surcharge is paid before a negation and never paid twice", () => {
+  let s = fixture();
+  place(s, "SND-116", 0, "field");
+  place(s, "SND-001", 0, "units");
+  const quick = place(s, "SND-111", 0, "hand"),
+    counter = place(s, "SND-123", 1, "support");
+  s = act(s, { type: "activate", card: quick });
+  assert.equal(s.players[0].points, 7700);
+  assert.ok(s.pending);
+  s = act(s, { type: "respond", card: counter });
+  assert.equal(s.players[0].points, 7700);
+});
+
+test("a negated special summon consumes declared ritual materials before the response", () => {
+  let s = fixture("veto-h");
+  const ritual = place(s, "SND-074", 0, "hand"),
+    material = place(s, "SND-043", 0, "hand"),
+    rite = place(s, "SND-065", 0, "hand");
+  const counter = place(s, "SND-140", 1, "support");
+  const plan = ritualPlans(s, 0).find((p) => p.card === ritual);
+  assert.ok(plan);
+  s = act(s, { type: "special", ...plan });
+  assert.ok(s.players[0].grave.includes(material));
+  assert.ok(s.players[0].grave.includes(rite));
+  assert.ok(s.pending);
+  assert.ok(responseCards(s).includes(counter));
+  s = deserialize(serialize(s), pools["veto-h"], "veto-h").state;
+  s = act(s, { type: "respond", card: counter });
+  assert.ok(s.players[0].grave.includes(ritual));
+  assert.equal(s.players[0].units.filter(Boolean).length, 0);
+});

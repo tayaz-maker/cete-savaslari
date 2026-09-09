@@ -971,7 +971,7 @@ body[data-motion="reduced"] *::before {
     display: none;
   }
   .player-field.opponent {
-    transform: scale(0.96) translateZ(-10px);
+    transform: scale(0.96) translateZ(1px);
   }
 }
 @media (max-width: 760px) {
@@ -1061,4 +1061,16 @@ body[data-motion="reduced"] *::before {
     width: 40px;
     height: 40px;
   }
+}
+
+/* Transient card travel must not enlarge the page's scrollable canvas. */
+.table-workspace {
+  overflow-x: clip;
+}
+.duel-motion-layer {
+  position: fixed;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  z-index: 9;
 }

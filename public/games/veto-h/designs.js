@@ -43,7 +43,7 @@ export const designs = {
     "Market Stall",
     "While defending, cannot be attacked. Opponents must choose another target, or attack directly if none exists.",
     [],
-    { untargetableDefense: true },
+    { untargetableDefense: true, allowDirectWhenOnlyDefenders: true },
   ),
   6: card(
     "Leaflet Team",

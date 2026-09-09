@@ -88,12 +88,22 @@ export function createDuel(pool, theme, seed, first = 0, prepared = null) {
 
 function context(state, player, source = null, targets = []) {
   const ctx = { state, player, source, targets: [...targets] };
-  ctx.activate = (uid) => resolve(state, { type: "activate", player, card: uid, targets: [] });
+  ctx.activate = (uid) => {
+    const def = definition(state, uid),
+      activation = context(state, player, uid);
+    if (def.subtype === "quick")
+      state.players[player].points -= standing(state, player).reduce(
+        (sum, id) => sum + (definition(state, id).traits?.quickCost || 0),
+        0,
+      );
+    for (const cost of def.costs || []) primitives[cost.op](activation, cost);
+    state.cards[uid].used.activate = state.turn;
+    ctx.emit("spell", { player, uid });
+    resolve(state, { type: "activate", player, card: uid, targets: [] });
+  };
   ctx.deferBattle = (action) => state.work.push({ type: "battle", action });
-  ctx.special = (plan) => {
-    const where = locate(state, plan.card),
-      def = definition(state, plan.card);
-    if (!where) return;
+  ctx.specialCost = (plan) => {
+    const def = definition(state, plan.card);
     if (plan.enabler && locate(state, plan.enabler)?.zone !== "grave")
       ctx.move(plan.enabler, "grave", "ritual-rite");
     for (const uid of plan.materials || []) {
@@ -105,8 +115,16 @@ function context(state, player, source = null, targets = []) {
         "material",
       );
     }
+  };
+  ctx.special = (plan) => {
+    const where = locate(state, plan.card);
+    if (!where) return;
+    if (!plan.paidMaterials) ctx.specialCost(plan);
     const slot = state.players[player].units.indexOf(null);
-    if (slot < 0) throw Error("Special summon requires a zone");
+    if (slot < 0) {
+      log(state, "summon-zone-lost", { player, uid: plan.card });
+      return;
+    }
     ctx.move(plan.card, "units", "special", player, slot);
     const c = state.cards[plan.card];
     c.face = "up";
@@ -416,7 +434,7 @@ function settle(state) {
           at &&
           (["summon", "special"].includes(pending.action.type) ||
             definition(state, pending.action.card).kind !== "unit") &&
-          ["hand", "support", "field"].includes(at.zone)
+          ["hand", "support", "field", "auxiliary"].includes(at.zone)
         )
           ctx.move(pending.action.card, "grave", "negated");
       }
@@ -759,7 +777,11 @@ function resolve(state, action) {
       ctx.move(uid, alternate ? "banished" : "grave", alternate ? "summon-cost" : "tribute");
       if (!alternate) ctx.emit("tribute", { player: action.player, uid });
     }
-    ctx.move(action.card, "units", "summon", action.player, action.slot);
+    const slot = p.units[action.slot] === null ? action.slot : p.units.indexOf(null);
+    if (slot < 0 || !ctx.move(action.card, "units", "summon", action.player, slot)) {
+      log(state, "summon-zone-lost", { player: action.player, uid: action.card });
+      return;
+    }
     card.face = action.type === "summon" ? "up" : "down";
     card.position = action.type === "summon" ? "attack" : "defense";
     card.summonedTurn = state.turn;
@@ -780,17 +802,13 @@ function resolve(state, action) {
   } else if (action.type === "activate") {
     card.face = "up";
     card.knownTo = [true, true];
-    if (def.subtype === "quick")
-      p.points -= standing(state, action.player).reduce(
-        (sum, uid) => sum + (definition(state, uid).traits?.quickCost || 0),
-        0,
-      );
     if (def.subtype === "field") {
       if (p.field && p.field !== action.card) ctx.move(p.field, "grave", "field-replaced");
       ctx.move(action.card, "field", "activated", action.player);
       p.fieldHistory.push(def.id);
-    } else if (["continuous", "equip"].includes(def.subtype) && p.hand.includes(action.card)) {
-      ctx.move(action.card, "support", "activated", action.player, p.support.indexOf(null));
+    } else if (["continuous", "equip"].includes(def.subtype)) {
+      if (p.hand.includes(action.card))
+        ctx.move(action.card, "support", "activated", action.player, p.support.indexOf(null));
       if (def.subtype === "equip") {
         card.equippedTo = action.targets?.[0];
         ctx.emit("equip", { player: action.player, uid: action.card });
@@ -824,6 +842,11 @@ export function dispatch(original, action) {
   if (["activate", "respond"].includes(action.type)) {
     const def = definition(state, action.card),
       wasSet = card.face === "down" && (p.support.includes(action.card) || p.field === action.card);
+    if (def.subtype === "quick")
+      p.points -= standing(state, action.player).reduce(
+        (sum, uid) => sum + (definition(state, uid).traits?.quickCost || 0),
+        0,
+      );
     for (const cost of def.costs || []) primitives[cost.op](ctx, cost);
     card.face = "up";
     card.knownTo = [true, true];
@@ -842,6 +865,10 @@ export function dispatch(original, action) {
       card.face = "up";
       card.knownTo = [true, true];
     }
+  }
+  if (action.type === "special") {
+    ctx.specialCost(action);
+    action.paidMaterials = true;
   }
   if (action.type === "attack" && !action.target) {
     ctx.emit("direct-declared", { player: action.player, uid: action.card });
@@ -870,11 +897,6 @@ export function dispatch(original, action) {
       card.face = "up";
       card.knownTo = [true, true];
       card.used.duelActivated = true;
-      if (definition(state, action.card).subtype === "quick")
-        p.points -= standing(state, action.player).reduce(
-          (sum, uid) => sum + (definition(state, uid).traits?.quickCost || 0),
-          0,
-        );
       if (card.setTurn === state.turn && definition(state, action.card).kind === "trap")
         p.used.sameTurnTrap = state.turn;
       state.work.unshift({ type: "response-finish", player: action.player, source: action.card });
