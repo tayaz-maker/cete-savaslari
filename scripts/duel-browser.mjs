@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { duelScenarios } from "./duel-browser-scenarios.mjs";
 const origin = "http://127.0.0.1:8082";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/duel`;
 mkdirSync(out, { recursive: true });
@@ -36,6 +37,10 @@ try {
         lang,
       );
       const page = await context.newPage();
+      const artRequests = new Set();
+      page.on("request", (r) => {
+        if (r.url().includes("/assets/cards/")) artRequests.add(r.url());
+      });
       page.on("pageerror", (e) => errors.push(`${theme}/${lang}: ${e.message}`));
       page.on("response", (r) => {
         if (r.url().startsWith(origin) && r.status() >= 400)
@@ -52,7 +57,7 @@ try {
               start: "Düelloyu Başlat",
               rock: "Taş",
               first: "İlk Başla",
-              next: "Sonraki Evre",
+              next: "Kart Çek",
               confirm: "Onayla",
               continue: "Devam Et",
               help: "Nasıl Oynanır",
@@ -65,7 +70,7 @@ try {
               start: "Start Duel",
               rock: "Rock",
               first: "Go First",
-              next: "Next Phase",
+              next: "Draw Card",
               confirm: "Confirm",
               continue: "Continue",
               help: "How to Play",
@@ -78,7 +83,9 @@ try {
           [430, 932],
           [740, 390],
           [768, 1024],
+          [1280, 800],
           [1440, 1000],
+          [1920, 1080],
         ]) {
           await page.setViewportSize({ width, height });
           const d = await page.evaluate(() => ({
@@ -126,12 +133,28 @@ try {
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
       assert.equal(await page.locator("#app").getAttribute("aria-busy"), null);
       await measure("menu");
+      assert.equal(artRequests.size, 0, "Menu must not fetch card catalog images");
       await page.getByRole("button", { name: labels.archive }).click();
       await measure("archive");
+      assert.ok(artRequests.size <= 24, "First archive page loads at most its 24 images");
+      await page
+        .locator(".archive-grid img")
+        .first()
+        .evaluate(async (img) => {
+          await img.decode();
+        });
+      assert.equal(
+        await page
+          .locator(".archive-grid img")
+          .first()
+          .evaluate((img) => img.naturalWidth),
+        400,
+      );
+      assert.equal(await page.locator('.archive-grid [data-used="true"]').count(), 0);
       assert.equal(await page.locator(".archive-grid .playing-card").count(), 24);
-      assert.equal(await page.locator(".archive-head span").innerText(), "150 / 150");
+      assert.equal(await page.locator(".archive-head span").innerText(), "300 / 300");
       const ids = new Set();
-      for (let n = 0; n < 7; n++) {
+      for (let n = 0; n < 13; n++) {
         for (const id of await page
           .locator(".archive-grid [data-card]")
           .evaluateAll((nodes) => nodes.map((el) => el.dataset.card)))
@@ -140,7 +163,7 @@ try {
         if (await nextPage.isDisabled()) break;
         await nextPage.click();
       }
-      assert.equal(ids.size, 150);
+      assert.equal(ids.size, 300);
       await page.locator(".filters input").fill(theme === "veto-h" ? "SND-001" : "RCN-001");
       assert.equal(await page.locator(".archive-grid .playing-card").count(), 1);
       await page.locator(".filters input").fill("");
@@ -148,6 +171,15 @@ try {
       assert.ok(await page.locator('.archive-grid [data-kind="trap"]').count());
       assert.equal(await page.locator('.archive-grid [data-kind="unit"]').count(), 0);
       await page.locator(".filters select").first().selectOption("");
+      await page.locator(".filters select").nth(2).selectOption("equip");
+      assert.ok(await page.locator(".archive-grid .playing-card").count());
+      await page.locator(".filters select").nth(2).selectOption("");
+      await page.locator(".filters select").nth(3).selectOption("auxiliary");
+      assert.ok(await page.locator(".archive-grid .playing-card").count());
+      await page.locator(".filters select").nth(3).selectOption("");
+      await page.locator(".filters select").nth(4).selectOption("high");
+      assert.ok(await page.locator(".archive-grid .playing-card").count());
+      await page.locator(".filters select").nth(4).selectOption("");
       await page.locator(".archive-grid .playing-card").first().click();
       await measure("archive-inspector");
       await page.getByRole("button", { name: labels.close, exact: true }).click();
@@ -218,27 +250,27 @@ try {
           await page
             .locator(".action-dock")
             .getByRole("button", {
-              name: lang === "tr" ? "Tepki Verme" : "Pass Response",
+              name: lang === "tr" ? "Geç" : "Pass",
               exact: true,
             })
             .click();
           continue;
         }
         if (live.phase === "main1") break;
-        await page
-          .locator(".action-dock")
-          .getByRole("button", { name: labels.next, exact: true })
-          .click();
-        await page
-          .locator("dialog")
-          .getByRole("button", { name: labels.confirm, exact: true })
-          .click();
+        await page.locator(".action-dock > button.primary").first().click();
       }
       const hand = page.locator('.hand-row [data-kind="unit"]');
       for (let i = 0; i < (await hand.count()); i++) {
         await hand.nth(i).click();
         const summon = page.locator(".inspector-actions").getByRole("button", {
-          name: lang === "tr" ? "Normal Çağır" : "Normal Summon",
+          name:
+            theme === "veto-h"
+              ? lang === "tr"
+                ? "Normal Çağır"
+                : "Normal Summon"
+              : lang === "tr"
+                ? "Sahaya Sür"
+                : "Deploy Crew",
           exact: true,
         });
         if (await summon.count()) {
@@ -252,7 +284,21 @@ try {
           break;
         }
       }
+      assert.equal(
+        await page.getByRole("button", { name: /^(Sonraki Evre|Next Phase)$/i }).count(),
+        0,
+      );
       await measure("board");
+      assert.ok(
+        (await page
+          .locator(".action-dock")
+          .getByRole("button", {
+            name: lang === "tr" ? "Turu Bitir" : "End Turn",
+            exact: true,
+          })
+          .count()) <= 1,
+        "The primary End Turn action must not have a duplicate secondary button",
+      );
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.locator(".hand-row .playing-card").first().click();
       await page.locator(".inspector .effect-text").waitFor();
@@ -304,6 +350,7 @@ try {
       );
       await context.close();
     }
+  await duelScenarios(browser, origin);
   assert.deepEqual(errors, []);
   writeFileSync(`${out}/results.json`, JSON.stringify(metrics, null, 2));
   console.log(`DUEL_BROWSER_PASS ${metrics.length} viewport checks`);

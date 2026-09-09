@@ -17,9 +17,9 @@ import { primitives } from "../public/games/duel-core/effects.js";
 import { labels } from "../public/games/duel-core/labels.js";
 
 for (const [theme, pool] of Object.entries(pools)) {
-  test(`${theme}: all 150 source identities, bilingual fields and typed operations resolve`, () => {
-    assert.equal(pool.length, 150);
-    assert.equal(new Set(pool.map((c) => c.id)).size, 150);
+  test(`${theme}: all 300 source identities, bilingual fields and typed operations resolve`, () => {
+    assert.equal(pool.length, 300);
+    assert.equal(new Set(pool.map((c) => c.id)).size, 300);
     for (const [i, c] of pool.entries()) {
       assert.equal(Number(c.id.slice(4)), i + 1);
       assert.ok(c.name.tr && c.name.en && c.text.tr && c.text.en);
@@ -41,8 +41,41 @@ for (const [theme, pool] of Object.entries(pools)) {
     }
   });
   test(`${theme}: 10,000 seeded decks satisfy the composition and name-copy constraints`, () => {
-    for (let seed = 0; seed < 10000; seed++)
-      assert.deepEqual(validateDeck(generateDeck(pool, seed), pool), true, `seed ${seed}`);
+    const byId = Object.fromEntries(pool.map((c) => [c.id, c]));
+    const seen = new Set();
+    let mulligans = 0,
+      highLevelBricks = 0,
+      oldCards = 0,
+      newCards = 0;
+    for (let seed = 0; seed < 10000; seed++) {
+      const deck = generateDeck(pool, seed);
+      assert.equal(validateDeck(deck, pool), true, `seed ${seed}`);
+      if (deck.mulligan) mulligans++;
+      if (!deck.main.slice(0, 5).some((id) => byId[id].kind === "unit" && byId[id].level <= 4))
+        highLevelBricks++;
+      for (const id of [...deck.main, ...deck.auxiliary]) seen.add(id);
+      for (const id of deck.main) {
+        if (Number(id.slice(4)) <= 150) oldCards++;
+        else newCards++;
+      }
+    }
+    assert.equal(seen.size, 300, "Every old/new main and auxiliary identity is reachable");
+    assert.ok(
+      oldCards > 100000 && newCards > 100000,
+      "Both generations remain materially represented",
+    );
+    assert.ok(highLevelBricks < 1000, "No excessive tribute-only opening hands");
+    console.log(
+      JSON.stringify({
+        theme,
+        decks: 10000,
+        oldCards,
+        newCards,
+        mulligans,
+        highLevelBricks,
+        seen: seen.size,
+      }),
+    );
   });
   test(`${theme}: pending decisions, responses and subsequent AI actions survive every reload`, () => {
     let state = createDuel(pool, theme, 28),

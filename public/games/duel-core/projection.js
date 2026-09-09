@@ -34,6 +34,9 @@ export function publicView(state, viewer) {
           zone: at.zone,
           ...(["units", "support"].includes(at.zone) ? { slot: at.index } : {}),
           used: { ...card.used },
+          attacksUsed: card.attacksUsed,
+          baseAttack: definition(state, uid).attack,
+          baseDefense: definition(state, uid).defense,
         }
       : {
           uid,

@@ -47,6 +47,9 @@ function isAsset(url) {
 // dinleyicisiz birakabiliyor. Bu oyunlar bu yuzden online'da tek tutarli
 // deploy'dan yuklenir; cache yalniz cevrimdisi yedegidir.
 const MODULE_GAME_PATHS = [
+  "/games/duel-core/",
+  "/games/veto-h/",
+  "/games/gett-oh/",
   "/games/tc-sim/",
   "/games/labirent/",
   "/games/peg-solitaire/",

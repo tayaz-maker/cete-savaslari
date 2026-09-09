@@ -1,5 +1,6 @@
+import { primaryTitle, cardActionTitle, dispatchPresented } from "./presentation.js";
 import { buildCards } from "./card-data.js";
-import { createDuel, dispatch, rejection } from "./rules.js";
+import { createDuel, rejection } from "./rules.js";
 import { legalActions } from "./actions.js";
 import { publicView } from "./projection.js";
 import { chooseAction } from "./ai.js";
@@ -56,6 +57,9 @@ export async function startApp(theme, designs) {
     archiveKind = "",
     archiveSeries = "",
     archiveLevel = "",
+    archiveSubtype = "",
+    archiveLocation = "",
+    archiveStat = "",
     archivePage = 0;
   const name = theme === "veto-h" ? "VETO-H!" : "GETT-OH!",
     point = theme === "veto-h" ? "OP" : "RP";
@@ -68,7 +72,7 @@ export async function startApp(theme, designs) {
             trap: "Skandal",
             battle: "Tartışma",
             auxiliary: "Koalisyon",
-            "end-main": "Bitişe Geç",
+            "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
           },
           en: {
@@ -77,7 +81,7 @@ export async function startApp(theme, designs) {
             trap: "Scandal",
             battle: "Debate",
             auxiliary: "Coalition",
-            "end-main": "Go to End",
+            "end-main": "End Turn",
             "set-field": "Set Field",
           },
         }
@@ -88,7 +92,7 @@ export async function startApp(theme, designs) {
             trap: "İhbar",
             battle: "Kapışma",
             auxiliary: "Birleşim",
-            "end-main": "Bitişe Geç",
+            "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
           },
           en: {
@@ -97,7 +101,7 @@ export async function startApp(theme, designs) {
             trap: "Tip-off",
             battle: "Clash",
             auxiliary: "Alliance",
-            "end-main": "Go to End",
+            "end-main": "End Turn",
             "set-field": "Set Field",
           },
         };
@@ -198,7 +202,7 @@ export async function startApp(theme, designs) {
       ]),
     );
     try {
-      const result = dispatch(state, action);
+      const result = dispatchPresented(state, action);
       if (!result.ok) {
         notice = `${t("notLegal")}: ${reason(result.error)}`;
         render();
@@ -616,6 +620,15 @@ export async function startApp(theme, designs) {
           class: `playing-card ${down ? "face-down" : ""} ${card?.position === "defense" ? "defense" : ""} ${uid === selected ? "selected" : ""}`,
           "data-kind": card?.kind || "",
           "data-card": uid,
+          "data-used": state && card?.used?.activate === state.turn ? "true" : "false",
+          "data-attacked": card?.attacksUsed > 0 ? "true" : "false",
+          "data-response-ready":
+            state &&
+            card?.owner === 0 &&
+            actions().some((a) => a.type === "respond" && a.card === uid)
+              ? "true"
+              : "false",
+          "data-position": card?.position || "",
           "aria-label": hidden ? t("hidden") : text(card.name),
           ...attrs,
         },
@@ -625,11 +638,16 @@ export async function startApp(theme, designs) {
           { class: "card-art", "aria-hidden": "true" },
           down
             ? "◈"
-            : card.kind === "unit"
-              ? $("img", { src: `/games/${theme}/assets/emblem.svg`, alt: "", loading: "lazy" })
-              : card.kind === "spell"
-                ? "✦"
-                : "◇",
+            : card.id && /^(SND|RCN)-[0-9]{3}$/.test(card.id)
+              ? $("img", {
+                  src: `/games/${theme}/assets/cards/${card.id}.webp`,
+                  alt: "",
+                  loading: "lazy",
+                  decoding: "async",
+                  width: 400,
+                  height: 300,
+                })
+              : "◈",
         ),
         hidden
           ? null
@@ -649,7 +667,7 @@ export async function startApp(theme, designs) {
     if (innerWidth <= 760) inspect(uid);
   }
   function actionTitle(action, v = view()) {
-    let title = t(action.type);
+    let title = cardActionTitle(action, v.cards[action.card], v, theme, lang, t(action.type));
     if (action.target !== undefined)
       title += ` · ${action.target ? cname(action.target, v) : t("direct")}`;
     if (action.enabler) title += ` · ${t("ritual")}: ${cname(action.enabler, v)}`;
@@ -760,15 +778,63 @@ export async function startApp(theme, designs) {
         : null,
       card.text ? $("p", { class: "effect-text" }, text(card.text)) : null,
       card.hint ? $("small", {}, text(card.hint)) : null,
+      card.used?.activate === v.turn
+        ? $(
+            "p",
+            { class: "used-state" },
+            lang === "tr" ? "Etki bu tur kullanıldı." : "Effect used this turn.",
+          )
+        : null,
+      card.used?.duelActivated && card.traits?.oncePerDuel
+        ? $(
+            "p",
+            { class: "used-state" },
+            lang === "tr" ? "Düelloluk hak kullanıldı." : "Once-per-duel use spent.",
+          )
+        : null,
+      available.some((a) => a.type === "respond")
+        ? $(
+            "p",
+            { class: "used-state" },
+            lang === "tr" ? "↩ Cevap vermeye hazır." : "↩ Ready to respond.",
+          )
+        : null,
+      card.attacksUsed > 0
+        ? $(
+            "p",
+            { class: "used-state" },
+            lang === "tr"
+              ? `Bu tur ${card.attacksUsed} saldırı yaptı.`
+              : `${card.attacksUsed} attack(s) made this turn.`,
+          )
+        : null,
+      card.kind === "unit" && (card.attack !== card.baseAttack || card.defense !== card.baseDefense)
+        ? $(
+            "p",
+            { class: "stat-change" },
+            `${lang === "tr" ? "Temel → Güncel" : "Base → Current"}: ATK ${card.baseAttack} → ${card.attack} · DEF ${card.baseDefense} → ${card.defense}`,
+          )
+        : null,
       card.rulesNote ? $("small", {}, text(card.rulesNote)) : null,
       $("h3", {}, t("action")),
       $(
         "div",
         { class: "inspector-actions" },
         ...groups.map((type) =>
-          button(t(type), () => selectAction(available.filter((a) => a.type === type)), {
-            class: "primary",
-          }),
+          button(
+            cardActionTitle(
+              available.find((a) => a.type === type),
+              card,
+              v,
+              theme,
+              lang,
+              t(type),
+            ),
+            () => selectAction(available.filter((a) => a.type === type)),
+            {
+              class: "primary",
+            },
+          ),
         ),
       ),
     ];
@@ -970,7 +1036,10 @@ export async function startApp(theme, designs) {
           playerField(1, v),
           $(
             "nav",
-            { class: "phase-strip", "aria-label": t("phase") },
+            {
+              class: "phase-strip",
+              "aria-label": lang === "tr" ? "Düello Aşamaları" : "Duel Phases",
+            },
             ...PHASES.map((p) =>
               $(
                 "span",
@@ -998,9 +1067,12 @@ export async function startApp(theme, designs) {
           "div",
           { class: "action-dock" },
           $("p", { "aria-live": "polite" }, `${t("turn")} ${v.turn} · ${status}`),
-          phase ? button(t("phase"), () => confirmAction(phase), { class: "primary" }) : null,
+          phase
+            ? button(primaryTitle(v, theme, lang), () => command(phase), { class: "primary" })
+            : null,
           pass ? button(t("pass"), () => command(pass)) : null,
-          approved.some((a) => a.type === "end-main")
+          approved.some((a) => a.type === "end-main") &&
+            (!phase || primaryTitle(v, theme, lang) !== t("end-main"))
             ? button(t("end-main"), () =>
                 confirmAction(approved.find((a) => a.type === "end-main")),
               )
@@ -1036,7 +1108,16 @@ export async function startApp(theme, designs) {
           { class: "inspector-body" },
           selected
             ? inspectBody(selected, v)
-            : [$("p", {}, t("select")), $("small", {}, t("deckNote"))],
+            : [
+                $("p", {}, t("select")),
+                $(
+                  "small",
+                  {},
+                  lang === "tr"
+                    ? "Elinden veya sahadan bir karta dokun. Ayrıntılar ve yasal işlemler burada görünür."
+                    : "Tap a card in your hand or on the field. Its details and legal actions appear here.",
+                ),
+              ],
         ),
       ),
     );
@@ -1052,6 +1133,23 @@ export async function startApp(theme, designs) {
         $("small", {}, `${card.id} · ${t(card.kind)} · ${card.series.join(" / ")}`),
         $("p", { class: "effect-text" }, text(card.text)),
         $("small", {}, text(card.hint)),
+        card.attacksUsed > 0
+          ? $(
+              "p",
+              { class: "used-state" },
+              lang === "tr"
+                ? `Bu tur ${card.attacksUsed} saldırı yaptı.`
+                : `${card.attacksUsed} attack(s) made this turn.`,
+            )
+          : null,
+        card.kind === "unit" &&
+        (card.attack !== card.baseAttack || card.defense !== card.baseDefense)
+          ? $(
+              "p",
+              { class: "stat-change" },
+              `${lang === "tr" ? "Temel → Güncel" : "Base → Current"}: ATK ${card.baseAttack} → ${card.attack} · DEF ${card.baseDefense} → ${card.defense}`,
+            )
+          : null,
         card.rulesNote ? $("small", {}, text(card.rulesNote)) : null,
       ],
       "inspector-sheet",
@@ -1066,7 +1164,16 @@ export async function startApp(theme, designs) {
             .includes(archiveQuery.toLocaleLowerCase(lang))) &&
         (!archiveKind || c.kind === archiveKind) &&
         (!archiveSeries || c.series.includes(archiveSeries)) &&
-        (!archiveLevel || String(c.level) === archiveLevel),
+        (!archiveLevel || String(c.level) === archiveLevel) &&
+        (!archiveSubtype || c.subtype === archiveSubtype) &&
+        (!archiveLocation || c.deckLocation === archiveLocation) &&
+        (!archiveStat ||
+          (c.kind === "unit" &&
+            (archiveStat === "low"
+              ? c.attack < 1500
+              : archiveStat === "mid"
+                ? c.attack >= 1500 && c.attack < 2500
+                : c.attack >= 2500))),
     );
     const perPage = 24;
     archivePage = Math.min(archivePage, Math.max(0, Math.ceil(filtered.length / perPage) - 1));
@@ -1122,6 +1229,31 @@ export async function startApp(theme, designs) {
           archiveSeries,
           [...new Set(pool.flatMap((c) => c.series))].map((s) => [s, s]),
           (v) => (archiveSeries = v),
+        ),
+        select(
+          "subtype",
+          archiveSubtype,
+          [...new Set(pool.map((c) => c.subtype))].map((k) => [k, t(k)]),
+          (v) => (archiveSubtype = v),
+        ),
+        select(
+          "deckLocation",
+          archiveLocation,
+          [
+            ["main", t("mainDeck")],
+            ["auxiliary", t("auxiliary")],
+          ],
+          (v) => (archiveLocation = v),
+        ),
+        select(
+          "statRange",
+          archiveStat,
+          [
+            ["low", "ATK < 1500"],
+            ["mid", "ATK 1500–2499"],
+            ["high", "ATK ≥ 2500"],
+          ],
+          (v) => (archiveStat = v),
         ),
         select(
           "level",

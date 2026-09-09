@@ -326,7 +326,7 @@
     sections: [
       {
         h: "Catalog",
-        lead: "TarikLab has 17 playable games. İhtilâl is in development.",
+        lead: "TarikLab has 16 playable games. İhtilâl is in development.",
         items: [
           '<a href="/cete-savaslari">Çete Savaşları</a> · LIVE — Build a crew, run missions and hold turf under police and rival pressure.',
           '<a href="/oyna/hanedan">Çete Savaşları: Hanedan</a> · LIVE — Manage a roster, raids and legacy across generations.',
@@ -342,8 +342,8 @@
           '<a href="/oyna/son-100-gun">Son 100 Gün</a> · LIVE — The Extreme Last 100 Days format: manage limited time, obligations and the bonds that survive.',
           '<a href="/oyna/tc-sim-devlet">TC SIM: DEVLET</a> · LIVE — Configure a state, then manage policy, institutions, regions, treasury and reports month by month.',
           '<a href="/oyna/son-kasaba">Son Kasaba</a> · LIVE — Shape a town’s future across 24 months of budgets, buildings, migration, groups and investors.',
-          '<a href="/oyna/veto-h">VETO-H!</a> · LIVE — An election and campaign duel with 150 original cards, a seeded 40-card deck, a computer opponent and a pregame Card Archive.',
-          '<a href="/oyna/gett-oh">GETT-OH!</a> · LIVE — A neighborhood and street-power duel with 150 original cards: the same deterministic engine, a separate card pool and an Istanbul-night table.',
+          '<a href="/oyna/veto-h">VETO-H!</a> · LIVE — An election and campaign duel with 300 original cards and individual illustrations, a seeded 40-card deck, a computer opponent and a pregame Card Archive.',
+          '<a href="/oyna/gett-oh">GETT-OH!</a> · LIVE — A neighborhood and street-power duel with 300 original cards and individual illustrations: the same deterministic engine, a separate card pool and an Istanbul-night table.',
           '<a href="/ihtilal">İhtilâl</a> · COMING SOON — In development.',
         ],
       },

@@ -5,6 +5,10 @@ export function generateDeck(pool, seed) {
     main = [],
     copies = new Map(),
     bosses = new Set();
+  // A seeded pair of family lines gives targeted expansion tools real partners.
+  // Existing saved decks never pass through this generator.
+  const series = [...new Set(pool.filter((c) => c.kind === "unit").flatMap((c) => c.series || []))];
+  const focus = new Set(shuffle(series, rng).slice(0, 2));
   let middle = 0;
   // 23 + 11 + 6 is inside every requested distribution interval.
   for (const [kind, count] of [
@@ -23,7 +27,10 @@ export function generateDeck(pool, seed) {
       );
       if (!eligible.length) throw new Error(`Insufficient legal ${kind} pool`);
       const weighted = eligible.flatMap((c) =>
-        Array(c.kind === "unit" && c.level <= 4 ? 6 : c.level <= 6 ? 2 : 1).fill(c),
+        Array(
+          (c.kind === "unit" && c.level <= 4 ? 6 : c.level <= 6 ? 2 : 1) *
+            (c.series?.some((s) => focus.has(s)) ? 8 : 1),
+        ).fill(c),
       );
       const card = pick(weighted, rng);
       main.push(card.id);

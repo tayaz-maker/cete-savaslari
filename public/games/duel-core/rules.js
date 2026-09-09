@@ -638,6 +638,13 @@ export function rejection(state, action) {
       !p.units.some((uid) => uid && hasSeries(state, uid, def.traits.requiresSeries))
     )
       return "series-required";
+    const freeZone = def.traits?.requiresFreeZone;
+    if (
+      freeZone &&
+      !p[freeZone].includes(null) &&
+      !(p[freeZone].includes(action.card) && def.costs.some((op) => op.op === "selfMove"))
+    )
+      return freeZone === "units" ? "unit-zone-required" : "support-zone-required";
     if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === def.name.tr)
       return "name-locked";
     if (p.units.includes(action.card) && card.face !== "up") return "flip-required";
