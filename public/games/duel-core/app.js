@@ -160,6 +160,12 @@ export async function startApp(theme, designs) {
       if (screen === "duel") render();
     }
   });
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "tariklab.language" || !pool.length) return;
+    lang = event.newValue === "en" ? "en" : "tr";
+    close();
+    render();
+  });
   function ask(message, yes) {
     show(name, [
       $("p", {}, message),
@@ -887,7 +893,12 @@ export async function startApp(theme, designs) {
       $(
         "div",
         { class: "player-meter" },
-        $("span", {}, t(isPlayer ? "you" : "opponent"), ` · ${t("hand")} ${p.handCount}`),
+        $(
+          "span",
+          {},
+          t(isPlayer ? "you" : "opponent"),
+          ` · ${t(isPlayer ? "hand" : "opponentHand")} ${p.handCount}`,
+        ),
         $(
           "strong",
           { class: changed ? "damage" : "" },

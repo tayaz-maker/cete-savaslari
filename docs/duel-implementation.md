@@ -23,13 +23,13 @@ support rows (five each), field/auxiliary/grave/banished piles. Mobile tap-first
 horizontal hand only, inspector sheet. 150–350ms presentation-only animations;
 reduced-motion eliminates movement. No WebGL or baked screenshot UI.
 
-## Source normalization register (pending complete implementation)
+## Source normalization register
 
 - SND-066 and SND-080 inherit the complete definitions of SND-065 and SND-079,
   retaining their source IDs and names; copy limits count names, not IDs.
 - SND-061: source `?` becomes numeric base 0 with the explicit dynamic ATK formula.
-- RCN lists 18 normal + 7 counter traps for only 24 IDs (127–150). This conflict
-  must be resolved explicitly without silently dropping an effect or inventing ID 151.
+- RCN lists 18 normal + 7 counter traps for only 24 IDs (127–150). The dual-mode
+  resolution below preserves both effects without inventing ID 151.
 - Master overrides first-turn draw, names/routes and independent game menus.
 
 Status: implementation in progress, not released.
@@ -65,12 +65,27 @@ Status: implementation in progress, not released.
 - 73e176441492a6de021d9f8b33b5bfc545d40fee: targeted acceptance and CI Chromium
   harness; source/cost/ritual refinements. Still not accepted for release.
 
-Current evidence (not a release verdict): 17 targeted tests including 10,000 deck
-seeds per theme; prior 500 AI duels per theme without cap hits; local full
-regression 891 MJS / 50 TS. Rule refinements require refreshed final evidence.
-Card primitive registration alone is not proof of semantic correctness.
 - SND-113's original “no further activation in this chain” text would do nothing
   under the mandatory one-response cap. Its explicit single-window adaptation
   protects the player's next declared action that turn against a response.
   The card is proactive, not a response to an already single-response window;
   TR/EN inspectors disclose this interpretation.
+
+## Regression boundaries
+
+Activation costs, Quick-Play surcharges, normal tributes and declared special/ritual
+materials are committed before an opponent response. Negation does not refund them.
+Set equipment uses the same target binding as equipment played from hand. A source
+explicit direct-attack exception (Market Stall) remains separate from ordinary
+untargetability. A zone occupied during a response cannot produce a phantom summon.
+
+Perspective is applied to the table itself, never the ancestor of the fixed action
+dock. Opposing cards remain above the board surface. Presentation-only animation
+layers are contained and canceled on viewport changes; they cannot add horizontal
+page overflow. No animation changes timing, damage, state or save boundaries.
+
+The full automated acceptance runs in the existing GitHub CI: all MJS/TS tests,
+500 deterministic AI duels per theme, typecheck, lint, production build, real
+Chromium duel interaction and the existing sitewide responsive regression.
+The card integrity suite checks nested effect operations and referenced IDs, not
+only top-level handler names. Exact final run evidence is recorded at release.

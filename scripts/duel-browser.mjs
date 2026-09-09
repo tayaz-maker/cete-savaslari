@@ -128,6 +128,25 @@ try {
       await page.getByRole("button", { name: labels.archive }).click();
       await measure("archive");
       assert.equal(await page.locator(".archive-grid .playing-card").count(), 24);
+      assert.equal(await page.locator(".archive-head span").innerText(), "150 / 150");
+      const ids = new Set();
+      for (let n = 0; n < 7; n++) {
+        for (const id of await page
+          .locator(".archive-grid [data-card]")
+          .evaluateAll((nodes) => nodes.map((el) => el.dataset.card)))
+          ids.add(id);
+        const nextPage = page.locator(".pagination button").last();
+        if (await nextPage.isDisabled()) break;
+        await nextPage.click();
+      }
+      assert.equal(ids.size, 150);
+      await page.locator(".filters input").fill(theme === "veto-h" ? "SND-001" : "RCN-001");
+      assert.equal(await page.locator(".archive-grid .playing-card").count(), 1);
+      await page.locator(".filters input").fill("");
+      await page.locator(".filters select").first().selectOption("trap");
+      assert.ok(await page.locator('.archive-grid [data-kind="trap"]').count());
+      assert.equal(await page.locator('.archive-grid [data-kind="unit"]').count(), 0);
+      await page.locator(".filters select").first().selectOption("");
       await page.locator(".archive-grid .playing-card").first().click();
       await measure("archive-inspector");
       await page.getByRole("button", { name: labels.close, exact: true }).click();
@@ -142,6 +161,21 @@ try {
         if (await page.getByRole("button", { name: labels.start, exact: true }).isVisible()) break;
       }
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
+      await page
+        .getByRole("button", {
+          name: lang === "tr" ? "40 Kartlık Destenizi İnceleyin" : "Inspect Your 40 Cards",
+          exact: true,
+        })
+        .click();
+      assert.equal(await page.locator(".dialog-body > div").count(), 40);
+      assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
+      await page
+        .locator("dialog")
+        .getByRole("button", {
+          name: lang === "tr" ? "Oyunlara Dön" : "Back to Games",
+          exact: true,
+        })
+        .click();
       await page.getByRole("button", { name: labels.start, exact: true }).click();
       await page.locator(".duel-table").waitFor();
       await page.waitForFunction((k) => {
@@ -248,6 +282,25 @@ try {
       assert.ok(await page.locator("dialog p").innerText());
       await page.keyboard.press("Escape");
       assert.equal(await page.locator("dialog").isVisible(), false);
+      const neutralSave = await page.evaluate((k) => localStorage.getItem(k), key);
+      const peer = await context.newPage();
+      await peer.goto(`${origin}/games/${theme}/index.html`, { waitUntil: "networkidle" });
+      await peer
+        .getByRole("button", { name: lang === "tr" ? "Dil" : "Language", exact: true })
+        .click();
+      await page.waitForFunction(
+        (language) => document.documentElement.lang === language,
+        lang === "tr" ? "en" : "tr",
+      );
+      assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), neutralSave);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      assert.equal(
+        await page
+          .locator(".playing-card")
+          .first()
+          .evaluate((el) => getComputedStyle(el).animationName),
+        "none",
+      );
       await context.close();
     }
   assert.deepEqual(errors, []);
