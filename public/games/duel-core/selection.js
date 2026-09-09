@@ -7,8 +7,9 @@ export function matches(state, uid, filter = {}, player = 0) {
   if (filter.kind && def.kind !== filter.kind) return false;
   if (filter.subtype && ![].concat(filter.subtype).includes(def.subtype)) return false;
   if (filter.series && ![].concat(def.series).some(s => [].concat(filter.series).includes(s))) return false;
-  if (filter.maxLevel !== undefined && def.level > filter.maxLevel) return false;
-  if (filter.minLevel !== undefined && def.level < filter.minLevel) return false;
+  const effectLevel=def.level+card.modifiers.filter(m=>m.until===null||m.until>=state.turn).reduce((sum,m)=>sum+(m.effectLevel||0),0);
+  if (filter.maxLevel !== undefined && effectLevel > filter.maxLevel) return false;
+  if (filter.minLevel !== undefined && effectLevel < filter.minLevel) return false;
   if (filter.face && card.face !== filter.face) return false;
   if (filter.position && card.position !== filter.position) return false;
   if (filter.owner === 'own' && at.player !== player) return false;

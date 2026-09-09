@@ -65,10 +65,21 @@ export function validateState(state) {
     typeof value==='number'&&Number.isFinite(value)||
     typeof value==='object'&&value!==null&&Object.values(value).every(dataOnly);
   if(!dataOnly(saved)||!Array.isArray(state.work)||state.work.length>1000||!Number.isSafeInteger(state.effectSerial))return false;
-  if(state.choice&&(![0,1].includes(state.choice.player)||!state.work.some(j=>j.id===state.choice.jobId)))return false;
+  if(Object.keys(state.cards).length>110||state.log.length>180)return false;
+  const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  if(state.pending&&(![0,1].includes(state.pending.responding)||!record(state.pending.action)||![0,1].includes(state.pending.action.player)||typeof state.pending.negated!=='boolean'))return false;
+  for(const job of state.work){
+    if(!['effects','cleanup','resolve','battle','response-finish'].includes(job.type))return false;
+    if(job.type==='effects'&&(!Array.isArray(job.effects)||!Array.isArray(job.targets)||!Number.isSafeInteger(job.id)||!job.effects.every(op=>record(op)&&typeof op.op==='string')))return false;
+  }
+  if(state.choice){const c=state.choice;
+    if(![0,1].includes(c.player)||!state.work.some(j=>j.id===c.jobId&&j.type==='effects'))return false;
+    if(c.kind==='option'){if(!Array.isArray(c.options)||!c.options.length||!c.options.every(o=>typeof o.id==='string'&&Array.isArray(o.effects)))return false;}
+    else if(!Array.isArray(c.ids)||!Number.isSafeInteger(c.count)||c.count<1||c.count>c.ids.length||!c.ids.every(uid=>state.cards[uid]))return false;
+  }
   const seen = new Set();
   for (const p of state.players) {
-    if (!Number.isFinite(p.points) || !Number.isSafeInteger(p.normalUsed) || p.normalUsed < 0) return false;
+    if (!Number.isFinite(p.points) || Math.abs(p.points)>1e9 || !record(p.flags) || !record(p.used) || !Array.isArray(p.fieldHistory) || !Number.isSafeInteger(p.normalUsed) || p.normalUsed < 0 || p.normalUsed>2) return false;
     for (const zone of [...PILES, ...ROWS, 'field']) {
       const items = zone === 'field' ? [p.field] : p[zone];
       if (!Array.isArray(items) || (ROWS.includes(zone) && items.length !== 5)) return false;
@@ -78,7 +89,7 @@ export function validateState(state) {
         if (!card || !def || seen.has(uid) || ![0, 1].includes(card.owner) ||
             !['up', 'down'].includes(card.face) || !['attack', 'defense'].includes(card.position) ||
             !Number.isSafeInteger(card.setTurn) || !Number.isSafeInteger(card.summonedTurn) ||
-            !Number.isSafeInteger(card.attacksUsed) || card.attacksUsed < 0 || !Array.isArray(card.modifiers)) return false;
+            !Number.isSafeInteger(card.attacksUsed) || card.attacksUsed < 0 || !Number.isSafeInteger(card.positionTurn) || !record(card.used) || !Array.isArray(card.knownTo) || card.knownTo.length!==2 || !card.knownTo.every(v=>typeof v==='boolean') || !Array.isArray(card.modifiers)) return false;
         if (zone === 'units' && def.kind !== 'unit') return false;
         if (zone === 'support' && def.kind === 'unit') return false;
         if (zone === 'auxiliary' && def.deckLocation !== 'auxiliary') return false;

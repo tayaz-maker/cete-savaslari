@@ -29,6 +29,15 @@ jobs:
           else
             npx playwright install --with-deps chromium --only-shell
           fi
+      - name: Duel archive, save and 2.5D responsive regression
+        timeout-minutes: 5
+        run: node scripts/duel-browser.mjs
+      - name: Upload duel evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duel-responsive
+          path: ${{ runner.temp }}/screenshots/duel
       - name: Responsive and interaction regression (TR/EN, 15 live routes)
         timeout-minutes: 10
         run: node scripts/sitewide-responsive.mjs

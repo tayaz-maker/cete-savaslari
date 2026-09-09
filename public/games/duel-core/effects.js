@@ -81,16 +81,21 @@ export const primitives = {
   pendingTarget(ctx) { if(ctx.state.pending?.action.card)ctx.targets.push(ctx.state.pending.action.card); },
   targets(ctx,op) { ctx.targets.push(...op.ids.filter(uid=>locate(ctx.state,uid))); },
   auxiliary(ctx,op) {
-    const plans=specialPlans(ctx.state,ctx.player,op.materialCredit||0);
+    const p=ctx.state.players[ctx.player];
+    const required=op.requiredIds?[...p.hand,...p.units].filter(uid=>uid&&op.requiredIds.includes(definition(ctx.state,uid).id)).slice(0,op.materialCredit):[];
+    if(op.requiredIds&&required.length!==op.materialCredit)return;
+    const plans=specialPlans(ctx.state,ctx.player,op.materialCredit||0,op.available).map(plan=>({...plan,materials:[...required,...plan.materials.filter(uid=>!required.includes(uid))]}));
     if(!plans.length)return;
     ctx.state.choice={kind:'option',player:ctx.player,source:ctx.source,key:'auxiliary',jobId:ctx.jobId,
       options:plans.map((plan,i)=>({id:`summon-${i}`,card:plan.card,materials:plan.materials,effects:[{op:'performSpecial',plan}]}))};
   },
   ritual(ctx) {
-    const plans=ritualPlans(ctx.state,ctx.player);if(!plans.length)return;
+    const plans=ritualPlans(ctx.state,ctx.player,ctx.source);if(!plans.length)return;
     ctx.state.choice={kind:'option',player:ctx.player,source:ctx.source,key:'ritual',jobId:ctx.jobId,
       options:plans.map((plan,i)=>({id:`ritual-${i}`,card:plan.card,materials:plan.materials,effects:[{op:'performSpecial',plan}]}))};
   },
+  activateSelected(ctx) {const uid=ctx.targets.shift();if(uid&&locate(ctx.state,uid))ctx.activate(uid);},
+  optional(ctx,op) {ctx.state.choice={kind:'option',player:ctx.player,source:ctx.source,key:'optional',jobId:ctx.jobId,options:[{id:'accept',effects:op.effects},{id:'keep',effects:[]}]};},
   performSpecial(ctx,op) {ctx.special(op.plan);},
   look(ctx,op) {
     if(!op.repeated&&hasSeries(ctx.state,ctx.source,'Anket')&&standing(ctx.state,ctx.player).some(uid=>definition(ctx.state,uid).traits?.doublePollLook))ctx.state.work.find(j=>j.id===ctx.jobId).effects.unshift({...op,repeated:true});

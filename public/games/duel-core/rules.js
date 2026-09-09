@@ -3,7 +3,7 @@ import { PHASES, MAIN, ROWS, definition, locate, activeCards, log, finish, check
 import { drawCard, runEffects, primitives } from './effects.js';
 import { resolveBattle } from './battle.js';
 import { validateTargets } from './targeting.js';
-import { trait } from './selection.js';
+import { trait, candidates } from './selection.js';
 import { hasSeries, standing, modified, suppressed } from './modifiers.js';
 import { specialPlans, ritualPlans } from './summoning.js';
 import { attackTargets, attackBlocked } from './combat-rules.js';
@@ -35,10 +35,12 @@ export function createDuel(pool, theme, seed, first = 0, prepared = null) {
 
 function context(state, player, source = null, targets = []) {
   const ctx = { state, player, source, targets: [...targets] };
+  ctx.activate=uid=>resolve(state,{type:'activate',player,card:uid,targets:[]});
   ctx.deferBattle = action => state.work.push({ type: 'battle', action });
   ctx.special = plan => {
     const where=locate(state,plan.card),def=definition(state,plan.card);
     if(!where)return;
+    if(plan.enabler&&locate(state,plan.enabler)?.zone!=='grave')ctx.move(plan.enabler,'grave','ritual-rite');
     for(const uid of plan.materials||[]) {
       const at=locate(state,uid);if(!at)throw Error('Stale summon material');
       ctx.move(uid,at.zone==='grave'||def.traits?.ritualBanish?'banished':'grave','material');
@@ -121,12 +123,23 @@ function context(state, player, source = null, targets = []) {
   ctx.emit = (event, data) => {
     if (++depth > 100) throw new Error('Effect trigger cycle');
     const listeners = [...activeCards(state, 0), ...activeCards(state, 1)];
+    if(event==='destroy')for(const owner of [0,1])for(const uid of state.players[owner].grave) {
+      const series=definition(state,uid).traits?.reviveOnSeriesDestroyed;
+      if(owner===data.player&&series&&hasSeries(state,data.uid,series)&&state.cards[uid].used.revive!==state.turn) {
+        state.cards[uid].used.revive=state.turn;
+        runEffects({...ctx,player:owner,source:uid,targets:[]},[{op:'optional',effects:[{op:'summon',self:true}]}]);
+      }
+    }
     if (data.uid && !listeners.includes(data.uid)) listeners.push(data.uid);
     for (const uid of listeners) {
       const def = definition(state, uid);
       if (!def) continue;
       const owner = locate(state, uid)?.player ?? state.cards[uid].owner;
       const t = def.traits || {};
+      if(event==='tribute'&&t.tributeSearchSpell&&locate(state,data.uid)?.zone==='grave') {
+        ctx.move(data.uid,'banished','tribute-replacement');
+        runEffects({...ctx,player:owner,source:uid,targets:[]},[{op:'select',key:'spell',selector:{zones:'deck',kind:'spell'}},{op:'move',to:'hand'},{op:'shuffle'}]);
+      }
       if (event === 'set' && owner !== data.player && t.revealEnemySet) state.cards[data.uid].knownTo[owner] = true;
       if (event === 'draw' && owner !== data.player && t.revealEnemyDrawSpell && state.cards[uid].used.drawReveal !== state.turn) {
         state.cards[uid].used.drawReveal = state.turn; state.cards[data.uid].knownTo = [true,true];
@@ -161,6 +174,7 @@ function settle(state) {
       const pending = state.pending;
       if (locate(state,job.source) && !['unit'].includes(definition(state,job.source).kind) && definition(state,job.source).subtype !== 'continuous') ctx.move(job.source,'grave','response');
       state.pending = null;
+      if(pending?.negated&&pending.action.card){const at=locate(state,pending.action.card);if(at&&(['summon','special'].includes(pending.action.type)||definition(state,pending.action.card).kind!=='unit')&&['hand','support','field'].includes(at.zone))ctx.move(pending.action.card,'grave','negated');}
       if (pending && !pending.negated && !state.result) {
         resolve(state,{...pending.action,noDraw:pending.noDraw});
         if (pending.postEffects) runEffects({...ctx,targets:[pending.action.card]},pending.postEffects);
@@ -186,6 +200,7 @@ function settle(state) {
 
 export function rejection(state, action) {
   if (!state || !action || ![0, 1].includes(action.player)) return 'invalid-action';
+  if (Object.keys(action).some(key=>!['type','player','revision','card','target','targets','slot','tributes','materials','reveal','discount','ritual','enabler','option'].includes(key)))return 'invalid-action';
   if (state.result) return 'duel-ended';
   if (action.revision !== state.revision) return 'stale-action';
   if (action.type === 'surrender') return null;
@@ -213,7 +228,7 @@ export function rejection(state, action) {
   if (action.type === 'special') {
     if(!MAIN.includes(state.phase))return 'main-phase-only';
     const plans=[...specialPlans(state,action.player),...ritualPlans(state,action.player)];
-    return plans.some(plan=>plan.card===action.card&&JSON.stringify(plan.materials)===JSON.stringify(action.materials||[])&&plan.reveal===action.reveal)?null:'special-requirements';
+    return plans.some(plan=>plan.card===action.card&&JSON.stringify(plan.materials)===JSON.stringify(action.materials||[])&&plan.reveal===action.reveal&&plan.enabler===action.enabler)?null:'special-requirements';
   }
   if (['summon', 'set-unit'].includes(action.type)) {
     if (!MAIN.includes(state.phase)) return 'main-phase-only';
@@ -223,7 +238,9 @@ export function rejection(state, action) {
     if (p.normalUsed >= (extra ? 2 : 1)) return 'normal-used';
     const needed = def.level >= 7 ? 2 : def.level >= 5 ? 1 : 0;
     const tributes = action.tributes || [];
-    if (tributes.length !== needed || new Set(tributes).size !== needed || tributes.some(uid => !p.units.includes(uid))) return 'tributes-required';
+    const alternative=def.traits?.tributeAlternative;
+    const alternate=alternative&&tributes.length===alternative.count&&tributes.every(uid=>p[alternative.zone].includes(uid)&&definition(state,uid).kind===alternative.kind);
+    if (!alternate&&(tributes.length !== needed || new Set(tributes).size !== needed || tributes.some(uid => !p.units.includes(uid)))) return 'tributes-required';
     if (!Number.isInteger(action.slot) || action.slot < 0 || action.slot > 4 || (p.units[action.slot] && !tributes.includes(p.units[action.slot]))) return 'unit-zone-required';
     return null;
   }
@@ -249,6 +266,13 @@ export function rejection(state, action) {
     if (card.used.activate === state.turn) return 'effect-used';
     if (def.traits?.oncePerDuel && card.used.duelActivated) return 'effect-used';
     if (def.responseOnly) return 'response-only';
+    const cost=(def.costs||[]).filter(op=>op.op==='points').reduce((sum,op)=>sum-op.amount,0);
+    if(p.points<cost)return 'insufficient-points';
+    if(def.effects.some(op=>op.op==='ritual')&&!ritualPlans(state,action.player,action.card).length)return 'special-requirements';
+    const firstSelect=def.effects.find(op=>op.op==='select');
+    if(firstSelect&&!def.effects.slice(0,def.effects.indexOf(firstSelect)).some(op=>['draw','drawSetTrap','move','summon'].includes(op.op))&&!candidates(state,action.player,{...firstSelect.selector,reference:action.card}).length)return 'no-legal-target';
+    if(def.effects.some(op=>op.op==='auxiliary')&&!specialPlans(state,action.player,def.effects.find(op=>op.op==='auxiliary').materialCredit||0).length)return 'special-requirements';
+    const bloc=def.effects.find(op=>op.requiredIds);if(bloc&&[...p.hand,...p.units].filter(uid=>uid&&bloc.requiredIds.includes(definition(state,uid).id)).length<bloc.materialCredit)return 'special-requirements';
     if (['continuous', 'equip'].includes(def.subtype) && fromHand && !p.support.includes(null)) return 'support-zone-required';
     return validateTargets(state, action);
   }
@@ -280,19 +304,25 @@ function resolve(state, action) {
   else if(action.type==='battle-start') {state.phase='battle';ctx.emit('battle-start',{player:action.player});}
   else if(action.type==='special')ctx.special(action);
   else if (['summon', 'set-unit'].includes(action.type)) {
-    for (const uid of action.tributes || []) { ctx.move(uid, 'grave', 'tribute'); ctx.emit('tribute', { player: action.player, uid }); }
+    for (const uid of action.paidTributes?[]:action.tributes || []) {
+      const alternate=p.grave.includes(uid);
+      ctx.move(uid,alternate?'banished':'grave',alternate?'summon-cost':'tribute');
+      if(!alternate)ctx.emit('tribute',{player:action.player,uid});
+    }
     ctx.move(action.card, 'units', 'summon', action.player, action.slot);
     card.face = action.type === 'summon' ? 'up' : 'down'; card.position = action.type === 'summon' ? 'attack' : 'defense';
     card.summonedTurn = state.turn; card.setTurn = state.turn; card.tributeCount = action.tributes?.length || 0;
+    if(def.traits?.tributeAuxiliary&&card.face==='up')runEffects(ctx,[{op:'auxiliary',available:action.tributes||[]}]);
     if (card.face === 'up') { card.knownTo = [true, true]; ctx.emit('summon', { player: action.player, uid: action.card, normal:true,tributes:action.tributes,from:'hand' }); }
   } else if (action.type === 'activate') {
     card.face = 'up'; card.knownTo = [true, true];
+    if(def.subtype==='quick')p.points-=standing(state,action.player).reduce((sum,uid)=>sum+(definition(state,uid).traits?.quickCost||0),0);
     if (def.subtype === 'field') {
       if (p.field && p.field !== action.card) ctx.move(p.field, 'grave', 'field-replaced');
       ctx.move(action.card, 'field', 'activated', action.player); p.fieldHistory.push(def.id);
     } else if (['continuous', 'equip'].includes(def.subtype) && p.hand.includes(action.card)) {
       ctx.move(action.card, 'support', 'activated', action.player, p.support.indexOf(null));
-      if (def.subtype === 'equip') card.equippedTo = action.targets?.[0];
+      if (def.subtype === 'equip') {card.equippedTo = action.targets?.[0];ctx.emit('equip',{player:action.player,uid:action.card});}
     }
     if (def.kind !== 'unit' && !['continuous', 'equip', 'field'].includes(def.subtype)) state.work.unshift({type:'cleanup',player:action.player,source:action.card});
     runEffects(ctx, action.noDraw ? def.effects.filter(op=>op.op!=='draw') : def.effects);
@@ -302,10 +332,27 @@ function resolve(state, action) {
 export function dispatch(original, action) {
   const error = rejection(original, action);
   if (error) return { ok: false, error, state: original };
+  action=structuredClone(action);
   const { catalog, ...mutable } = original;
   const state = { ...structuredClone(mutable), catalog }, ctx = context(state, action.player, action.card, action.targets);
   const p = state.players[action.player], card = state.cards[action.card];
   state.revision++;
+  if(['activate','respond'].includes(action.type)) {
+    const def=definition(state,action.card),wasSet=card.face==='down'&&p.support.includes(action.card);
+    for(const cost of def.costs||[])primitives[cost.op](ctx,cost);
+    card.face='up';card.knownTo=[true,true];
+    if(wasSet)ctx.emit('set-activate',{player:action.player,uid:action.card});
+    if(def.kind==='spell')ctx.emit('spell',{player:action.player,uid:action.card});
+  }
+  if(['summon','set-unit'].includes(action.type)) {
+    for(const uid of action.tributes||[]) {
+      const alternate=p.grave.includes(uid);ctx.move(uid,alternate?'banished':'grave',alternate?'summon-cost':'tribute');
+      if(!alternate)ctx.emit('tribute',{player:action.player,uid});
+    }
+    action.paidTributes=true;
+    if(action.type==='summon'){card.face='up';card.knownTo=[true,true];}
+  }
+  if(action.type==='attack'&&!action.target)ctx.emit('direct-declared',{player:action.player,uid:action.card});
   if (action.type === 'surrender') finish(state, 1 - action.player, 'surrender');
   else if (state.choice) {
     const job = state.work.find(item => item.id === state.choice.jobId);
@@ -318,6 +365,7 @@ export function dispatch(original, action) {
     if (action.type === 'respond') {
       card.used.activate = state.turn; card.face = 'up'; card.knownTo = [true, true];
       card.used.duelActivated=true;
+      if(definition(state,action.card).subtype==='quick')p.points-=standing(state,action.player).reduce((sum,uid)=>sum+(definition(state,uid).traits?.quickCost||0),0);
       if(card.setTurn===state.turn&&definition(state,action.card).kind==='trap')p.used.sameTurnTrap=state.turn;
       state.work.unshift({type:'response-finish',player:action.player,source:action.card});
       runEffects(ctx, definition(state, action.card).effects);

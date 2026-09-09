@@ -9,10 +9,13 @@ export function buildCards(source, designs, theme) {
     if (raw.kind === 'trap') series.splice(0,series.length,theme === 'veto-h' ? 'Skandal':'İhbar');
     const responseOnly=Object.keys(design.traits).some(key => key.startsWith('response'));
     const response = design.traits.responseTypes || (responseOnly||raw.kind==='trap'||raw.subtype==='quick' ? ['activate','attack','summon','special','draw','destroy','battle-start'] : null);
+    const costs=[], effects=structuredClone(design.effects);
+    while(effects.length&&(effects[0].op==='selfMove'||effects[0].op==='points'&&!effects[0].opponent&&effects[0].amount<0))costs.push(effects.shift());
     return { ...raw, name:{tr:raw.name,en:design.name}, text:{tr:raw.text,en:design.text}, series,
+      rulesNote:theme==='veto-h'&&[65,66,74,77].includes(n)?{tr:'Kaynak açıklaması: Ayrı bir Kurultay büyüsü listelenmediği için Kurultay Delegesi ritüel işlemini başlatır; kendisi ritüel bedeline ek olarak mezarlığa gider.',en:'Source clarification: no separate Congress spell is listed. Congress Delegate starts the ritual and goes to the grave in addition to the required materials.'}:null,
       hint:{tr:raw.kind === 'unit' ? 'Kademe, çağrı maliyetini belirler. Ayrıntıda yasal işlemleri kontrol et.' : 'Zamanlama ve hedef koşullarını kontrol et; set kartları beklemek zorundadır.',
         en:raw.kind === 'unit' ? 'Level determines the summon cost. Check legal actions in the inspector.' : 'Check timing and target requirements; Set cards must wait.'},
-      effects:design.effects,traits:design.traits,triggers:design.triggers,response,responseOnly,
+      effects,costs,traits:design.traits,triggers:design.triggers,response,responseOnly,
       targets:raw.subtype === 'equip' ? [{owner:'own',zones:'units',count:1}] : [] };
   });
 }

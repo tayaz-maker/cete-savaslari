@@ -21,7 +21,9 @@ export function legalActions(state, player) {
     candidates.push(command({type:'discard',card}), command({type:'activate',card}));
     if (def.kind === 'unit') {
       const n = def.level >= 7 ? 2 : def.level >= 5 ? 1 : 0;
-      for (const tributes of combinations(p.units.filter(Boolean), n)) for (let slot = 0; slot < 5; slot++) {
+      const alternate=def.traits?.tributeAlternative;
+      const costs=[...combinations(p.units.filter(Boolean),n),...(alternate?combinations(p[alternate.zone].filter(uid=>definition(state,uid).kind===alternate.kind),alternate.count):[])];
+      for (const tributes of costs) for (let slot = 0; slot < 5; slot++) {
         candidates.push(command({type:'summon',card,slot,tributes}), command({type:'set-unit',card,slot,tributes}));
       }
     } else for (let slot = 0; slot < 5; slot++) candidates.push(command({type:'set-support',card,slot}));

@@ -6,6 +6,7 @@ export function canRespond(state,uid,player) {
   const p=state.players[player],d=definition(state,uid),c=state.cards[uid],t=d?.traits||{},a=state.pending?.action;
   if(p.flags.lockedName?.until>=state.turn&&p.flags.lockedName.value===d?.name.tr)return false;
   if(!a||!d||suppressed(state,uid)||c.used.activate===state.turn||t.oncePerDuel&&c.used.duelActivated)return false;
+  const cost=(d.costs||[]).filter(op=>op.op==='points').reduce((sum,op)=>sum-op.amount,0);if(p.points<cost)return false;
   const source=definition(state,a.card);
   const set=p.support.includes(uid),hand=p.hand.includes(uid),unit=p.units.includes(uid),grave=p.grave.includes(uid);
   if(t.responseFrom==='grave'&&!grave||t.responseFrom==='units'&&!unit||t.responseFrom==='hand'&&!hand)return false;
