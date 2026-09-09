@@ -33,9 +33,13 @@ export function buildCards(source, designs, theme) {
     const n = Number(raw.id.slice(4)),
       design = designs[n];
     if (!design?.name || !design.text) throw Error(`Missing bilingual design: ${raw.id}`);
-    const series = theme === "veto-h" ? sndSeries(n) : rcnSeries(n);
+    const series = design.series
+      ? [...design.series]
+      : theme === "veto-h"
+        ? sndSeries(n)
+        : rcnSeries(n);
     if (design.traits.extraSeries) series.push(design.traits.extraSeries);
-    if (raw.kind === "trap")
+    if (raw.kind === "trap" && !design.series)
       series.splice(0, series.length, theme === "veto-h" ? "Skandal" : "İhbar");
     const responseOnly =
       !design.traits.allowProactive &&
@@ -74,7 +78,7 @@ export function buildCards(source, designs, theme) {
                 en: "Source clarification: no separate Congress spell is listed. Congress Delegate starts the ritual and goes to the grave in addition to the required materials.",
               }
             : null,
-      hint: {
+      hint: design.hint || {
         tr:
           raw.kind === "unit"
             ? "Kademe, çağrı maliyetini belirler. Ayrıntıda yasal işlemleri kontrol et."

@@ -8,6 +8,7 @@ const count = Number(process.argv[2] || 10);
 for (const [theme, pool] of Object.entries(pools)) {
   const turns = [],
     wins = [0, 0, 0];
+  let deckOuts = 0, firstTurnEnds = 0;
   for (let seed = 0; seed < count; seed++) {
     let s = createDuel(pool, theme, seed),
       step = 0,
@@ -28,6 +29,8 @@ for (const [theme, pool] of Object.entries(pools)) {
       throw error;
     }
     turns.push(s.turn);
+    if (s.result.reason === "deck-out") deckOuts++;
+    if (s.turn === 1) firstTurnEnds++;
     wins[s.result.winner ?? 2]++;
   }
   console.log(
@@ -41,6 +44,9 @@ for (const [theme, pool] of Object.entries(pools)) {
         return (a[Math.floor((a.length - 1) / 2)] + a[Math.floor(a.length / 2)]) / 2;
       })(),
       max: Math.max(...turns),
+      min: Math.min(...turns),
+      deckOuts,
+      firstTurnEnds,
     }),
   );
 }

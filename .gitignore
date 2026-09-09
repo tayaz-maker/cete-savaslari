@@ -10,3 +10,9 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Duel art source packs unpack into ordinary static WebP files before dev/test/build.
+/public/games/veto-h/assets/cards/
+/public/games/gett-oh/assets/cards/
+/public/games/veto-h/assets/atmosphere.webp
+/public/games/gett-oh/assets/atmosphere.webp

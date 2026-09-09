@@ -17,6 +17,7 @@ export function matches(state, uid, filter = {}, player = 0) {
         return false;
     } else if (def.responseOnly) return false;
   }
+  if (filter.excludeSource && uid === filter.reference) return false;
   if (filter.kind && def.kind !== filter.kind) return false;
   if (filter.subtype && ![].concat(filter.subtype).includes(def.subtype)) return false;
   if (filter.series && ![].concat(def.series).some((s) => [].concat(filter.series).includes(s)))

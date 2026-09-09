@@ -1074,3 +1074,297 @@ body[data-motion="reduced"] *::before {
   pointer-events: none;
   z-index: 9;
 }
+
+/* Card-table closure: artwork is a separate lazy asset; every frame is DOM. */
+:root {
+  --frame-edge: #ad8952;
+  --card-highlight: #f4e7c7;
+}
+.operations {
+  min-height: 52px;
+  padding-block: 6px;
+}
+.operations strong,
+.front h1,
+.panel-title,
+.card-name {
+  font-family: Georgia, "Times New Roman", serif;
+}
+.duel-layout {
+  max-width: 1920px;
+  grid-template-columns: minmax(145px, 0.7fr) minmax(0, 4fr) minmax(235px, 1fr);
+  gap: 12px;
+}
+.duel-table {
+  border: 6px ridge var(--frame-edge);
+  padding: 12px;
+  background-color: var(--table);
+}
+.player-meter {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 5px 12px;
+  background: #080c09b8;
+  box-shadow: inset 0 2px 5px #0008;
+}
+.zone {
+  aspect-ratio: 1.22;
+}
+.support-row .zone {
+  aspect-ratio: 2.3;
+}
+.card-art {
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+.card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  filter: none;
+  opacity: 1;
+}
+.playing-card {
+  border: 2px ridge var(--frame-edge);
+  border-radius: 5px;
+  gap: 3px;
+}
+.playing-card .card-name {
+  font-size: clamp(0.69rem, 0.85vw, 0.92rem);
+  line-height: 1.15;
+}
+.card-stats {
+  font-size: clamp(0.66rem, 0.76vw, 0.85rem);
+}
+.playing-card[data-used="true"]::after {
+  content: "✓";
+  position: absolute;
+  right: 5px;
+  top: 24px;
+  border: 1px solid var(--paper);
+  background: #18372e;
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  text-align: center;
+}
+.playing-card[data-position="defense"] .card-stats {
+  border-left: 3px solid #476789;
+  padding-left: 4px;
+}
+.hand-row .playing-card {
+  flex: 0 0 clamp(125px, 10vw, 175px);
+  min-height: 176px;
+}
+.hand-row {
+  padding-top: 14px;
+  padding-bottom: 12px;
+}
+.hand-row .card-art {
+  aspect-ratio: 4/3;
+}
+.archive-grid .playing-card {
+  min-height: 0;
+}
+.archive-grid .card-art,
+.inspector .card-art,
+.inspector-sheet .card-art {
+  aspect-ratio: 4/3;
+  flex: auto;
+}
+.archive-grid .card-name {
+  font-size: 0.9rem;
+}
+.inspector .playing-card,
+.inspector-sheet article.playing-card {
+  width: 100%;
+  min-height: 0;
+  max-width: 400px;
+  margin-inline: auto;
+}
+.inspector .card-name,
+.inspector-sheet .card-name {
+  font-size: 1.05rem;
+}
+.inspector .card-stats,
+.inspector-sheet .card-stats {
+  font-size: 0.9rem;
+}
+.inspector-body {
+  display: grid;
+  gap: 12px;
+}
+.inspector-body > p:first-child {
+  color: var(--paper);
+  font-family: Georgia, serif;
+  font-size: 1.05rem;
+  padding-top: 16px;
+}
+.used-state {
+  padding: 6px;
+  border-left: 3px solid var(--brass);
+  font-size: 0.8rem;
+}
+.phase-strip {
+  box-shadow:
+    inset 0 2px 5px #000b,
+    0 1px var(--brass);
+  background: #10150fd9;
+}
+.phase-strip .current {
+  background: #5f482a;
+  color: #fff0c8;
+  box-shadow:
+    inset 0 0 12px #ad895244,
+    0 0 8px #b7904633;
+}
+.piles {
+  border-top: 1px solid var(--line);
+}
+.piles > * {
+  box-shadow:
+    2px 3px #080a08,
+    3px 4px 0 1px #8b785950;
+}
+.filters {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+}
+@media (min-width: 761px) {
+  .archive-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+@media (max-width: 1100px) {
+  .duel-layout {
+    grid-template-columns: minmax(0, 1fr) 235px;
+  }
+  .ledger {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .duel-layout {
+    display: block;
+    padding: 6px;
+  }
+  .duel-table {
+    border-width: 4px;
+    padding: 6px;
+    transform: none;
+  }
+  .zone {
+    aspect-ratio: 0.67;
+  }
+  .support-row .zone {
+    aspect-ratio: 1.15;
+  }
+  .playing-card {
+    padding: 3px;
+    border-width: 1px;
+  }
+  .playing-card .card-name {
+    font-family: inherit;
+    font-size: 0.65rem;
+  }
+  .zone .card-name {
+    font-size: 0.6rem;
+  }
+  .card-stats {
+    font-size: 0.58rem;
+  }
+  .hand-row .playing-card {
+    min-height: 172px;
+    flex-basis: 132px;
+  }
+  .hand-row .card-name,
+  .archive-grid .card-name {
+    font-size: 0.85rem;
+  }
+  .archive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .inspector-sheet .card-name {
+    font-size: 1rem;
+  }
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filters input {
+    grid-column: 1/-1;
+  }
+  .player-meter {
+    padding: 4px 8px;
+  }
+}
+@media (max-height: 550px) and (min-width: 761px) {
+  .zone {
+    aspect-ratio: 1.7;
+  }
+  .support-row .zone {
+    aspect-ratio: 3;
+  }
+  .hand-row .playing-card {
+    min-height: 145px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .playing-card {
+    transition: none;
+  }
+}
+
+/* Override the former emblem-size rules in every card context. */
+.playing-card .card-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+}
+.zone .card-art {
+  flex: 1 1 0;
+}
+body[data-theme="veto-h"] {
+  background:
+    linear-gradient(#07110be8, #07110bbc),
+    url("/games/veto-h/assets/atmosphere.webp") center/cover fixed;
+}
+body[data-theme="gett-oh"] {
+  background:
+    linear-gradient(#100c08e0, #0b0908bb),
+    url("/games/gett-oh/assets/atmosphere.webp") center/cover fixed;
+}
+@media (max-width: 760px) {
+  body[data-theme="veto-h"],
+  body[data-theme="gett-oh"] {
+    background-attachment: scroll;
+  }
+}
+
+.playing-card[data-attacked="true"]::before {
+  content: "↗✓";
+  position: absolute;
+  z-index: 3;
+  left: 3px;
+  top: 3px;
+  background: #25251e;
+  color: #ffe29a;
+  padding: 2px 4px;
+  border: 1px solid #b99d60;
+  border-radius: 3px;
+  font: 700 11px system-ui;
+}
+.zone.legal {
+  outline: 2px dashed #e4cb8c;
+  outline-offset: -3px;
+}
+.stat-change {
+  font-variant-numeric: tabular-nums;
+  color: #ead49e;
+}

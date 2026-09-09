@@ -1,3 +1,4 @@
+import { expansion } from "./expansion.js";
 import {
   card,
   on,
@@ -17,6 +18,7 @@ import {
   buff,
 } from "../duel-core/card-dsl.js";
 export const designs = {
+  ...expansion,
   1: card("Tea Server", "When destroyed, draw 1 card.", [], {}, [on("destroy", [draw()])]),
   2: card("Okey Player", "When flipped from a Set position, draw 1 card.", [], {}, [
     on("flip", [draw()]),

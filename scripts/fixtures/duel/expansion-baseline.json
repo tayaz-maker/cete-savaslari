@@ -1,0 +1,40 @@
+{
+  "main": "f5dc6a7dccdea8ac1e63d8de5a3557624ce65111",
+  "games": {
+    "veto-h": {
+      "count": 150,
+      "cardsHash": "c743888bf293d48ed40ff54d39651966bd35a2f3467b8f9e4175c1362f8002d9",
+      "assets": 2,
+      "bytes": 1348
+    },
+    "gett-oh": {
+      "count": 150,
+      "cardsHash": "020f36263c59061f079bbe80c7b77caa04b57d02311b277cdea7f1b1c57ba27c",
+      "assets": 2,
+      "bytes": 1464
+    }
+  },
+  "engine": {
+    "actions.js": "b04063c43d93596ebeaf6b0875e77f7c9cd9ec96b568d1e8cb7949fbf2e9129b",
+    "ai.js": "8606e661d5936aaa70013622dae1302eb02d256f1761ea2e47aca95769565e0f",
+    "app.js": "7b252152eab6739f8c6127d4dcaabb34bb0305536b08dedc88172c4a9b179e41",
+    "battle.js": "3634e8369d3910007cfece05d887592a85d8c3deaf0d306f7498bda461759f4b",
+    "card-data.js": "9b1870c67051a4cce2f008398e462d5123f2888855cf7426e32773794b3bcb37",
+    "card-dsl.js": "7b0618e416f3a1ca1f423ffb9b4bb5d7b74f8df1b38ed947c9e439be656e3c72",
+    "combat-rules.js": "d6e5634f1cd83b4f2cad14deff53d20cd51b1ee8fda036275f95b28cfc1518c8",
+    "deckgen.js": "a061cd9005cfad76beca143b2b5857cb3fdd8ea87f09f6649a09695ccb575188",
+    "effects.js": "bf59be5d52a120b683362eed0c1facae5a36f47cd050710c48f1c71c4c533768",
+    "labels.js": "a7100b40dbe5b89e6843b214b0db3be19a2d70564bdfb551d745af539654c419",
+    "model.js": "7f44b107a6f457a8540ab78367628c19c60eb4fad7c7c51f6928ec7d314538d0",
+    "modifiers.js": "499cde455c115a7a98bf0fed2c663020c0c66d0f0687f66f5ab4714637525c25",
+    "operations.js": "a8dcf4921626dedb66a420f89c8d4c541f213132dd23c8c1cc152be68b362230",
+    "projection.js": "6dfbdf745a52e4ea663164adfb30ec19ddcf64fcc6c0594f56f88b72b59a4c57",
+    "random.js": "af7e3bc5b9ca4bdeacc50cae0b16017868db5309820efa8c1c9f4f29a4ad9112",
+    "rules.js": "7153aa33898eaa7baebbe10ec03517134afb1bc0f3201289986339a7732faa97",
+    "save.js": "800d06689d14ef07b796b8cf71848f38c79aaa519244e198d13d396fb729e5dc",
+    "selection.js": "71f8a1d1abc946cd096f2682772db3b2619d6518d7870e8fffbd7a7bbe493dfe",
+    "summoning.js": "305890ac8141633ddb42d8fdaa42e932c030f04715bb7ea024f3860fbcdcc86b",
+    "targeting.js": "848f240c621e4b25c294996feec488b2cca967f18d6dcb912c37175e094a9de4",
+    "timing.js": "baac05b31b1e8d4392e0602a534cc4db584f18cfc189af6751d84bb6eb1775cb"
+  }
+}

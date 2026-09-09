@@ -1,3 +1,4 @@
+import { expansion } from "./expansion.js";
 import {
   card,
   on,
@@ -20,6 +21,7 @@ import {
 // Explicit bilingual designs. Numeric keys are source card IDs, never card-name
 // branches; all executable behavior consists of typed operations or traits.
 export const designs = {
+  ...expansion,
   1: card("Ballot Officer", "When destroyed, draw 1 card.", [], {}, [on("destroy", [draw()])]),
   2: card(
     "Election Observer",
