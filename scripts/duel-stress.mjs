@@ -8,7 +8,8 @@ const count = Number(process.argv[2] || 10);
 for (const [theme, pool] of Object.entries(pools)) {
   const turns = [],
     wins = [0, 0, 0];
-  let deckOuts = 0, firstTurnEnds = 0;
+  let deckOuts = 0,
+    firstTurnEnds = 0;
   for (let seed = 0; seed < count; seed++) {
     let s = createDuel(pool, theme, seed),
       step = 0,

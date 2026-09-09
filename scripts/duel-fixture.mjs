@@ -14,19 +14,19 @@ export function fixture(theme = "veto-h") {
 }
 export function place(s, id, player, zone, slot = 0) {
   const uid = `fixture:${++serial}`;
-    s.cards[uid] = {
-      id,
-      owner: player,
-      face: "down",
-      position: "defense",
-      setTurn: 0,
-      summonedTurn: 0,
-      positionTurn: 0,
-      attacksUsed: 0,
-      modifiers: [],
-      used: {},
-      knownTo: [player === 0, player === 1],
-    };
+  s.cards[uid] = {
+    id,
+    owner: player,
+    face: "down",
+    position: "defense",
+    setTurn: 0,
+    summonedTurn: 0,
+    positionTurn: 0,
+    attacksUsed: 0,
+    modifiers: [],
+    used: {},
+    knownTo: [player === 0, player === 1],
+  };
   if (["units", "support"].includes(zone)) s.players[player][zone][slot] = uid;
   else if (zone === "field") s.players[player].field = uid;
   else s.players[player][zone].push(uid);

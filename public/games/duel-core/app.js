@@ -622,6 +622,12 @@ export async function startApp(theme, designs) {
           "data-card": uid,
           "data-used": state && card?.used?.activate === state.turn ? "true" : "false",
           "data-attacked": card?.attacksUsed > 0 ? "true" : "false",
+          "data-response-ready":
+            state &&
+            card?.owner === 0 &&
+            actions().some((a) => a.type === "respond" && a.card === uid)
+              ? "true"
+              : "false",
           "data-position": card?.position || "",
           "aria-label": hidden ? t("hidden") : text(card.name),
           ...attrs,
@@ -784,6 +790,13 @@ export async function startApp(theme, designs) {
             "p",
             { class: "used-state" },
             lang === "tr" ? "Düelloluk hak kullanıldı." : "Once-per-duel use spent.",
+          )
+        : null,
+      available.some((a) => a.type === "respond")
+        ? $(
+            "p",
+            { class: "used-state" },
+            lang === "tr" ? "↩ Cevap vermeye hazır." : "↩ Ready to respond.",
           )
         : null,
       card.attacksUsed > 0

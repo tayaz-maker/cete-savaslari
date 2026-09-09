@@ -1368,3 +1368,24 @@ body[data-theme="gett-oh"] {
   font-variant-numeric: tabular-nums;
   color: #ead49e;
 }
+
+.playing-card[data-response-ready="true"] {
+  outline: 2px dashed #f3dc91;
+  outline-offset: 2px;
+}
+.playing-card[data-response-ready="true"]::after {
+  content: "↩";
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  background: #432c0e;
+  color: #fff0b8;
+  border: 1px solid #e5c678;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font: 700 15px system-ui;
+}
+.hand-row .card-stats,
+.archive-grid .card-stats {
+  font-size: 0.76rem;
+}

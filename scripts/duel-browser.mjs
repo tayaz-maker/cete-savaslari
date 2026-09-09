@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { duelScenarios } from "./duel-browser-scenarios.mjs";
 const origin = "http://127.0.0.1:8082";
 const out = `${process.env.RUNNER_TEMP || "/workspace"}/screenshots/duel`;
 mkdirSync(out, { recursive: true });
@@ -339,6 +340,7 @@ try {
       );
       await context.close();
     }
+  await duelScenarios(browser, origin);
   assert.deepEqual(errors, []);
   writeFileSync(`${out}/results.json`, JSON.stringify(metrics, null, 2));
   console.log(`DUEL_BROWSER_PASS ${metrics.length} viewport checks`);

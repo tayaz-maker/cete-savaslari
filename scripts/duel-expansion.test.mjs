@@ -218,93 +218,131 @@ test("one Draw click draws once; empty End resolves once; oversized hand stops",
   assert.equal(s.players[0].hand.length, 7);
 });
 
-for (const [theme,pool] of Object.entries(pools)) {
- test(`${theme}: old response window and set ages preserve action rights`,()=>{
-   const raw=readFileSync(`scripts/fixtures/duel/${theme}-old-response.json`,'utf8');
-   let s=deserialize(raw,pool,theme).state;
-   assert.ok(s.pending);assert.equal(serialize(s),raw);
-   for(let i=0;i<50&&!s.result;i++) {
-     const p=s.choice?.player??s.pending?.responding??s.active;
-     const a=chooseAction(publicView(s,p),legalActions(s,p));
-     const reload=deserialize(serialize(s),pool,theme).state;
-     assert.deepEqual(legalActions(reload,p),legalActions(s,p));
-     const live=dispatch(s,a),loaded=dispatch(reload,a);
-     assert.deepEqual(live,loaded);assert.ok(live.ok);s=live.state;
-   }
- });
+for (const [theme, pool] of Object.entries(pools)) {
+  test(`${theme}: old response window and set ages preserve action rights`, () => {
+    const raw = readFileSync(`scripts/fixtures/duel/${theme}-old-response.json`, "utf8");
+    let s = deserialize(raw, pool, theme).state;
+    assert.ok(s.pending);
+    assert.equal(serialize(s), raw);
+    for (let i = 0; i < 50 && !s.result; i++) {
+      const p = s.choice?.player ?? s.pending?.responding ?? s.active;
+      const a = chooseAction(publicView(s, p), legalActions(s, p));
+      const reload = deserialize(serialize(s), pool, theme).state;
+      assert.deepEqual(legalActions(reload, p), legalActions(s, p));
+      const live = dispatch(s, a),
+        loaded = dispatch(reload, a);
+      assert.deepEqual(live, loaded);
+      assert.ok(live.ok);
+      s = live.state;
+    }
+  });
 }
 
-for (const [theme,pool] of Object.entries(pools)) {
- test(`${theme}: every new summon, flip, upkeep and destruction trigger executes its printed consequence`,()=>{
-  for(const def of pool.slice(150).filter(c=>c.triggers.length)) {
-   let s=fixture(theme);
-   const buddy=pool.find(c=>c.kind==='unit'&&c.series.some(x=>def.series.includes(x))&&c.level<=2);
-   assert.ok(buddy,def.id);
-   const grave=place(s,buddy.id,0,'grave');place(s,buddy.id,0,'deck');place(s,buddy.id,0,'units',1);
-   const equip=place(s,pool.find(c=>c.subtype==='equip').id,0,'grave');
-   const trigger=def.triggers[0],event=trigger.event;
-   const uid=place(s,def.id,0,event==='summon'?'hand':'units');
-   const pointsBefore=s.players[0].points;
-   if(event==='summon') {
-    s=decisions(act(s,{type:'summon',card:uid,slot:0,tributes:[]}));
-    assert.equal(locate(s,uid).zone,'units');
-    assert.ok(s.players[0].hand.some(x=>s.catalog[s.cards[x].id].series.includes(def.series[0])),def.id);
-    const amount=trigger.effects.filter(x=>x.op==='points').reduce((n,x)=>n+x.amount,0);
-    assert.equal(s.players[0].points,pointsBefore+amount,def.id);
-   } else if(event==='standby') {
-    s.phase='draw';s=decisions(act(s,{type:'phase'}));
-    assert.equal(s.players[0].points,pointsBefore+trigger.effects[0].amount,def.id);
-   } else if(event==='flip') {
-    s.cards[uid].face='down';s.cards[uid].position='defense';
-    const hidden=place(s,pool.find(c=>c.kind==='trap').id,1,'support');
-    s.cards[hidden].knownTo=[false,true];
-    s=decisions(act(s,{type:'position',card:uid}));
-    if(theme==='gett-oh')assert.equal(locate(s,equip).zone,'hand',def.id);
-    else if(trigger.effects.some(x=>x.op==='reveal'))assert.equal(s.cards[hidden].knownTo[0],true,def.id);
-    else assert.ok(s.players[0].units.some(x=>x&&s.cards[x].position==='defense'),def.id);
-   } else if(event==='tribute') {
-    const boss=place(s,pool.find(c=>c.kind==='unit'&&c.deckLocation==='main'&&c.level===5).id,0,'hand');
-    s=decisions(act(s,{type:'summon',card:boss,slot:0,tributes:[uid]}));
-    assert.equal(s.players[0].points,pointsBefore+trigger.effects[0].amount,def.id);
-   } else if(event==='destroy') {
-    const strong=pool.filter(c=>c.kind==='unit').sort((a,b)=>b.attack-a.attack)[0];
-    const target=place(s,strong.id,1,'units');s.phase='battle';
-    s=decisions(act(s,{type:'attack',card:uid,target}));
-    assert.equal(locate(s,uid).zone,'grave',def.id);
-    assert.equal(locate(s,grave).zone,'hand',def.id);
-   } else assert.fail(`${def.id}: untested trigger ${event}`);
-   assert.ok(validateState(s),def.id);
-  }
- });
+for (const [theme, pool] of Object.entries(pools)) {
+  test(`${theme}: every new summon, flip, upkeep and destruction trigger executes its printed consequence`, () => {
+    for (const def of pool.slice(150).filter((c) => c.triggers.length)) {
+      let s = fixture(theme);
+      const buddy = pool.find(
+        (c) => c.kind === "unit" && c.series.some((x) => def.series.includes(x)) && c.level <= 2,
+      );
+      assert.ok(buddy, def.id);
+      const grave = place(s, buddy.id, 0, "grave");
+      place(s, buddy.id, 0, "deck");
+      place(s, buddy.id, 0, "units", 1);
+      const equip = place(s, pool.find((c) => c.subtype === "equip").id, 0, "grave");
+      const trigger = def.triggers[0],
+        event = trigger.event;
+      const uid = place(s, def.id, 0, event === "summon" ? "hand" : "units");
+      const pointsBefore = s.players[0].points;
+      if (event === "summon") {
+        s = decisions(act(s, { type: "summon", card: uid, slot: 0, tributes: [] }));
+        assert.equal(locate(s, uid).zone, "units");
+        assert.ok(
+          s.players[0].hand.some((x) => s.catalog[s.cards[x].id].series.includes(def.series[0])),
+          def.id,
+        );
+        const amount = trigger.effects
+          .filter((x) => x.op === "points")
+          .reduce((n, x) => n + x.amount, 0);
+        assert.equal(s.players[0].points, pointsBefore + amount, def.id);
+      } else if (event === "standby") {
+        s.phase = "draw";
+        s = decisions(act(s, { type: "phase" }));
+        assert.equal(s.players[0].points, pointsBefore + trigger.effects[0].amount, def.id);
+      } else if (event === "flip") {
+        s.cards[uid].face = "down";
+        s.cards[uid].position = "defense";
+        const hidden = place(s, pool.find((c) => c.kind === "trap").id, 1, "support");
+        s.cards[hidden].knownTo = [false, true];
+        s = decisions(act(s, { type: "position", card: uid }));
+        if (theme === "gett-oh") assert.equal(locate(s, equip).zone, "hand", def.id);
+        else if (trigger.effects.some((x) => x.op === "reveal"))
+          assert.equal(s.cards[hidden].knownTo[0], true, def.id);
+        else
+          assert.ok(
+            s.players[0].units.some((x) => x && s.cards[x].position === "defense"),
+            def.id,
+          );
+      } else if (event === "tribute") {
+        const boss = place(
+          s,
+          pool.find((c) => c.kind === "unit" && c.deckLocation === "main" && c.level === 5).id,
+          0,
+          "hand",
+        );
+        s = decisions(act(s, { type: "summon", card: boss, slot: 0, tributes: [uid] }));
+        assert.equal(s.players[0].points, pointsBefore + trigger.effects[0].amount, def.id);
+      } else if (event === "destroy") {
+        const strong = pool.filter((c) => c.kind === "unit").sort((a, b) => b.attack - a.attack)[0];
+        const target = place(s, strong.id, 1, "units");
+        s.phase = "battle";
+        s = decisions(act(s, { type: "attack", card: uid, target }));
+        assert.equal(locate(s, uid).zone, "grave", def.id);
+        assert.equal(locate(s, grave).zone, "hand", def.id);
+      } else assert.fail(`${def.id}: untested trigger ${event}`);
+      assert.ok(validateState(s), def.id);
+    }
+  });
 }
 
-test('expansion traps retain the legacy Scandal/Tip-off search identity',()=>{
- for(const [theme,pool] of Object.entries(pools))for(const c of pool.slice(150).filter(c=>c.kind==='trap'))
-  assert.ok(c.series.includes(theme==='veto-h'?'Skandal':'İhbar'),c.id);
+test("expansion traps retain the legacy Scandal/Tip-off search identity", () => {
+  for (const [theme, pool] of Object.entries(pools))
+    for (const c of pool.slice(150).filter((c) => c.kind === "trap"))
+      assert.ok(c.series.includes(theme === "veto-h" ? "Skandal" : "İhbar"), c.id);
 });
-test('new discard clauses consume real other cards, never their resolving source',()=>{
- let s=fixture('veto-h');
- const source=place(s,'SND-275',0,'hand');
- place(s,'SND-001',0,'hand');place(s,'SND-002',0,'hand');
- const hand=s.players[0].hand.length,deck=s.players[0].deck.length;
- s=act(s,{type:'activate',card:source});
- assert.ok(s.choice);assert.equal(s.choice.count,2);
- assert.ok(!s.choice.ids.includes(source));
- s=decisions(s);
- assert.equal(s.players[0].deck.length,deck-2);
- assert.equal(s.players[0].hand.length,hand-1);
- assert.equal(s.players[0].grave.length,3);
- assert.equal(s.players[0].points,6800);
+test("new discard clauses consume real other cards, never their resolving source", () => {
+  let s = fixture("veto-h");
+  const source = place(s, "SND-275", 0, "hand");
+  place(s, "SND-001", 0, "hand");
+  place(s, "SND-002", 0, "hand");
+  const hand = s.players[0].hand.length,
+    deck = s.players[0].deck.length;
+  s = act(s, { type: "activate", card: source });
+  assert.ok(s.choice);
+  assert.equal(s.choice.count, 2);
+  assert.ok(!s.choice.ids.includes(source));
+  s = decisions(s);
+  assert.equal(s.players[0].deck.length, deck - 2);
+  assert.equal(s.players[0].hand.length, hand - 1);
+  assert.equal(s.players[0].grave.length, 3);
+  assert.equal(s.players[0].points, 6800);
 });
-test('new control and revival costs cannot be wasted into a full unit field',()=>{
- const s=fixture('veto-h');
- for(let i=0;i<5;i++)place(s,'SND-001',0,'units',i);
- place(s,'SND-002',1,'units');
- const card=pools['veto-h'].find(c=>Number(c.id.slice(4))>150&&c.effects.some(op=>op.op==='control'));
- const source=place(s,card.id,0,'hand');
- // Supply its own-family prerequisite as well, without opening a zone.
- s.cards[s.players[0].units[0]].id=pools['veto-h'].find(c=>c.kind==='unit'&&c.series.includes(card.series[0])).id;
- const before=serialize(s);
- assert.equal(rejection(s,{type:'activate',card:source,player:0,revision:s.revision}),'unit-zone-required');
- assert.equal(serialize(s),before);
+test("new control and revival costs cannot be wasted into a full unit field", () => {
+  const s = fixture("veto-h");
+  for (let i = 0; i < 5; i++) place(s, "SND-001", 0, "units", i);
+  place(s, "SND-002", 1, "units");
+  const card = pools["veto-h"].find(
+    (c) => Number(c.id.slice(4)) > 150 && c.effects.some((op) => op.op === "control"),
+  );
+  const source = place(s, card.id, 0, "hand");
+  // Supply its own-family prerequisite as well, without opening a zone.
+  s.cards[s.players[0].units[0]].id = pools["veto-h"].find(
+    (c) => c.kind === "unit" && c.series.includes(card.series[0]),
+  ).id;
+  const before = serialize(s);
+  assert.equal(
+    rejection(s, { type: "activate", card: source, player: 0, revision: s.revision }),
+    "unit-zone-required",
+  );
+  assert.equal(serialize(s), before);
 });

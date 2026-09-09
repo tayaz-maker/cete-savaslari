@@ -2,7 +2,9 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 // Lossless source packaging; generated WebP outputs are served directly by Vite/Vercel.
 mkdirSync("scripts/duel-art-packs", { recursive: true });
-for (const theme of ["veto-h", "gett-oh"]) {
+for (const theme of ["veto-h", "gett-oh"].filter(
+  (t) => !process.argv[2] || t === process.argv[2],
+)) {
   const source = JSON.parse(readFileSync(`public/games/${theme}/source-cards.json`, "utf8"));
   const paths = source.map((c) => `public/games/${theme}/assets/cards/${c.id}.webp`);
   paths.push(`public/games/${theme}/assets/atmosphere.webp`);

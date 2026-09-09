@@ -50,3 +50,13 @@ jobs:
         with:
           name: sitewide-responsive
           path: ${{ runner.temp }}/screenshots/tariklab-ux
+      - name: Verify deployed duel assets, archives and legacy saves
+        if: github.ref == 'refs/heads/main'
+        timeout-minutes: 8
+        run: node scripts/duel-production.mjs
+      - name: Upload production duel evidence
+        if: always() && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: duel-production
+          path: ${{ runner.temp }}/screenshots/duel-production
