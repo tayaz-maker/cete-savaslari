@@ -1071,7 +1071,8 @@ export async function startApp(theme, designs) {
             ? button(primaryTitle(v, theme, lang), () => command(phase), { class: "primary" })
             : null,
           pass ? button(t("pass"), () => command(pass)) : null,
-          approved.some((a) => a.type === "end-main")
+          approved.some((a) => a.type === "end-main") &&
+            (!phase || primaryTitle(v, theme, lang) !== t("end-main"))
             ? button(t("end-main"), () =>
                 confirmAction(approved.find((a) => a.type === "end-main")),
               )

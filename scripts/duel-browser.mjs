@@ -289,6 +289,16 @@ try {
         0,
       );
       await measure("board");
+      assert.ok(
+        (await page
+          .locator(".action-dock")
+          .getByRole("button", {
+            name: lang === "tr" ? "Turu Bitir" : "End Turn",
+            exact: true,
+          })
+          .count()) <= 1,
+        "The primary End Turn action must not have a duplicate secondary button",
+      );
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.locator(".hand-row .playing-card").first().click();
       await page.locator(".inspector .effect-text").waitFor();

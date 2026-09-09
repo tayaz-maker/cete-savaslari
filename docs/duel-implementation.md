@@ -160,4 +160,27 @@ bricks 80/10,000; GETT 565 and 122 respectively. Across 500 AI duels per theme:
 VETO mean/median/max turns 8.484/7/31, wins 236/264; GETT 9.912/8/36,
 wins 257/243. No illegal action, stuck duel, turn-one finish or deck-out.
 These are deterministic sample results, not a claim of perfect competitive balance.
-Final visual, full-regression and deployment acceptance follows completion of art.
+Final art acceptance: 300/300 unique decoded illustrations per theme, zero missing,
+broken or duplicate hashes. VETO card bytes total 6,382,754 (average 21,276;
+p95 31,164; maximum 39,136). GETT total 7,337,216 (average 24,457;
+p95 36,550; maximum 47,836). Two retained backgrounds total 282,958 bytes.
+Recovery retained all 300 accepted VETO images and 168 accepted GETT images;
+only RCN-169–300 required new generation. Original tracked binaries remain in Git
+alongside canonical source packs; prebuild unpacks the accepted per-card bytes.
+
+CI run 34368359771 at 01eb47b passed the complete test suite (941 MJS + 50 TS;
+zero skipped), deterministic stress, typecheck, lint, build and Chromium duel
+acceptance; the 16-route sitewide suite passed 1,278 checks with zero errors.
+The duel suite covers 144 viewport checks across both languages and
+the 24 deterministic UI scenarios, including auxiliary summoning and mobile
+Draw double-click. Cloud-browser review confirmed both illustrated tables and
+the final GETT expansion card in the archive with TR/EN synchronization.
+
+Screenshot review identified and removed a duplicate secondary End Turn button
+when the contextual primary action already ends the turn. A browser assertion
+now prevents the duplicate in both languages.
+
+Resources were updated after this game acceptance: 300 illustrated cards per
+entry in TR/EN, 16 live games, one coming-soon title, retired Hayat excluded.
+Main integration and exact-byte production verification are subsequent release
+gates; their deployment status must be read from the final commit checks.
