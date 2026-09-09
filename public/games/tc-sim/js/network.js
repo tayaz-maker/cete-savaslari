@@ -19,7 +19,7 @@ export const FAMILY_TYPES = {
     marriagePressure: 1,
     conflict: 1,
     networkBreadth: 0,
-    extraFamilyIds: [],
+    extraFamilyIds: ["kardes"],
   },
   extended: {
     id: "extended",
@@ -39,7 +39,7 @@ export const FAMILY_TYPES = {
     marriagePressure: 3,
     conflict: 3,
     networkBreadth: 8,
-    extraFamilyIds: ["nine", "dede", "amca", "teyze"],
+    extraFamilyIds: ["kardes", "nine", "dede", "amca", "teyze"],
   },
   stem: {
     id: "stem",
@@ -59,7 +59,7 @@ export const FAMILY_TYPES = {
     marriagePressure: 2,
     conflict: 2,
     networkBreadth: 4,
-    extraFamilyIds: ["nine", "dede"],
+    extraFamilyIds: ["kardes", "nine", "dede"],
   },
   single: {
     id: "single",
@@ -79,7 +79,7 @@ export const FAMILY_TYPES = {
     marriagePressure: 1,
     conflict: 2,
     networkBreadth: 2,
-    extraFamilyIds: ["teyze"],
+    extraFamilyIds: ["kardes", "teyze"],
     absentParent: "baba",
   },
 };
@@ -134,6 +134,10 @@ export const NETWORK_CAST = [
   { id: "tamer", name: "Tamer", age: 50, gender: "man", occupation: "Eski patron / market zinciri", education: "lise", income: "high", hood: "Ataşehir", rel: "married", family: "kids", traits: ["paternalist", "hesapçı", "unutan"], lifestyle: ["ofis", "öğle"], ambition: "zinciri satmak", stress: 46, reliability: 50, generosity: 28, style: "patron", sector: "ticaret", relationType: "Eski iş bağlantısı", roleId: "work_contact", tags: ["professional", "weak_tie"], trust: 28, romance: false, favors: ["referral", "job"], edges: ["burak", "pinar"] },
   { id: "nil", name: "Nil", age: 28, gender: "woman", occupation: "Mühendis", education: "lisans", income: "high", hood: "Kartal", rel: "single", family: "none", traits: ["disiplinli", "mesafeli", "adil"], lifestyle: ["şantiye", "spor"], ambition: "proje müdürü", stress: 54, reliability: 88, generosity: 36, style: "mühendis", sector: "uretim", relationType: "İş bağlantısı", roleId: "work_contact", tags: ["professional", "romance_available"], trust: 20, romance: true, favors: ["referral", "job"], edges: ["cemil", "onur"] },
   { id: "orkun", name: "Orkun", age: 31, gender: "man", occupation: "DJ / gece çalışanı", education: "lise", income: "mid", hood: "Beşiktaş", rel: "single", family: "none", traits: ["gececi", "sadık", "savruk"], lifestyle: ["kulaklık", "içki"], ambition: "festival", stress: 49, reliability: 38, generosity: 60, style: "gece", sector: "eglence", relationType: "Tanıdık", roleId: "acquaintance", tags: ["peer", "romance_available"], trust: 18, romance: true, favors: ["nightlife", "intro"], edges: ["ipek", "kadir"] },
+  // Kardeş: her aile tipinin householdSize ve siblingDuty katsayısı zaten bir
+  // kardeşi varsayıyordu, kişi karşılığı yoktu. Listenin sonuna eklenir; "normal"
+  // çevre modunun ilk-10 dilimi değişmesin diye sıraya değil extraFamilyIds'e bağlanır.
+  { id: "kardes", name: "Deniz", age: 23, gender: "woman", occupation: "Çağrı merkezi görevlisi", education: "lise", income: "low", hood: "Bağcılar", rel: "single", family: "sibling", traits: ["inatçı", "esprili", "gururlu"], lifestyle: ["vardiya", "telefon"], ambition: "kendi düzenini kurmak", stress: 52, reliability: 62, generosity: 66, style: "senli benli", sector: "cagri", relationType: "Kardeş", roleId: "family", tags: ["family"], trust: 66, romance: false, favors: ["emergency", "childcare"], edges: ["anne", "baba"] },
 ];
 
 export function getFamilyTypeDef(id) {
@@ -165,7 +169,7 @@ export function getCastById(id) {
   return NETWORK_CAST.find((row) => row.id === id) || null;
 }
 
-function materializeCast(row, startWeek = 1) {
+export function materializeCast(row, startWeek = 1) {
   return {
     id: row.id,
     name: row.name,
@@ -300,6 +304,8 @@ export function applyFamilyStartFlags(state, familyType) {
     conflict: def.conflict,
     emergencyMoney: def.emergencyMoney,
     inheritance: def.inheritance,
+    // siblingDuty aile tiplerinde tanımlıydı ama hiçbir yere taşınmıyordu.
+    siblingDuty: def.siblingDuty,
   };
   if (def.absentParent && state.people.find((p) => p.id === def.absentParent)) {
     const missing = state.people.find((p) => p.id === def.absentParent);

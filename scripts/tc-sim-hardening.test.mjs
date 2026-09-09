@@ -181,7 +181,9 @@ test("6. zengin v3 kaydı hiçbir eski alanı kaybetmeden v4'e taşınır", () =
   assert.deepEqual(s.health, { energy: 44, stress: 61, health: 73 });
   assert.equal(s.time.absoluteWeek, 111);
   assert.equal(s.player.age, 20);
-  assert.deepEqual(s.relationships, { anne: 81, baba: 40, mehmet: 12, elif: 55 });
+  // Eski kaydın dört ilişkisi olduğu gibi korunur; "kardes" göçle eklenen
+  // modellenmiş kardeştir (alan kaybı değil, alan kazancı).
+  assert.deepEqual(s.relationships, { anne: 81, baba: 40, mehmet: 12, elif: 55, kardes: 44 });
   assert.equal(s.people[0].memories.length, 1);
   assert.equal(s.people[2].memories.length, 1);
   assert.equal(s.memories.length, 1);
