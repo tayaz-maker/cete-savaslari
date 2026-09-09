@@ -57,7 +57,6 @@ const MODULE_GAME_PATHS = [
   "/games/shared/",
   "/games/apartman/",
   "/games/son-100-gun/",
-  "/games/hayat/",
   "/games/kayip-telefon/",
   "/games/tc-sim-devlet/",
   "/i18n/",

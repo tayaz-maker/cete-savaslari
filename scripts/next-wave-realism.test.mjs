@@ -7,8 +7,6 @@ import {
   normalize,
   ISSUE_TEMPLATES,
   SCENARIOS,
-  MAJORS,
-  SHADOWS,
   DISCOVERABLES,
   ENDINGS,
   POLICIES_2002,
@@ -83,21 +81,6 @@ test("son100 always-work is not free and save keeps action state", () => {
   assert.equal(back.day, work.day);
 });
 
-test("hayat unique open shadow, eligibility, callback timing", () => {
-  assert.ok(MAJORS.length >= 40);
-  assert.ok(SHADOWS.length >= 20);
-  const s = create("hayat");
-  applyAction("hayat", s, "choose:ambition");
-  applyAction("hayat", s, "choose:ambition");
-  const open = s.shadows.filter((x) => x.status === "open");
-  assert.equal(open.length, 1);
-  const startAge = s.age;
-  for (let i = 0; i < 16; i += 1) applyAction("hayat", s, "advance");
-  assert.ok(s.age > startAge);
-  assert.ok(s.history.some((h) => h.type === "shadow-callback"));
-  const raw = JSON.parse(JSON.stringify(s));
-  assert.equal(normalize("hayat", raw).shadows.length, s.shadows.length);
-});
 
 test("kayip clue dependency privacy cost ending eligibility", () => {
   assert.ok(DISCOVERABLES.length >= 26);
@@ -143,7 +126,7 @@ test("devlet accepts exactly two monthly decisions, actual/reported/known stay s
 });
 
 test("finite numbers after mixed loops", () => {
-  for (const id of ["apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet"]) {
+  for (const id of ["apartman", "son-100-gun", "kayip-telefon", "tc-sim-devlet"]) {
     const s = create(id);
     applyAction(id, s, "advance");
     const walk = (v) => {

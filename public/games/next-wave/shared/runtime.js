@@ -151,7 +151,7 @@ export function bindSavePanel(root, session) {
 
 export function bootGame(id, draw, engine = {}) {
   const make = engine.create || create, loadState = engine.normalize || normalize, actState = engine.applyAction || applyAction;
-  const safe = engine.safe || id === "hayat";
+  const safe = Boolean(engine.safe);
   let active = 1;
   try { active = Math.min(3, Math.max(1, Number(localStorage.getItem(`${NS}${id}.active`)) || 1)); } catch { /* Allow an in-memory game. */ }
   let slots = [1, 2, 3].map((slot) => readSlot(id, slot, loadState, safe));

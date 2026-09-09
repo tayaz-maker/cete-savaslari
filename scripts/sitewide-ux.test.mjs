@@ -10,13 +10,7 @@ import { create } from "../public/games/next-wave.js";
 
 const root = new URL("../", import.meta.url).pathname;
 const read = (path) => readFileSync(resolve(root, path), "utf8");
-const games = ["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon"];
-
-test("Hayat setup promises the actual initial energy and health", () => {
-  const { energy, health } = create("hayat").resources;
-  const app = read("public/games/hayat/app.js");
-  assert.ok(app.includes(`<b>${energy} / ${health}</b>`));
-});
+const games = ["apartman", "tc-sim-devlet", "son-100-gun", "kayip-telefon"];
 
 // Unit doubles for DOM ownership and event wiring, NOT a layout/browser simulator.
 function navFixture(count, active) {
@@ -109,7 +103,7 @@ test("all touched stylesheets parse as CSS and linked navigation rules follow ga
     "public/games/next-wave/shared/base.css", "public/games/tc-sim/styles.css",
     "public/games/shared/compact-navigation.css", "public/games/shared/classics-ux.css",
   ]) assert.doesNotThrow(() => transform({ filename: path, code: Buffer.from(read(path)), errorRecovery: false }), path);
-  for (const id of ["hayat", "tc-sim-devlet", "tc-sim"]) {
+  for (const id of ["tc-sim-devlet", "tc-sim"]) {
     const html = read(`public/games/${id}/index.html`);
     assert.ok(html.indexOf("compact-navigation.css") > html.indexOf(id === "tc-sim" ? "./styles.css" : "./style.css"));
   }
@@ -142,12 +136,12 @@ test("new UI module graph and every Next Wave shell use fresh online assets, wit
   }
   assert.equal(network.length, paths.length); assert.equal(cached.length, 0);
   context.fetch = async () => { throw new Error("offline"); };
-  assert.equal(await vm.runInContext("networkFirst({url:'https://www.tariklab.com/games/hayat/app.js'})", context), "offline");
+  assert.equal(await vm.runInContext("networkFirst({url:'https://www.tariklab.com/games/apartman/app.js'})", context), "offline");
 });
 
-test("17 live catalog destinations and static entrypoint assets exist without changing the coming-soon boundary", () => {
+test("16 live catalog destinations and static entrypoint assets exist without changing the coming-soon boundary", () => {
   const catalog = read("src/lib/games.ts").split("export const GAMES:")[1];
-  assert.equal((catalog.match(/status: "live"/g) || []).length, 17);
+  assert.equal((catalog.match(/status: "live"/g) || []).length, 16);
   assert.equal((catalog.match(/status: "soon"/g) || []).length, 1);
   const entries = [...catalog.matchAll(/slug: "([^"]+)"[\s\S]*?status: "live"/g)].map((match) => match[1]);
   for (const id of entries.filter((id) => id !== "cete-savaslari")) {

@@ -34,7 +34,6 @@ test("EN dictionary covers required portal and common keys", () => {
     "devlet.reported",
     "devlet.known",
     "devlet.impl",
-    "hayat.shadow",
   ];
   for (const key of required) {
     assert.ok(I.EN[key], `missing EN key ${key}`);
@@ -53,7 +52,6 @@ test("catalog EN covers every public game slug", () => {
     "peg-solitaire",
     "satranc",
     "amiral-batti",
-    "hayat",
     "apartman",
     "kayip-telefon",
     "son-100-gun",
@@ -90,7 +88,6 @@ test("Next Wave and classics load the shared i18n script", () => {
   for (const file of [
     "public/games/apartman/index.html",
     "public/games/son-100-gun/index.html",
-    "public/games/hayat/index.html",
     "public/games/kayip-telefon/index.html",
     "public/games/tc-sim-devlet/index.html",
     "public/games/amiral-batti/index.html",

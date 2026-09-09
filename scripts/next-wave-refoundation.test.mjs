@@ -6,9 +6,9 @@ import { createActionGate } from "../public/games/next-wave/shared/runtime.js";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
-const ids = ["apartman", "son-100-gun", "hayat", "kayip-telefon", "tc-sim-devlet"];
+const ids = ["apartman", "son-100-gun", "kayip-telefon", "tc-sim-devlet"];
 
-test("five games own separate controllers and layouts; the generic shell is retired", () => {
+test("each Next Wave game owns its controller and layout; the generic shell is retired", () => {
   const signatures = new Set();
   for (const id of ids) {
     const html = read(`public/games/${id}/index.html`);
@@ -23,7 +23,7 @@ test("five games own separate controllers and layouts; the generic shell is reti
     assert.ok(css.length > 1000, `${id} owns a real visual system`);
     signatures.add(css.match(/--accent:([^;]+)/)?.[1]);
   }
-  assert.equal(signatures.size, 5);
+  assert.equal(signatures.size, 4);
   const engine = read("public/games/next-wave.js");
   assert.doesNotMatch(
     engine,
@@ -42,7 +42,6 @@ test("every experience exposes its signature loop and binds every primary contro
       "session.act(`proposal:",
     ],
     "son-100-gun": ["data-scenario", "data-action", 'id="finish-day"', "session.act(`act:"],
-    hayat: ["data-choice", 'id="next"', "session.act(`choose:", 'session.act(`advance@'],
     "kayip-telefon": [
       "data-app",
       "data-item",
@@ -99,17 +98,6 @@ test("Son 100 Gün holds two actions, expiry and terminal final report", () => {
   const end = JSON.stringify(state.flags.report);
   applyAction("son-100-gun", state, "advance");
   assert.equal(JSON.stringify(state.flags.report), end);
-});
-
-test("Hayat accepts one major per passage and resolves a Long Shadow once", () => {
-  const state = create("hayat");
-  applyAction("hayat", state, "choose:ambition");
-  applyAction("hayat", state, "choose:give");
-  assert.equal(state.decisionsLog.length, 1);
-  assert.equal(state.shadows.length, 1);
-  for (let i = 0; i < 20; i += 1) applyAction("hayat", state, "advance");
-  const callbacks = state.history.filter((row) => row.type === "shadow-callback").length;
-  assert.equal(callbacks, 1);
 });
 
 test("Kayıp Telefon item discovery is atomic and the return ending is terminal", () => {

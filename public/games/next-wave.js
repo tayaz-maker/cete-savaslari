@@ -33,8 +33,6 @@ import {
   EVENTS as SON_EVENTS,
 } from "./next-wave/son100-data.js";
 import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState } from "./next-wave/son100-sim.js";
-import { ensureLife, applyLife, lifePassage } from "./next-wave/hayat-life.js";
-import { MAJORS, SHADOWS } from "./next-wave/hayat-data.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
 import { PERIODS, POLICIES_2002, POLICIES } from "./next-wave/devlet-data.js";
 import {
@@ -115,31 +113,6 @@ const defs = {
       });
     },
   },
-  hayat: {
-    title: "Hayat",
-    tag: "Uzun Gölge",
-    screens: ["Hayat", "Karar", "Gölgeler", "Geçmiş"],
-    initial: () => ({
-      meta: { version: 1, id: "hayat" },
-      playerName: "İsimsiz",
-      age: 18,
-      chapter: 1,
-      turn: 1,
-      resources: { energy: 80, money: 1000, health: 90 },
-      relationships: [
-        { id: "family", value: 50 },
-        { id: "friend", value: 48 },
-        { id: "romance", value: 40 },
-      ],
-      commitments: [],
-      shadows: [],
-      decisionsLog: [],
-      openCases: [],
-      history: [],
-      flags: {},
-      ui: { screen: "actions" },
-    }),
-  },
   "kayip-telefon": {
     title: "Kayıp Telefon",
     tag: "Keşif · mahremiyet",
@@ -187,7 +160,6 @@ const defs = {
 
 export function create(id) {
   const s = defs[id].initial();
-  if (id === "hayat") ensureLife(s);
   s.meta.seed = 12345;
   return s;
 }
@@ -195,24 +167,15 @@ export function validate(s, id) {
   if (!s || s.meta?.version !== 1) return false;
   if (!Array.isArray(s.history) || !Array.isArray(s.openCases)) return false;
   // A save only belongs to the game that wrote it. Without this an apartman
-  // payload validated cleanly as a hayat save and would have been fed to the
-  // wrong engine.
+  // payload validated cleanly as another game's save and would have been fed
+  // to the wrong engine.
   if (id && s.meta?.id !== id) return false;
   return true;
 }
 export function normalize(id, raw) {
   if (!validate(raw, id)) return raw ? null : create(id);
-  if (id === "hayat") {
-    raw.playerName = typeof raw.playerName === "string" && raw.playerName.trim() ? raw.playerName.trim().slice(0,28) : "İsimsiz";
-    if (!ensureLife(raw)) return null;
-  }
   if (id === "son-100-gun") ensureSonState(raw);
   return raw;
-}
-
-function rel(s, key, d) {
-  const r = (s.relationships || []).find((x) => x.id === key);
-  if (r) r.value = clamp(r.value + d);
 }
 
 function apartmanVote(s, proposal) {
@@ -366,81 +329,6 @@ function tickApartman(s) {
   }
 }
 
-function hayatApplyChoice(s, choiceKey) {
-  if (!ensureLife(s) || s.age >= 36 || s.flags.majorTurn === s.turn || s.life.used.length >= 2 || (s.turn !== 1 && s.turn % 3 !== 0)) return;
-  const used = new Set((s.decisionsLog || []).map((d) => d.event));
-  const chapterEvents = MAJORS.filter((m) => m.chapter === s.chapter && !used.has(m.id));
-  const pool = chapterEvents.length ? chapterEvents : MAJORS.filter((m) => m.chapter === s.chapter);
-  const ev = pool[s.turn % Math.max(1, pool.length)] || MAJORS[0];
-  const choice = choiceKey || ev.choice || "ambition";
-  if (![...MAJORS.map(m=>m.choice), "ambition", "give", "help", "stay", "move", "free", "save", "slow", "delay"].includes(choice)) return;
-  if (["give","help","return"].includes(choice) && s.resources.money < 200) return;
-  if (choice === "school" && s.resources.money < 150) return;
-  s.life.used.push("major");
-  s.flags.majorTurn = s.turn;
-  s.decisionsLog.push({ turn: s.turn, choice, event: ev.id, title: ev.title });
-  const tmpl =
-    SHADOWS.find((x) => x.category === ev.shadow) || SHADOWS.find((x) => x.category === "career");
-  const openSame = s.shadows.some((x) => x.category === tmpl.category && x.status === "open");
-  if (!openSame && s.flags.shadowTurn !== s.turn) {
-    s.flags.shadowTurn = s.turn;
-    s.shadows.push({
-      id: "shadow_" + s.turn + "_" + tmpl.category,
-      category: tmpl.category,
-      createdAt: s.age,
-      eligibleFrom: s.age + (tmpl.delay || 3),
-      status: "open",
-      choice,
-      event: ev.id,
-    });
-  }
-  if (choice === "ambition" || choice === "work" || choice === "grind") {
-    s.resources.money += 400;
-    s.resources.energy -= 15;
-  } else if (choice === "give" || choice === "help" || choice === "return") {
-    s.resources.money -= 200;
-    rel(s, "family", 8);
-  } else if (choice === "school") {
-    s.resources.money -= 150;
-    s.resources.energy -= 8;
-  } else {
-    s.resources.energy -= 6;
-  }
-  s.resources.energy = clamp(s.resources.energy);
-  s.resources.health = clamp(s.resources.health);
-  pushHist(s, { type: "major", choice, title: ev.title });
-}
-
-function hayatAdvance(s) {
-  if (!ensureLife(s) || s.age >= 36) return;
-  s.turn += 1;
-  lifePassage(s);
-  if (s.turn % 4 === 0) s.age += 1;
-  s.chapter = Math.min(5, Math.floor((s.age - 18) / 4) + 1);
-  const sh = s.shadows.find((x) => x.status === "open" && s.age >= x.eligibleFrom);
-  if (sh) {
-    sh.status = "resolved";
-    const tmpl = SHADOWS.find((x) => x.category === sh.category) || SHADOWS[0];
-    const other = s.shadows.filter((x) => x.status === "resolved").length;
-    const mix =
-      (s.resources.money > 1800 ? 1 : 0) +
-      (s.relationships[0].value > 55 ? 1 : 0) +
-      (other >= 2 ? 1 : 0);
-    sh.outcome = mix >= 2 ? "good" : mix === 1 ? "mix" : "bad";
-    sh.text = tmpl[sh.outcome === "good" ? "good" : sh.outcome === "mix" ? "mix" : "bad"];
-    if (other >= 1) sh.combined = true;
-    if (sh.outcome === "good") s.resources.hope = clamp((s.resources.hope || 50) + 6);
-    if (sh.outcome === "bad") s.resources.health = clamp(s.resources.health - 4);
-    pushHist(s, {
-      type: "shadow-callback",
-      id: sh.id,
-      text: sh.text,
-      outcome: sh.outcome,
-      combined: !!sh.combined,
-    });
-  }
-}
-
 function unlockPhoneApps(s) {
   const map = {
     call_leyla: "calls",
@@ -520,11 +408,6 @@ function devletAdvance(s) {
 export function applyAction(id, s, action) {
   if (!s) return null;
   if (typeof action !== "string") return s;
-  if (id === "hayat" && action.includes("@")) {
-    const [command, turn] = action.split("@");
-    if (Number(turn) !== s.turn) return s;
-    action = command;
-  }
   if (id === "apartman" && action.startsWith("focus:")) {
     const issueId = action.slice(6);
     if (s.issues.some((issue) => issue.id === issueId && issue.status === "acik"))
@@ -568,14 +451,6 @@ export function applyAction(id, s, action) {
     if (s.actionsRemaining === 0 && !s.flags.finalReport) sonAdvanceDay(s);
   } else if (id === "son-100-gun" && action.startsWith("scenario:")) {
     applySonScenario(s, action.slice(9));
-  } else if (id === "hayat" && action.startsWith("act:")) {
-    if (ensureLife(s)) applyLife(s, action.slice(4));
-  } else if (id === "hayat" && action === "major-choice") {
-    hayatApplyChoice(s, "ambition");
-  } else if (id === "hayat" && action.startsWith("choose:")) {
-    hayatApplyChoice(s, action.slice(7));
-  } else if (id === "hayat" && action === "advance") {
-    hayatAdvance(s);
   } else if (id === "kayip-telefon" && action.startsWith("discover:")) {
     phoneDiscover(s, action.slice(9));
   } else if (id === "kayip-telefon" && action === "return") {
@@ -623,7 +498,6 @@ export {
   SYSTEMS,
   MEETINGS,
   SCENARIOS,
-  MAJORS,
   DISCOVERABLES,
   PERIODS,
   POLICIES_2002,
@@ -637,7 +511,6 @@ export {
   POLICIES,
   finiteState,
   GUNUMUZ_BASELINE,
-  SHADOWS,
   CONTACTS,
   RESIDENTS,
   SON_EVENTS,
