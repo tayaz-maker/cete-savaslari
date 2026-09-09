@@ -47,13 +47,13 @@ test("resources catalog stays aligned with the canonical game catalog", () => {
       /\{\s*slug: "([^"]+)",[\s\S]*?title: "([^"]+)",[\s\S]*?status: "(live|soon)",[\s\S]*?href: (?:"([^"]+)"|null),[\s\S]*?\}/g,
     ),
   ].map((m) => ({ slug: m[1], title: m[2], status: m[3], href: m[4] || null }));
-  assert.equal(games.length, 16);
-  assert.equal(games.filter((g) => g.status === "live").length, 15);
+  assert.equal(games.length, 18);
+  assert.equal(games.filter((g) => g.status === "live").length, 17);
   assert.deepEqual(
     games.filter((g) => g.status === "soon").map((g) => g.slug),
     ["ihtilal"],
   );
-  assert.match(html, /data-live-count="15" data-soon-count="1"/);
+  assert.match(html, /data-live-count="17" data-soon-count="1"/);
   for (const game of games) {
     assert.match(html, new RegExp(`data-game="${game.slug}" data-status="${game.status}"`));
     assert.ok(html.includes(`data-route="${game.href}"`), `${game.slug} route must match catalog`);

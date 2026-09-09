@@ -41,7 +41,7 @@ jobs:
         with:
           name: duel-responsive
           path: ${{ runner.temp }}/screenshots/duel
-      - name: Responsive and interaction regression (TR/EN, 15 live routes)
+      - name: Responsive and interaction regression (TR/EN, 17 live routes)
         timeout-minutes: 10
         run: node scripts/sitewide-responsive.mjs
       - name: Upload responsive evidence

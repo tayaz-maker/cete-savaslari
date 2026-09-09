@@ -318,6 +318,8 @@
     "son-100-gun": { title: "Son 100 Gün", subtitle: "The last hundred days. Every choice weighs more." },
     "son-kasaba": { title: "Son Kasaba", subtitle: "Everyone is leaving. You stay and try to keep the town alive." },
     "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
+    "veto-h": { title: "VETO-H!", subtitle: "Election night. Build your campaign and answer your rival’s move." },
+    "gett-oh": { title: "GETT-OH!", subtitle: "Istanbul at night. Field your crew and play your street power." },
     ihtilal: { title: "İhtilâl", subtitle: "Elections are won. Power is not kept." },
   };
 
@@ -328,7 +330,7 @@
     sections: [
       {
         h: "Catalog",
-        lead: "TarikLab has 15 playable games. İhtilâl is in development.",
+        lead: "TarikLab has 17 playable games. İhtilâl is in development.",
         items: [
           '<a href="/cete-savaslari">Çete Savaşları</a> · LIVE — Build a crew, run missions and hold turf under police and rival pressure.',
           '<a href="/oyna/hanedan">Çete Savaşları: Hanedan</a> · LIVE — Manage a roster, raids and legacy across generations.',
@@ -345,6 +347,8 @@
           '<a href="/oyna/son-100-gun">Son 100 Gün</a> · LIVE — The Extreme Last 100 Days format: manage limited time, obligations and the bonds that survive.',
           '<a href="/oyna/tc-sim-devlet">TC SIM: DEVLET</a> · LIVE — Configure a state, then manage policy, institutions, regions, treasury and reports month by month.',
           '<a href="/oyna/son-kasaba">Son Kasaba</a> · LIVE — Shape a town’s future across 24 months of budgets, buildings, migration, groups and investors.',
+          '<a href="/oyna/veto-h">VETO-H!</a> · LIVE — An election and campaign duel with 150 original cards, a seeded 40-card deck, a computer opponent and a pregame Card Archive.',
+          '<a href="/oyna/gett-oh">GETT-OH!</a> · LIVE — A neighborhood and street-power duel with 150 original cards: the same deterministic engine, a separate card pool and an Istanbul-night table.',
           '<a href="/ihtilal">İhtilâl</a> · COMING SOON — In development.',
         ],
       },
@@ -352,7 +356,7 @@
         h: "How it works",
         lead: "TarikLab is a collection of independent games that run directly in the browser. The portal and Çete Savaşları use React and TypeScript; the other games run as their own HTML, CSS and JavaScript applications.",
         items: [
-          "Games that save progress use three local slots, kept separate from one another on the same device.",
+          "Long-running games use three local slots, kept separate on the same device. VETO-H! and GETT-OH! each autosave one active duel; reload preserves deck order, action rights and pending responses.",
           "The portal and games support Turkish and English.",
           "Interfaces adapt to phone, tablet and desktop while preserving each game's own visual and interaction identity.",
         ],

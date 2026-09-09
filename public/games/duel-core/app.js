@@ -439,6 +439,7 @@ export async function startApp(theme, designs) {
     );
   }
   function render() {
+    root.removeAttribute("aria-busy");
     document.documentElement.lang = lang;
     document.body.dataset.theme = theme;
     document.body.dataset.motion = motion === "on" ? "full" : "reduced";
@@ -1173,6 +1174,7 @@ export async function startApp(theme, designs) {
     else if (!saved.ok && saved.error !== "no-save") notice = displayError(saved.error);
     render();
   } catch (error) {
+    root.removeAttribute("aria-busy");
     root.replaceChildren(
       $(
         "main",

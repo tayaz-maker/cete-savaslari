@@ -124,6 +124,7 @@ try {
         throw error;
       }
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
+      assert.equal(await page.locator("#app").getAttribute("aria-busy"), null);
       await measure("menu");
       await page.getByRole("button", { name: labels.archive }).click();
       await measure("archive");

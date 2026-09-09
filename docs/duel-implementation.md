@@ -32,7 +32,7 @@ reduced-motion eliminates movement. No WebGL or baked screenshot UI.
   resolution below preserves both effects without inventing ID 151.
 - Master overrides first-turn draw, names/routes and independent game menus.
 
-Status: implementation in progress, not released.
+Status: game acceptance passed at 9e3ccf0dc7dd9a442579c9653d68b855cdf4656b; catalog/resources integration follows that gate.
 
 ## Explicit source resolutions
 
@@ -89,3 +89,21 @@ The full automated acceptance runs in the existing GitHub CI: all MJS/TS tests,
 Chromium duel interaction and the existing sitewide responsive regression.
 The card integrity suite checks nested effect operations and referenced IDs, not
 only top-level handler names. Exact final run evidence is recorded at release.
+
+## Accepted game evidence (before catalog integration)
+
+CI run 34343174503: full regression PASS (920 MJS, 50 TS), 20,000 seeded
+decks, 500 completed AI duels per theme, typecheck, lint (0 errors; existing
+46 warnings), production build, 112 duel viewport checks and the 15-game
+sitewide Chromium regression. Archive traversal covers every one of the 150
+IDs per theme, plus search/filter, 40-card pregame preview, reload equality,
+language synchronization, keyboard dismissal and reduced motion.
+
+Mean/median turns: VETO-H! 10.168/8, GETT-OH! 8.054/7. No illegal moves,
+cap hits or stuck games in these 1,000 duels. Cloud-browser preview also
+verified a summon, face-down battle reveal, opposing trap activation and
+the consumed attack right. Catalog/resources release follows this checkpoint.
+
+Vercel preview succeeded. The separate Cloudflare Workers check already
+failed on accepted main 73a7ee36 and continues to fail on the feature branch;
+no Cloudflare account or deployment settings were changed.
