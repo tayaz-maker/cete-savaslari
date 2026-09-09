@@ -17,6 +17,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Duel deterministic stress (500 per theme)
+        timeout-minutes: 5
+        run: node scripts/duel-stress.mjs 500
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
@@ -29,7 +32,16 @@ jobs:
           else
             npx playwright install --with-deps chromium --only-shell
           fi
-      - name: Responsive and interaction regression (TR/EN, 15 live routes)
+      - name: Duel archive, save and 2.5D responsive regression
+        timeout-minutes: 5
+        run: node scripts/duel-browser.mjs
+      - name: Upload duel evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duel-responsive
+          path: ${{ runner.temp }}/screenshots/duel
+      - name: Responsive and interaction regression (TR/EN, 17 live routes)
         timeout-minutes: 10
         run: node scripts/sitewide-responsive.mjs
       - name: Upload responsive evidence

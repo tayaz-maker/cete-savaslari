@@ -15,7 +15,7 @@ mkdirSync(out, { recursive: true });
 const catalog = readFileSync("src/lib/games.ts", "utf8").split("export const GAMES:")[1];
 const routes = [...catalog.matchAll(/slug: "([^"]+)"[\s\S]*?status: "live",\s*href: "([^"]+)"/g)]
   .map((match) => ({ id: match[1], href: match[2] }));
-assert.equal(routes.length, 15);
+assert.equal(routes.length, 17);
 const viewports = [[320,568],[360,800],[390,844],[430,932],[640,360],[740,390],[844,390],[768,1024],[820,1180],[1024,768],[1280,800],[1440,900]];
 const nextWave = new Set(["apartman", "hayat", "tc-sim-devlet", "son-100-gun", "kayip-telefon", "son-kasaba"]);
 const errors = [], results = [];
@@ -69,7 +69,16 @@ try {
         }
         await measure("entry");
         if (route.id === "portal") {
-          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/index.html"]').count(), 15);
+          assert.equal(await page.locator('a[href^="/oyna/"], a[href="/cete-savaslari"], a[href="/games/bukucu/index.html"]').count(), routes.length);
+        }
+        if (["veto-h", "gett-oh"].includes(route.id)) {
+          const other = lang === "tr" ? "en" : "tr";
+          await page.getByRole("button", { name: other.toUpperCase(), exact: true }).click();
+          await surface.waitForFunction(language => document.documentElement.lang === language, other);
+          assert.ok(await surface.getByRole("button", { name: other === "en" ? "New Duel" : "Yeni Düello", exact: true }).isVisible());
+          await page.getByRole("button", { name: lang.toUpperCase(), exact: true }).click();
+          await surface.waitForFunction(language => document.documentElement.lang === language, lang);
+          assert.equal(await surface.evaluate(key => localStorage.getItem(key), `tariklab.${route.id}.duel`), null);
         }
         if (nextWave.has(route.id)) {
           assert.equal(await surface.locator(".slot-card").count(), 3);

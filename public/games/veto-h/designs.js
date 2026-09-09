@@ -1,0 +1,831 @@
+import {
+  card,
+  on,
+  draw,
+  points,
+  select,
+  move,
+  discard,
+  flag,
+  modifier,
+  token,
+  own,
+  enemy,
+  search,
+  summon,
+  set,
+  buff,
+} from "../duel-core/card-dsl.js";
+
+// Explicit bilingual designs. Numeric keys are source card IDs, never card-name
+// branches; all executable behavior consists of typed operations or traits.
+export const designs = {
+  1: card("Ballot Officer", "When destroyed, draw 1 card.", [], {}, [on("destroy", [draw()])]),
+  2: card(
+    "Election Observer",
+    "When flipped from a Set position, look at 1 opposing Set card.",
+    [],
+    {},
+    [on("flip", [select("set", enemy(["units", "support"], { face: "down" })), { op: "reveal" }])],
+  ),
+  3: card(
+    "Local Candidate",
+    "When Normal Summoned, add 1 Ballot unit from your deck to your hand, then shuffle.",
+    [],
+    {},
+    [on("summon", search("ballot", { kind: "unit", series: "Sandık" }), { normal: true })],
+  ),
+  4: card("Voter Bus", "May attack directly, dealing half damage.", [], {
+    direct: true,
+    directMultiplier: 0.5,
+  }),
+  5: card(
+    "Market Stall",
+    "While defending, cannot be attacked. Opponents must choose another target, or attack directly if none exists.",
+    [],
+    { untargetableDefense: true, allowDirectWhenOnlyDefenders: true },
+  ),
+  6: card(
+    "Leaflet Team",
+    "Tribute this card to Special Summon 1 Level 3 or lower Ballot unit from your deck.",
+    [
+      { op: "selfMove", to: "grave", reason: "tribute" },
+      ...summon("ballot", "deck", { series: "Sandık", maxLevel: 3 }),
+    ],
+  ),
+  7: card("District Clerk", "Gains 400 ATK while you control a Set trap.", [], {
+    conditionalStats: { condition: "ownSetTrap", attack: 400 },
+  }),
+  8: card(
+    "Courier",
+    "When summoned, look at the top card of your deck. Add it to your hand if it is a unit; otherwise put it back.",
+    [],
+    {},
+    [on("summon", [{ op: "look", count: 1, take: 1, kind: "unit" }])],
+  ),
+  9: card("Tea Delegate", "When tributed, gain 500 OP.", [], {}, [on("tribute", [points(500)])]),
+  10: card("Door-to-Door Team", "Gains 200 ATK for each opposing Set card.", [], {
+    countStats: { count: "enemySet", attack: 200 },
+  }),
+  11: card(
+    "Ballot Bag",
+    "Cannot be destroyed in battle. Lose 200 OP during every Standby Phase.",
+    [],
+    { battleProtection: "always" },
+    [on("standby", [points(-200)], { global: true })],
+  ),
+  12: card(
+    "Reserve Observer",
+    "Once per duel: banish this card from your grave to negate the activation of a Set trap, as a counter response.",
+    [{ op: "selfMove", to: "banished" }, { op: "negate" }],
+    { responseFrom: "grave", oncePerDuel: true, responseKinds: ["trap"] },
+  ),
+  13: card(
+    "General Secretary",
+    "Once per turn: during your turn, treat 1 of your Set Campaign cards as Quick-Play in a response window.",
+    [
+      select("campaign", own("support", { kind: "spell", face: "down" })),
+      modifier({ quick: true }),
+    ],
+  ),
+  14: card("Spokesperson", "When summoned, your opponent discards 1 card.", [], {}, [
+    on("summon", [select("discard", enemy("hand")), discard(1, true)]),
+  ]),
+  15: card(
+    "Deputy Group Chair",
+    "When attacking an opposing unit of the same Level, deal 300 additional damage.",
+    [],
+    { sameLevelDamage: 300 },
+  ),
+  16: card("District Chair", "Your Ballot units gain 200 ATK and DEF.", [], {
+    aura: { series: "Sandık", attack: 200, defense: 200 },
+  }),
+  17: card(
+    "Organizer",
+    "When summoned, Special Summon 1 Level 3 or lower Ballot unit from your hand or deck.",
+    [],
+    {},
+    [on("summon", summon("ballot", ["hand", "deck"], { series: "Sandık", maxLevel: 3 }))],
+  ),
+  18: card("Lobbyist", "Whenever your opponent activates a spell, gain 300 OP.", [], {}, [
+    on("spell", [points(300)], { global: true, opponent: true }),
+  ]),
+  19: card("Adviser", "Your face-down units cannot be destroyed by effects until revealed.", [], {
+    protectOwnSetUnits: true,
+  }),
+  20: card(
+    "Pollster",
+    "When summoned, look at the top 3 cards of your deck. Take 1 and return the others in their original order.",
+    [],
+    {},
+    [on("summon", [{ op: "look", count: 3, take: 1 }])],
+  ),
+  21: card("Protocol Officer", "Cannot be destroyed while a field spell is active.", [], {
+    fieldProtection: true,
+  }),
+  22: card(
+    "Campaign Director",
+    "Grants 1 additional Normal Summon each turn, only for a Level 3 or lower unit.",
+    [],
+    { extraNormalMaxLevel: 3 },
+  ),
+  23: card(
+    "Media Coordinator",
+    "Your Quick-Play Campaign cards deal 400 additional OP damage.",
+    [],
+    { quickDamage: 400 },
+  ),
+  24: card("Legal Counsel", "Once per turn: negate the effect of 1 trap for this turn.", [
+    select("trap", enemy("support", { kind: "trap" })),
+    modifier({ negated: true }),
+  ]),
+  25: card(
+    "Ghostwriter",
+    "When sent to the grave, Set 1 Scandal from your deck if a support zone is free.",
+    [],
+    {},
+    [on("grave", set("trap", "deck"))],
+  ),
+  26: card(
+    "Talent Scout",
+    "When summoned, take control of 1 opposing Level 3 or lower unit until the end of this turn.",
+    [],
+    {},
+    [on("summon", [select("unit", enemy("units", { maxLevel: 3 })), { op: "control" }])],
+  ),
+  27: card(
+    "Mayor",
+    "When this unit defeats a Set unit in battle, deal 400 additional damage.",
+    [],
+    { destroySetDamage: 400 },
+  ),
+  28: card("Member of Parliament", "Gains 500 ATK while your OP is below 4000.", [], {
+    conditionalStats: { condition: "pointsBelow", threshold: 4000, attack: 500 },
+  }),
+  29: card("Ministerial Candidate", "When Tribute Summoned, draw 1 card.", [], {}, [
+    on("summon", [draw()], { tribute: true }),
+  ]),
+  30: card(
+    "Metropolitan Candidate",
+    "May attack directly while Metropolitan Constituency is active.",
+    [],
+    { directWithField: "SND-114" },
+  ),
+  31: card("Party Spokesperson", "When summoned, Set 1 Scandal from your grave.", [], {}, [
+    on("summon", set("trap", "grave")),
+  ]),
+  32: card("Faction Leader", "Gains 600 ATK while another Podium unit is on your field.", [], {
+    conditionalStats: { condition: "otherSeries", series: "Kürsü", attack: 600 },
+  }),
+  33: card("Former Governor", "While defending, your opponent cannot attack directly.", [], {
+    blockDirectDefense: true,
+  }),
+  34: card(
+    "Union Chair",
+    "When tributed, Special Summon 2 Delegate tokens (500 ATK / 500 DEF).",
+    [],
+    {},
+    [on("tribute", [token(2, 500, 500, "Delege", "Delegate")])],
+  ),
+  35: card("Chamber Federation", "At the start of your Main Phase 1, gain 400 OP.", [], {}, [
+    on("main1", [points(400)], { global: true, own: true }),
+  ]),
+  36: card(
+    "TV Commentator",
+    "Once when your opponent draws: reveal that card and discard it if it is a Campaign.",
+    [],
+    { revealEnemyDrawSpell: true },
+  ),
+  37: card(
+    "Newspaper Owner",
+    "Whenever your opponent activates a Set card, they lose 300 OP.",
+    [],
+    {},
+    [on("set-activate", [points(-300, true)], { global: true, opponent: true })],
+  ),
+  38: card("University Lecturer", "Poll-series effects perform their look operation twice.", [], {
+    doublePollLook: true,
+  }),
+  39: card(
+    "Senior Lobbyist",
+    "Instead of tributing 1 unit to summon this card, you may banish 1 Campaign from your grave.",
+    [],
+    { tributeAlternative: { zone: "grave", kind: "spell", count: 1 } },
+  ),
+  40: card(
+    "Hometown Association",
+    "When a second unit of the same series is present, both gain 300 ATK.",
+    [],
+    { pairedSeriesAttack: 300 },
+  ),
+  41: card("Business Backer", "When summoned, lose 1000 OP; this unit gains 800 ATK.", [], {}, [
+    on("summon", [
+      points(-1000),
+      { op: "modifier", self: true, permanent: true, value: { attack: 800 } },
+    ]),
+  ]),
+  42: card(
+    "Retired General",
+    "When destroyed in battle, your opponent destroys 1 of their units.",
+    [],
+    {},
+    [on("destroy", [select("unit", enemy()), { op: "destroy" }], { reason: "battle" })],
+  ),
+  43: card(
+    "Party Leader",
+    "When Tribute Summoned, your opponent discards 1 card and you destroy 1 of their Set cards.",
+    [],
+    {},
+    [
+      on(
+        "summon",
+        [
+          select("discard", enemy("hand")),
+          discard(1, true),
+          select("set", enemy(["units", "support"], { face: "down" })),
+          { op: "destroy" },
+        ],
+        { tribute: true },
+      ),
+    ],
+  ),
+  44: card(
+    "Presidential Candidate",
+    "Direct attacks deal half damage. While this unit remains face up, your opponent cannot Special Summon Level 3 or lower units.",
+    [],
+    { directMultiplier: 0.5, blockSpecialMaxLevel: 3 },
+  ),
+  45: card(
+    "Coalition Architect",
+    "The units tributed to summon this card may immediately supply the materials for 1 Coalition summon if a zone is free.",
+    [],
+    { tributeAuxiliary: true },
+  ),
+  46: card("Old State", "Once per turn, cannot be destroyed in battle.", [], {
+    battleProtection: "turn",
+  }),
+  47: card(
+    "Media Emperor",
+    "Once per turn, you may activate a Quick-Play Campaign directly from your deck.",
+    [
+      select("quick", { zones: "deck", kind: "spell", subtype: "quick", quickForWindow: true }),
+      { op: "activateSelected" },
+    ],
+    { quickFromDeck: true, responseFrom: "units", allowProactive: true },
+  ),
+  48: card(
+    "Ballot Minister",
+    "While this unit is face up, your Ballot units cannot be destroyed in battle.",
+    [],
+    { seriesBattleProtection: "Sandık" },
+  ),
+  49: card(
+    "Judicial Lobby",
+    "Opposing traps must wait 1 additional turn after being Set before activation.",
+    [],
+    { trapDelay: 1 },
+  ),
+  50: card(
+    "Diaspora Treasury",
+    "During your Standby Phase, gain 800 OP and discard 1 card.",
+    [],
+    {},
+    [
+      on("standby", [points(800), select("discard", own("hand")), discard()], {
+        global: true,
+        own: true,
+      }),
+    ],
+  ),
+  51: card("Crisis Desk", "While your OP is below 2000, all your units gain 1000 DEF.", [], {
+    aura: { pointsBelow: 2000, defense: 1000 },
+  }),
+  52: card(
+    "Guaranteed List",
+    "When summoned, Special Summon 2 Level 3 or lower Ballot units from your deck. This unit cannot attack that turn.",
+    [],
+    {},
+    [
+      on("summon", [
+        ...summon("ballot", "deck", { series: "Sandık", maxLevel: 3 }, 2),
+        { op: "modifier", self: true, value: { cannotAttack: true } },
+      ]),
+    ],
+  ),
+  53: card(
+    "Latest Poll",
+    "Once per turn during your Standby Phase: look at the top 3 cards of your deck and take 1 unit.",
+    [],
+    {},
+    [on("standby", [{ op: "look", count: 3, take: 1, kind: "unit" }], { global: true, own: true })],
+  ),
+  54: card(
+    "Undecided Voter",
+    "When summoned, Special Summon 2 Undecided tokens (0 ATK / 0 DEF). They may be tributed.",
+    [],
+    {},
+    [on("summon", [token(2, 0, 0, "Kararsız Token", "Undecided token")])],
+  ),
+  55: card(
+    "Tactical Vote",
+    "Reduce 1 unit’s effective Level by 2 for this turn, only for effect eligibility; tribute costs and battle statistics do not change.",
+    [select("unit", { owner: "both", zones: "units" }), modifier({ effectLevel: -2 })],
+  ),
+  56: card(
+    "Exit Poll",
+    "Flip: look at all opposing Set cards, then leave them in their previous positions.",
+    [],
+    {},
+    [
+      on("flip", [
+        { op: "select", all: true, selector: enemy(["units", "support"], { face: "down" }) },
+        { op: "reveal", count: 10 },
+      ]),
+    ],
+  ),
+  57: card("Vote Breakdown", "When summoned, destroy 1 opposing unit of the same Level.", [], {}, [
+    on("summon", [select("unit", enemy("units", { sameLevel: true })), { op: "destroy" }]),
+  ]),
+  58: card("Record Turnout", "When summoned, gain 500 OP.", [], {}, [on("summon", [points(500)])]),
+  59: card("Blank Ballot", "While this unit is defending, you take no battle damage.", [], {
+    noBattleDamageDefense: true,
+  }),
+  60: card(
+    "Invalid Envelope",
+    "Discard this card from your hand as a response to cancel your opponent’s next draw. Use once.",
+    [{ op: "selfMove", to: "grave", reason: "discard" }, flag("skipDraw", true, true)],
+    { responseFrom: "hand", responseDraw: true },
+  ),
+  61: card(
+    "Ballot Margin",
+    "ATK equals the absolute difference between both players’ OP divided by 10, up to 3000.",
+    [],
+    { dynamicAttack: "pointDifference" },
+  ),
+  62: card(
+    "Consensus",
+    "Send 2 of your Level 3 or lower units to the grave to Special Summon 1 Coalition from your auxiliary deck.",
+    [
+      select("materials", own("units", { maxLevel: 3 }), 2),
+      move("grave", 2),
+      { op: "auxiliary", materialCredit: 2 },
+    ],
+  ),
+  63: card(
+    "Undercurrent",
+    "Special Summon 1 Level 3 or lower unit from your grave, then banish this card.",
+    [...summon("unit", "grave", { maxLevel: 3 }), { op: "selfMove", to: "banished" }],
+  ),
+  64: card("Silent Majority", "Your Set units gain 700 DEF.", [], {
+    aura: { face: "down", defense: 700 },
+  }),
+  65: card(
+    "Congress Delegate",
+    "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon.",
+    [{ op: "ritual" }],
+    { graveRitualLevel: 1, ritualEnabler: true },
+  ),
+  67: card(
+    "List Contractor",
+    "When performing a ritual summon, you may count 1 additional material from your grave.",
+    [],
+    { graveRitualMaterial: 1 },
+  ),
+  68: card(
+    "Joint Candidate",
+    "Combine 2 Coalition-material units from hand, field or grave. When summoned, draw 1 card.",
+    [],
+    { materials: { count: 2, zones: ["hand", "units", "grave"] } },
+    [on("summon", [draw()])],
+  ),
+  69: card(
+    "Alliance Protocol",
+    "Materials: 1 Backroom unit and 1 Ballot unit. The activation of your Set traps cannot be negated.",
+    [],
+    { materials: { series: ["Kulis", "Sandık"] }, trapUnnegatable: true },
+  ),
+  70: card("National List", "Materials: 3 units. May attack directly.", [], {
+    materials: { count: 3 },
+    direct: true,
+  }),
+  71: card(
+    "Shadow Cabinet",
+    "Materials: 2 Backroom units. Your opponent cannot activate Quick-Play spells.",
+    [],
+    { materials: { series: ["Kulis", "Kulis"] }, blockQuick: true },
+  ),
+  72: card(
+    "Election Alliance A",
+    "Materials: 1 Podium unit and 1 Ballot unit. ATK equals 1200 plus 400 for every unit on the field.",
+    [],
+    { materials: { series: ["Kürsü", "Sandık"] }, dynamicAttack: "allUnits400" },
+  ),
+  73: card(
+    "Election Alliance B",
+    "Materials: 1 Podium unit and 1 Poll unit. When summoned, destroy 1 opposing Set card.",
+    [],
+    { materials: { series: ["Kürsü", "Anket"] } },
+    [
+      on("summon", [
+        select("set", enemy(["units", "support"], { face: "down" })),
+        { op: "destroy" },
+      ]),
+    ],
+  ),
+  74: card(
+    "Official Candidate",
+    "Ritual: Congress and materials totaling 7 Levels. When summoned, gain 1000 OP.",
+    [],
+    { ritualLevel: 7 },
+    [on("summon", [points(1000)])],
+  ),
+  75: card(
+    "Independent Surprise",
+    "Special Summon by revealing 1 unit in your hand. Your opponent cannot activate cards with that name this turn.",
+    [],
+    { specialCondition: "revealHandUnit", lockRevealedName: true },
+  ),
+  76: card(
+    "Acquired Organization",
+    "May be Special Summoned while your grave contains at least 4 units.",
+    [],
+    { specialCondition: "fourGraveUnits" },
+  ),
+  77: card(
+    "List Leader",
+    "Ritual: Congress and 8 Levels. When this unit destroys a unit in battle, deal additional OP damage equal to that unit’s ATK.",
+    [],
+    { ritualLevel: 8, destroyedAttackDamage: true },
+  ),
+  78: card(
+    "Joint Statement",
+    "Counts as auxiliary summon material. When drawn, draw 1 more card and send this card to the grave.",
+    [],
+    { auxiliaryMaterial: true },
+    [on("draw", [draw(), { op: "selfMove", to: "grave" }])],
+  ),
+  79: card(
+    "Delegate Bloc",
+    "Once per turn: while 2 Delegate Blocs are available in your hand and field, summon 1 Coalition.",
+    [{ op: "auxiliary", requiredIds: ["SND-079", "SND-080"], materialCredit: 2 }],
+    { blocSummon: true },
+  ),
+  81: card(
+    "Rally Grounds",
+    "1 of your units gains 600 ATK this turn. Its direct attacks deal full damage.",
+    buff({ attack: 600, fullDirect: true }),
+  ),
+  82: card("Promise Marathon", "Draw 2 cards, then discard 1.", [
+    draw(2),
+    select("discard", own("hand")),
+    discard(),
+  ]),
+  83: card(
+    "Leaflet Rain",
+    "Add 1 Ballot unit from your deck to your hand.",
+    search("ballot", { kind: "unit", series: "Sandık" }),
+  ),
+  84: card(
+    "Transfer Bombshell",
+    "Send 1 opposing Level 4 or lower unit to the grave, then Special Summon 1 unit of the same Level from your hand.",
+    [select("enemy", enemy("units", { maxLevel: 4 })), { op: "transferSameLevel" }],
+  ),
+  85: card(
+    "Organization Meeting",
+    "Special Summon 1 Level 3 or lower unit from your grave.",
+    summon("unit", "grave", { maxLevel: 3 }),
+  ),
+  86: card(
+    "Public Opinion Survey",
+    "Reveal your opponent’s hand. Choose 1 card; discard it if it is a Campaign.",
+    [
+      { op: "reveal", hand: true },
+      select("discard", enemy("hand")),
+      { op: "discardIf", kind: "spell" },
+    ],
+  ),
+  87: card("Live Link", "Your opponent cannot activate traps this turn.", [
+    flag("blockTrap", true, true),
+  ]),
+  88: card("Opening Ceremony", "Gain 1000 OP.", [points(1000)]),
+  89: card(
+    "Endorsement",
+    "1 unit cannot be destroyed in battle this turn.",
+    buff({ protectBattle: true }),
+  ),
+  90: card("Apology Statement", "Negate 1 unit’s effects this turn. Gain 500 OP.", [
+    select("unit", { owner: "both", zones: "units" }),
+    modifier({ negated: true }),
+    points(500),
+  ]),
+  91: card(
+    "Call for Resignation",
+    "Your opponent must tribute 1 unit, or discard 1 card if they have no units.",
+    [{ op: "forceTributeOrDiscard" }],
+  ),
+  92: card(
+    "Ballot Relocation",
+    "Move 1 of your Set cards to another empty zone of the same type.",
+    [select("set", own(["units", "support"], { face: "down" })), { op: "relocate" }],
+  ),
+  93: card(
+    "Hometown Breakfast",
+    "All your Ballot units gain 300 ATK and DEF until the end of the turn.",
+    [
+      { op: "select", all: true, selector: own("units", { series: "Sandık" }) },
+      { op: "modifier", count: 5, value: { attack: 300, defense: 300 } },
+    ],
+  ),
+  94: card(
+    "Sponsor Dinner",
+    "Pay 1500 OP to Special Summon a Coalition if its material requirements are satisfied.",
+    [points(-1500), { op: "auxiliary" }],
+  ),
+  95: card("Repeated Slogan", "Return 1 Normal Campaign from your grave to your hand.", [
+    select("spell", own("grave", { kind: "spell", subtype: "normal" })),
+    move("hand"),
+  ]),
+  96: card("Archive Leak", "Look at 1 opposing Set card. You may pay 800 OP to destroy it.", [
+    select("set", enemy(["units", "support"], { face: "down" })),
+    { op: "peekDestroy", cost: 800 },
+  ]),
+  97: card("Recount", "All battle damage becomes 0 this turn. Both players draw 1 card.", [
+    flag("noBattleDamage"),
+    flag("noBattleDamage", true, true),
+    draw(),
+    draw(1, true),
+  ]),
+  98: card("Election Threshold", "Level 3 or lower units cannot declare attacks this turn.", [
+    flag("blockAttackMaxLevel", 3),
+    flag("blockAttackMaxLevel", 3, true),
+  ]),
+  99: card(
+    "Candidate Poll",
+    "Add any 1 unit from your deck to your hand.",
+    search("unit", { kind: "unit" }),
+  ),
+  100: card("Old News Returns", "Return 1 unit from your grave to your hand.", [
+    select("unit", own("grave", { kind: "unit" })),
+    move("hand"),
+  ]),
+  101: card("Budget Channel", "Gain 1000 OP, then discard 1 card.", [
+    points(1000),
+    select("discard", own("hand")),
+    discard(),
+  ]),
+  102: card(
+    "Closed Poll",
+    "Look at the top 5 cards of your deck. Take 2 and put the other 3 on the bottom.",
+    [{ op: "look", count: 5, take: 2, bottom: true }],
+  ),
+  103: card(
+    "Open Debate Invitation",
+    "Each player must turn 1 of their units to attack position, if possible.",
+    [
+      select("own", own()),
+      { op: "position", position: "attack" },
+      select("enemy", enemy()),
+      { op: "position", position: "attack" },
+    ],
+  ),
+  104: card("List Negotiation", "Return 1 unit from your hand to your deck, then draw 2 cards.", [
+    select("unit", own("hand", { kind: "unit" })),
+    move("deck"),
+    { op: "shuffle" },
+    draw(2),
+  ]),
+  105: card(
+    "Organization Dissolved",
+    "Send all Level 3 or lower units on both fields to the grave, then draw 1 card.",
+    [
+      { op: "select", all: true, selector: { owner: "both", zones: "units", maxLevel: 3 } },
+      move("grave", 10),
+      draw(),
+    ],
+  ),
+  106: card("Press Conference", "Your opponent must reveal 1 of their Set cards.", [
+    select("set", enemy(["units", "support"], { face: "down" })),
+    { op: "reveal" },
+  ]),
+  107: card("Morning Bulletin", "Draw 1 card. If it is a Scandal, you may Set it.", [
+    { op: "drawSetTrap" },
+  ]),
+  108: card(
+    "Evening Slot",
+    "Your Quick-Play spells deal 400 additional OP damage to your opponent this turn.",
+    [flag("quickDamage", 400)],
+  ),
+  109: card("Interrupted Broadcast", "Negate the declared effect.", [{ op: "negate" }], {
+    responseTypes: ["activate"],
+  }),
+  110: card(
+    "Retraction",
+    "Negate the activation of a Scandal and send it to the grave.",
+    [{ op: "negate" }],
+    { responseKinds: ["trap"] },
+  ),
+  111: card("Instant Poll", "Swap 1 unit’s ATK and DEF for this turn.", [
+    select("unit", { owner: "both", zones: "units" }),
+    { op: "swapStats" },
+  ]),
+  112: card("Please Wait", "Cancel the declared attack.", [{ op: "cancelAttack" }], {
+    responseTypes: ["attack"],
+  }),
+  113: card(
+    "Advertising Strip",
+    "Your opponent cannot respond to your next declared action this turn.",
+    [flag("blockNextResponse", true, true)],
+    { noResponse: true },
+  ),
+  114: card(
+    "Metropolitan Constituency",
+    "Podium units gain 400 ATK. Ballot units gain 400 DEF.",
+    [],
+    {
+      auras: [
+        { series: "Kürsü", attack: 400 },
+        { series: "Sandık", defense: 400 },
+      ],
+    },
+  ),
+  115: card(
+    "Provincial Banner",
+    "Level 3 or lower units gain 600 DEF. Direct attack damage is reduced by 500.",
+    [],
+    { aura: { maxLevel: 3, defense: 600 }, directReduction: 500 },
+  ),
+  116: card(
+    "Studio Night",
+    "Quick-Play Campaigns may be activated from the hand during the opposing turn. Each activation costs 300 OP.",
+    [],
+    { quickEnemyHand: true, quickCost: 300 },
+  ),
+  117: card(
+    "Office Chair",
+    "The equipped unit gains 500 ATK and DEF and counts as 1 additional Level when used as tribute material.",
+    [],
+    { equip: { attack: 500, defense: 500, materialLevel: 1 } },
+  ),
+  118: card("Protection Convoy", "The equipped unit cannot be targeted by opposing effects.", [], {
+    equip: { untargetableEffect: true },
+  }),
+  119: card("Official Report", "If the equipped unit is destroyed in battle, draw 1 card.", [], {
+    equip: { battleDestroyedDraw: 1 },
+  }),
+  120: card(
+    "Live Scandal",
+    "When your opponent Normal Summons, turn that unit face-down in defense. It cannot attack this turn.",
+    [{ op: "pendingTarget" }, { op: "position", position: "defense", face: "down" }],
+    { responseTypes: ["summon"] },
+  ),
+  121: card("Old Post", "Destroy 1 face-down unit.", [
+    select("unit", { owner: "both", zones: "units", face: "down" }),
+    { op: "destroy" },
+  ]),
+  122: card(
+    "Fake Diploma",
+    "Negate the effects of 1 Level 5 or higher unit until it leaves the field.",
+    [
+      select("unit", { owner: "both", zones: "units", minLevel: 5 }),
+      modifier({ negated: true }, true),
+    ],
+  ),
+  123: card(
+    "Secret Recording",
+    "When your opponent activates a spell, negate it and send it to the grave.",
+    [{ op: "negate" }],
+    { responseKinds: ["spell"] },
+  ),
+  124: card("Bribery Allegation", "1 unit’s ATK becomes 0 this turn.", [
+    select("unit", { owner: "both", zones: "units" }),
+    modifier({ attackSet: 0 }),
+  ]),
+  125: card("Family Company", "Your opponent loses 800 OP and you lose 400 OP.", [
+    points(-800, true),
+    points(-400),
+  ]),
+  126: card("Vote Transport Tip", "Destroy all Set spells and traps on both fields.", [
+    { op: "select", all: true, selector: { owner: "both", zones: "support", face: "down" } },
+    { op: "destroy", count: 10 },
+  ]),
+  127: card(
+    "Rally Disrupted",
+    "At the start of Battle Phase, skip that phase and proceed to Main Phase 2.",
+    [{ op: "skipBattle" }],
+    { responseTypes: ["battle-start"] },
+  ),
+  128: card("Broadcast Ban", "Your opponent cannot activate spells from their hand this turn.", [
+    flag("blockHandSpell", true, true),
+  ]),
+  129: card(
+    "Counter-Rally",
+    "When a direct attack is declared, cancel it and turn the attacker face-down in defense.",
+    [
+      { op: "pendingTarget" },
+      { op: "cancelAttack" },
+      { op: "position", position: "defense", face: "down" },
+    ],
+    { responseTypes: ["attack"], directOnly: true },
+  ),
+  130: card(
+    "Delegate Revolt",
+    "When your opponent declares a tribute summon, cancel it. The would-be tributed units remain.",
+    [{ op: "negate" }],
+    { responseTypes: ["summon", "set-unit"], tributeOnly: true },
+  ),
+  131: card("Poll Cancelled", "Negate your opponent’s look-and-take effect.", [{ op: "negate" }], {
+    responseLook: true,
+  }),
+  132: card("Sources", "Your opponent discards 1 random card.", [discard(1, true, true)]),
+  133: card("Resignation Pressure", "The controller of 1 unit must tribute it or pay 2000 OP.", [
+    select("unit", { owner: "both", zones: "units" }),
+    { op: "tributeOrPay", cost: 2000 },
+  ]),
+  134: card("Ballot Challenge", "Both players take 0 battle damage this turn.", [
+    flag("noBattleDamage"),
+    flag("noBattleDamage", true, true),
+  ]),
+  135: card("Backroom Raid", "Destroy 1 opposing Set card.", [
+    select("set", enemy(["units", "support"], { face: "down" })),
+    { op: "destroy" },
+  ]),
+  136: card("Heckling", "1 unit cannot activate effects or attack this turn.", [
+    select("unit", { owner: "both", zones: "units" }),
+    modifier({ cannotAttack: true, negated: true }),
+  ]),
+  137: card("Advertising Cut", "Send 1 continuous or field spell to the grave.", [
+    select("spell", {
+      owner: "both",
+      zones: ["support", "field"],
+      kind: "spell",
+      subtype: ["continuous", "field"],
+    }),
+    move("grave"),
+  ]),
+  138: card("Retraction Issued", "Negate the activation of a Scandal.", [{ op: "negate" }], {
+    responseKinds: ["trap"],
+  }),
+  139: card("Broadcast Halted", "Negate a Quick-Play Campaign.", [{ op: "negate" }], {
+    responseSubtypes: ["quick"],
+  }),
+  140: card(
+    "Court Injunction",
+    "Negate a Special Summon and send that card to the grave.",
+    [{ op: "negate" }, { op: "cancelSummonToGrave" }],
+    { responseTypes: ["special"] },
+  ),
+  141: card("Censorship Strip", "Negate a card effect.", [{ op: "negate" }], {
+    responseTypes: ["activate"],
+  }),
+  142: card(
+    "Montage Defense",
+    "Prevent battle destruction; the unit remains and damage is 0.",
+    [{ op: "cancelAttack" }],
+    { responseTypes: ["attack"] },
+  ),
+  143: card(
+    "Live Link Lost",
+    "Negate only the draw portion of the declared effect.",
+    [{ op: "negate", drawOnly: true }],
+    { responseDrawEffect: true },
+  ),
+  144: card(
+    "Election Board Ruling",
+    "Negate any activation, then both players draw 1 card.",
+    [{ op: "negate" }, draw(), draw(1, true)],
+    { responseTypes: ["activate"] },
+  ),
+  145: card(
+    "Ballot Vigil",
+    "While you control a Set trap, opposing effects cannot target this unit.",
+    [],
+    { targetProtectionWithSetTrap: true },
+  ),
+  146: card("Unlisted Candidate", "Gains 800 ATK while your auxiliary deck is empty.", [], {
+    conditionalStats: { condition: "emptyAuxiliary", attack: 800 },
+  }),
+  147: card("Ballot Paper", "Whenever a unit is Normal Summoned, gain 200 OP.", [], {}, [
+    on("summon", [points(200)], { global: true, normal: true }),
+  ]),
+  148: card("Sealed Bag", "Your opponent cannot move cards out of their grave using effects.", [], {
+    lockEnemyGrave: true,
+  }),
+  149: card("Alliance Table", "Once this turn, an auxiliary summon requires 1 fewer material.", [
+    flag("auxiliaryDiscount", 1),
+  ]),
+  150: card(
+    "Election Night",
+    "All battle damage increases by 300. At each End Phase, both players discard 1 card.",
+    [],
+    { battleDamage: 300 },
+    [
+      on(
+        "end",
+        [select("own", own("hand")), discard(), select("discard", enemy("hand")), discard(1, true)],
+        { global: true },
+      ),
+    ],
+  ),
+};
+designs[66] = designs[65];
+designs[80] = designs[79];
