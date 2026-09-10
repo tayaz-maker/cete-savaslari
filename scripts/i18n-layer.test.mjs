@@ -115,7 +115,7 @@ test("portal keeps canonical Turkish strings in source", () => {
 
 test("Çete help keeps canonical Turkish sections", () => {
   const help = read("src/components/game/help-panel.tsx");
-  for (const term of ["İcraat", "Tezgâh", "Emniyet", "kıdem", "localStorage", "Nasıl Oynanır"]) {
+  for (const term of ["İcraat", "Tezgâh", "Emniyet", "kıdem", "kayıt slotun", "Nasıl Oynanır"]) {
     assert.ok(help.includes(term), term);
   }
 });

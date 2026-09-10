@@ -9,7 +9,7 @@ test("yardım içeriği gerçek mekaniklere göre dokuz bölüm taşır", () => 
     "Amaç",
     "Haftalık döngü",
     "Kontroller",
-    "İş ve para",
+    "İş ve finans",
     "İlerleme ve göstergeler",
     "Risk ve sonuçlar",
     "Kayıt",
@@ -27,7 +27,7 @@ test("haftalık döngü metni gerçek karar hakkı sayısını yansıtır", () =
 });
 
 test("wealth/emeklilik/miras içeriği gerçek sistemleri adlandırır", () => {
-  const money = HELP_SECTIONS.find((s) => s.title === "İş ve para");
+  const money = HELP_SECTIONS.find((s) => s.title === "İş ve finans");
   assert.match(money.body, /net servet/);
   const late = HELP_SECTIONS.find((s) => s.title.includes("emeklilik"));
   assert.match(late.body, /Yaşam Raporu/);

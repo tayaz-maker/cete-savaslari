@@ -108,7 +108,7 @@ test("Çete Savaşları HUD'una gerçek bir yardım kontrolü bağlanmış", () 
   assert.match(panel, /Nasıl Oynanır/);
   assert.match(panel, /DialogContent/);
   // Yardım metni gerçek mekanik terimlerini kullanmalı, jenerik olmamalı.
-  for (const term of ["İcraat", "Tezgâh", "Emniyet", "kıdem", "localStorage"]) {
+  for (const term of ["İcraat", "Tezgâh", "Emniyet", "kıdem", "kayıt slotun"]) {
     assert.ok(panel.includes(term), `help-panel.tsx "${term}" içermeli`);
   }
 });

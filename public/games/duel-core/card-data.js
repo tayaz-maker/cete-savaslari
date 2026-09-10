@@ -81,7 +81,7 @@ export function buildCards(source, designs, theme) {
       hint: design.hint || {
         tr:
           raw.kind === "unit"
-            ? "Kademe, çağrı maliyetini belirler. Ayrıntıda yasal işlemleri kontrol et."
+            ? "Kademe, çağrı maliyetini belirler. Ayrıntıda yapabileceğin hamleleri kontrol et."
             : "Tuzaklar ve set Hızlı kartlar sonraki turu bekler. Hedef ve zamanlama koşullarını kontrol et.",
         en:
           raw.kind === "unit"

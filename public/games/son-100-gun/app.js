@@ -34,7 +34,7 @@ function menu(session) {
       ),
       summary: slotSummary,
       help: t(
-        "Bir senaryo seç. Her gün iki aksiyonun var. Erken bitirirsen hak yanar. 0'da ölüm ve hüküm gelir.",
+        "Bir senaryo seç; o senaryonun yükü ve ilişkileriyle başlarsın. Her gün tam iki aksiyonun var; kullanmadığın hak o gün söner, ertesi güne taşınmaz. Takvimde yaklaşan zorunlulukları ve son günü gelen fırsat pencerelerini izle — bazısı kaçırılırsa bir daha açılmaz. Son günlere yaklaştıkça enerjin daha hızlı tükenir ve seçenekler daralır. Gün 0'da oyun biter; o ana kadarki kararlarından bir ölüm ve hüküm ekranı çıkar. İntihar yok. İlerleyişin her hamlede otomatik kaydedilir; üç ayrı kayıt yerin de var.",
         "Pick a scenario. Two actions a day. Ending early burns unused rights. Day zero is death and verdict.",
       ),
     },
@@ -172,7 +172,7 @@ function draw(session) {
       )
       .join(
         "",
-      )}</div><p class="notice">${h(session.notice)}</p><details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Her gün tam iki aksiyonun var. Kartlar para, enerji ve ilişki bedelini gösterir. Fırsatların son günü vardır. Günü erken bitirirsen kullanılmayan hak yanar; 0'da ölüm ve hüküm açılır. İntihar yok.", "You have exactly two actions per day. Cards show money, energy and relationship costs. Windows expire. Ending early forfeits unused actions; day zero opens death and verdict. There is no suicide.")}</p></details><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
+      )}</div><p class="notice">${h(session.notice)}</p><details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Her gün tam iki aksiyonun var. Kartlar para, enerji ve ilişki bedelini gösterir. Zorunluluklar panelindeki işleri süresi dolmadan kapatmazsan kaçan yüküm sayılır; fırsat pencerelerinin de son günü vardır ve kaçırılırsa bir daha açılmaz. Günü erken bitirirsen kullanılmayan hak yanar. Son günlere yaklaştıkça enerji daha hızlı tükenir ve seçenekler daralır. 0'da ölüm ve hüküm açılır; intihar yok. İlerleyişin her hamlede otomatik kaydedilir.", "You have exactly two actions per day. Cards show money, energy and relationship costs. Windows expire. Ending early forfeits unused actions; day zero opens death and verdict. There is no suicide.")}</p></details><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>`;
   root
     .querySelectorAll("[data-action]")
     .forEach((button) =>

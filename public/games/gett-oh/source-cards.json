@@ -33,7 +33,7 @@
     "attack": 700,
     "defense": 200,
     "deckLocation": "main",
-    "text": "Yakıldığında (tribute) desteden 1 “Çayhane” eline al."
+    "text": "Yakıldığında desteden 1 “Çayhane” eline al."
   },
   {
     "id": "RCN-004",
@@ -69,7 +69,7 @@
     "attack": 500,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Bu kartı yakarak 1 Çayhane Lv≤3 özel çağır (deste)."
+    "text": "Bu kartı yakarak 1 Çayhane Kademe 3 veya altı özel çağır (deste)."
   },
   {
     "id": "RCN-007",
@@ -105,7 +105,7 @@
     "attack": 300,
     "defense": 300,
     "deckLocation": "main",
-    "text": "SP: OP yerine RP +200."
+    "text": "Hazırlık Aşamanda: OP yerine RP +200."
   },
   {
     "id": "RCN-010",
@@ -165,7 +165,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "GY’den özel çağrılabilir; yalnızca bir Çayhane yok olduğunda, o zincirde."
+    "text": "Mezarlıktan özel çağrılabilir; yalnızca bir Çayhane yok olduğunda, o zincirde."
   },
   {
     "id": "RCN-015",
@@ -237,7 +237,7 @@
     "attack": 1300,
     "defense": 1100,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 Çayhane GY’den özel çağır."
+    "text": "Çağrıldığında 1 Çayhane mezarlıktan özel çağır."
   },
   {
     "id": "RCN-021",
@@ -273,7 +273,7 @@
     "attack": 1500,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Taksi varken rakip Lv≤3 özel çağramaz."
+    "text": "Taksi varken rakip Kademe 3 veya altı özel çağramaz."
   },
   {
     "id": "RCN-024",
@@ -297,7 +297,7 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "GY’den 1 ekipman eline al."
+    "text": "Mezarlıktan 1 ekipman eline al."
   },
   {
     "id": "RCN-026",
@@ -369,7 +369,7 @@
     "attack": 1400,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "SP: RP +300."
+    "text": "Hazırlık Aşamanda: RP +300."
   },
   {
     "id": "RCN-032",
@@ -381,7 +381,7 @@
     "attack": 1700,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Yok ettiği adam GY yerine sürgün."
+    "text": "Yok ettiği adam mezarlık yerine sürgün."
   },
   {
     "id": "RCN-033",
@@ -405,7 +405,7 @@
     "attack": 1300,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "Hedef set kartını canavar yuvasına “Adam 0/0” olarak özel çağır (o kart mezar olur, token gelir). MVP’de sadeleştir: hedef seti GY, 0/1000 duvar özel çağır."
+    "text": "1 Set kartını mezarlığa gönder, 0 ATK / 1000 DEF'lik bir Duvar token’ı özel çağır."
   },
   {
     "id": "RCN-035",
@@ -417,7 +417,7 @@
     "attack": 0,
     "defense": 2200,
     "deckLocation": "main",
-    "text": "Saldıramaz. Tribute olarak 2 mertebe sayılır."
+    "text": "Saldıramaz. Feda olarak 2 mertebe sayılır."
   },
   {
     "id": "RCN-036",
@@ -573,7 +573,7 @@
     "attack": 900,
     "defense": 1700,
     "deckLocation": "main",
-    "text": "Flip: 1 İhbar GY’den sete."
+    "text": "Flip: 1 İhbar mezarlıktan sete."
   },
   {
     "id": "RCN-049",
@@ -633,7 +633,7 @@
     "attack": 1400,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Rakip Extra çağırırsa RP −800."
+    "text": "Rakip Birleşim çağırırsa RP −800."
   },
   {
     "id": "RCN-054",
@@ -645,7 +645,7 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "SP’de yüzüstüyse ATK +800 bu tur."
+    "text": "Hazırlık Aşamasında yüzüstüyse ATK +800 bu tur."
   },
   {
     "id": "RCN-055",
@@ -669,7 +669,7 @@
     "attack": 2100,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Çayhane tribute ile çağrıldıysa 1 çek."
+    "text": "Çayhane yakılarak çağrıldıysa 1 çek."
   },
   {
     "id": "RCN-057",
@@ -681,7 +681,7 @@
     "attack": 2000,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "SP: rakip RP −400 veya 1 kart atar (rakip seçer)."
+    "text": "Hazırlık Aşamanda: rakip RP −400 veya 1 kart atar (rakip seçer)."
   },
   {
     "id": "RCN-058",
@@ -717,7 +717,7 @@
     "attack": 2000,
     "defense": 1700,
     "deckLocation": "main",
-    "text": "Çarşı varken haraç SP +500 RP."
+    "text": "Çarşı varken haraç Hazırlık Aşamanda +500 RP."
   },
   {
     "id": "RCN-061",
@@ -753,7 +753,7 @@
     "attack": 1800,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Yakılan adam GY yerine elde 1 Racon ara."
+    "text": "Yakılan adam mezarlık yerine elde 1 Racon ara."
   },
   {
     "id": "RCN-064",
@@ -789,7 +789,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Extra çağrı bu tur bedelsiz 1 malzeme."
+    "text": "Birleşim çağrısı bu tur bedelsiz 1 malzeme."
   },
   {
     "id": "RCN-067",
@@ -825,7 +825,7 @@
     "attack": 1600,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Token / Lv≤2 +800 DEF."
+    "text": "Token / Kademe 2 veya altı +800 DEF."
   },
   {
     "id": "RCN-070",
@@ -849,7 +849,7 @@
     "attack": 2800,
     "defense": 2500,
     "deckLocation": "main",
-    "text": "Yakılan her adam için +200 ATK. GY 3+ ise doğrudan saldırabilir."
+    "text": "Yakılan her adam için +200 ATK. Mezarlıkta 3+ ise doğrudan saldırabilir."
   },
   {
     "id": "RCN-072",
@@ -885,7 +885,7 @@
     "attack": 2700,
     "defense": 2400,
     "deckLocation": "main",
-    "text": "Aile/Çayhane tribute ise 2 çek."
+    "text": "Aile/Çayhane feda ile geldiyse 2 çek."
   },
   {
     "id": "RCN-075",
@@ -909,7 +909,7 @@
     "attack": 2400,
     "defense": 3000,
     "deckLocation": "main",
-    "text": "SP: RP +1000, 1 kart at."
+    "text": "Hazırlık Aşamanda: RP +1000, 1 kart at."
   },
   {
     "id": "RCN-077",
@@ -1029,7 +1029,7 @@
     "attack": 2000,
     "defense": 2800,
     "deckLocation": "auxiliary",
-    "text": "2 Çarşı. SP +600 RP."
+    "text": "2 Çarşı. Hazırlık Aşamanda +600 RP."
   },
   {
     "id": "RCN-087",
@@ -1065,7 +1065,7 @@
     "attack": 1800,
     "defense": 1800,
     "deckLocation": "auxiliary",
-    "text": "1 adam GY’den malzeme. Çağrılınca o GY’den Lv≤3 özel çağır."
+    "text": "1 adam mezarlıktan malzeme. Çağrılınca o mezarlıktan Kademe 3 veya altı özel çağır."
   },
   {
     "id": "RCN-090",
@@ -1077,7 +1077,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Ritüel büyüsü: mertebe toplamı kadar GY’ye adam gönder, ritüeli çağır."
+    "text": "Ritüel büyüsü: mertebe toplamı kadar mezarlığa adam gönder, ritüeli çağır."
   },
   {
     "id": "RCN-091",
@@ -1125,7 +1125,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef +800 ATK, EP’de o adam GY"
+    "text": "hedef +800 ATK, Tur Sonu’nda o adam mezara gider"
   },
   {
     "id": "RCN-095",
@@ -1137,7 +1137,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef ekipman veya saha GY"
+    "text": "hedef ekipman veya saha mezara gider"
   },
   {
     "id": "RCN-096",
@@ -1185,7 +1185,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "kontrol al Lv≤3 bu tur"
+    "text": "kontrol al Kademe 3 veya altı bu tur"
   },
   {
     "id": "RCN-100",
@@ -1197,7 +1197,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY 1 Adam ele"
+    "text": "Mezarlıktan 1 Adam ele"
   },
   {
     "id": "RCN-101",
@@ -1233,7 +1233,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "RP −1500, Extra çağrı"
+    "text": "RP −1500, Birleşim çağrısı"
   },
   {
     "id": "RCN-104",
@@ -1281,7 +1281,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bütün Lv≤2 GY"
+    "text": "bütün Kademe 2 veya altı adam mezara gider"
   },
   {
     "id": "RCN-108",
@@ -1317,7 +1317,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY normal Racon ele"
+    "text": "Mezarlıktan normal Racon ele"
   },
   {
     "id": "RCN-111",
@@ -1353,7 +1353,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY ekipman ele"
+    "text": "Mezarlıktan ekipman ele"
   },
   {
     "id": "RCN-114",
@@ -1437,7 +1437,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Lv≤3 +500 Sırt"
+    "text": "Kademe 3 veya altı +500 Sırt"
   },
   {
     "id": "RCN-121",
@@ -1449,7 +1449,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Lv≥5 +400 Baskı"
+    "text": "Kademe 5 veya üstü +400 Baskı"
   },
   {
     "id": "RCN-122",
@@ -1473,7 +1473,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "SP her oyuncu RP −200, sen Çarşı varsa +400 net"
+    "text": "Hazırlık Aşamanda her oyuncu RP −200, sen Çarşı varsa +400 net"
   },
   {
     "id": "RCN-124",
@@ -1605,7 +1605,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef saha/sürekli GY"
+    "text": "hedef saha/sürekli mezara gider"
   },
   {
     "id": "RCN-135",
@@ -1701,7 +1701,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY’den 1 İhbar sete"
+    "text": "Mezarlıktan 1 İhbar sete"
   },
   {
     "id": "RCN-143",

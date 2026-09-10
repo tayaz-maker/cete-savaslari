@@ -6,7 +6,7 @@
 export const HELP_SECTIONS = [
   {
     title: "Amaç",
-    body: "Tek bir hayatı haftalık kararlarla yönetiyorsun. Kariyer, para, ilişkiler ve sağlık birbirini etkiler; amaç mükemmel bir plan değil, sürdürülebilir bir denge kurmak.",
+    body: "18 yaşında, İstanbul'da aile evinde başlayan tek bir hayatı haftalık kararlarla yönetiyorsun. Kariyer, para, ilişkiler ve sağlık birbirini etkiler; amaç mükemmel bir plan değil, sürdürülebilir bir denge kurmak.",
   },
   {
     title: "Haftalık döngü",
@@ -14,11 +14,11 @@ export const HELP_SECTIONS = [
   },
   {
     title: "Kontroller",
-    body: "Üstteki menüden Ana Sayfa, Ben, Takvim, Para, İş, Eğitim, Kişiler, Aile/İlişkiler, Ev, Beden, Geçmiş ve Yıl Dosyası bölümlerine geçersin. Bazı seçimler ayrı bir olay penceresi açar; orada verdiğin cevap haftayı ilerletmeden hemen uygulanır.",
+    body: "Üstteki menüden Ana Sayfa, Ben, Takvim, Finans, Market, İş, Eğitim, Kişiler, Aile/İlişkiler, Ev, Beden, Geçmiş ve Yıl Dosyası bölümlerine geçersin. Bazı seçimler ayrı bir olay penceresi açar; orada verdiğin cevap haftayı ilerletmeden hemen uygulanır.",
   },
   {
-    title: "İş ve para",
-    body: "İş bulmak, terfi ve eğitim Para'yı doğrudan etkiler. Para ekranı bakiye, aylık gelir/gider ve net servetini gösterir: nakit, yatırım, gayrimenkul, araç/eşya ve borçların toplamı. Yaşam standardını (mütevazıdan yükseğe) ve abonelik/eşya harcamalarını da buradan yönetirsin.",
+    title: "İş ve finans",
+    body: "İş bulmak, terfi ve eğitim Finans'ı doğrudan etkiler. Finans ekranı bakiye, aylık gelir/gider ve net servetini gösterir: nakit, yatırım, gayrimenkul, araç/eşya ve borçların toplamı. Yaşam standardını (mütevazıdan yükseğe) ve abonelik harcamalarını da buradan yönetirsin; günlük alışveriş, hediye ve riskli harcamalar ayrı Market ekranındadır.",
   },
   {
     title: "İlerleme ve göstergeler",
@@ -30,7 +30,7 @@ export const HELP_SECTIONS = [
   },
   {
     title: "Kayıt",
-    body: "Oyun tarayıcının yerel deposuna otomatik kaydedilir; üstteki Kaydet ile elle de kaydedebilirsin. Yeni oyun, mevcut hayatı tamamen siler ve onay ister.",
+    body: "Üç ayrı kayıt yerin (Slot) var; başlangıç ekranından birini seçersin. Oyun seçili slota tarayıcının yerel deposunda otomatik kaydedilir, üstteki Kaydet ile elle de kaydedebilirsin. Yeni oyun, seçili slottaki mevcut hayatı tamamen siler ve onay ister; diğer slotlar etkilenmez.",
   },
   {
     title: "İlk oyun için ipuçları",

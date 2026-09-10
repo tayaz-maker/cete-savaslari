@@ -74,6 +74,17 @@ export async function startApp(theme, designs) {
             auxiliary: "Koalisyon",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
+            rules: [
+              "VETO-H!'ta bir siyasi kampanya yürütüyorsun. Amacın rakibinin OP'sini (puanını) sıfıra indirmek; ikiniz de 8000 OP ve 5 kartlık açılış eliyle başlarsınız.",
+              "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
+              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Ana Aşama 1, Tartışma, Ana Aşama 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Tartışma Aşaması'na giremez.",
+              "Sahanda 5 Kadro ve 5 Destek bölgesi var. Turda 1 kez Kadro çağırabilir veya kapalı savunmada Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Kadro'yu adamalısın, 7+ için 2 Kadro.",
+              "Set ettiğin kartlar (Kadro veya Skandal) kapalı kalır; sonraki bir Ana Aşama'da açabilir veya Kadro'nun pozisyonunu değiştirebilirsin — çağrıldığı tur ve saldırdıktan sonra değişemez.",
+              "Tartışma'da saldıran Kadro'nun gücü, karşısındaki Kadro'nun savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Kadro yoksa doğrudan saldırıp rakibin OP'sini kırabilirsin.",
+              "Rakibin ilan ettiği bir işleme (çağrı, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
+              "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
+              "Düello otomatik kaydedilir — ana menüden Devam Et ile kaldığın yerden sürdürebilirsin.",
+            ],
           },
           en: {
             unit: "Campaigner",
@@ -94,6 +105,17 @@ export async function startApp(theme, designs) {
             auxiliary: "Birleşim",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
+            rules: [
+              "GETT-OH!'da sokakta racon kesiyorsun. Amacın rakibinin RP'sini (racon puanını) sıfıra indirmek; ikiniz de 8000 RP ve 5 kartlık açılış eliyle başlarsınız.",
+              "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
+              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Ana Aşama 1, Kapışma, Ana Aşama 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Kapışma Aşaması'na giremez.",
+              "Sahanda 5 Adam ve 5 Destek bölgesi var. Turda 1 kez Adam'ı sahaya sürebilir veya kapalı Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Adam'ı feda etmelisin, 7+ için 2 Adam.",
+              "Set ettiğin kartlar (Adam veya İhbar) kapalı kalır; sonraki bir Ana Aşama'da açabilir veya Adam'ın pozisyonunu değiştirebilirsin — sahaya sürüldüğü tur ve saldırdıktan sonra değişemez.",
+              "Kapışma'da saldıran Adam'ın gücü, karşısındaki Adam'ın savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Adam yoksa doğrudan vurup rakibin RP'sini kırabilirsin.",
+              "Rakibin ilan ettiği bir işleme (sahaya sürme, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
+              "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
+              "Düello otomatik kaydedilir — ana menüden Devam Et ile kaldığın yerden sürdürebilirsin.",
+            ],
           },
           en: {
             unit: "Crew",
@@ -107,6 +129,10 @@ export async function startApp(theme, designs) {
         };
   const t = (key) => themeLabels[lang][key] || labels[lang][key] || key;
   const text = (value) => (typeof value === "object" ? value[lang] : value);
+  const rulesBody = () => {
+    const rules = t("rules");
+    return Array.isArray(rules) ? rules.map((p) => $("p", {}, p)) : $("p", {}, rules);
+  };
   const button = (label, fn, attrs = {}) =>
     $("button", { type: "button", onclick: fn, ...attrs }, label);
   const actor = () => state?.choice?.player ?? state?.pending?.responding ?? state?.active;
@@ -433,7 +459,7 @@ export async function startApp(theme, designs) {
         },
         { "aria-label": t("language") },
       ),
-      button("?", () => show(t("help"), $("p", {}, t("rules"))), { "aria-label": t("help") }),
+      button("?", () => show(t("help"), rulesBody()), { "aria-label": t("help") }),
       button(t("menu"), () => {
         clearTimeout(timer);
         screen = "menu";
@@ -505,7 +531,7 @@ export async function startApp(theme, designs) {
             screen = "archive";
             render();
           }),
-          button(t("help"), () => show(t("help"), $("p", {}, t("rules")))),
+          button(t("help"), () => show(t("help"), rulesBody())),
           button(t("settings"), settings),
           $("a", { href: "/", target: "_top" }, `← ${t("back")}`),
         ),
@@ -992,8 +1018,30 @@ export async function startApp(theme, designs) {
     if (e.event === "battle")
       return `${who}: ${t("battle")} · ${cname(e.attacker, v)} · ${e.damage.join(" / ")} ${point}`;
     if (e.event === "draw") return `${who}: ${t("draw")} +${e.count}`;
-    if (e.event === "move")
-      return `${who}: ${cname(e.uid, v)} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
+    if (e.event === "move") {
+      const label = cname(e.uid, v);
+      const verb = {
+        tr: {
+          units: e.player === 0 ? "sahaya sürdünüz" : "sahaya sürdü",
+          support: e.player === 0 ? "oynadınız" : "oynadı",
+          hand: e.player === 0 ? "elinize aldınız" : "eline aldı",
+          grave: e.player === 0 ? "mezarlığa gönderdiniz" : "mezarlığa gönderdi",
+          banished: e.player === 0 ? "oyun dışı bıraktınız" : "oyun dışı bıraktı",
+          deck: e.player === 0 ? "destenize geri koydunuz" : "destesine geri koydu",
+        },
+        en: {
+          units: "put onto the field",
+          support: "played",
+          hand: "returned to hand",
+          grave: "sent to the graveyard",
+          banished: "banished",
+          deck: "returned to the deck",
+        },
+      }[lang][e.to];
+      if (verb)
+        return lang === "tr" ? `${who} “${label}” kartını ${verb}.` : `${who} ${verb} “${label}”.`;
+      return `${who}: ${label} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
+    }
     if (e.event === "phase") return `${who}: ${t(e.phase)}`;
     if (e.event === "result") return t("finished");
     if (e.event === "targets-unavailable") return t("targetsUnavailable");
