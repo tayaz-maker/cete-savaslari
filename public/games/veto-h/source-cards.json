@@ -81,7 +81,7 @@
     "attack": 600,
     "defense": 500,
     "deckLocation": "main",
-    "text": "Sende set tuzak varken ATK +400."
+    "text": "Sahanda kapalı bir Skandal'ın varken bu kartın Saldırısı 400 artar."
   },
   {
     "id": "SND-008",
@@ -381,7 +381,7 @@
     "attack": 2000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Başka Kürsü varken ATK +600."
+    "text": "Sahanda başka bir Kürsü Kadro varken bu kartın Saldırısı 600 artar."
   },
   {
     "id": "SND-033",
@@ -1401,7 +1401,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "+500/+500. Feda sayılırken bu kadro 1 ek kademe sayılır."
+    "text": "Bu kart takılı olduğu Kadro'nun Saldırısını ve Savunmasını 500 artırır; o Kadro feda edilirken 1 ek kademe sayılır."
   },
   {
     "id": "SND-118",

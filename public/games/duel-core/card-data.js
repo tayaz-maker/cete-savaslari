@@ -78,16 +78,14 @@ export function buildCards(source, designs, theme) {
                 en: "Source clarification: no separate Congress spell is listed. Congress Delegate starts the ritual and goes to the grave in addition to the required materials.",
               }
             : null,
-      hint: design.hint || {
-        tr:
-          raw.kind === "unit"
-            ? "Kademe, çağrı maliyetini belirler. Ayrıntıda yapabileceğin hamleleri kontrol et."
-            : "Tuzaklar ve set Hızlı kartlar sonraki turu bekler. Hedef ve zamanlama koşullarını kontrol et.",
-        en:
-          raw.kind === "unit"
-            ? "Level determines the summon cost. Check legal actions in the inspector."
-            : "Traps and Set Quick-Play cards must wait until a later turn. Check timing and target requirements.",
-      },
+      hint:
+        design.hint ||
+        (raw.kind === "unit"
+          ? null
+          : {
+              tr: "Tuzaklar ve set Hızlı kartlar sonraki turu bekler. Hedef ve zamanlama koşullarını kontrol et.",
+              en: "Traps and Set Quick-Play cards must wait until a later turn. Check timing and target requirements.",
+            }),
       effects,
       costs,
       traits: design.traits,
