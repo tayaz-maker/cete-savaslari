@@ -93,7 +93,7 @@
     "attack": 800,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Taksi serisi varken +400 ATK."
+    "text": "Sahanda bir Taksi serisi Adam varken bu kartın Baskısı 400 artar."
   },
   {
     "id": "RCN-009",
@@ -201,7 +201,7 @@
     "attack": 1200,
     "defense": 1400,
     "deckLocation": "main",
-    "text": "Ekipman varken +500/+500."
+    "text": "Bu kartta Ekipman varsa Baskı ve Sırt değeri 500 artar."
   },
   {
     "id": "RCN-018",
@@ -429,7 +429,7 @@
     "attack": 1600,
     "defense": 1400,
     "deckLocation": "main",
-    "text": "Çarşı serisi +200/+200."
+    "text": "Çarşı serisi Adamların Baskı ve Sırt değeri 200 artar."
   },
   {
     "id": "RCN-037",
@@ -525,7 +525,7 @@
     "attack": 1000,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "İçinde (ekipman takılıysa) +0/+800."
+    "text": "Bu kartta Ekipman varsa Sırt değeri 800 artar."
   },
   {
     "id": "RCN-045",
@@ -657,7 +657,7 @@
     "attack": 2200,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Semt sahası varken +400 Baskı."
+    "text": "Bir Semt sahası aktifken bu kartın Baskısı 400 artar."
   },
   {
     "id": "RCN-056",
@@ -693,7 +693,7 @@
     "attack": 1900,
     "defense": 1900,
     "deckLocation": "main",
-    "text": "Taksi +300/+300."
+    "text": "Taksi serisi Adamların Baskı ve Sırt değeri 300 artar."
   },
   {
     "id": "RCN-059",
@@ -933,7 +933,7 @@
     "attack": 2600,
     "defense": 2200,
     "deckLocation": "main",
-    "text": "İki farklı semt sahası bu düelloda oynandıysa +800/+800."
+    "text": "Bu düelloda 2 farklı Semt sahası oynandıysa bu kartın Baskı ve Sırt değeri 800 artar."
   },
   {
     "id": "RCN-079",
@@ -1269,7 +1269,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Liman +400/+400 tur"
+    "text": "Liman serisi Adamların Baskı ve Sırt değeri bu tur 400 artar."
   },
   {
     "id": "RCN-107",

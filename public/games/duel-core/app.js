@@ -71,15 +71,16 @@ export async function startApp(theme, designs) {
             spell: "Kampanya",
             trap: "Skandal",
             battle: "Tartışma",
-            auxiliary: "Koalisyon",
+            auxiliary: "Koalisyon Destesi",
+            grave: "Atılan Kartlar",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
             rules: [
               "VETO-H!'ta bir siyasi kampanya yürütüyorsun. Amacın rakibinin OP'sini (puanını) sıfıra indirmek; ikiniz de 8000 OP ve 5 kartlık açılış eliyle başlarsınız.",
               "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
-              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Ana Aşama 1, Tartışma, Ana Aşama 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Tartışma Aşaması'na giremez.",
+              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Hamle Aşaması 1, Tartışma, Hamle Aşaması 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Tartışma Aşaması'na giremez.",
               "Sahanda 5 Kadro ve 5 Destek bölgesi var. Turda 1 kez Kadro çağırabilir veya kapalı savunmada Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Kadro'yu adamalısın, 7+ için 2 Kadro.",
-              "Set ettiğin kartlar (Kadro veya Skandal) kapalı kalır; sonraki bir Ana Aşama'da açabilir veya Kadro'nun pozisyonunu değiştirebilirsin — çağrıldığı tur ve saldırdıktan sonra değişemez.",
+              "Set ettiğin kartlar (Kadro veya Skandal) kapalı kalır; sonraki bir Hamle Aşaması'nda açabilir veya Kadro'nun pozisyonunu değiştirebilirsin — çağrıldığı tur ve saldırdıktan sonra değişemez.",
               "Tartışma'da saldıran Kadro'nun gücü, karşısındaki Kadro'nun savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Kadro yoksa doğrudan saldırıp rakibin OP'sini kırabilirsin.",
               "Rakibin ilan ettiği bir işleme (çağrı, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
               "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
@@ -102,15 +103,16 @@ export async function startApp(theme, designs) {
             spell: "Racon",
             trap: "İhbar",
             battle: "Kapışma",
-            auxiliary: "Birleşim",
+            auxiliary: "Birleşik Deste",
+            grave: "Iskarta",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
             rules: [
               "GETT-OH!'da sokakta racon kesiyorsun. Amacın rakibinin RP'sini (racon puanını) sıfıra indirmek; ikiniz de 8000 RP ve 5 kartlık açılış eliyle başlarsınız.",
               "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
-              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Ana Aşama 1, Kapışma, Ana Aşama 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Kapışma Aşaması'na giremez.",
+              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Hamle Aşaması 1, Kapışma, Hamle Aşaması 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Kapışma Aşaması'na giremez.",
               "Sahanda 5 Adam ve 5 Destek bölgesi var. Turda 1 kez Adam'ı sahaya sürebilir veya kapalı Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Adam'ı feda etmelisin, 7+ için 2 Adam.",
-              "Set ettiğin kartlar (Adam veya İhbar) kapalı kalır; sonraki bir Ana Aşama'da açabilir veya Adam'ın pozisyonunu değiştirebilirsin — sahaya sürüldüğü tur ve saldırdıktan sonra değişemez.",
+              "Set ettiğin kartlar (Adam veya İhbar) kapalı kalır; sonraki bir Hamle Aşaması'nda açabilir veya Adam'ın pozisyonunu değiştirebilirsin — sahaya sürüldüğü tur ve saldırdıktan sonra değişemez.",
               "Kapışma'da saldıran Adam'ın gücü, karşısındaki Adam'ın savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Adam yoksa doğrudan vurup rakibin RP'sini kırabilirsin.",
               "Rakibin ilan ettiği bir işleme (sahaya sürme, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
               "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
@@ -128,7 +130,7 @@ export async function startApp(theme, designs) {
           },
         };
   const t = (key) => themeLabels[lang][key] || labels[lang][key] || key;
-  const text = (value) => (typeof value === "object" ? value[lang] : value);
+  const text = (value) => (value && typeof value === "object" ? value[lang] : value);
   const rulesBody = () => {
     const rules = t("rules");
     return Array.isArray(rules) ? rules.map((p) => $("p", {}, p)) : $("p", {}, rules);
@@ -264,16 +266,16 @@ export async function startApp(theme, designs) {
         if (Math.abs(dx) + Math.abs(dy) > 4)
           el.animate(
             [
-              { transform: `translate(${dx}px,${dy}px)`, opacity: 0.7 },
-              { transform: "translate(0,0)", opacity: 1 },
+              { transform: `translate(${dx}px,${dy}px) translateZ(2px)`, opacity: 0.7 },
+              { transform: "translate(0,0) translateZ(2px)", opacity: 1 },
             ],
             { duration: 250, easing: "ease-out" },
           );
         else if (old.clone.classList.contains("face-down") !== el.classList.contains("face-down"))
           el.animate(
             [
-              { transform: "scaleX(.15)", filter: "brightness(1.7)" },
-              { transform: "scaleX(1)", filter: "brightness(1)" },
+              { transform: "scaleX(.15) translateZ(2px)", filter: "brightness(1.7)" },
+              { transform: "scaleX(1) translateZ(2px)", filter: "brightness(1)" },
             ],
             { duration: 220, easing: "ease-out" },
           );
@@ -285,8 +287,8 @@ export async function startApp(theme, designs) {
           dy = from ? from.y - rect.y : -18;
         el.animate(
           [
-            { transform: `translate(${dx}px,${dy}px) scale(.55)`, opacity: 0 },
-            { transform: "translate(0,0) scale(1)", opacity: 1 },
+            { transform: `translate(${dx}px,${dy}px) translateZ(2px) scale(.55)`, opacity: 0 },
+            { transform: "translate(0,0) translateZ(2px) scale(1)", opacity: 1 },
           ],
           { duration: 280, easing: "ease-out" },
         );
@@ -294,9 +296,11 @@ export async function startApp(theme, designs) {
       if (battle?.attacker === uid)
         el.animate(
           [
-            { transform: "translateY(0)" },
-            { transform: `translateY(${battle.player === 0 ? -32 : 32}px) scale(1.06)` },
-            { transform: "translateY(0)" },
+            { transform: "translateY(0) translateZ(2px)" },
+            {
+              transform: `translateY(${battle.player === 0 ? -32 : 32}px) translateZ(2px) scale(1.06)`,
+            },
+            { transform: "translateY(0) translateZ(2px)" },
           ],
           { duration: 250, easing: "ease-in-out" },
         );
@@ -335,7 +339,10 @@ export async function startApp(theme, designs) {
         "Bu tur normal çağrı/set hakkı kullanıldı.",
         "Normal summon/set already used this turn.",
       ],
-      "main-phase-only": ["Ana evre gerekli.", "Requires a Main Phase."],
+      "main-phase-only": [
+        "Bu hamleyi Hamle Aşaması'nda yapabilirsin.",
+        "Requires a Main Phase.",
+      ],
       "trap-must-wait": [
         "Set tuzağın sonraki turu beklemesi gerekir.",
         "Set traps must wait until a later turn.",
@@ -793,6 +800,7 @@ export async function startApp(theme, designs) {
     if (!card) return [$("p", {}, t("hidden"))];
     const available = actions().filter((a) => a.card === uid),
       groups = [...new Set(available.map((a) => a.type))];
+    const timingHint = card.hint && card.kind !== "unit";
     const body = [
       cardEl({ ...card, face: card.name ? "up" : card.face }, uid, null),
       card.name
@@ -802,7 +810,13 @@ export async function startApp(theme, designs) {
             `${card.id} · ${[].concat(card.series || []).join(" / ")} · ${t(card.kind)}`,
           )
         : null,
+      card.text
+        ? $("h3", {}, lang === "tr" ? "Bu Kart Ne Yapar?" : "What Does This Card Do?")
+        : null,
       card.text ? $("p", { class: "effect-text" }, text(card.text)) : null,
+      timingHint
+        ? $("h3", {}, lang === "tr" ? "Ne Zaman Kullanılır?" : "When Can You Use It?")
+        : null,
       card.hint ? $("small", {}, text(card.hint)) : null,
       card.used?.activate === v.turn
         ? $(
@@ -864,38 +878,43 @@ export async function startApp(theme, designs) {
         ),
       ),
     ];
+    const blockedTypes =
+      card.name && card.owner === 0
+        ? (card.kind === "unit"
+            ? card.zone === "hand"
+              ? ["summon", "set-unit", ...(card.effects.length ? ["activate"] : [])]
+              : card.zone === "units"
+                ? ["position", "attack", ...(card.effects.length ? ["activate"] : [])]
+                : []
+            : card.zone === "hand"
+              ? ["activate", card.subtype === "field" ? "set-field" : "set-support"]
+              : card.face === "down"
+                ? ["activate"]
+                : []
+          ).filter((type) => !groups.includes(type))
+        : [];
+    if (!available.length || blockedTypes.length)
+      body.push($("h3", {}, lang === "tr" ? "Neden Kullanamıyorum?" : "Why Can't I Use This?"));
     if (!available.length) body.push($("p", {}, t("noActions")));
-    if (card.name && card.owner === 0)
-      for (const type of card.kind === "unit"
-        ? card.zone === "hand"
-          ? ["summon", "set-unit", ...(card.effects.length ? ["activate"] : [])]
-          : card.zone === "units"
-            ? ["position", "attack", ...(card.effects.length ? ["activate"] : [])]
-            : []
-        : card.zone === "hand"
-          ? ["activate", card.subtype === "field" ? "set-field" : "set-support"]
-          : card.face === "down"
-            ? ["activate"]
-            : [])
-        if (!groups.includes(type)) {
-          const error = rejection(state, {
-            type,
-            player: 0,
-            revision: state.revision,
-            card: uid,
-            slot: 0,
-            target: null,
-            tributes: [],
-          });
-          body.push(
-            $(
-              "div",
-              {},
-              button(t(type), () => {}, { disabled: true }),
-              $("small", {}, ` ${reason(error)}`),
-            ),
-          );
-        }
+    for (const type of blockedTypes) {
+      const error = rejection(state, {
+        type,
+        player: 0,
+        revision: state.revision,
+        card: uid,
+        slot: 0,
+        target: null,
+        tributes: [],
+      });
+      body.push(
+        $(
+          "div",
+          {},
+          button(t(type), () => {}, { disabled: true }),
+          $("small", {}, ` ${reason(error)}`),
+        ),
+      );
+    }
     return body;
   }
   function inspect(uid) {
@@ -989,8 +1008,9 @@ export async function startApp(theme, designs) {
         $(
           "span",
           {},
-          t(isPlayer ? "you" : "opponent"),
-          ` · ${t(isPlayer ? "hand" : "opponentHand")} ${p.handCount}`,
+          lang === "tr"
+            ? `${t(isPlayer ? "hand" : "opponentHand")} · ${p.handCount} Kart`
+            : `${t(isPlayer ? "you" : "opponent")} · ${t(isPlayer ? "hand" : "opponentHand")} ${p.handCount}`,
         ),
         $(
           "strong",
@@ -1002,10 +1022,10 @@ export async function startApp(theme, designs) {
       $(
         "div",
         { class: "piles" },
-        $("span", { "data-pile": `${player}:deck` }, `${t("deck")} ${p.deckCount}`),
+        $("span", { "data-pile": `${player}:deck` }, `${t("deck")} · ${p.deckCount}`),
         ...["auxiliary", "grave", "banished", "field"].map((key) =>
           button(
-            `${t(key)} ${key === "auxiliary" ? p.auxiliaryCount : key === "field" ? (p.field ? 1 : 0) : p[key].length}`,
+            `${t(key)} · ${key === "auxiliary" ? p.auxiliaryCount : key === "field" ? (p.field ? 1 : 0) : p[key].length}`,
             () => pile(player, key, v),
             { disabled: key === "auxiliary" && player === 1, "data-pile": `${player}:${key}` },
           ),
@@ -1013,21 +1033,47 @@ export async function startApp(theme, designs) {
       ),
     );
   }
+  const phaseFullName = {
+    draw: lang === "tr" ? "Kart Çekme Aşaması" : "Draw Phase",
+    standby: lang === "tr" ? "Hazırlık Aşaması" : "Standby Phase",
+    main1: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
+    battle: lang === "tr" ? (theme === "veto-h" ? "Tartışma Aşaması" : "Kapışma Aşaması") : t("battle"),
+    main2: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
+    end: lang === "tr" ? "Tur Sonu" : "End Phase",
+  };
   function logLine(e, v) {
     const who = t(e.player === 0 ? "you" : "opponent");
-    if (e.event === "battle")
-      return `${who}: ${t("battle")} · ${cname(e.attacker, v)} · ${e.damage.join(" / ")} ${point}`;
-    if (e.event === "draw") return `${who}: ${t("draw")} +${e.count}`;
+    if (e.event === "battle") {
+      const atkName = cname(e.attacker, v),
+        iAttacked = e.player === 0;
+      if (lang !== "tr")
+        return `${who} attacked with “${atkName}”: ${e.damage.join(" / ")} ${point}.`;
+      if (e.damage[1] > 0)
+        return iAttacked
+          ? `“${atkName}” rakibine ${e.damage[1]} ${point} hasar verdi.`
+          : `Rakibin “${atkName}” kartı sana ${e.damage[1]} ${point} hasar verdi.`;
+      if (e.damage[0] > 0)
+        return iAttacked
+          ? `“${atkName}” ile saldırırken ${e.damage[0]} ${point} kaybettin.`
+          : `Rakip “${atkName}” ile saldırırken ${e.damage[0]} ${point} kaybetti.`;
+      return iAttacked ? `“${atkName}” ile saldırdın.` : `Rakip “${atkName}” ile saldırdı.`;
+    }
+    if (e.event === "draw")
+      return lang === "tr"
+        ? e.player === 0
+          ? `${e.count} kart çektin.`
+          : `Rakip ${e.count} kart çekti.`
+        : `${who} drew ${e.count} card(s).`;
     if (e.event === "move") {
       const label = cname(e.uid, v);
       const verb = {
         tr: {
-          units: e.player === 0 ? "sahaya sürdünüz" : "sahaya sürdü",
-          support: e.player === 0 ? "oynadınız" : "oynadı",
-          hand: e.player === 0 ? "elinize aldınız" : "eline aldı",
-          grave: e.player === 0 ? "mezarlığa gönderdiniz" : "mezarlığa gönderdi",
-          banished: e.player === 0 ? "oyun dışı bıraktınız" : "oyun dışı bıraktı",
-          deck: e.player === 0 ? "destenize geri koydunuz" : "destesine geri koydu",
+          units: e.player === 0 ? "sahaya sürdün" : "sahaya sürdü",
+          support: e.player === 0 ? "oynadın" : "oynadı",
+          hand: e.player === 0 ? "eline aldın" : "eline aldı",
+          grave: e.player === 0 ? "mezarlığa gönderdin" : "mezarlığa gönderdi",
+          banished: e.player === 0 ? "oyun dışı bıraktın" : "oyun dışı bıraktı",
+          deck: e.player === 0 ? "destene geri koydun" : "destesine geri koydu",
         },
         en: {
           units: "put onto the field",
@@ -1042,10 +1088,18 @@ export async function startApp(theme, designs) {
         return lang === "tr" ? `${who} “${label}” kartını ${verb}.` : `${who} ${verb} “${label}”.`;
       return `${who}: ${label} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
     }
-    if (e.event === "phase") return `${who}: ${t(e.phase)}`;
+    if (e.event === "phase") {
+      const label = phaseFullName[e.phase] || t(e.phase);
+      return lang === "tr"
+        ? e.player === 0
+          ? `${label}’na geçtin.`
+          : `Rakip ${label}’na geçti.`
+        : `${who} moved to the ${label}.`;
+    }
     if (e.event === "result") return t("finished");
     if (e.event === "targets-unavailable") return t("targetsUnavailable");
-    return `${who}: ${t(e.event === "start" ? "start" : e.event === "look" ? "select" : e.event === "reveal" ? "effect" : e.event === "token" ? "summon" : "effect")}`;
+    if (e.event === "start") return lang === "tr" ? "Düello başladı." : "The duel began.";
+    return `${who}: ${t(e.event === "look" ? "select" : e.event === "reveal" ? "effect" : e.event === "token" ? "summon" : "effect")}`;
   }
   function board() {
     const v = view(),
@@ -1180,7 +1234,7 @@ export async function startApp(theme, designs) {
         cardEl(card, card.id, null),
         $("small", {}, `${card.id} · ${t(card.kind)} · ${card.series.join(" / ")}`),
         $("p", { class: "effect-text" }, text(card.text)),
-        $("small", {}, text(card.hint)),
+        card.hint ? $("small", {}, text(card.hint)) : null,
         card.attacksUsed > 0
           ? $(
               "p",

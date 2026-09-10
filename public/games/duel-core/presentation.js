@@ -8,7 +8,7 @@ export function primaryTitle(view, theme, lang) {
     case "draw":
       return tr ? "Kart Çek" : "Draw Card";
     case "standby":
-      return tr ? "Ana Aşamaya Geç" : "Go to Main Phase";
+      return tr ? "Hamle Aşamasına Geç" : "Go to Main Phase";
     case "main1":
       return view.turn === 1
         ? tr
