@@ -326,7 +326,7 @@ try {
         console.log(`DUEL_SCREENSHOT ${theme}-mobile ${mobileShot.toString("base64")}`);
       await page.getByRole("button", { name: labels.close, exact: true }).click();
       await page.getByRole("button", { name: labels.help, exact: true }).click();
-      assert.ok(await page.locator("dialog p").innerText());
+      assert.ok(await page.locator("dialog p").first().innerText());
       await page.keyboard.press("Escape");
       assert.equal(await page.locator("dialog").isVisible(), false);
       const neutralSave = await page.evaluate((k) => localStorage.getItem(k), key);

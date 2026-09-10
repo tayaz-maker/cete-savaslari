@@ -36,7 +36,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Kayıt",
-    body: "Oyun otomatik olarak bu cihazda (localStorage) kaydedilir. Hesap açıp giriş yaparsan ilerlemen ayrıca buluta da yedeklenir; misafir oynarken bulut senkronu devre dışıdır ve oyun yalnızca bu cihazda sürer.",
+    body: "Bu cihazda üç kayıt slotun var; açık olan slot otomatik kaydedilir, HUD'daki 'Kayıt N' düğmesinden slotlar arasında geçip elle de kaydedebilir veya silebilirsin. Hesap açıp giriş yaparsan ilerlemen ayrıca buluta da yedeklenir; misafir oynarken bulut senkronu devre dışıdır ve oyun yalnızca bu cihazda sürer.",
   },
   {
     title: "İlk oyun için ipuçları",

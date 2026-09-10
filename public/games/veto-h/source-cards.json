@@ -69,7 +69,7 @@
     "attack": 100,
     "defense": 100,
     "deckLocation": "main",
-    "text": "Bu kartı tribute ederek 1 “Sandık” kadrosunu özel çağır (desteden, Lv≤3)."
+    "text": "Bu kartı feda ederek 1 “Sandık” kadrosunu özel çağır (desteden, Kademe 3 veya altı)."
   },
   {
     "id": "SND-007",
@@ -105,7 +105,7 @@
     "attack": 300,
     "defense": 300,
     "deckLocation": "main",
-    "text": "Tribute edildiğinde OP +500."
+    "text": "Feda edildiğinde OP +500."
   },
   {
     "id": "SND-010",
@@ -201,7 +201,7 @@
     "attack": 1300,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 “Sandık” yemini özel çağır (el veya deste, Lv≤3)."
+    "text": "Çağrıldığında 1 “Sandık” yemini özel çağır (el veya deste, Kademe 3 veya altı)."
   },
   {
     "id": "SND-018",
@@ -261,7 +261,7 @@
     "attack": 1700,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda ek 1 Normal Summon: yalnızca Lv≤3."
+    "text": "Turda ek 1 Normal Summon: yalnızca Kademe 3 veya altı."
   },
   {
     "id": "SND-023",
@@ -309,7 +309,7 @@
     "attack": 1600,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Çağrıldığında rakibin Lv≤3 kadrosunun kontrolünü bu tur al."
+    "text": "Çağrıldığında rakibin Kademe 3 veya altı kadrosunun kontrolünü bu tur al."
   },
   {
     "id": "SND-027",
@@ -369,7 +369,7 @@
     "attack": 1800,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 Skandal’ı GY’den sete koy."
+    "text": "Çağrıldığında 1 Skandal’ı mezarlıktan sete koy."
   },
   {
     "id": "SND-032",
@@ -405,7 +405,7 @@
     "attack": 1600,
     "defense": 1900,
     "deckLocation": "main",
-    "text": "Tribute edildiğinde 2 token “Delege” (500/500) özel çağır."
+    "text": "Feda edildiğinde 2 token “Delege” (500/500) özel çağır."
   },
   {
     "id": "SND-035",
@@ -465,7 +465,7 @@
     "attack": 1600,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "İstifa maliyeti bu kart için 1 yerine GY’den 1 Kampanya atarak ödenebilir."
+    "text": "İstifa maliyeti bu kart için 1 yerine mezarlıktan 1 Kampanya atarak ödenebilir."
   },
   {
     "id": "SND-040",
@@ -525,7 +525,7 @@
     "attack": 3000,
     "defense": 2500,
     "deckLocation": "main",
-    "text": "Doğrudan saldırı hasarı yarıya iner. Ayakta kaldığı sürece rakip Lv≤3 özel çağramaz."
+    "text": "Doğrudan saldırı hasarı yarıya iner. Ayakta kaldığı sürece rakip Kademe 3 veya altı özel çağramaz."
   },
   {
     "id": "SND-045",
@@ -537,7 +537,7 @@
     "attack": 2600,
     "defense": 2400,
     "deckLocation": "main",
-    "text": "Bu kartı çağırırken istifa ettiğin kadrolar Extra’dan 1 Koalisyon indirmeni sağlar (hemen, yuva varsa)."
+    "text": "Bu kartı çağırırken istifa ettiğin kadrolar Koalisyon destesinden 1 Koalisyon indirmeni sağlar (hemen, yuva varsa)."
   },
   {
     "id": "SND-046",
@@ -621,7 +621,7 @@
     "attack": 2900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağrıldığında 2 “Sandık” özel çağır (deste, Lv≤3). O tur saldırmaz."
+    "text": "Çağrıldığında 2 “Sandık” özel çağır (deste, Kademe 3 veya altı). O tur saldırmaz."
   },
   {
     "id": "SND-053",
@@ -633,7 +633,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "SP: destenin üst 3’üne bak, 1 Kadro al. Turda 1."
+    "text": "Hazırlık Aşamanda: destenin üst 3’üne bak, 1 Kadro al. Turda 1."
   },
   {
     "id": "SND-054",
@@ -645,7 +645,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Çağrıldığında 2 “Kararsız Token” (0/0) özel çağır. Token’lar tribute edilebilir."
+    "text": "Çağrıldığında 2 “Kararsız Token” (0/0) özel çağır. Token’lar feda edilebilir."
   },
   {
     "id": "SND-055",
@@ -657,7 +657,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Hedef kadronun kademesini bu tur −2 say (tribute hesabı değişmez, savaş değişmez; yalnızca “Lv4 veya altı” efektleri için)."
+    "text": "Hedef kadronun kademesini bu tur −2 say (feda hesabı değişmez, savaş değişmez; yalnızca “Kademe 4 veya altı” efektleri için)."
   },
   {
     "id": "SND-056",
@@ -741,7 +741,7 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "2 Lv≤3 kadronu mezara göndererek Extra’dan 1 Koalisyon özel çağır."
+    "text": "2 Kademe 3 veya altı kadronu mezara göndererek Koalisyon destesinden 1 Koalisyon özel çağır."
   },
   {
     "id": "SND-063",
@@ -753,7 +753,7 @@
     "attack": 900,
     "defense": 900,
     "deckLocation": "main",
-    "text": "GY’den 1 Lv≤3 kadro özel çağır, sonra bu kartı imha et."
+    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır, sonra bu kartı imha et."
   },
   {
     "id": "SND-064",
@@ -777,7 +777,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. GY’deyken 1 kez: ritüel çağrısında 1 kademe sayılır."
+    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır."
   },
   {
     "id": "SND-066",
@@ -789,7 +789,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. GY’deyken 1 kez: ritüel çağrısında 1 kademe sayılır."
+    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır."
   },
   {
     "id": "SND-067",
@@ -801,7 +801,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Ritüel çağrı yaparken ek 1 malzeme GY’den sayılabilir."
+    "text": "Ritüel çağrı yaparken ek 1 malzeme mezarlıktan sayılabilir."
   },
   {
     "id": "SND-068",
@@ -813,7 +813,7 @@
     "attack": 2400,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "2 Kadro birleştir (el/saha/GY etiket “koalisyon malzeme”). Çağrılınca 1 kart çek."
+    "text": "2 Kadro birleştir (el/saha/mezarlık etiket “koalisyon malzeme”). Çağrılınca 1 kart çek."
   },
   {
     "id": "SND-069",
@@ -909,7 +909,7 @@
     "attack": 2200,
     "defense": 2200,
     "deckLocation": "auxiliary",
-    "text": "GY’de 4+ Kadro varken özel çağrılabilir."
+    "text": "Mezarlıkta 4+ Kadro varken özel çağrılabilir."
   },
   {
     "id": "SND-077",
@@ -933,7 +933,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu kart Extra çağrı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı GY’ye gönder."
+    "text": "Bu kart Koalisyon çağrısı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı mezarlığa gönder."
   },
   {
     "id": "SND-079",
@@ -1005,7 +1005,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin 1 Lv≤4 kadrosunu GY’ye gönder, aynı kademede 1 kendi kadronu özel çağır (elden)."
+    "text": "Rakibin 1 Kademe 4 veya altı kadrosunu mezarlığa gönder, aynı kademede 1 kendi kadronu özel çağır (elden)."
   },
   {
     "id": "SND-085",
@@ -1017,7 +1017,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY’den 1 Lv≤3 kadro özel çağır."
+    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır."
   },
   {
     "id": "SND-086",
@@ -1089,7 +1089,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip 1 kadrosunu tribute etmek zorunda (yoksa 1 kart atar)."
+    "text": "Rakip 1 kadrosunu feda etmek zorunda (yoksa 1 kart atar)."
   },
   {
     "id": "SND-092",
@@ -1125,7 +1125,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "OP −1500; Extra’dan 1 Koalisyon özel çağır (şartları sağlıyorsan)."
+    "text": "OP −1500; Koalisyon destesinden 1 Koalisyon özel çağır (şartları sağlıyorsan)."
   },
   {
     "id": "SND-095",
@@ -1137,7 +1137,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY’deki 1 Normal Kampanya’yı eline al."
+    "text": "Mezarlıktaki 1 Normal Kampanya’yı eline al."
   },
   {
     "id": "SND-096",
@@ -1173,7 +1173,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Sürekli değil: bu tur Lv≤3 kadrolar saldırı ilan edemez."
+    "text": "Sürekli değil: bu tur Kademe 3 veya altı kadrolar saldırı ilan edemez."
   },
   {
     "id": "SND-099",
@@ -1197,7 +1197,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "GY’den 1 Kadro eline al."
+    "text": "Mezarlıktan 1 Kadro eline al."
   },
   {
     "id": "SND-101",
@@ -1257,7 +1257,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün Lv≤3 kadrolar GY (her iki taraf). 1 çek."
+    "text": "Bütün Kademe 3 veya altı kadrolar mezara gider (her iki taraf). 1 çek."
   },
   {
     "id": "SND-106",
@@ -1317,7 +1317,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef Skandal’ı iptal et, o GY."
+    "text": "Hedef Skandal’ı iptal et, o mezara gider."
   },
   {
     "id": "SND-111",
@@ -1377,7 +1377,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Lv≤3 +600 DEF. Doğrudan saldırı hasarı −500."
+    "text": "Kademe 3 veya altı +600 DEF. Doğrudan saldırı hasarı −500."
   },
   {
     "id": "SND-116",
@@ -1401,7 +1401,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "+500/+500. Tribute sayılırken bu kadro 1 ek kademe sayılır."
+    "text": "+500/+500. Feda sayılırken bu kadro 1 ek kademe sayılır."
   },
   {
     "id": "SND-118",
@@ -1461,7 +1461,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef Lv≥5 kadronun etkisini sürekli iptal et (o kadro mezara gidene kadar)."
+    "text": "Hedef Kademe 5 veya üstü kadronun etkisini sürekli iptal et (o kadro mezara gidene kadar)."
   },
   {
     "id": "SND-123",
@@ -1473,7 +1473,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip büyü açınca: o büyüyü iptal, GY."
+    "text": "Rakip büyü açınca: o büyüyü iptal, mezara gider."
   },
   {
     "id": "SND-124",
@@ -1557,7 +1557,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip tribute ilan edince: tribute iptal, o kadro kalır."
+    "text": "Rakip feda ilan edince: feda iptal, o kadro kalır."
   },
   {
     "id": "SND-131",
@@ -1593,7 +1593,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadroyu kontrol eden tribute etmek zorunda veya 2000 OP öder."
+    "text": "Hedef kadroyu kontrol eden feda etmek zorunda veya 2000 OP öder."
   },
   {
     "id": "SND-134",
@@ -1641,7 +1641,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Sürekli büyü/saha büyülerini 1 hedefle GY’ye gönder."
+    "text": "Sürekli büyü/saha büyülerini 1 hedefle mezarlığa gönder."
   },
   {
     "id": "SND-138",
@@ -1677,7 +1677,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Özel çağrıyı iptal et, o kart GY."
+    "text": "Özel çağrıyı iptal et, o kart mezara gider."
   },
   {
     "id": "SND-141",
@@ -1749,7 +1749,7 @@
     "attack": 1750,
     "defense": 100,
     "deckLocation": "main",
-    "text": "Extra kullanılamazken (Extra 0) ATK +800."
+    "text": "Koalisyon destesi boşken ATK +800."
   },
   {
     "id": "SND-147",
@@ -1785,7 +1785,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Extra’dan çağrı bu tur 1 kez bedelsiz malzeme sayılır (1 kart eksik)."
+    "text": "Koalisyon destesinden çağrı bu tur 1 kez bedelsiz malzeme sayılır (1 kart eksik)."
   },
   {
     "id": "SND-150",

@@ -10,8 +10,9 @@ import { POLICIES, EVENTS, REGIONS, FOREIGN_AXES } from "../public/games/next-wa
 import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 
 // Donmuş taban: içerik/simülasyon kaynakları yalnız bilinçli bir ürün kararıyla
-// değişir. Taban en son Hayat→TC SIM değer aktarımında yenilendi (life-echo
-// paketi + kardeş kadrosu); masa yeniden tasarımı bu dosyalara hâlâ dokunmuyor.
+// değişir. Taban en son TR dil/help kapanışında yenilendi (help.js'teki stale
+// Para/Market ve kayıt-slotu düzeltmeleri); masa yeniden tasarımı bu
+// dosyalara hâlâ dokunmuyor.
 test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -20,7 +21,7 @@ test("frozen baseline: all 35 content, simulation, persistence and projection so
   assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "41b96416ba3aca16783a51d5d1f6baa00c828b170bcf2ebecc1f99a2a667d5a5");
+  assert.equal(hash.digest("hex"), "9c328dc1a61c8dd2c32b9fccdf5c526ed73deead2d06fad2a87ab6677b7229ed");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);
