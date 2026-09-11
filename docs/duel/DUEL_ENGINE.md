@@ -1,5 +1,10 @@
 # VETO-H! / GETT-OH! implementation contract
 
+Canonical shared-engine documentation for `public/games/duel-core/`, the
+deterministic duel engine behind both VETO-H! and GETT-OH!. Game-specific docs
+live in `docs/veto-h/` and `docs/gett-oh/` and link back here; do not fork a
+second copy of this contract per theme.
+
 Baseline: 73a7ee36e5d87f300e219984fec6a186be782e65.
 Release gate: neither game enters catalog/resources until all acceptance passes.
 
