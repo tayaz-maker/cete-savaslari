@@ -16,6 +16,9 @@ olarak taşınmayan her kalemin dökümü:
 
 Bu bir hata/kalite kararı değil, ürün konsolidasyonudur.
 
+Emeklilik öncesi ürün/tasarım dokümanları arşivde korunuyor:
+[`docs/archive/hayat/`](hayat/00_PRODUCT_IDENTITY.md).
+
 ## Kaldırılan shipping dosyaları
 
 ```
