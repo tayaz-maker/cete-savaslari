@@ -1,6 +1,6 @@
 @import url("./table.css") layer(duel-legacy);
 
-/* Shared presentation contract. Breakpoints: phone 760, tablet 1023, history rail 1280. */
+/* Shared presentation contract. Breakpoints: phone 760, tablet 1023, history rail 1024. */
 :root {
   --ui-scale: 1;
   --space-1: 4px;
@@ -642,7 +642,7 @@ dialog > .dialog-actions {
 .archive-grid .playing-card .card-name {
   font-size: var(--text-card);
 }
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .duel-layout.history-open {
     grid-template-columns: var(--history-width) minmax(0, 1fr) var(--inspector-width);
   }

@@ -79,7 +79,7 @@ export async function startApp(theme, designs) {
     drag = null,
     hoverTimer = null,
     pressTimer = null;
-  let historyOpen = false;
+  let historyOpen = true;
   let archiveQuery = "",
     archiveKind = "",
     archiveSeries = "",
@@ -1450,7 +1450,7 @@ export async function startApp(theme, designs) {
           button(
             t("log"),
             () => {
-              if (window.matchMedia("(min-width: 1280px)").matches) {
+              if (window.matchMedia("(min-width: 1024px)").matches) {
                 historyOpen = !historyOpen;
                 render();
               } else show(t("log"), logBody.cloneNode(true), "history-dialog");

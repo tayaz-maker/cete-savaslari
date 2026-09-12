@@ -66,3 +66,7 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 - Shared-content source: no (no authored card/art source changes)
 - Native follow-up: yes, later standalone parity for this token system, setup semantics, modal/footer, inspector, history, settings and responsive layout. Native/Godot remains paused; `tariklab-app` untouched.
 - Commits: `astra/web-duel-design-refoundation` (this entry ships with the implementation commit).
+
+### 2026-09-12 — Restore visible gameplay flow
+- Oyun Akışı now opens by default as the left rail at desktop widths of 1024px and above. The table stays centered and Card Inspector remains on the right. The existing button toggles the rail; smaller screens retain the flow dialog. Both web duel themes share this fix.
+- UI only; no rules, cards, artwork, audio, save schema or native changes. Future standalone parity remains pending.
