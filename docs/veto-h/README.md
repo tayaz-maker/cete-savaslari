@@ -13,6 +13,11 @@ IP-safety framing that applies to both duel games.
 
 **LIVE.**
 
+Native/Godot is paused. Meaningful website changes for later standalone
+native parity go in [docs/WEB_APP_SYNC_LEDGER.md](../WEB_APP_SYNC_LEDGER.md).
+Shared art/content: [CONTENT_SYNC.md](CONTENT_SYNC.md).
+
+
 ## Route
 
 ```text

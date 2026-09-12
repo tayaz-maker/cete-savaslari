@@ -7,6 +7,18 @@ changes there, update its row here in the same change.
 Status here always means "as implemented in the current game catalog," not
 any older design document's plan.
 
+## Product posture
+
+- **Active product:** [www.tariklab.com](https://www.tariklab.com) (this repo).
+- **Native/Godot:** paused. Do not continue unless the product owner explicitly restarts it.
+- **Download model:** each game will later ship as its **own** standalone downloadable title — not one giant native TarikLab app.
+- **Parity:** Web ↔ Native Content Parity is binding. After a meaningful website change, append [WEB_APP_SYNC_LEDGER.md](WEB_APP_SYNC_LEDGER.md). Web does **not** wait for native.
+- **Canonical shared content:** private `tayaz-maker/tariklab-content`. Web and native bundle copies.
+- **Audio:** disabled.
+- **Safety:** never remove existing website games, content, data, or routes because of native work.
+
+In the table below, “native app” for Çete Savaşları means a first-party React route (not an `/oyna/` iframe). It is **not** Godot.
+
 ## Live Games
 
 | Game | Slug | Route | Docs | Runtime | Notes |
@@ -47,6 +59,7 @@ any older design document's plan.
 | Duel engine (`public/games/duel-core/`) | [docs/duel/DUEL_ENGINE.md](duel/DUEL_ENGINE.md) | VETO-H!, GETT-OH! |
 | Next Wave engine families (`public/games/next-wave*`) | [docs/next-wave/](next-wave/00_MASTER_PLAN.md) | Apartman, Son 100 Gün, Kayıp Telefon, TC SIM: DEVLET (reuse references); TC SIM (Life Sim reference engine) |
 | TLab Classics provenance/licensing | [docs/tlab-classics/PROVENANCE_AND_LICENSES.md](tlab-classics/PROVENANCE_AND_LICENSES.md) | Labirent, Tek Taş, Satranç |
+| Web ↔ native sync ledger | [docs/WEB_APP_SYNC_LEDGER.md](WEB_APP_SYNC_LEDGER.md) | All games that will later have a standalone native build |
 
 ## Documentation Rules
 
@@ -70,3 +83,6 @@ any older design document's plan.
   document them using third-party trading-card branding or copied rules
   text (see [docs/duel/DUEL_ENGINE.md](duel/DUEL_ENGINE.md) for the accepted
   framing).
+- **Web ↔ native ledger.** Meaningful website changes go in
+  [WEB_APP_SYNC_LEDGER.md](WEB_APP_SYNC_LEDGER.md) in the same change. Native
+  follow-up is later; do not block the website on it.

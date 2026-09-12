@@ -11,6 +11,11 @@ Approved VETO-H! print data and card art live in the private
 Do not treat App `catalog.json` as authored source. Effects stay in
 `designs.js` / `expansion.js`. Sync never deletes games, routes, or saves.
 
+Native/Godot is **paused**. Web remains the active surface. Meaningful
+website changes (content, art, rules, presentation) must be appended to
+[docs/WEB_APP_SYNC_LEDGER.md](../WEB_APP_SYNC_LEDGER.md) for later standalone
+native follow-up. Web does not wait for native.
+
 ```bash
 node ../tariklab-content/tools/sync-web.mjs --content ../tariklab-content --web .
 node scripts/duel-art-pack.mjs veto-h
