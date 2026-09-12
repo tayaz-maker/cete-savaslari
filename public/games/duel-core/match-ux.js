@@ -1,7 +1,7 @@
 import { AI_PROFILES, AI_PROFILE_IDS } from "./ai.js";
 import { CAMPAIGN_STYLES, NEIGHBORHOODS, identityLabel } from "./identities.js";
 import { electionShare, formatAnalysis, opGraphSvg } from "./analyzer.js";
-import { mostUsedAi } from "./prefs.js";
+import { DEFAULT_SETTINGS, mostUsedAi } from "./prefs.js";
 
 export function applyDisplay(settings, theme) {
   const root = document.documentElement;
@@ -29,6 +29,7 @@ export function settingsBody($, t, settings, set) {
       {
         type: "button",
         "aria-pressed": settings.uiScale === n,
+        "data-pick": `scale-${n}`,
         onclick: () => set({ uiScale: n }),
       },
       `${n}%`,
@@ -39,6 +40,7 @@ export function settingsBody($, t, settings, set) {
       {
         type: "button",
         "aria-pressed": settings.cardSize === id,
+        "data-pick": `size-${id}`,
         onclick: () => set({ cardSize: id }),
       },
       label,
@@ -49,6 +51,7 @@ export function settingsBody($, t, settings, set) {
       {
         type: "button",
         "aria-pressed": settings.tableDensity === id,
+        "data-pick": `density-${id}`,
         onclick: () => set({ tableDensity: id }),
       },
       label,
@@ -100,6 +103,21 @@ export function settingsBody($, t, settings, set) {
       { class: "settings-group" },
       $("h3", {}, t("controls")),
       $("p", { class: "shortcut-hint" }, t("shortcutHint")),
+      $(
+        "button",
+        {
+          type: "button",
+          class: "ghost",
+          onclick: () =>
+            set({
+              uiScale: DEFAULT_SETTINGS.uiScale,
+              cardSize: DEFAULT_SETTINGS.cardSize,
+              tableDensity: DEFAULT_SETTINGS.tableDensity,
+              motion: DEFAULT_SETTINGS.motion,
+            }),
+        },
+        t("resetDisplay"),
+      ),
       typeof document.documentElement.requestFullscreen === "function"
         ? $(
             "button",
@@ -124,6 +142,7 @@ function chip($, id, selected, title, blurb, onPick) {
       type: "button",
       class: "choice-chip",
       "aria-pressed": id === selected,
+      "data-pick": id,
       onclick: onPick,
     },
     $("strong", {}, title),
@@ -131,7 +150,7 @@ function chip($, id, selected, title, blurb, onPick) {
   );
 }
 
-export function identityBody($, t, lang, theme, settings, set, onContinue) {
+export function identityBody($, t, lang, theme, settings, set, onContinue, onCancel) {
   const profileChips = AI_PROFILE_IDS.map((id) => {
     const copy = AI_PROFILES[id][lang === "en" ? "en" : "tr"];
     return chip($, id, settings.aiProfile, copy.name, copy.blurb, () => set({ aiProfile: id }));
@@ -144,8 +163,7 @@ export function identityBody($, t, lang, theme, settings, set, onContinue) {
       set(theme === "veto-h" ? { campaignStyle: id } : { neighborhood: id }),
     );
   });
-  const bias =
-    theme === "gett-oh" ? NEIGHBORHOODS[settings.neighborhood]?.aiBias : null;
+  const bias = theme === "gett-oh" ? NEIGHBORHOODS[settings.neighborhood]?.aiBias : null;
   const biasNote =
     bias && AI_PROFILES[bias]
       ? lang === "tr"
@@ -157,6 +175,13 @@ export function identityBody($, t, lang, theme, settings, set, onContinue) {
           : "Approach does not change the deck; it frames the campaign."
         : "";
   return [
+    $(
+      "p",
+      { class: "setup-intro" },
+      lang === "tr"
+        ? "Rakibini ve masaya hangi kimlikle oturacağını seç."
+        : "Choose your opponent and the identity you bring to the table.",
+    ),
     $("h3", {}, t("aiStyle")),
     $("div", { class: "identity-grid" }, profileChips),
     $("h3", {}, theme === "veto-h" ? t("campaignApproach") : t("neighborhood")),
@@ -167,8 +192,13 @@ export function identityBody($, t, lang, theme, settings, set, onContinue) {
       { class: "dialog-actions" },
       $(
         "button",
+        { type: "button", class: "ghost", onclick: onCancel },
+        lang === "tr" ? "Vazgeç" : "Cancel",
+      ),
+      $(
+        "button",
         { type: "button", class: "primary", onclick: onContinue },
-        t("continueMatch"),
+        lang === "tr" ? "Devam · Başlama Sırası" : "Continue · Turn Order",
       ),
     ),
   ];
@@ -185,9 +215,7 @@ export function relatedBlock($, t, lang, rows, onOpen) {
         $(
           "button",
           { type: "button", onclick: () => onOpen(row.card) },
-          row.card?.name
-            ? row.card.name[lang] || row.card.name.tr || row.card.id
-            : row.id,
+          row.card?.name ? row.card.name[lang] || row.card.name.tr || row.card.id : row.id,
         ),
       ),
     ),
@@ -197,15 +225,16 @@ export function relatedBlock($, t, lang, rows, onOpen) {
 export function postMatchBody($, t, lang, theme, analysis, catalog, on) {
   const fmt = formatAnalysis(analysis, catalog, lang, theme);
   const share = theme === "veto-h" ? electionShare(analysis) : null;
-  const title =
-    analysis.winner === 0 ? t("win") : analysis.winner === 1 ? t("lose") : t("tie");
+  const title = analysis.winner === 0 ? t("win") : analysis.winner === 1 ? t("lose") : t("tie");
   const starLabel = theme === "veto-h" ? t("matchStar") : t("nightMove");
   const turnLabel = theme === "veto-h" ? t("turningPoint") : t("tableTurn");
   const workLabel = theme === "gett-oh" ? t("hardestWorker") : t("matchStar");
   const graph = document.createElement("div");
   graph.innerHTML = opGraphSvg(analysis.opByTurn);
   return [
-    $("div", { class: "post-match" },
+    $(
+      "div",
+      { class: "post-match" },
       $("h3", {}, theme === "veto-h" ? t("electionResult") : t("postMatch")),
       $("p", {}, title),
       share
@@ -220,11 +249,13 @@ export function postMatchBody($, t, lang, theme, analysis, catalog, on) {
       $("p", {}, `${turnLabel}: ${fmt.turning}`),
       $("p", {}, `${starLabel}: ${fmt.star}`),
       theme === "gett-oh" ? $("p", {}, `${workLabel}: ${fmt.damage}`) : null,
-      $("p", {}, `${t("aiStyle")}: ${AI_PROFILES[analysis.aiProfile || "controlled"]?.[lang === "en" ? "en" : "tr"]?.name || analysis.aiProfile}`),
+      $(
+        "p",
+        {},
+        `${t("aiStyle")}: ${AI_PROFILES[analysis.aiProfile || "controlled"]?.[lang === "en" ? "en" : "tr"]?.name || "—"}`,
+      ),
       graph.firstChild,
-      fmt.wasted?.length
-        ? $("p", {}, `${t("wasted")}: ${fmt.wasted.join(", ")}`)
-        : null,
+      fmt.wasted?.length ? $("p", {}, `${t("wasted")}: ${fmt.wasted.join(", ")}`) : null,
       $(
         "div",
         { class: "dialog-actions" },
@@ -258,17 +289,27 @@ export function historyBody($, t, lang, theme, history, catalog) {
   const favName = fav?.name ? fav.name[lang] || fav.name.tr : life.favorite || "—";
   const ai = mostUsedAi(history);
   const aiName = ai ? AI_PROFILES[ai]?.[lang === "en" ? "en" : "tr"]?.name : "—";
-  const matches = (history?.matches || []).slice(0, 12).map((m) =>
-    $(
-      "li",
-      {},
-      `${t("turn")} ${m.turns} · ${m.winner === 0 ? t("win") : m.winner === 1 ? t("lose") : t("tie")} · ${AI_PROFILES[m.aiProfile]?.[lang === "en" ? "en" : "tr"]?.name || ""}`,
-    ),
-  );
+  const matches = (history?.matches || [])
+    .slice(0, 12)
+    .map((m) =>
+      $(
+        "li",
+        {},
+        `${t("turn")} ${m.turns} · ${m.winner === 0 ? t("win") : m.winner === 1 ? t("lose") : t("tie")} · ${AI_PROFILES[m.aiProfile]?.[lang === "en" ? "en" : "tr"]?.name || ""}`,
+      ),
+    );
   return [
     $("h3", {}, fileTitle),
-    $("p", {}, `${life.campaigns || 0} ${t("campaigns")} · ${life.wins || 0} ${t("wins")} · ${life.losses || 0} ${t("losses")}`),
-    $("p", {}, `${t("longest")}: ${life.longest || "—"} · ${t("shortest")}: ${life.shortest || "—"}`),
+    $(
+      "p",
+      {},
+      `${life.campaigns || 0} ${t("campaigns")} · ${life.wins || 0} ${t("wins")} · ${life.losses || 0} ${t("losses")}`,
+    ),
+    $(
+      "p",
+      {},
+      `${t("longest")}: ${life.longest || "—"} · ${t("shortest")}: ${life.shortest || "—"}`,
+    ),
     $("p", {}, `${t("favorite")}: ${favName}`),
     $("p", {}, `${t("mostAi")}: ${aiName}`),
     matches.length ? $("ul", { class: "history-list" }, matches) : $("p", {}, t("noHistory")),
@@ -286,16 +327,23 @@ export function actionLogBody($, t, events, catalog, lang) {
     $(
       "section",
       {},
-      $("h3", {}, `${t("turn")} ${g.turn}`),
+      $("h3", {}, `${t("turn")} ${g.turn ?? 0}`),
       $(
         "ol",
         {},
         ...g.rows.map((e) => {
           const who = e.actor === 0 ? t("you") : t("opponent");
           const name = e.card && catalog?.[e.card]?.name;
-          const label = name ? name[lang] || name.tr : e.card || e.type;
-          const delta = e.delta ? ` · ${e.delta[0]}/${e.delta[1]}` : "";
-          return $("li", {}, `${who}: ${t(e.type) || e.type} · ${label}${delta}`);
+          const label = name ? name[lang] || name.tr || name.en || e.card : e.card || "";
+          const delta = e.delta?.some((n) => n !== 0) ? ` · ${e.delta[0]}/${e.delta[1]}` : "";
+          const verb =
+            e.type === "phase" ? (lang === "tr" ? "Aşama ilerledi" : "Phase advanced") : t(e.type);
+          return $(
+            "li",
+            { class: "history-event" },
+            $("strong", { class: "history-actor" }, who),
+            $("span", {}, verb, label ? " · " : "", label ? $("strong", {}, label) : null, delta),
+          );
         }),
       ),
     ),

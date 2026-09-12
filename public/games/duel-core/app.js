@@ -3,6 +3,7 @@ import { buildCards } from "./card-data.js";
 import { createDuel, rejection } from "./rules.js";
 import { legalActions } from "./actions.js";
 import { publicView } from "./projection.js";
+import { identityLabel } from "./identities.js";
 import { chooseAction } from "./ai.js";
 import { loadDuel, saveDuel } from "./save.js";
 import { generateDeck } from "./deckgen.js";
@@ -29,12 +30,13 @@ const $ = (tag, attrs = {}, ...children) => {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
     if (key === "class") el.className = value;
+    else if (key.startsWith("aria-") && value != null) el.setAttribute(key, String(value));
     else if (key.startsWith("on")) el.addEventListener(key.slice(2), value);
     else if (value !== false && value !== null && value !== undefined)
       el.setAttribute(key, value === true ? "" : String(value));
   }
   for (const child of children.flat(Infinity))
-    if (child !== null && child !== undefined)
+    if (child instanceof Node || typeof child === "string" || typeof child === "number")
       el.append(child instanceof Node ? child : document.createTextNode(String(child)));
   return el;
 };
@@ -77,6 +79,7 @@ export async function startApp(theme, designs) {
     drag = null,
     hoverTimer = null,
     pressTimer = null;
+  let historyOpen = false;
   let archiveQuery = "",
     archiveKind = "",
     archiveSeries = "",
@@ -153,8 +156,13 @@ export async function startApp(theme, designs) {
             "set-field": "Set Field",
           },
         };
-  const t = (key) => themeLabels[lang][key] || labels[lang][key] || key;
-  const text = (value) => (value && typeof value === "object" ? value[lang] : value);
+  const t = (key) =>
+    typeof key === "string" ? themeLabels[lang][key] || labels[lang][key] || key : "";
+  const text = (value) => {
+    const localized =
+      value && typeof value === "object" ? (value[lang] ?? value.tr ?? value.en) : value;
+    return typeof localized === "string" || typeof localized === "number" ? String(localized) : "";
+  };
   const persistSettings = (patch = {}) => {
     settings = { ...settings, ...patch, motion };
     saveSettings(storage, settings);
@@ -196,6 +204,11 @@ export async function startApp(theme, designs) {
     dialog.replaceChildren();
   }
   function show(title, body, cls = "") {
+    const previousFocus = dialog.contains(document.activeElement)
+      ? document.activeElement.dataset.pick
+      : null;
+    const previousScroll = dialog.querySelector(".dialog-body")?.scrollTop || 0;
+    const refreshing = dialog.open && dialog.className === cls;
     if (dialog.open) dialog.close();
     dialog.className = cls;
     dialog.replaceChildren(
@@ -207,7 +220,15 @@ export async function startApp(theme, designs) {
       ),
       $("div", { class: "dialog-body" }, body),
     );
+    const footer = dialog.querySelector(".dialog-body > .dialog-actions");
+    if (footer) dialog.append(footer);
     dialog.showModal();
+    if (refreshing && previousFocus) {
+      [...dialog.querySelectorAll("[data-pick]")]
+        .find((el) => el.dataset.pick === previousFocus)
+        ?.focus({ preventScroll: true });
+      dialog.querySelector(".dialog-body").scrollTop = previousScroll;
+    }
   }
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) close();
@@ -426,7 +447,11 @@ export async function startApp(theme, designs) {
     if (screen !== "duel" || !state || state.result || actor() !== 1) return;
     timer = setTimeout(() => {
       const approved = legalActions(state, 1),
-        action = chooseAction(publicView(state, 1), approved, settings.aiProfile || "controlled");
+        action = chooseAction(
+          publicView(state, 1),
+          approved,
+          telemetry?.aiProfile || settings.aiProfile || "controlled",
+        );
       if (action) command(action);
       else {
         notice = t("notLegal");
@@ -467,12 +492,15 @@ export async function startApp(theme, designs) {
     root.removeAttribute("aria-busy");
     document.documentElement.lang = lang;
     document.body.dataset.theme = theme;
+    document.body.dataset.screen = screen;
     document.body.dataset.motion = motion === "on" ? "full" : "reduced";
     applyDisplay(settings, theme);
     const targeting =
       screen === "duel" &&
       selected &&
-      actions().some((a) => a.card === selected && (a.target !== undefined || a.slot !== undefined));
+      actions().some(
+        (a) => a.card === selected && (a.target !== undefined || a.slot !== undefined),
+      );
     document.body.dataset.targeting = targeting ? "true" : "";
     document.title = `${name} · TarikLab`;
     root.replaceChildren(
@@ -557,22 +585,29 @@ export async function startApp(theme, designs) {
   }
   function openSettings() {
     const refresh = () =>
-      show(t("settings"), settingsBody($, t, settings, (patch) => {
-        if (patch.motion) {
-          motion = patch.motion;
-          try {
-            localStorage.setItem("tariklab.duel.motion", motion);
-          } catch {
-            /* Preference remains active for this visit. */
+      show(
+        t("settings"),
+        settingsBody($, t, settings, (patch) => {
+          if (patch.motion) {
+            motion = patch.motion;
+            try {
+              localStorage.setItem("tariklab.duel.motion", motion);
+            } catch {
+              /* Preference remains active for this visit. */
+            }
           }
-        }
-        persistSettings(patch);
-        refresh();
-      }));
+          persistSettings(patch);
+          refresh();
+        }),
+        "settings-dialog",
+      );
     refresh();
   }
   function openCampaignFile() {
-    show(theme === "veto-h" ? t("campaignFile") : t("nightFile"), historyBody($, t, lang, theme, loadHistory(storage, theme), catalog()));
+    show(
+      theme === "veto-h" ? t("campaignFile") : t("nightFile"),
+      historyBody($, t, lang, theme, loadHistory(storage, theme), catalog()),
+    );
   }
   function openHistory() {
     const events = telemetry?.events || lastAnalysis?.events || [];
@@ -605,7 +640,7 @@ export async function startApp(theme, designs) {
   function identitySetup() {
     const refresh = () =>
       show(
-        t("aiStyle"),
+        lang === "tr" ? "Düellonu Kur" : "Set Up Your Duel",
         identityBody(
           $,
           t,
@@ -620,7 +655,9 @@ export async function startApp(theme, designs) {
             persistSettings();
             rps();
           },
+          close,
         ),
+        "setup-dialog",
       );
     refresh();
   }
@@ -733,7 +770,11 @@ export async function startApp(theme, designs) {
                     "★",
                     String(card.level),
                   )
-                : $("span", { class: "card-level card-kind-tag" }, t(card.subtype) || t(card.kind)),
+                : $(
+                    "span",
+                    { class: "card-level card-kind-tag" },
+                    card.subtype ? t(card.subtype) : t(card.kind),
+                  ),
             ),
         $(
           "span",
@@ -758,12 +799,22 @@ export async function startApp(theme, designs) {
               { class: "card-stats" },
               card.kind === "unit"
                 ? [
-                    $("span", { class: "card-atk" }, $("small", {}, "ATK"), String(card.attack)),
-                    $("span", { class: "card-def" }, $("small", {}, "DEF"), String(card.defense)),
+                    $(
+                      "span",
+                      { class: "card-atk" },
+                      $("small", {}, "ATK"),
+                      String(card.attack ?? card.baseAttack ?? "—"),
+                    ),
+                    $(
+                      "span",
+                      { class: "card-def" },
+                      $("small", {}, "DEF"),
+                      String(card.defense ?? card.baseDefense ?? "—"),
+                    ),
                   ]
                 : [
                     $("span", { class: "card-atk" }, t(card.kind)),
-                    $("span", { class: "card-def" }, t(card.subtype) || t(card.kind)),
+                    $("span", { class: "card-def" }, card.subtype ? t(card.subtype) : t(card.kind)),
                   ],
             ),
       );
@@ -974,6 +1025,7 @@ export async function startApp(theme, designs) {
       groups = [...new Set(available.map((a) => a.type))];
     const timingHint = card.hint && card.kind !== "unit";
     const body = [
+      $("h2", { class: "inspect-name" }, text(card.name) || t("hidden")),
       cardEl({ ...card, face: card.name ? "up" : card.face }, uid, null),
       card.name
         ? $(
@@ -1056,9 +1108,9 @@ export async function startApp(theme, designs) {
       card.name && card.owner === 0
         ? (card.kind === "unit"
             ? card.zone === "hand"
-              ? ["summon", "set-unit", ...(card.effects.length ? ["activate"] : [])]
+              ? ["summon", "set-unit", ...(card.effects?.length ? ["activate"] : [])]
               : card.zone === "units"
-                ? ["position", "attack", ...(card.effects.length ? ["activate"] : [])]
+                ? ["position", "attack", ...(card.effects?.length ? ["activate"] : [])]
                 : []
             : card.zone === "hand"
               ? ["activate", card.subtype === "field" ? "set-field" : "set-support"]
@@ -1090,11 +1142,13 @@ export async function startApp(theme, designs) {
       );
     }
     const related = card.name ? relatedCards(card, pool, 5) : [];
-    body.push(...relatedBlock($, t, lang, related, (other) => {
-      const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
-      if (live) inspect(live.uid);
-      else archiveInspect(other);
-    }));
+    body.push(
+      ...relatedBlock($, t, lang, related, (other) => {
+        const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
+        if (live) inspect(live.uid);
+        else archiveInspect(other);
+      }),
+    );
     return body;
   }
   function inspect(uid) {
@@ -1217,7 +1271,8 @@ export async function startApp(theme, designs) {
     draw: lang === "tr" ? "Kart Çekme Aşaması" : "Draw Phase",
     standby: lang === "tr" ? "Hazırlık Aşaması" : "Standby Phase",
     main1: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
-    battle: lang === "tr" ? (theme === "veto-h" ? "Tartışma Aşaması" : "Kapışma Aşaması") : t("battle"),
+    battle:
+      lang === "tr" ? (theme === "veto-h" ? "Tartışma Aşaması" : "Kapışma Aşaması") : t("battle"),
     main2: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
     end: lang === "tr" ? "Tur Sonu" : "End Phase",
   };
@@ -1286,14 +1341,27 @@ export async function startApp(theme, designs) {
       approved = actions(),
       phase = approved.find((a) => a.type === "phase"),
       pass = approved.find((a) => a.type === "pass");
-    const logBody = $(
-      "ol",
-      {},
-      ...v.log
-        .slice(-20)
-        .reverse()
-        .map((e) => $("li", {}, $("small", {}, `${t("turn")} ${e.turn} · `), logLine(e, v))),
-    );
+    const logBody = $("div", { class: "turn-history" });
+    let group, lastTurn;
+    for (const event of v.log.slice(-40).reverse()) {
+      if (lastTurn !== event.turn) {
+        lastTurn = event.turn;
+        group = $("section", { class: "turn-group" }, $("h3", {}, `${t("turn")} ${lastTurn ?? 0}`));
+        logBody.append(group);
+      }
+      group.append(
+        $(
+          "p",
+          { class: "history-event" },
+          $(
+            "strong",
+            { class: "history-actor" },
+            event.player === 0 ? t("you") : event.player === 1 ? t("opponent") : name,
+          ),
+          $("span", {}, logLine(event, v)),
+        ),
+      );
+    }
     const status = v.result
       ? t(v.result.winner === null ? "tie" : v.result.winner === 0 ? "win" : "lose")
       : actor() === 1
@@ -1305,7 +1373,7 @@ export async function startApp(theme, designs) {
             : t("yourMove");
     const content = $(
       "main",
-      { class: "duel-layout" },
+      { class: `duel-layout ${historyOpen ? "history-open" : ""}` },
       $("aside", { class: "panel ledger" }, $("h2", { class: "panel-title" }, t("log")), logBody),
       $(
         "section",
@@ -1338,7 +1406,21 @@ export async function startApp(theme, designs) {
         $(
           "section",
           { class: "hand-deck" },
-          $("div", { class: "eyebrow" }, `${t("hand")} · ${v.players[0].handCount}`),
+          $(
+            "div",
+            { class: "hand-heading" },
+            $("span", { class: "eyebrow" }, `${t("hand")} · ${v.players[0].handCount}`),
+            $(
+              "span",
+              { class: "match-identity" },
+              identityLabel(
+                theme === "veto-h" ? "campaign" : "hood",
+                telemetry?.identity ||
+                  (theme === "veto-h" ? settings.campaignStyle : settings.neighborhood),
+                lang,
+              ).name,
+            ),
+          ),
           $(
             "div",
             { class: "hand-row" },
@@ -1365,7 +1447,16 @@ export async function startApp(theme, designs) {
           selected
             ? button(t("inspector"), () => inspect(selected), { class: "mobile-inspect" })
             : null,
-          button(t("log"), () => show(t("log"), logBody.cloneNode(true))),
+          button(
+            t("log"),
+            () => {
+              if (window.matchMedia("(min-width: 1280px)").matches) {
+                historyOpen = !historyOpen;
+                render();
+              } else show(t("log"), logBody.cloneNode(true), "history-dialog");
+            },
+            { "aria-expanded": historyOpen },
+          ),
           button(t("actionHistory"), openHistory),
           !v.result
             ? button(

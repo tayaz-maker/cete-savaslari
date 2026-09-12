@@ -1,5 +1,6 @@
 export const labels = {
   tr: {
+    resetDisplay: "Görünümü Varsayılana Döndür",
     new: "Yeni Düello",
     continue: "Devam Et",
     archive: "Kart Arşivi",
@@ -160,6 +161,7 @@ export const labels = {
       "Amaç rakibin puanını sıfıra indirmek. İki oyuncu 8000 puan ve 5 kartla başlar. İlk oyuncu ilk Çekiş evresinde kart çeker, ilk tur Savaş evresine giremez. Çekiş → Hazırlık → Ana 1 → Savaş → Ana 2 → Bitiş. Her tur yalnız 1 Normal Çağrı veya Birim Seti: kademe 1–4 ücretsiz, 5–6 için 1, 7+ için 2 adak. Set birimler kapalı savunmada kalır. Sonraki bir turda Ana evrede açabilir veya pozisyon değiştirebilirsiniz; çağrıldığı tur ve saldırıdan sonra değişmez. Her birim normalde 1 kez saldırır. Saldırı karşısında yüksek ATK kazanır; eşit ATK iki birimi yok eder. Savunmada yüksek DEF saldırana fark kadar hasar verir; eşitlikte kart yok olmaz. Saha boşsa doğrudan saldırabilirsiniz. Set tuzaklar aynı tur kullanılamaz. Rakip, ilan edilen işleme bir kez tepki verebilir; sonsuz zincir yoktur. Bitişte el sınırı 6. Çekmeniz gerekirken deste boşsa kaybedersiniz. Kart seçin, işlemi seçin, hedef veya bölgeyi seçip onaylayın. Esc seçimi iptal eder. Kayıt, karar ve tepki beklerken de aynı noktadan devam eder.",
   },
   en: {
+    resetDisplay: "Reset Display Defaults",
     new: "New Duel",
     continue: "Continue",
     archive: "Card Archive",
