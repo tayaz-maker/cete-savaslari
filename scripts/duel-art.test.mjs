@@ -18,7 +18,7 @@ for(const theme of ['veto-h','gett-oh'])test(`${theme}: all card arts are unique
   assert.equal(data.readUInt32LE(4)+8,data.length);
   // Pillow emits lossy VP8; verify the actual encoded frame dimensions.
   const frame=data.indexOf(Buffer.from([0x9d,0x01,0x2a]));assert.ok(frame>=0);
-  assert.equal(data.readUInt16LE(frame+3)&0x3fff,400);assert.equal(data.readUInt16LE(frame+5)&0x3fff,300);
+  assert.equal(data.readUInt16LE(frame+3)&0x3fff,art.width);assert.equal(data.readUInt16LE(frame+5)&0x3fff,art.height);
   const hash=createHash('sha256').update(data).digest('hex');assert.equal(hash,art.sha256);assert.ok(!hashes.has(hash),card.id);assert.ok(!allHashes.has(hash),`Cross-game duplicate: ${card.id}`);hashes.add(hash);allHashes.add(hash);
   assert.equal(data.length,art.bytes);assert.ok(data.length<180_000);bytes+=data.length;sizes.push(data.length);
  }

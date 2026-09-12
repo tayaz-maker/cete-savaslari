@@ -37,7 +37,7 @@ export const Route = createRootRoute({
       <head>
         <HeadContent />
       </head>
-      <body className="grain vignette">
+      <body className="grain vignette tlab-prism">
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />

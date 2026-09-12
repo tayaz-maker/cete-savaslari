@@ -677,8 +677,8 @@ export async function startApp(theme, designs) {
                   alt: "",
                   loading: "lazy",
                   decoding: "async",
-                  width: 400,
-                  height: 300,
+                  width: theme === "veto-h" ? 576 : 400,
+                  height: theme === "veto-h" ? 384 : 300,
                 })
               : "◈",
         ),

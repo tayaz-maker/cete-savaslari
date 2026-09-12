@@ -1050,6 +1050,8 @@ body[data-motion="reduced"] *::before {
   width: 44px;
   max-height: 100%;
   max-width: 75%;
+  object-fit: cover;
+  object-position: center;
   filter: drop-shadow(0 3px 2px #503e3544);
 }
 .inspector .card-art img,
