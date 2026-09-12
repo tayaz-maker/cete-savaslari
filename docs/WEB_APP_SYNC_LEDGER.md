@@ -52,4 +52,4 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 - UI/presentation: yes
 - Shared-content source: yes (`tariklab-content` VETO-H! authored fields + new GETT-OH! `games/gett-oh/cards.json`)
 - Native follow-up: yes (paused) — later standalone titles need: humanized names/copy, AI personalities, telemetry/history, post-match analysis, card relationships, campaign styles, election-night result, campaign history, neighborhood identity, drag/drop, inspector gestures, target glow, rejection explanations, keyboard/mobile controls, UI scale, card size, table density, resolution/windowed/fullscreen
-- Commits: web `509cc29` (copy) `4deb0c9` (AI/telemetry) `57edb79` (UX) `757620d` (tests/ledger); content `672bf82`; app untouched (`dc610c4`)
+- Commits: web `509cc29` (copy) `4deb0c9` (AI/telemetry) `57edb79` (UX) `0029894` (tests/ledger); content `672bf82`; app untouched (`dc610c4`)
