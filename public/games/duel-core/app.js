@@ -9,6 +9,21 @@ import { generateDeck } from "./deckgen.js";
 import { random } from "./random.js";
 import { PHASES } from "./model.js";
 import { labels } from "./labels.js";
+import { rejectionText } from "./rejections.js";
+import { relatedCards } from "./relationships.js";
+import { createMatchTelemetry, recordAction } from "./telemetry.js";
+import { analyzeMatch } from "./analyzer.js";
+import { loadSettings, saveSettings, loadHistory, recordMatch } from "./prefs.js";
+import {
+  applyDisplay,
+  settingsBody,
+  identityBody,
+  relatedBlock,
+  postMatchBody,
+  analysisBody,
+  historyBody,
+  actionLogBody,
+} from "./match-ux.js";
 
 const $ = (tag, attrs = {}, ...children) => {
   const el = document.createElement(tag);
@@ -43,6 +58,9 @@ export async function startApp(theme, designs) {
   } catch {
     /* Storage errors are reported when a duel is saved. */
   }
+  let settings = loadSettings(storage);
+  motion = settings.motion || motion;
+  applyDisplay(settings, theme);
   let state = null,
     screen = "menu",
     selected = null,
@@ -52,7 +70,13 @@ export async function startApp(theme, designs) {
     timer = null,
     setup = null,
     lastPoints = null,
-    lastRevision = -1;
+    lastRevision = -1,
+    telemetry = null,
+    lastAnalysis = null,
+    shownResult = false,
+    drag = null,
+    hoverTimer = null,
+    pressTimer = null;
   let archiveQuery = "",
     archiveKind = "",
     archiveSeries = "",
@@ -131,6 +155,12 @@ export async function startApp(theme, designs) {
         };
   const t = (key) => themeLabels[lang][key] || labels[lang][key] || key;
   const text = (value) => (value && typeof value === "object" ? value[lang] : value);
+  const persistSettings = (patch = {}) => {
+    settings = { ...settings, ...patch, motion };
+    saveSettings(storage, settings);
+    applyDisplay(settings, theme);
+  };
+  const catalog = () => state?.catalog || Object.fromEntries(pool.map((c) => [c.id, c]));
   const rulesBody = () => {
     const rules = t("rules");
     return Array.isArray(rules) ? rules.map((p) => $("p", {}, p)) : $("p", {}, rules);
@@ -183,13 +213,44 @@ export async function startApp(theme, designs) {
     if (e.target === dialog) close();
   });
   document.addEventListener("keydown", (e) => {
+    const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(e.target?.tagName);
     if (e.key === "Escape") {
       selected = null;
+      endDrag(true);
       if (dialog.open) {
         e.preventDefault();
         close();
       }
       if (screen === "duel") render();
+      return;
+    }
+    if (typing || dialog.open) return;
+    if (e.key === " " && screen === "duel" && state && !state.result && actor() === 0) {
+      const phase = actions().find((a) => a.type === "phase");
+      if (phase) {
+        e.preventDefault();
+        command(phase);
+      }
+      return;
+    }
+    if (e.key === "i" || e.key === "I") {
+      if (selected) inspect(selected);
+      return;
+    }
+    if (e.key === "h" || e.key === "H") {
+      e.preventDefault();
+      openHistory();
+      return;
+    }
+    if ((e.key === "a" || e.key === "A") && screen === "menu") {
+      screen = "archive";
+      render();
+      return;
+    }
+    if (screen === "duel" && state && actor() === 0 && /^[1-5]$/.test(e.key)) {
+      const hand = view().players[0].hand;
+      const uid = hand[Number(e.key) - 1];
+      if (uid) selectCard(uid);
     }
   });
   window.addEventListener("storage", (event) => {
@@ -230,6 +291,7 @@ export async function startApp(theme, designs) {
       ]),
     );
     try {
+      const prev = state;
       const result = dispatchPresented(state, action);
       if (!result.ok) {
         notice = `${t("notLegal")}: ${reason(result.error)}`;
@@ -238,10 +300,33 @@ export async function startApp(theme, designs) {
       }
       state = result.state;
       selected = null;
+      if (telemetry) recordAction(telemetry, prev, state, action);
       save();
+      if (state.result && !shownResult) {
+        shownResult = true;
+        lastAnalysis = analyzeMatch(telemetry, catalog(), lang);
+        const plays = {};
+        for (const [id, s] of Object.entries(telemetry?.cardStats || {})) plays[id] = s.plays || 0;
+        recordMatch(storage, theme, {
+          at: Date.now(),
+          turns: lastAnalysis.turns,
+          winner: lastAnalysis.winner,
+          aiProfile: settings.aiProfile,
+          identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+          starId: lastAnalysis.starId,
+          starValue: lastAnalysis.starValue,
+          turning: lastAnalysis.turning,
+          events: lastAnalysis.events,
+          opByTurn: lastAnalysis.opByTurn,
+          cardPlays: plays,
+        });
+      }
       render();
-      animateTransition(oldCards);
-      scheduleAI();
+      if (state.result) showPostMatch();
+      else {
+        animateTransition(oldCards);
+        scheduleAI();
+      }
     } catch (error) {
       notice = `${t("notLegal")}. ${error.message}`;
       render();
@@ -334,111 +419,14 @@ export async function startApp(theme, designs) {
       }
   }
   function reason(code) {
-    const map = {
-      "normal-used": [
-        "Bu tur normal çağrı/set hakkı kullanıldı.",
-        "Normal summon/set already used this turn.",
-      ],
-      "main-phase-only": [
-        "Bu hamleyi Hamle Aşaması'nda yapabilirsin.",
-        "Requires a Main Phase.",
-      ],
-      "trap-must-wait": [
-        "Set tuzağın sonraki turu beklemesi gerekir.",
-        "Set traps must wait until a later turn.",
-      ],
-      "quick-must-wait": [
-        "Bu tur set edilen hızlı kart beklemeli.",
-        "A Quick-Play set this turn must wait.",
-      ],
-      "no-activated-effect": [
-        "Bu kartın etkinleştirilen etkisi yok.",
-        "This card has no activated effect.",
-      ],
-      "unit-must-be-on-field": [
-        "Birim önce sahaya çağrılmalı.",
-        "Summon this unit to the field first.",
-      ],
-      "position-used": [
-        "Bu tur pozisyon değişimi uygun değil.",
-        "Position cannot change this turn.",
-      ],
-      "response-only": [
-        "Uygun rakip işlemine tepki sırasında kullanılır.",
-        "Use in response to a matching opposing action.",
-      ],
-      "effect-used": ["Bu etki hakkı kullanıldı.", "This effect has already been used."],
-      "tributes-required": [
-        "Yeterli adak ve boş bölge gerekli.",
-        "Requires enough tributes and a free zone.",
-      ],
-      "opponent-turn": ["Rakibin sırası.", "It is the opponent’s turn."],
-      "battle-unavailable": ["Bu evrede savaş yapılamaz.", "Battle is unavailable in this phase."],
-      "stale-action": [
-        "Durum değişti; işlemi yeniden seçin.",
-        "State changed; select the action again.",
-      ],
-    };
-    Object.assign(map, {
-      "unit-zone-required": [
-        "Boş bir kadro bölgesi veya o bölgeden adak gerekli.",
-        "Requires an empty unit zone or a tribute from that zone.",
-      ],
-      "support-zone-required": [
-        "Boş bir destek bölgesi gerekli.",
-        "Requires an empty support zone.",
-      ],
-      "insufficient-points": [
-        "Etki bedelini ödeyecek puan yok.",
-        "Not enough points to pay the effect cost.",
-      ],
-      "no-legal-target": [
-        "Etki koşullarını karşılayan hedef yok.",
-        "No target meets the effect requirements.",
-      ],
-      "special-requirements": [
-        "Gerekli malzemeler, ritüel kartı veya boş bölge eksik.",
-        "Missing required materials, ritual enabler or an empty zone.",
-      ],
-      "flip-required": ["Kapalı kart önce açılmalı.", "Flip this face-down card first."],
-      "effect-negated": [
-        "Etki bir saha kuralıyla engelleniyor.",
-        "An active field rule blocks this effect.",
-      ],
-      "response-pending": [
-        "Önce bekleyen tepkiyi tamamlayın.",
-        "Complete the pending response first.",
-      ],
-      "choice-required": [
-        "Önce bekleyen kart seçimini tamamlayın.",
-        "Complete the pending card choice first.",
-      ],
-      "series-required": [
-        "Gerekli seriden bir kart sahada olmalı.",
-        "Requires the specified series on the field.",
-      ],
-      "name-locked": ["Bu isim bu tur kilitlendi.", "This name is locked for this turn."],
-      "hand-limit": [
-        "Bitişte elinizi altı karta indirin.",
-        "Reduce your hand to six cards at End.",
-      ],
-      "invalid-unit": [
-        "Bu işlem eldeki bir kadro içindir.",
-        "This action requires a unit in hand.",
-      ],
-      "attack-used": [
-        "Saldırı pozisyonu veya kullanılmamış saldırı hakkı gerekli.",
-        "Requires attack position and an unused attack right.",
-      ],
-    });
-    return map[code]?.[lang === "tr" ? 0 : 1] || t("notLegal");
+    return rejectionText(code, lang);
   }
   function scheduleAI() {
     clearTimeout(timer);
     if (screen !== "duel" || !state || state.result || actor() !== 1) return;
     timer = setTimeout(() => {
       const approved = legalActions(state, 1),
-        action = chooseAction(publicView(state, 1), approved);
+        action = chooseAction(publicView(state, 1), approved, settings.aiProfile || "controlled");
       if (action) command(action);
       else {
         notice = t("notLegal");
@@ -480,6 +468,12 @@ export async function startApp(theme, designs) {
     document.documentElement.lang = lang;
     document.body.dataset.theme = theme;
     document.body.dataset.motion = motion === "on" ? "full" : "reduced";
+    applyDisplay(settings, theme);
+    const targeting =
+      screen === "duel" &&
+      selected &&
+      actions().some((a) => a.card === selected && (a.target !== undefined || a.slot !== undefined));
+    document.body.dataset.targeting = targeting ? "true" : "";
     document.title = `${name} · TarikLab`;
     root.replaceChildren(
       header(),
@@ -525,8 +519,23 @@ export async function startApp(theme, designs) {
               if (saved?.ok) {
                 state = saved.state;
                 screen = "duel";
-                render();
-                scheduleAI();
+                shownResult = Boolean(state.result);
+                telemetry =
+                  telemetry ||
+                  createMatchTelemetry({
+                    theme,
+                    seed: state.seed,
+                    aiProfile: settings.aiProfile,
+                    identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+                  });
+                if (state.result) {
+                  lastAnalysis = analyzeMatch(telemetry, catalog(), lang);
+                  render();
+                  showPostMatch();
+                } else {
+                  render();
+                  scheduleAI();
+                }
               } else {
                 notice = displayError(saved?.error);
                 render();
@@ -539,42 +548,81 @@ export async function startApp(theme, designs) {
             render();
           }),
           button(t("help"), () => show(t("help"), rulesBody())),
-          button(t("settings"), settings),
+          button(theme === "veto-h" ? t("campaignFile") : t("nightFile"), () => openCampaignFile()),
+          button(t("settings"), openSettings),
           $("a", { href: "/", target: "_top" }, `← ${t("back")}`),
         ),
       ),
     );
   }
-  function settings() {
-    show(t("settings"), [
-      $(
-        "label",
-        {},
-        t("motion"),
-        " ",
-        $(
-          "select",
-          {
-            onchange: (e) => {
-              motion = e.target.value;
-              try {
-                localStorage.setItem("tariklab.duel.motion", motion);
-              } catch {
-                /* Preference remains active for this visit. */
-              }
-              document.body.dataset.motion = motion === "on" ? "full" : "reduced";
-            },
-          },
-          $("option", { value: "on", selected: motion === "on" }, t("motionOn")),
-          $("option", { value: "reduced", selected: motion !== "on" }, t("motionOff")),
-        ),
-      ),
-    ]);
+  function openSettings() {
+    const refresh = () =>
+      show(t("settings"), settingsBody($, t, settings, (patch) => {
+        if (patch.motion) {
+          motion = patch.motion;
+          try {
+            localStorage.setItem("tariklab.duel.motion", motion);
+          } catch {
+            /* Preference remains active for this visit. */
+          }
+        }
+        persistSettings(patch);
+        refresh();
+      }));
+    refresh();
+  }
+  function openCampaignFile() {
+    show(theme === "veto-h" ? t("campaignFile") : t("nightFile"), historyBody($, t, lang, theme, loadHistory(storage, theme), catalog()));
+  }
+  function openHistory() {
+    const events = telemetry?.events || lastAnalysis?.events || [];
+    show(t("actionHistory"), actionLogBody($, t, events, catalog(), lang));
+  }
+  function showPostMatch() {
+    if (!lastAnalysis) lastAnalysis = analyzeMatch(telemetry, catalog(), lang);
+    show(
+      t("postMatch"),
+      postMatchBody($, t, lang, theme, lastAnalysis, catalog(), {
+        analysis: () => show(t("analysis"), analysisBody($, t, lang, lastAnalysis, catalog())),
+        history: openHistory,
+        replay: () => {
+          close();
+          beginSetup();
+        },
+        menu: () => {
+          close();
+          screen = "menu";
+          render();
+        },
+      }),
+    );
   }
   function beginSetup() {
     const seed = crypto.getRandomValues(new Uint32Array(1))[0];
     setup = { seed, rng: seed, first: null };
-    rps();
+    identitySetup();
+  }
+  function identitySetup() {
+    const refresh = () =>
+      show(
+        t("aiStyle"),
+        identityBody(
+          $,
+          t,
+          lang,
+          theme,
+          settings,
+          (patch) => {
+            persistSettings(patch);
+            refresh();
+          },
+          () => {
+            persistSettings();
+            rps();
+          },
+        ),
+      );
+    refresh();
   }
   function rps(message = "") {
     show(t("rps"), [
@@ -628,6 +676,14 @@ export async function startApp(theme, designs) {
         t("start"),
         () => {
           state = createDuel(pool, theme, setup.seed, setup.first, setup.decks);
+          telemetry = createMatchTelemetry({
+            theme,
+            seed: setup.seed,
+            aiProfile: settings.aiProfile,
+            identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+          });
+          shownResult = false;
+          lastAnalysis = null;
           setup = null;
           screen = "duel";
           lastPoints = null;
@@ -645,12 +701,11 @@ export async function startApp(theme, designs) {
       down = hidden || (card.face === "down" && ["units", "support", "field"].includes(card.zone));
     return makeCard();
     function makeCard() {
-      return $(
+      const el = $(
         onClick ? "button" : "article",
         {
           type: onClick ? "button" : null,
-          ...(onClick ? { onclick: onClick } : {}),
-          class: `playing-card ${down ? "face-down" : ""} ${card?.position === "defense" ? "defense" : ""} ${uid === selected ? "selected" : ""}`,
+          class: `playing-card ${down ? "face-down" : ""} ${card?.position === "defense" ? "defense" : ""} ${uid === selected ? "selected" : ""} ${selected && uid && actions().some((a) => a.card === selected && a.target === uid) ? "valid-target" : ""}`,
           "data-kind": card?.kind || "",
           "data-card": uid,
           "data-used": state && card?.used?.activate === state.turn ? "true" : "false",
@@ -665,7 +720,21 @@ export async function startApp(theme, designs) {
           "aria-label": hidden ? t("hidden") : text(card.name),
           ...attrs,
         },
-        hidden ? null : $("span", { class: "card-name" }, text(card.name)),
+        hidden
+          ? null
+          : $(
+              "span",
+              { class: "card-banner" },
+              $("span", { class: "card-name" }, text(card.name)),
+              card.kind === "unit" && Number.isFinite(card.level)
+                ? $(
+                    "span",
+                    { class: "card-level", "aria-label": `${t("level")} ${card.level}` },
+                    "★",
+                    String(card.level),
+                  )
+                : $("span", { class: "card-level card-kind-tag" }, t(card.subtype) || t(card.kind)),
+            ),
         $(
           "span",
           { class: "card-art", "aria-hidden": "true" },
@@ -688,11 +757,122 @@ export async function startApp(theme, designs) {
               "span",
               { class: "card-stats" },
               card.kind === "unit"
-                ? [`${card.attack} / ${card.defense}`, $("span", {}, `★${card.level}`)]
-                : t(card.subtype) || t(card.kind),
+                ? [
+                    $("span", { class: "card-atk" }, $("small", {}, "ATK"), String(card.attack)),
+                    $("span", { class: "card-def" }, $("small", {}, "DEF"), String(card.defense)),
+                  ]
+                : [
+                    $("span", { class: "card-atk" }, t(card.kind)),
+                    $("span", { class: "card-def" }, t(card.subtype) || t(card.kind)),
+                  ],
             ),
       );
+      if (onClick) bindCardChrome(el, uid, card, onClick);
+      return el;
     }
+  }
+  function previewInspect(uid) {
+    const body = root.querySelector(".inspector-body");
+    if (!body || screen !== "duel" || dialog.open) return;
+    body.replaceChildren(...inspectBody(uid));
+  }
+  function beginDrag(el, uid, ev) {
+    if (screen !== "duel" || !state || state.result || actor() !== 0) return;
+    const card = view().cards[uid];
+    if (!card || card.owner !== 0) return;
+    const ghost = el.cloneNode(true);
+    ghost.classList.add("drag-ghost");
+    ghost.style.width = `${el.getBoundingClientRect().width}px`;
+    ghost.style.height = `${el.getBoundingClientRect().height}px`;
+    ghost.style.left = `${ev.clientX - 24}px`;
+    ghost.style.top = `${ev.clientY - 24}px`;
+    document.body.append(ghost);
+    el.classList.add("dragging");
+    el.dataset.skipClick = "1";
+    drag = { uid, ghost, el };
+    moveDrag(ev);
+  }
+  function moveDrag(ev) {
+    if (!drag?.ghost) return;
+    drag.ghost.style.left = `${ev.clientX - 24}px`;
+    drag.ghost.style.top = `${ev.clientY - 24}px`;
+  }
+  function endDrag(cancel) {
+    if (!drag) return;
+    const { uid, ghost, el } = drag;
+    ghost?.remove();
+    el?.classList.remove("dragging");
+    const x = cancel?.clientX,
+      y = cancel?.clientY;
+    drag = null;
+    if (cancel === true || x == null) return;
+    const hit = document.elementFromPoint(x, y);
+    const zone = hit?.closest?.("[data-zone]");
+    const targetCard = hit?.closest?.("[data-card]");
+    const list = actions().filter((a) => a.card === uid);
+    let match = null;
+    if (zone) {
+      const [, row, slot] = zone.dataset.zone.split("-");
+      const n = Number(slot);
+      match = list.find(
+        (a) =>
+          a.slot === n &&
+          (row === "units" ? ["summon", "set-unit"].includes(a.type) : a.type === "set-support"),
+      );
+    }
+    if (!match && targetCard?.dataset.card) {
+      match = list.find((a) => a.target === targetCard.dataset.card);
+    }
+    if (match) playAction(match);
+    else if (list.length) {
+      notice = t("notLegal");
+      render();
+    }
+  }
+  function bindCardChrome(el, uid, card, onClick) {
+    el.addEventListener("click", (e) => {
+      if (el.dataset.skipClick === "1") {
+        el.dataset.skipClick = "";
+        e.preventDefault();
+        return;
+      }
+      onClick(e);
+    });
+    el.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      if (screen === "archive" && card?.id) archiveInspect(card);
+      else inspect(uid);
+    });
+    el.addEventListener("pointerenter", () => {
+      if (window.matchMedia("(hover: hover)").matches && screen === "duel") {
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(() => previewInspect(uid), 280);
+      }
+    });
+    el.addEventListener("pointerleave", () => clearTimeout(hoverTimer));
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const start = { x: e.clientX, y: e.clientY };
+      pressTimer = setTimeout(() => {
+        if (screen === "archive" && card?.id) archiveInspect(card);
+        else inspect(uid);
+        el.dataset.skipClick = "1";
+      }, 480);
+      const move = (ev) => {
+        if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 10) return;
+        clearTimeout(pressTimer);
+        if (!drag) beginDrag(el, uid, ev);
+        else moveDrag(ev);
+      };
+      const up = (ev) => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        clearTimeout(pressTimer);
+        if (drag) endDrag(ev);
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    });
   }
   function selectCard(uid) {
     selected = uid;
@@ -776,24 +956,16 @@ export async function startApp(theme, designs) {
     }
     choices();
   }
+  function playAction(action) {
+    close();
+    if (action.type === "surrender") {
+      ask(t("surrenderAsk"), () => command(action));
+      return;
+    }
+    command(action);
+  }
   function confirmAction(action) {
-    show(t("confirm"), [
-      $("p", {}, action.card ? cname(action.card) : t("choice")),
-      $("p", {}, actionTitle(action)),
-      $(
-        "div",
-        { class: "dialog-actions" },
-        button(t("cancel"), close),
-        button(
-          t("confirm"),
-          () => {
-            close();
-            command(action);
-          },
-          { class: "primary" },
-        ),
-      ),
-    ]);
+    playAction(action);
   }
   function inspectBody(uid, v = view()) {
     const card = v.cards[uid];
@@ -915,6 +1087,12 @@ export async function startApp(theme, designs) {
         ),
       );
     }
+    const related = card.name ? relatedCards(card, pool, 5) : [];
+    body.push(...relatedBlock($, t, lang, related, (other) => {
+      const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
+      if (live) inspect(live.uid);
+      else archiveInspect(other);
+    }));
     return body;
   }
   function inspect(uid) {
@@ -959,7 +1137,7 @@ export async function startApp(theme, designs) {
           return $(
             "div",
             {
-              class: `zone ${legal || (uid && selected && actions().some((a) => a.card === selected && a.target === uid)) ? "legal" : ""}`,
+              class: `zone ${legal || (uid && selected && actions().some((a) => a.card === selected && a.target === uid)) ? "legal valid-target" : ""}`,
               "data-zone": `${player}-${row}-${slot}`,
             },
             uid
@@ -1186,6 +1364,7 @@ export async function startApp(theme, designs) {
             ? button(t("inspector"), () => inspect(selected), { class: "mobile-inspect" })
             : null,
           button(t("log"), () => show(t("log"), logBody.cloneNode(true))),
+          button(t("actionHistory"), openHistory),
           !v.result
             ? button(
                 t("surrender"),
@@ -1253,6 +1432,7 @@ export async function startApp(theme, designs) {
             )
           : null,
         card.rulesNote ? $("small", {}, text(card.rulesNote)) : null,
+        ...relatedBlock($, t, lang, relatedCards(card, pool, 5), archiveInspect),
       ],
       "inspector-sheet",
     );
