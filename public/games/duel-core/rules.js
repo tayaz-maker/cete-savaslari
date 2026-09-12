@@ -1,4 +1,5 @@
 import { generateDeck } from "./deckgen.js";
+import { copyKey } from "./card-data.js";
 import {
   PHASES,
   MAIN,
@@ -134,7 +135,7 @@ function context(state, player, source = null, targets = []) {
     if (plan.reveal) {
       state.cards[plan.reveal].knownTo = [true, true];
       state.players[1 - player].flags.lockedName = {
-        value: definition(state, plan.reveal).name.tr,
+        value: copyKey(definition(state, plan.reveal)),
         until: state.turn,
       };
     }
@@ -645,7 +646,7 @@ export function rejection(state, action) {
       !(p[freeZone].includes(action.card) && def.costs.some((op) => op.op === "selfMove"))
     )
       return freeZone === "units" ? "unit-zone-required" : "support-zone-required";
-    if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === def.name.tr)
+    if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === copyKey(def))
       return "name-locked";
     if (p.units.includes(action.card) && card.face !== "up") return "flip-required";
     if (def.kind === "spell" && fromHand && flagActive(state, action.player, "blockHandSpell"))

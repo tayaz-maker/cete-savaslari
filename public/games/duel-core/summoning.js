@@ -36,12 +36,17 @@ export function specialPlans(state, player, credit = 0, restricted = null) {
   for (const uid of p.auxiliary) {
     const t = definition(state, uid).traits || {},
       req = t.materials;
+    // Material-free conditions still need somewhere to land: without this the
+    // plan stays legal on a full field and resolves into nothing, which lets a
+    // player (or the AI) repeat it forever.
+    const openZone = p.units.includes(null);
     if (
+      openZone &&
       t.specialCondition === "fourGraveUnits" &&
       p.grave.filter((id) => definition(state, id).kind === "unit").length >= 4
     )
       plans.push({ card: uid, materials: [] });
-    if (t.specialCondition === "revealHandUnit")
+    if (openZone && t.specialCondition === "revealHandUnit")
       for (const reveal of p.hand.filter((id) => definition(state, id).kind === "unit"))
         plans.push({ card: uid, materials: [], reveal });
     if (!req) continue;

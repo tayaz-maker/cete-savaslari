@@ -28,6 +28,24 @@ const rcnSeries = (n) =>
               : n <= 90
                 ? ["Yemin", "Aile"]
                 : ["Racon"];
+/**
+ * Rules identity for copy limits and name locks.
+ *
+ * SND-066 and SND-080 are the source's reprints of SND-065 and SND-079: they
+ * share one copy limit and one name lock even though each now shows its own
+ * card name. Reading that shared identity from the ID — rather than storing a
+ * field on the card — keeps every built definition byte-identical to the
+ * frozen pre-expansion baseline while freeing the visible name.
+ */
+const COPY_GROUPS = {
+  "SND-065": "SND-065",
+  "SND-066": "SND-065",
+  "SND-079": "SND-079",
+  "SND-080": "SND-079",
+};
+
+export const copyKey = (card) => (card && COPY_GROUPS[card.id]) || card?.name?.tr;
+
 export function buildCards(source, designs, theme) {
   return source.map((raw) => {
     const n = Number(raw.id.slice(4)),

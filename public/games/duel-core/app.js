@@ -3,7 +3,6 @@ import { buildCards } from "./card-data.js";
 import { createDuel, rejection } from "./rules.js";
 import { legalActions } from "./actions.js";
 import { publicView } from "./projection.js";
-import { identityLabel } from "./identities.js";
 import { chooseAction } from "./ai.js";
 import { loadDuel, saveDuel } from "./save.js";
 import { generateDeck } from "./deckgen.js";
@@ -12,13 +11,21 @@ import { PHASES } from "./model.js";
 import { labels } from "./labels.js";
 import { rejectionText } from "./rejections.js";
 import { relatedCards } from "./relationships.js";
+import {
+  DECK_SCHEMA_VERSION,
+  deckBreakdown,
+  deckCopy,
+  expandDeck,
+  findPreset,
+  presetCardIds,
+} from "./decks.js";
+import { deckListBody, renderSetup } from "./setup-flow.js";
 import { createMatchTelemetry, recordAction } from "./telemetry.js";
 import { analyzeMatch } from "./analyzer.js";
 import { loadSettings, saveSettings, loadHistory, recordMatch } from "./prefs.js";
 import {
   applyDisplay,
   settingsBody,
-  identityBody,
   relatedBlock,
   postMatchBody,
   analysisBody,
@@ -71,6 +78,7 @@ export async function startApp(theme, designs) {
     notice = "",
     timer = null,
     setup = null,
+    decks = [],
     lastPoints = null,
     lastRevision = -1,
     telemetry = null,
@@ -87,6 +95,8 @@ export async function startApp(theme, designs) {
     archiveSubtype = "",
     archiveLocation = "",
     archiveStat = "",
+    archiveTab = "cards",
+    archiveDeckId = null,
     archivePage = 0;
   const name = theme === "veto-h" ? "VETO-H!" : "GETT-OH!",
     point = theme === "veto-h" ? "OP" : "RP";
@@ -632,34 +642,103 @@ export async function startApp(theme, designs) {
       }),
     );
   }
+  async function loadDeckPresets() {
+    try {
+      const response = await fetch(`/games/${theme}/decks.json`);
+      if (!response.ok) throw Error(String(response.status));
+      const doc = await response.json();
+      if (doc?.schemaVersion !== DECK_SCHEMA_VERSION || !Array.isArray(doc.decks)) return [];
+      return doc.decks;
+    } catch {
+      // A missing preset file must never block a duel: the seeded generator stays.
+      return [];
+    }
+  }
+  function chosenDeckId() {
+    const stored = theme === "veto-h" ? settings.campaignStyle : settings.neighborhood;
+    return findPreset(decks, stored)?.id || decks[0]?.id || null;
+  }
   function beginSetup() {
     const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-    setup = { seed, rng: seed, first: null };
-    identitySetup();
+    setup = {
+      seed,
+      rng: seed,
+      first: null,
+      step: 1,
+      deckId: chosenDeckId(),
+      aiProfile: settings.aiProfile,
+      viewingDeck: false,
+    };
+    setupWizard();
   }
-  function identitySetup() {
-    const refresh = () =>
-      show(
-        lang === "tr" ? "Düellonu Kur" : "Set Up Your Duel",
-        identityBody(
-          $,
-          t,
-          lang,
-          theme,
-          settings,
-          (patch) => {
-            persistSettings(patch);
-            refresh();
-          },
-          () => {
-            persistSettings();
-            rps();
-          },
-          close,
-        ),
-        "setup-dialog",
-      );
-    refresh();
+  function setupWizard() {
+    // One container, re-rendered in place: the dialog never closes between
+    // steps, so a tap always shows its own result without losing scroll.
+    const host = $("div", { class: "setup-wizard" });
+    const draw = () =>
+      renderSetup(host, {
+        $,
+        lang,
+        theme,
+        pool,
+        decks,
+        state: setup,
+        onInspectCard: (card) => archiveInspect(card, () => setupWizard()),
+        onCancel: () => {
+          setup = null;
+          close();
+        },
+        onStart: () => {
+          persistSettings(
+            theme === "veto-h"
+              ? { campaignStyle: setup.deckId, aiProfile: setup.aiProfile }
+              : { neighborhood: setup.deckId, aiProfile: setup.aiProfile },
+          );
+          rps();
+        },
+      });
+    draw();
+    show(lang === "tr" ? "Düellonu Kur" : "Set Up Your Duel", [host], "setup-dialog");
+  }
+  function previewDeck(onBack) {
+    const preset = findPreset(decks, setup?.deckId);
+    const cards = preset
+      ? presetCardIds(preset).map((id) => pool.find((c) => c.id === id))
+      : (setup?.decks?.[0]?.main || []).map((id) => pool.find((c) => c.id === id));
+    const counted = new Map();
+    for (const card of cards.filter(Boolean))
+      counted.set(card.id, { card, count: (counted.get(card.id)?.count || 0) + 1 });
+    show(t("preview"), [
+      $("p", {}, t("previewNote")),
+      $(
+        "ul",
+        { class: "deck-card-list" },
+        ...[...counted.values()]
+          .sort((a, b) => text(a.card.name).localeCompare(text(b.card.name), lang))
+          .map(({ card, count }) =>
+            $(
+              "li",
+              {},
+              $(
+                "button",
+                {
+                  type: "button",
+                  class: "deck-card-row",
+                  "data-pick": `deck-card-${card.id}`,
+                  onclick: () => archiveInspect(card, () => previewDeck(onBack)),
+                },
+                $("span", { class: "deck-card-name" }, text(card.name)),
+                $("span", { class: "deck-card-count" }, `×${count}`),
+              ),
+            ),
+          ),
+      ),
+      $(
+        "div",
+        { class: "dialog-actions" },
+        $("button", { type: "button", "data-pick": "preview-back", onclick: onBack }, t("back")),
+      ),
+    ]);
   }
   function rps(message = "") {
     show(t("rps"), [
@@ -693,22 +772,23 @@ export async function startApp(theme, designs) {
   }
   function prepare(first, message = "") {
     setup.first = first;
-    setup.decks = [0, 1].map((p) =>
-      generateDeck(pool, (setup.seed + Math.imul(p + 1, 2654435761)) >>> 0),
-    );
+    setup.decks = [0, 1].map((p) => {
+      const seed = (setup.seed + Math.imul(p + 1, 2654435761)) >>> 0;
+      // Player 0 plays exactly the preset chosen in step 1; the opponent draws a
+      // preset from the same seed so it fields a coherent deck too. Order still
+      // comes from the seed, so one preset never replays the same duel.
+      const preset =
+        p === 0
+          ? findPreset(decks, setup.deckId)
+          : decks.length
+            ? decks[seed % decks.length]
+            : null;
+      return preset ? expandDeck(preset, pool, seed) : generateDeck(pool, seed);
+    });
     show(t("new"), [
       $("p", {}, message || t(first === 0 ? "first" : "second")),
       $("p", {}, t("deckNote")),
-      button(t("preview"), () =>
-        show(t("preview"), [
-          $("p", {}, t("previewNote")),
-          ...setup.decks[0].main
-            .map((id) => pool.find((c) => c.id === id))
-            .sort((a, b) => text(a.name).localeCompare(text(b.name), lang))
-            .map((c) => $("div", {}, text(c.name))),
-          button(t("back"), () => prepare(first, message)),
-        ]),
-      ),
+      button(t("preview"), () => previewDeck(() => prepare(first, message))),
       button(
         t("start"),
         () => {
@@ -716,8 +796,8 @@ export async function startApp(theme, designs) {
           telemetry = createMatchTelemetry({
             theme,
             seed: setup.seed,
-            aiProfile: settings.aiProfile,
-            identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+            aiProfile: setup.aiProfile || settings.aiProfile,
+            identity: setup.deckId,
           });
           shownResult = false;
           lastAnalysis = null;
@@ -1141,13 +1221,20 @@ export async function startApp(theme, designs) {
         ),
       );
     }
-    const related = card.name ? relatedCards(card, pool, 5) : [];
+    const related = card.name ? relatedCards(card, pool, 4) : [];
     body.push(
-      ...relatedBlock($, t, lang, related, (other) => {
-        const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
-        if (live) inspect(live.uid);
-        else archiveInspect(other);
-      }),
+      ...relatedBlock(
+        $,
+        t,
+        lang,
+        related,
+        (other) => {
+          const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
+          if (live) inspect(live.uid);
+          else archiveInspect(other);
+        },
+        theme,
+      ),
     );
     return body;
   }
@@ -1413,12 +1500,7 @@ export async function startApp(theme, designs) {
             $(
               "span",
               { class: "match-identity" },
-              identityLabel(
-                theme === "veto-h" ? "campaign" : "hood",
-                telemetry?.identity ||
-                  (theme === "veto-h" ? settings.campaignStyle : settings.neighborhood),
-                lang,
-              ).name,
+              deckCopy(theme, telemetry?.identity || chosenDeckId(), lang).name,
             ),
           ),
           $(
@@ -1499,7 +1581,7 @@ export async function startApp(theme, designs) {
     lastRevision = v.revision;
     return content;
   }
-  function archiveInspect(card) {
+  function archiveInspect(card, onBack = null, showAllCombos = false) {
     show(
       text(card.name),
       [
@@ -1526,12 +1608,118 @@ export async function startApp(theme, designs) {
             )
           : null,
         card.rulesNote ? $("small", {}, text(card.rulesNote)) : null,
-        ...relatedBlock($, t, lang, relatedCards(card, pool, 5), archiveInspect),
+        ...relatedBlock(
+          $,
+          t,
+          lang,
+          relatedCards(card, pool, showAllCombos ? 12 : 4),
+          (next) => archiveInspect(next, onBack),
+          theme,
+          showAllCombos ? null : () => archiveInspect(card, onBack, true),
+        ),
+        onBack
+          ? $(
+              "div",
+              { class: "dialog-actions" },
+              $("button", { type: "button", "data-pick": "card-back", onclick: onBack }, t("back")),
+            )
+          : null,
       ],
       "inspector-sheet",
     );
   }
+  function archiveTabs() {
+    const tab = (id, label) =>
+      $(
+        "button",
+        {
+          type: "button",
+          "aria-pressed": archiveTab === id,
+          "data-pick": `archive-tab-${id}`,
+          onclick: () => {
+            archiveTab = id;
+            render();
+          },
+        },
+        label,
+      );
+    return $(
+      "div",
+      { class: "archive-tabs" },
+      tab("cards", lang === "tr" ? "TÜM KARTLAR" : "ALL CARDS"),
+      tab("decks", lang === "tr" ? "DESTELER" : "DECKS"),
+    );
+  }
+  function archiveDecks() {
+    if (!decks.length)
+      return $(
+        "main",
+        { class: "archive" },
+        $("div", { class: "archive-head" }, $("h1", {}, t("archive"))),
+        archiveTabs(),
+        $("p", {}, lang === "tr" ? "Deste listesi yüklenemedi." : "Deck list unavailable."),
+      );
+    const preset = findPreset(decks, archiveDeckId) || decks[0];
+    archiveDeckId = preset.id;
+    const copy = deckCopy(theme, preset.id, lang);
+    const counts = deckBreakdown(preset, pool);
+    const total = presetCardIds(preset).length;
+    return $(
+      "main",
+      { class: "archive" },
+      $(
+        "div",
+        { class: "archive-head" },
+        $("h1", {}, t("archive")),
+        $("span", {}, `${decks.length} ${lang === "tr" ? "deste" : "decks"}`),
+      ),
+      archiveTabs(),
+      $(
+        "div",
+        { class: "identity-grid" },
+        ...decks.map((deck) => {
+          const row = deckCopy(theme, deck.id, lang);
+          return $(
+            "button",
+            {
+              type: "button",
+              class: "choice-chip",
+              "aria-pressed": deck.id === preset.id,
+              "data-pick": `archive-deck-${deck.id}`,
+              onclick: () => {
+                archiveDeckId = deck.id;
+                render();
+              },
+            },
+            $("strong", {}, row.name),
+            $("small", {}, row.blurb),
+          );
+        }),
+      ),
+      $(
+        "section",
+        { class: "deck-preview" },
+        $(
+          "div",
+          { class: "deck-browser-head" },
+          $("h2", {}, copy.name),
+          $(
+            "span",
+            { class: "deck-card-meta" },
+            `${total} ${lang === "tr" ? "kart" : "cards"} · ${counts.unit} ${
+              lang === "tr" ? "birim" : "units"
+            } · ${counts.spell} ${lang === "tr" ? "büyü" : "spells"} · ${counts.trap} ${
+              lang === "tr" ? "tuzak" : "traps"
+            }`,
+          ),
+        ),
+        $("p", { class: "deck-browser-blurb" }, copy.blurb),
+        ...deckListBody($, lang, preset, pool, (card) => archiveInspect(card)),
+      ),
+    );
+  }
   function archive() {
+    if (archiveTab === "decks") return archiveDecks();
     const filtered = pool.filter(
       (c) =>
         (!archiveQuery ||
@@ -1576,6 +1764,7 @@ export async function startApp(theme, designs) {
         $("h1", {}, t("archive")),
         $("span", {}, `${filtered.length} / ${pool.length}`),
       ),
+      archiveTabs(),
       $(
         "div",
         { class: "filters" },
@@ -1678,6 +1867,7 @@ export async function startApp(theme, designs) {
     const response = await fetch(`/games/${theme}/source-cards.json`);
     if (!response.ok) throw Error(String(response.status));
     pool = buildCards(await response.json(), designs, theme);
+    decks = await loadDeckPresets();
     saved = loadDuel(storage, pool, theme);
     if (saved.recovered) notice = t("recovered");
     else if (!saved.ok && saved.error !== "no-save") notice = displayError(saved.error);

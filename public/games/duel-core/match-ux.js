@@ -1,7 +1,8 @@
-import { AI_PROFILES, AI_PROFILE_IDS } from "./ai.js";
-import { CAMPAIGN_STYLES, NEIGHBORHOODS, identityLabel } from "./identities.js";
+import { AI_PROFILES } from "./ai.js";
+import { NEIGHBORHOODS } from "./identities.js";
 import { electionShare, formatAnalysis, opGraphSvg } from "./analyzer.js";
 import { DEFAULT_SETTINGS, mostUsedAi } from "./prefs.js";
+import { reasonLabel } from "./relationships.js";
 
 export function applyDisplay(settings, theme) {
   const root = document.documentElement;
@@ -135,90 +136,71 @@ export function settingsBody($, t, settings, set) {
   ];
 }
 
-function chip($, id, selected, title, blurb, onPick) {
-  return $(
-    "button",
-    {
-      type: "button",
-      class: "choice-chip",
-      "aria-pressed": id === selected,
-      "data-pick": id,
-      onclick: onPick,
-    },
-    $("strong", {}, title),
-    $("small", {}, blurb),
-  );
-}
-
-export function identityBody($, t, lang, theme, settings, set, onContinue, onCancel) {
-  const profileChips = AI_PROFILE_IDS.map((id) => {
-    const copy = AI_PROFILES[id][lang === "en" ? "en" : "tr"];
-    return chip($, id, settings.aiProfile, copy.name, copy.blurb, () => set({ aiProfile: id }));
-  });
-  const table = theme === "veto-h" ? CAMPAIGN_STYLES : NEIGHBORHOODS;
-  const current = theme === "veto-h" ? settings.campaignStyle : settings.neighborhood;
-  const identityChips = Object.keys(table).map((id) => {
-    const copy = identityLabel(theme === "veto-h" ? "campaign" : "hood", id, lang);
-    return chip($, id, current, copy.name, copy.blurb, () =>
-      set(theme === "veto-h" ? { campaignStyle: id } : { neighborhood: id }),
-    );
-  });
-  const bias = theme === "gett-oh" ? NEIGHBORHOODS[settings.neighborhood]?.aiBias : null;
-  const biasNote =
-    bias && AI_PROFILES[bias]
-      ? lang === "tr"
-        ? `Bu semt ${AI_PROFILES[bias].tr.name} tarza yatkın; rakip tarzını sen seçersin.`
-        : `This neighborhood leans ${AI_PROFILES[bias].en.name}; you still pick the opponent.`
-      : theme === "veto-h"
-        ? lang === "tr"
-          ? "Yaklaşım desteyi değiştirmez; çerçeve ve etiket olarak kalır."
-          : "Approach does not change the deck; it frames the campaign."
-        : "";
-  return [
-    $(
-      "p",
-      { class: "setup-intro" },
-      lang === "tr"
-        ? "Rakibini ve masaya hangi kimlikle oturacağını seç."
-        : "Choose your opponent and the identity you bring to the table.",
-    ),
-    $("h3", {}, t("aiStyle")),
-    $("div", { class: "identity-grid" }, profileChips),
-    $("h3", {}, theme === "veto-h" ? t("campaignApproach") : t("neighborhood")),
-    $("div", { class: "identity-grid" }, identityChips),
-    biasNote ? $("p", { class: "shortcut-hint" }, biasNote) : null,
-    $(
-      "div",
-      { class: "dialog-actions" },
-      $(
-        "button",
-        { type: "button", class: "ghost", onclick: onCancel },
-        lang === "tr" ? "Vazgeç" : "Cancel",
-      ),
-      $(
-        "button",
-        { type: "button", class: "primary", onclick: onContinue },
-        lang === "tr" ? "Devam · Başlama Sırası" : "Continue · Turn Order",
-      ),
-    ),
-  ];
-}
-
-export function relatedBlock($, t, lang, rows, onOpen) {
+/**
+ * Game-specific combo block. Each row carries the mechanical reason the two
+ * cards belong together, derived from the printed definition — never a generic
+ * "works well with".
+ */
+export function relatedBlock($, t, lang, rows, onOpen, theme = "veto-h", onMore = null) {
   if (!rows?.length) return [];
+  const heading =
+    theme === "veto-h"
+      ? lang === "en"
+        ? "Campaign Combos"
+        : "Kampanya Komboları"
+      : lang === "en"
+        ? "Table Combos"
+        : "Masa Komboları";
   return [
-    $("h3", {}, t("related")),
+    $("h3", {}, heading),
     $(
-      "div",
-      { class: "related-row" },
-      ...rows.map((row) =>
-        $(
-          "button",
-          { type: "button", onclick: () => onOpen(row.card) },
-          row.card?.name ? row.card.name[lang] || row.card.name.tr || row.card.id : row.id,
-        ),
-      ),
+      "ul",
+      { class: "combo-list" },
+      ...rows.map((row) => {
+        const card = row.card;
+        const label = card?.name ? card.name[lang] || card.name.tr || card.id : row.id;
+        const reason = reasonLabel(row.why, lang);
+        return $(
+          "li",
+          {},
+          $(
+            "button",
+            {
+              type: "button",
+              class: "combo-row",
+              "data-pick": `combo-${row.id}`,
+              onclick: () => onOpen(card),
+            },
+            $("img", {
+              class: "combo-art",
+              src: `/games/${theme}/assets/cards/${row.id}.webp`,
+              alt: "",
+              loading: "lazy",
+              decoding: "async",
+              width: 44,
+              height: 30,
+            }),
+            $(
+              "span",
+              { class: "combo-text" },
+              $("strong", { class: "combo-name" }, label),
+              $(
+                "small",
+                { class: "combo-reason" },
+                row.series && row.why === "series" ? `${reason} · ${row.series}` : reason,
+              ),
+            ),
+          ),
+        );
+      }),
     ),
+    onMore
+      ? $(
+          "button",
+          { type: "button", class: "ghost", "data-pick": "combo-more", onclick: onMore },
+          lang === "en" ? "See all" : "Tümünü Gör",
+        )
+      : null,
   ];
 }
 

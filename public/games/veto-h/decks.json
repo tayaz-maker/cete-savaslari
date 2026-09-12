@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 1,
+  "theme": "veto-h",
+  "decks": [
+    {
+      "id": "halkci",
+      "name": {
+        "tr": "Halkçı",
+        "en": "Grassroots"
+      },
+      "blurb": {
+        "tr": "Sahayı kalabalık tut. Ucuz kadrolarla erken alan kapla, meydanı bırakma.",
+        "en": "Keep the field crowded. Cheap crews take space early and hold the square."
+      },
+      "cards": [
+        {
+          "id": "SND-155",
+          "count": 3
+        },
+        {
+          "id": "SND-156",
+          "count": 2
+        },
+        {
+          "id": "SND-166",
+          "count": 2
+        },
+        {
+          "id": "SND-168",
+          "count": 3
+        },
+        {
+          "id": "SND-170",
+          "count": 2
+        },
+        {
+          "id": "SND-176",
+          "count": 3
+        },
+        {
+          "id": "SND-177",
+          "count": 2
+        },
+        {
+          "id": "SND-208",
+          "count": 1
+        },
+        {
+          "id": "SND-210",
+          "count": 3
+        },
+        {
+          "id": "SND-212",
+          "count": 2
+        },
+        {
+          "id": "SND-242",
+          "count": 3
+        },
+        {
+          "id": "SND-251",
+          "count": 3
+        },
+        {
+          "id": "SND-253",
+          "count": 2
+        },
+        {
+          "id": "SND-259",
+          "count": 3
+        },
+        {
+          "id": "SND-288",
+          "count": 3
+        },
+        {
+          "id": "SND-290",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "SND-068",
+          "count": 1
+        },
+        {
+          "id": "SND-071",
+          "count": 1
+        },
+        {
+          "id": "SND-075",
+          "count": 1
+        },
+        {
+          "id": "SND-235",
+          "count": 1
+        },
+        {
+          "id": "SND-236",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "kurumsal",
+      "name": {
+        "tr": "Kurumsal",
+        "en": "Machine"
+      },
+      "blurb": {
+        "tr": "Genel merkez disiplini. Kart çek, aradığını bul, rakibin planını sessizce boz.",
+        "en": "Headquarters discipline. Draw, find what you need, quietly break their plan."
+      },
+      "cards": [
+        {
+          "id": "SND-020",
+          "count": 3
+        },
+        {
+          "id": "SND-025",
+          "count": 3
+        },
+        {
+          "id": "SND-078",
+          "count": 2
+        },
+        {
+          "id": "SND-158",
+          "count": 2
+        },
+        {
+          "id": "SND-193",
+          "count": 2
+        },
+        {
+          "id": "SND-195",
+          "count": 3
+        },
+        {
+          "id": "SND-197",
+          "count": 2
+        },
+        {
+          "id": "SND-214",
+          "count": 2
+        },
+        {
+          "id": "SND-216",
+          "count": 3
+        },
+        {
+          "id": "SND-218",
+          "count": 1
+        },
+        {
+          "id": "SND-240",
+          "count": 3
+        },
+        {
+          "id": "SND-245",
+          "count": 2
+        },
+        {
+          "id": "SND-248",
+          "count": 3
+        },
+        {
+          "id": "SND-257",
+          "count": 3
+        },
+        {
+          "id": "SND-289",
+          "count": 3
+        },
+        {
+          "id": "SND-294",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "SND-068",
+          "count": 1
+        },
+        {
+          "id": "SND-071",
+          "count": 1
+        },
+        {
+          "id": "SND-072",
+          "count": 1
+        },
+        {
+          "id": "SND-073",
+          "count": 1
+        },
+        {
+          "id": "SND-075",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "agresif",
+      "name": {
+        "tr": "Agresif",
+        "en": "Attack Line"
+      },
+      "blurb": {
+        "tr": "Gündemi sen kur. Yüksek saldırı ve doğrudan OP baskısıyla erken bitir.",
+        "en": "Set the agenda. High attack and direct OP pressure to finish early."
+      },
+      "cards": [
+        {
+          "id": "SND-027",
+          "count": 2
+        },
+        {
+          "id": "SND-028",
+          "count": 2
+        },
+        {
+          "id": "SND-031",
+          "count": 2
+        },
+        {
+          "id": "SND-036",
+          "count": 2
+        },
+        {
+          "id": "SND-041",
+          "count": 2
+        },
+        {
+          "id": "SND-042",
+          "count": 2
+        },
+        {
+          "id": "SND-081",
+          "count": 3
+        },
+        {
+          "id": "SND-089",
+          "count": 3
+        },
+        {
+          "id": "SND-090",
+          "count": 3
+        },
+        {
+          "id": "SND-093",
+          "count": 2
+        },
+        {
+          "id": "SND-146",
+          "count": 2
+        },
+        {
+          "id": "SND-166",
+          "count": 3
+        },
+        {
+          "id": "SND-168",
+          "count": 3
+        },
+        {
+          "id": "SND-170",
+          "count": 3
+        },
+        {
+          "id": "SND-290",
+          "count": 3
+        },
+        {
+          "id": "SND-292",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "SND-068",
+          "count": 1
+        },
+        {
+          "id": "SND-073",
+          "count": 1
+        },
+        {
+          "id": "SND-075",
+          "count": 1
+        },
+        {
+          "id": "SND-236",
+          "count": 1
+        },
+        {
+          "id": "SND-237",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "savunmaci",
+      "name": {
+        "tr": "Savunmacı",
+        "en": "Defensive"
+      },
+      "blurb": {
+        "tr": "Önce zemini tut. Skandal tuzakları ve iptallerle rakibin hamlesini boşa düşür.",
+        "en": "Hold the ground first. Scandal traps and negations waste their turn."
+      },
+      "cards": [
+        {
+          "id": "SND-057",
+          "count": 2
+        },
+        {
+          "id": "SND-059",
+          "count": 2
+        },
+        {
+          "id": "SND-060",
+          "count": 3
+        },
+        {
+          "id": "SND-064",
+          "count": 2
+        },
+        {
+          "id": "SND-188",
+          "count": 2
+        },
+        {
+          "id": "SND-215",
+          "count": 3
+        },
+        {
+          "id": "SND-216",
+          "count": 2
+        },
+        {
+          "id": "SND-218",
+          "count": 3
+        },
+        {
+          "id": "SND-219",
+          "count": 3
+        },
+        {
+          "id": "SND-244",
+          "count": 3
+        },
+        {
+          "id": "SND-248",
+          "count": 3
+        },
+        {
+          "id": "SND-256",
+          "count": 3
+        },
+        {
+          "id": "SND-260",
+          "count": 1
+        },
+        {
+          "id": "SND-281",
+          "count": 3
+        },
+        {
+          "id": "SND-285",
+          "count": 3
+        },
+        {
+          "id": "SND-293",
+          "count": 2
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "SND-068",
+          "count": 1
+        },
+        {
+          "id": "SND-071",
+          "count": 1
+        },
+        {
+          "id": "SND-073",
+          "count": 1
+        },
+        {
+          "id": "SND-075",
+          "count": 1
+        },
+        {
+          "id": "SND-076",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "kriz",
+      "name": {
+        "tr": "Kriz Yönetimi",
+        "en": "Crisis Desk"
+      },
+      "blurb": {
+        "tr": "Kaybettiğini geri al. Mezarlıktan dönüş, OP tamiri ve son dakika cevapları.",
+        "en": "Take back what you lost. Grave returns, OP repair and last-minute answers."
+      },
+      "cards": [
+        {
+          "id": "SND-057",
+          "count": 1
+        },
+        {
+          "id": "SND-063",
+          "count": 3
+        },
+        {
+          "id": "SND-190",
+          "count": 2
+        },
+        {
+          "id": "SND-191",
+          "count": 3
+        },
+        {
+          "id": "SND-192",
+          "count": 2
+        },
+        {
+          "id": "SND-204",
+          "count": 2
+        },
+        {
+          "id": "SND-206",
+          "count": 2
+        },
+        {
+          "id": "SND-225",
+          "count": 2
+        },
+        {
+          "id": "SND-232",
+          "count": 1
+        },
+        {
+          "id": "SND-233",
+          "count": 3
+        },
+        {
+          "id": "SND-234",
+          "count": 2
+        },
+        {
+          "id": "SND-249",
+          "count": 3
+        },
+        {
+          "id": "SND-256",
+          "count": 3
+        },
+        {
+          "id": "SND-258",
+          "count": 1
+        },
+        {
+          "id": "SND-261",
+          "count": 3
+        },
+        {
+          "id": "SND-281",
+          "count": 3
+        },
+        {
+          "id": "SND-283",
+          "count": 3
+        },
+        {
+          "id": "SND-286",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "SND-068",
+          "count": 1
+        },
+        {
+          "id": "SND-071",
+          "count": 1
+        },
+        {
+          "id": "SND-072",
+          "count": 1
+        },
+        {
+          "id": "SND-073",
+          "count": 1
+        },
+        {
+          "id": "SND-075",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}
