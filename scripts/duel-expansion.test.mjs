@@ -17,9 +17,18 @@ import { primitives } from "../public/games/duel-core/effects.js";
 import { locate, validateState } from "../public/games/duel-core/model.js";
 
 for (const [theme, pool] of Object.entries(pools)) {
-  test(`${theme}: old 150 definitions remain byte-equivalent as objects`, () => {
+  test(`${theme}: old 150 definitions remain mechanics-equivalent`, () => {
     const old = JSON.parse(readFileSync(`scripts/fixtures/duel/${theme}-old-pool.json`));
-    assert.deepEqual(pool.slice(0, 150), old);
+    const skip = new Set(["name", "text", "hint", "rulesNote", "nameEn", "textEn"]);
+    for (let i = 0; i < 150; i++) {
+      const a = pool[i],
+        b = old[i];
+      assert.equal(a.id, b.id);
+      for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        if (skip.has(key)) continue;
+        assert.deepEqual(a[key], b[key], `${a.id}.${key}`);
+      }
+    }
   });
   test(`${theme}: pre-expansion save retains exact payload and next draw`, () => {
     const raw = readFileSync(`scripts/fixtures/duel/${theme}-old-save.json`, "utf8");

@@ -63,8 +63,8 @@ export function buildCards(source, designs, theme) {
       costs.push(effects.shift());
     return {
       ...raw,
-      name: { tr: raw.name, en: design.name },
-      text: { tr: raw.text, en: design.text },
+      name: { tr: raw.name, en: raw.nameEn || design.name },
+      text: { tr: raw.text, en: raw.textEn || design.text },
       series,
       rulesNote:
         theme === "veto-h" && n === 113

@@ -9,7 +9,9 @@
     "attack": 500,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Yok olduğunda 1 kart çek."
+    "text": "Yok olunca 1 kart çek.",
+    "nameEn": "Ballot Officer",
+    "textEn": "When destroyed, draw 1 card."
   },
   {
     "id": "SND-002",
@@ -21,7 +23,9 @@
     "attack": 300,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Setlenmişken açılırsa rakibin 1 set kartına bak."
+    "text": "Kapalı dururken açılırsa rakibin 1 set kartına bak.",
+    "nameEn": "Election Observer",
+    "textEn": "When flipped from a Set position, look at 1 opposing Set card."
   },
   {
     "id": "SND-003",
@@ -33,7 +37,9 @@
     "attack": 800,
     "defense": 600,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında desteden 1 “Sandık” kadrosu eline al, desteyi karıştır."
+    "text": "Normal çağrıda desteden 1 “Sandık” kadrosu eline al, desteyi karıştır.",
+    "nameEn": "Local Candidate",
+    "textEn": "When Normal Summoned, add 1 Ballot unit from your deck to your hand, then shuffle."
   },
   {
     "id": "SND-004",
@@ -45,7 +51,9 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Doğrudan saldırabilir, bu savaşta hasar yarıya iner."
+    "text": "Doğrudan saldırabilir, bu savaşta hasar yarıya iner.",
+    "nameEn": "Voter Bus",
+    "textEn": "May attack directly, dealing half damage."
   },
   {
     "id": "SND-005",
@@ -57,7 +65,9 @@
     "attack": 200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Savunmadayken rakip bu karta savaşta saldıramaz; başka hedef seçmek zorundadır (başka yoksa doğrudan serbest)."
+    "text": "Savunmadayken rakip bu karta savaşta saldıramaz; başka hedef seçmek zorundadır (başka yoksa doğrudan serbest).",
+    "nameEn": "Market Stall",
+    "textEn": "While defending, cannot be attacked. Opponents must choose another target, or attack directly if none exists."
   },
   {
     "id": "SND-006",
@@ -69,7 +79,9 @@
     "attack": 100,
     "defense": 100,
     "deckLocation": "main",
-    "text": "Bu kartı feda ederek 1 “Sandık” kadrosunu özel çağır (desteden, Kademe 3 veya altı)."
+    "text": "Bu kartı feda ederek 1 “Sandık” kadrosunu özel çağır (desteden, Kademe 3 veya altı).",
+    "nameEn": "Leaflet Team",
+    "textEn": "Tribute this card to Special Summon 1 Level 3 or lower Ballot unit from your deck."
   },
   {
     "id": "SND-007",
@@ -81,7 +93,9 @@
     "attack": 600,
     "defense": 500,
     "deckLocation": "main",
-    "text": "Sahanda kapalı bir Skandal'ın varken bu kartın Saldırısı 400 artar."
+    "text": "Sahanda kapalı bir Skandal'ın varken bu kartın Saldırısı 400 artar.",
+    "nameEn": "District Clerk",
+    "textEn": "Gains 400 ATK while you control a Set trap."
   },
   {
     "id": "SND-008",
@@ -93,7 +107,9 @@
     "attack": 400,
     "defense": 200,
     "deckLocation": "main",
-    "text": "Çağrıldığında destenin üst kartına bak; Kadroysa eline al, değilse geri koy."
+    "text": "Çağrıldığında destenin üst kartına bak; Kadroysa eline al, değilse geri koy.",
+    "nameEn": "Courier",
+    "textEn": "When summoned, look at the top card of your deck. Add it to your hand if it is a unit; otherwise put it back."
   },
   {
     "id": "SND-009",
@@ -105,7 +121,9 @@
     "attack": 300,
     "defense": 300,
     "deckLocation": "main",
-    "text": "Feda edildiğinde OP +500."
+    "text": "Feda edildiğinde OP +500.",
+    "nameEn": "Tea Delegate",
+    "textEn": "When tributed, gain 500 OP."
   },
   {
     "id": "SND-010",
@@ -117,7 +135,9 @@
     "attack": 700,
     "defense": 200,
     "deckLocation": "main",
-    "text": "Rakip set kartı sayısı kadar ATK +200."
+    "text": "Rakip set kartı sayısı kadar ATK +200.",
+    "nameEn": "Door-to-Door Team",
+    "textEn": "Gains 200 ATK for each opposing Set card."
   },
   {
     "id": "SND-011",
@@ -129,7 +149,9 @@
     "attack": 0,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Savaşta yok olmaz. Her Standby’da OP −200."
+    "text": "Savaşta yok olmaz. Her Standby’da OP −200.",
+    "nameEn": "Ballot Bag",
+    "textEn": "Cannot be destroyed in battle. Lose 200 OP during every Standby Phase."
   },
   {
     "id": "SND-012",
@@ -141,7 +163,9 @@
     "attack": 200,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Mezardaki bu kartı atarak 1 set tuzak etkinleştirmesini iptal et (1 düello 1 kez, Counter gibi cevap)."
+    "text": "Mezardaki bu kartı atarak 1 set tuzak etkinleştirmesini iptal et (1 düello 1 kez, Counter gibi cevap).",
+    "nameEn": "Reserve Observer",
+    "textEn": "Once per duel: banish this card from your grave to negate the activation of a Set trap, as a counter response."
   },
   {
     "id": "SND-013",
@@ -153,7 +177,9 @@
     "attack": 1400,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Turda 1: 1 set Kampanya’yı kendi turunda tuzak gibi cevap penceresinde açabilirsin (o kart Hızlı kabul edilir)."
+    "text": "Turda 1: 1 set Kampanya’yı kendi turunda tuzak gibi cevap penceresinde açabilirsin (o kart Hızlı kabul edilir).",
+    "nameEn": "General Secretary",
+    "textEn": "Once per turn, during your turn, treat 1 of your Set Campaign cards as Quick-Play in a response window."
   },
   {
     "id": "SND-014",
@@ -165,7 +191,9 @@
     "attack": 1200,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Çağrıldığında rakip 1 kart atar."
+    "text": "Çağrıldığında rakip 1 kart atar.",
+    "nameEn": "Spokesperson",
+    "textEn": "When summoned, your opponent discards 1 card."
   },
   {
     "id": "SND-015",
@@ -177,7 +205,9 @@
     "attack": 1600,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Aynı kademedeki rakip kadroya saldırırsa hasar +300."
+    "text": "Aynı kademedeki rakip kadroya saldırırsa hasar +300.",
+    "nameEn": "Deputy Group Chair",
+    "textEn": "When attacking an opposing unit of the same Level, deal 300 additional damage."
   },
   {
     "id": "SND-016",
@@ -189,7 +219,9 @@
     "attack": 1500,
     "defense": 1400,
     "deckLocation": "main",
-    "text": "“Sandık” kadroların ATK/DEF +200."
+    "text": "“Sandık” kadroların ATK/DEF +200.",
+    "nameEn": "District Chair",
+    "textEn": "Your Ballot units gain 200 ATK and DEF."
   },
   {
     "id": "SND-017",
@@ -201,7 +233,9 @@
     "attack": 1300,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 “Sandık” yemini özel çağır (el veya deste, Kademe 3 veya altı)."
+    "text": "Çağrıldığında 1 “Sandık” yemini özel çağır (el veya deste, Kademe 3 veya altı).",
+    "nameEn": "Organizer",
+    "textEn": "When summoned, Special Summon 1 Level 3 or lower Ballot unit from your hand or deck."
   },
   {
     "id": "SND-018",
@@ -213,7 +247,9 @@
     "attack": 1000,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Rakip büyü etkinleştirirse OP +300."
+    "text": "Rakip büyü etkinleştirirse OP +300.",
+    "nameEn": "Lobbyist",
+    "textEn": "Whenever your opponent activates a spell, gain 300 OP."
   },
   {
     "id": "SND-019",
@@ -225,7 +261,9 @@
     "attack": 1100,
     "defense": 1100,
     "deckLocation": "main",
-    "text": "Set kadroların açılana kadar yok edilemez (savaş hariç)."
+    "text": "Set kadroların açılana kadar yok edilemez (savaş hariç).",
+    "nameEn": "Adviser",
+    "textEn": "Your face-down units cannot be destroyed by effects until revealed."
   },
   {
     "id": "SND-020",
@@ -237,7 +275,9 @@
     "attack": 900,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Çağrıldığında destenin üst 3 kartına bak, 1’ini al, kalanı aynı sırada geri koy."
+    "text": "Çağrıldığında destenin üst 3 kartına bak, 1’ini al, kalanı aynı sırada geri koy.",
+    "nameEn": "Pollster",
+    "textEn": "When summoned, look at the top 3 cards of your deck. Take 1 and return the others in their original order."
   },
   {
     "id": "SND-021",
@@ -249,7 +289,9 @@
     "attack": 800,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Saha büyüsü varken yok edilemez."
+    "text": "Saha büyüsü varken yok edilemez.",
+    "nameEn": "Protocol Officer",
+    "textEn": "Cannot be destroyed while a field spell is active."
   },
   {
     "id": "SND-022",
@@ -261,7 +303,9 @@
     "attack": 1700,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda ek 1 Normal Summon: yalnızca Kademe 3 veya altı."
+    "text": "Turda ek 1 Normal Summon: yalnızca Kademe 3 veya altı.",
+    "nameEn": "Campaign Director",
+    "textEn": "Grants 1 additional Normal Summon each turn, only for a Level 3 or lower unit."
   },
   {
     "id": "SND-023",
@@ -273,7 +317,9 @@
     "attack": 1400,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Hızlı Kampanya’ların OP hasarı +400."
+    "text": "Hızlı Kampanya’ların OP hasarı +400.",
+    "nameEn": "Media Coordinator",
+    "textEn": "Your Quick-Play Campaign cards deal 400 additional OP damage."
   },
   {
     "id": "SND-024",
@@ -285,7 +331,9 @@
     "attack": 1200,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Turda 1: hedef tuzak etkisiz (o tur)."
+    "text": "Turda 1: hedef tuzak etkisiz (o tur).",
+    "nameEn": "Legal Counsel",
+    "textEn": "Once per turn, negate the effect of 1 trap for this turn."
   },
   {
     "id": "SND-025",
@@ -297,7 +345,9 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Mezara gittiğinde 1 “Skandal” setle (desteden, yuva varsa)."
+    "text": "Mezara gittiğinde 1 “Skandal” setle (desteden, yuva varsa).",
+    "nameEn": "Ghostwriter",
+    "textEn": "When sent to the grave, Set 1 Scandal from your deck if a support zone is free."
   },
   {
     "id": "SND-026",
@@ -309,7 +359,9 @@
     "attack": 1600,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Çağrıldığında rakibin Kademe 3 veya altı kadrosunun kontrolünü bu tur al."
+    "text": "Çağrıldığında rakibin Kademe 3 veya altı kadrosunun kontrolünü bu tur al.",
+    "nameEn": "Talent Scout",
+    "textEn": "When summoned, take control of 1 opposing Level 3 or lower unit until the end of this turn."
   },
   {
     "id": "SND-027",
@@ -321,7 +373,9 @@
     "attack": 2000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Tartışmada rakip set kartını ezerse hasar +400."
+    "text": "Tartışmada rakip set kartını ezerse hasar +400.",
+    "nameEn": "Mayor",
+    "textEn": "When this unit defeats a Set unit in battle, deal 400 additional damage."
   },
   {
     "id": "SND-028",
@@ -333,7 +387,9 @@
     "attack": 1900,
     "defense": 1400,
     "deckLocation": "main",
-    "text": "Kendi OP 4000 altındayken ATK +500."
+    "text": "Kendi OP 4000 altındayken ATK +500.",
+    "nameEn": "Member of Parliament",
+    "textEn": "Gains 500 ATK while your OP is below 4000."
   },
   {
     "id": "SND-029",
@@ -345,7 +401,9 @@
     "attack": 2100,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "İstifa ile çağrılırsa 1 kart çek."
+    "text": "İstifa ile çağrılırsa 1 kart çek.",
+    "nameEn": "Ministerial Candidate",
+    "textEn": "When Tribute Summoned, draw 1 card."
   },
   {
     "id": "SND-030",
@@ -357,7 +415,9 @@
     "attack": 2200,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Saha “Büyükşehir Havzası” ise doğrudan saldırabilir."
+    "text": "Saha “Büyükşehir Havzası” ise doğrudan saldırabilir.",
+    "nameEn": "Metropolitan Candidate",
+    "textEn": "May attack directly while Metropolitan Constituency is active."
   },
   {
     "id": "SND-031",
@@ -369,7 +429,9 @@
     "attack": 1800,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 Skandal’ı mezarlıktan sete koy."
+    "text": "Çağrıldığında 1 Skandal’ı mezarlıktan sete koy.",
+    "nameEn": "Party Spokesperson",
+    "textEn": "When summoned, Set 1 Scandal from your grave."
   },
   {
     "id": "SND-032",
@@ -381,7 +443,9 @@
     "attack": 2000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Sahanda başka bir Kürsü Kadro varken bu kartın Saldırısı 600 artar."
+    "text": "Sahanda başka bir Kürsü Kadro varken bu kartın Saldırısı 600 artar.",
+    "nameEn": "Faction Leader",
+    "textEn": "Gains 600 ATK while another Podium unit is on your field."
   },
   {
     "id": "SND-033",
@@ -393,7 +457,9 @@
     "attack": 1700,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Savunmadayken rakip doğrudan saldırmaz."
+    "text": "Savunmadayken rakip doğrudan saldırmaz.",
+    "nameEn": "Former Governor",
+    "textEn": "While defending, your opponent cannot attack directly."
   },
   {
     "id": "SND-034",
@@ -405,7 +471,9 @@
     "attack": 1600,
     "defense": 1900,
     "deckLocation": "main",
-    "text": "Feda edildiğinde 2 token “Delege” (500/500) özel çağır."
+    "text": "Feda edildiğinde 2 token “Delege” (500/500) özel çağır.",
+    "nameEn": "Union Chair",
+    "textEn": "When tributed, Special Summon 2 Delegate tokens (500 ATK / 500 DEF)."
   },
   {
     "id": "SND-035",
@@ -417,7 +485,9 @@
     "attack": 1500,
     "defense": 2100,
     "deckLocation": "main",
-    "text": "M1 başında OP +400."
+    "text": "M1 başında OP +400.",
+    "nameEn": "Chamber Federation",
+    "textEn": "At the start of your Main Phase 1, gain 400 OP."
   },
   {
     "id": "SND-036",
@@ -429,7 +499,9 @@
     "attack": 1800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Rakip çektiğinde 1 kez: o kartı göster; Kampanyaysa atılır."
+    "text": "Rakip çektiğinde 1 kez: o kartı göster; Kampanyaysa atılır.",
+    "nameEn": "TV Commentator",
+    "textEn": "Once when your opponent draws: reveal that card and discard it if it is a Campaign."
   },
   {
     "id": "SND-037",
@@ -441,7 +513,9 @@
     "attack": 1400,
     "defense": 1700,
     "deckLocation": "main",
-    "text": "Sürekli: rakip set kartı açınca OP −300."
+    "text": "Sürekli: rakip set kartı açınca OP −300.",
+    "nameEn": "Newspaper Owner",
+    "textEn": "Whenever your opponent activates a Set card, they lose 300 OP."
   },
   {
     "id": "SND-038",
@@ -453,7 +527,9 @@
     "attack": 1200,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Anket serisi efektleri 2 kez bakış yapar."
+    "text": "Anket serisi efektleri 2 kez bakış yapar.",
+    "nameEn": "University Lecturer",
+    "textEn": "Poll-series effects perform their look operation twice."
   },
   {
     "id": "SND-039",
@@ -465,7 +541,9 @@
     "attack": 1600,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "İstifa maliyeti bu kart için 1 yerine mezarlıktan 1 Kampanya atarak ödenebilir."
+    "text": "İstifa maliyeti bu kart için 1 yerine mezarlıktan 1 Kampanya atarak ödenebilir.",
+    "nameEn": "Senior Lobbyist",
+    "textEn": "Instead of tributing 1 unit to summon this card, you may banish 1 Campaign from your grave."
   },
   {
     "id": "SND-040",
@@ -477,7 +555,9 @@
     "attack": 1500,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Aynı seriden 2. kadro varken her ikisi +300."
+    "text": "Aynı seriden 2. kadro varken her ikisi +300.",
+    "nameEn": "Hometown Association",
+    "textEn": "When a second unit of the same series is present, both gain 300 ATK."
   },
   {
     "id": "SND-041",
@@ -489,7 +569,9 @@
     "attack": 1900,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "Çağrıldığında OP −1000; bu kadro +800 ATK."
+    "text": "Çağrıldığında OP −1000; bu kadro +800 ATK.",
+    "nameEn": "Business Backer",
+    "textEn": "When summoned, lose 1000 OP; this unit gains 800 ATK."
   },
   {
     "id": "SND-042",
@@ -501,7 +583,9 @@
     "attack": 2000,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Savaşta yok olursa rakip 1 kadro yok eder."
+    "text": "Savaşta yok olursa rakip 1 kadro yok eder.",
+    "nameEn": "Retired General",
+    "textEn": "When destroyed in battle, your opponent destroys 1 of their units."
   },
   {
     "id": "SND-043",
@@ -513,7 +597,9 @@
     "attack": 2800,
     "defense": 2100,
     "deckLocation": "main",
-    "text": "İstifa ile çağrıldığında rakip 1 kart atar ve 1 setini yok et."
+    "text": "İstifa ile çağrıldığında rakip 1 kart atar ve 1 setini yok et.",
+    "nameEn": "Party Leader",
+    "textEn": "When Tribute Summoned, your opponent discards 1 card and you destroy 1 of their Set cards."
   },
   {
     "id": "SND-044",
@@ -525,7 +611,9 @@
     "attack": 3000,
     "defense": 2500,
     "deckLocation": "main",
-    "text": "Doğrudan saldırı hasarı yarıya iner. Ayakta kaldığı sürece rakip Kademe 3 veya altı özel çağramaz."
+    "text": "Doğrudan saldırı hasarı yarıya iner. Ayakta kaldığı sürece rakip Kademe 3 veya altı özel çağramaz.",
+    "nameEn": "Presidential Candidate",
+    "textEn": "Direct attacks deal half damage. While this unit remains face up, your opponent cannot Special Summon Level 3 or lower units."
   },
   {
     "id": "SND-045",
@@ -537,7 +625,9 @@
     "attack": 2600,
     "defense": 2400,
     "deckLocation": "main",
-    "text": "Bu kartı çağırırken istifa ettiğin kadrolar Koalisyon destesinden 1 Koalisyon indirmeni sağlar (hemen, yuva varsa)."
+    "text": "Bu kartı çağırırken istifa ettiğin kadrolar Koalisyon destesinden 1 Koalisyon indirmeni sağlar (hemen, yuva varsa).",
+    "nameEn": "Coalition Architect",
+    "textEn": "The units tributed to summon this card may immediately supply the materials for 1 Coalition summon if a zone is free."
   },
   {
     "id": "SND-046",
@@ -549,7 +639,9 @@
     "attack": 2500,
     "defense": 2800,
     "deckLocation": "main",
-    "text": "1 turda 1 kez savaşta yok olmaz."
+    "text": "1 turda 1 kez savaşta yok olmaz.",
+    "nameEn": "Old State",
+    "textEn": "Once per turn, cannot be destroyed in battle."
   },
   {
     "id": "SND-047",
@@ -561,7 +653,9 @@
     "attack": 2700,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Hızlı Kampanyalar desteden etkinleştirilebilir (turda 1)."
+    "text": "Hızlı Kampanyalar desteden etkinleştirilebilir (turda 1).",
+    "nameEn": "Media Emperor",
+    "textEn": "Once per turn, you may activate a Quick-Play Campaign directly from your deck."
   },
   {
     "id": "SND-048",
@@ -573,7 +667,9 @@
     "attack": 2400,
     "defense": 2600,
     "deckLocation": "main",
-    "text": "“Sandık” kadrolar savaşta yok olmaz (bu kart ayaktayken)."
+    "text": "“Sandık” kadrolar savaşta yok olmaz (bu kart ayaktayken).",
+    "nameEn": "Ballot Minister",
+    "textEn": "While this unit is face up, your Ballot units cannot be destroyed in battle."
   },
   {
     "id": "SND-049",
@@ -585,7 +681,9 @@
     "attack": 2300,
     "defense": 3000,
     "deckLocation": "main",
-    "text": "Rakip tuzakları setlendiği turdan 1 tur sonra açılabilir (gecikme +1)."
+    "text": "Rakip tuzakları setlendiği turdan 1 tur sonra açılabilir (gecikme +1).",
+    "nameEn": "Judicial Lobby",
+    "textEn": "Opposing traps must wait 1 additional turn after being Set before activation."
   },
   {
     "id": "SND-050",
@@ -597,7 +695,9 @@
     "attack": 2200,
     "defense": 2200,
     "deckLocation": "main",
-    "text": "Standby: OP +800, el 1 at."
+    "text": "Standby: OP +800, el 1 at.",
+    "nameEn": "Diaspora Treasury",
+    "textEn": "During your Standby Phase, gain 800 OP and discard 1 card."
   },
   {
     "id": "SND-051",
@@ -609,7 +709,9 @@
     "attack": 2000,
     "defense": 3200,
     "deckLocation": "main",
-    "text": "OP 2000 altındayken tüm Kalkanların +1000."
+    "text": "OP 2000 altındayken tüm Kalkanların +1000.",
+    "nameEn": "Crisis Desk",
+    "textEn": "While your OP is below 2000, all your units gain 1000 DEF."
   },
   {
     "id": "SND-052",
@@ -621,7 +723,9 @@
     "attack": 2900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağrıldığında 2 “Sandık” özel çağır (deste, Kademe 3 veya altı). O tur saldırmaz."
+    "text": "Çağrıldığında 2 “Sandık” özel çağır (deste, Kademe 3 veya altı). O tur saldırmaz.",
+    "nameEn": "Guaranteed List",
+    "textEn": "When summoned, Special Summon 2 Level 3 or lower Ballot units from your deck. This unit cannot attack that turn."
   },
   {
     "id": "SND-053",
@@ -633,7 +737,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Hazırlık Aşamanda: destenin üst 3’üne bak, 1 Kadro al. Turda 1."
+    "text": "Hazırlık Aşamanda: destenin üst 3’üne bak, 1 Kadro al. Turda 1.",
+    "nameEn": "Latest Poll",
+    "textEn": "Once per turn during your Standby Phase: look at the top 3 cards of your deck and take 1 unit."
   },
   {
     "id": "SND-054",
@@ -645,7 +751,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Çağrıldığında 2 “Kararsız Token” (0/0) özel çağır. Token’lar feda edilebilir."
+    "text": "Çağrıldığında 2 “Kararsız Token” (0/0) özel çağır. Token’lar feda edilebilir.",
+    "nameEn": "Undecided Voter",
+    "textEn": "When summoned, Special Summon 2 Undecided tokens (0 ATK / 0 DEF). They may be tributed."
   },
   {
     "id": "SND-055",
@@ -657,7 +765,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Hedef kadronun kademesini bu tur −2 say (feda hesabı değişmez, savaş değişmez; yalnızca “Kademe 4 veya altı” efektleri için)."
+    "text": "Hedef kadronun kademesini bu tur −2 say (feda hesabı değişmez, savaş değişmez; yalnızca “Kademe 4 veya altı” efektleri için).",
+    "nameEn": "Tactical Vote",
+    "textEn": "Reduce 1 unit’s effective Level by 2 for this turn, only for effect eligibility; tribute costs and battle statistics do not change."
   },
   {
     "id": "SND-056",
@@ -669,7 +779,9 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Flip: rakibin bütün set kartlarını aç (bak), sonra eski konum."
+    "text": "Flip: rakibin bütün set kartlarını aç (bak), sonra eski konum.",
+    "nameEn": "Exit Poll",
+    "textEn": "Flip: look at all opposing Set cards, then leave them in their previous positions."
   },
   {
     "id": "SND-057",
@@ -681,7 +793,9 @@
     "attack": 1400,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Çağrıldığında aynı kademede 1 rakip kadro yok et."
+    "text": "Çağrıldığında aynı kademede 1 rakip kadro yok et.",
+    "nameEn": "Vote Breakdown",
+    "textEn": "When summoned, destroy 1 opposing unit of the same Level."
   },
   {
     "id": "SND-058",
@@ -693,7 +807,9 @@
     "attack": 600,
     "defense": 600,
     "deckLocation": "main",
-    "text": "Çağrıldığında OP +500."
+    "text": "Çağrıldığında OP +500.",
+    "nameEn": "Record Turnout",
+    "textEn": "When summoned, gain 500 OP."
   },
   {
     "id": "SND-059",
@@ -705,7 +821,9 @@
     "attack": 0,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Savunmadayken alınan savaş hasarı 0."
+    "text": "Savunmadayken alınan savaş hasarı 0.",
+    "nameEn": "Blank Ballot",
+    "textEn": "While this unit is defending, you take no battle damage."
   },
   {
     "id": "SND-060",
@@ -717,7 +835,9 @@
     "attack": 700,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Rakibin sıradaki çekişini iptal et (etkinleşince, cevap, 1 kez). Bu kart elden atılır."
+    "text": "Rakibin sıradaki çekişini iptal et (etkinleşince, cevap, 1 kez). Bu kart elden atılır.",
+    "nameEn": "Invalid Envelope",
+    "textEn": "Discard this card from your hand as a response to cancel your opponent’s next draw. Use once."
   },
   {
     "id": "SND-061",
@@ -729,7 +849,9 @@
     "attack": 0,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "ATK = |senin OP − rakip OP| / 10, en fazla 3000."
+    "text": "ATK = |senin OP − rakip OP| / 10, en fazla 3000.",
+    "nameEn": "Ballot Margin",
+    "textEn": "ATK equals the absolute difference between both players’ OP divided by 10, up to 3000."
   },
   {
     "id": "SND-062",
@@ -741,7 +863,9 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "2 Kademe 3 veya altı kadronu mezara göndererek Koalisyon destesinden 1 Koalisyon özel çağır."
+    "text": "2 Kademe 3 veya altı kadronu mezara göndererek Koalisyon destesinden 1 Koalisyon özel çağır.",
+    "nameEn": "Consensus",
+    "textEn": "Send 2 of your Level 3 or lower units to the grave to Special Summon 1 Coalition from your auxiliary deck."
   },
   {
     "id": "SND-063",
@@ -753,7 +877,9 @@
     "attack": 900,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır, sonra bu kartı imha et."
+    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır, sonra bu kartı imha et.",
+    "nameEn": "Undercurrent",
+    "textEn": "Special Summon 1 Level 3 or lower unit from your grave, then banish this card."
   },
   {
     "id": "SND-064",
@@ -765,7 +891,9 @@
     "attack": 1100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Set kadroların DEF +700."
+    "text": "Set kadroların DEF +700.",
+    "nameEn": "Silent Majority",
+    "textEn": "Your Set units gain 700 DEF."
   },
   {
     "id": "SND-065",
@@ -777,7 +905,9 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır."
+    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
+    "nameEn": "Congress Delegate",
+    "textEn": "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon."
   },
   {
     "id": "SND-066",
@@ -789,7 +919,9 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır."
+    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
+    "nameEn": "Congress Delegate",
+    "textEn": "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon."
   },
   {
     "id": "SND-067",
@@ -801,7 +933,9 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Ritüel çağrı yaparken ek 1 malzeme mezarlıktan sayılabilir."
+    "text": "Ritüel çağrı yaparken ek 1 malzeme mezarlıktan sayılabilir.",
+    "nameEn": "List Contractor",
+    "textEn": "When performing a ritual summon, you may count 1 additional material from your grave."
   },
   {
     "id": "SND-068",
@@ -813,7 +947,9 @@
     "attack": 2400,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "2 Kadro birleştir (el/saha/mezarlık etiket “koalisyon malzeme”). Çağrılınca 1 kart çek."
+    "text": "2 Kadro birleştir (el/saha/mezarlık etiket “koalisyon malzeme”). Çağrılınca 1 kart çek.",
+    "nameEn": "Joint Candidate",
+    "textEn": "Combine 2 Coalition-material units from hand, field or grave. When summoned, draw 1 card."
   },
   {
     "id": "SND-069",
@@ -825,7 +961,9 @@
     "attack": 2100,
     "defense": 2100,
     "deckLocation": "auxiliary",
-    "text": "1 Kulis + 1 Sandık. Sürekli: set tuzakların açılışı iptal edilemez."
+    "text": "1 Kulis + 1 Sandık. Sürekli: set tuzakların açılışı iptal edilemez.",
+    "nameEn": "Alliance Protocol",
+    "textEn": "Materials: 1 Backroom unit and 1 Ballot unit. The activation of your Set traps cannot be negated."
   },
   {
     "id": "SND-070",
@@ -837,7 +975,9 @@
     "attack": 2800,
     "defense": 1600,
     "deckLocation": "auxiliary",
-    "text": "3 Kadro. Doğrudan saldırabilir."
+    "text": "3 Kadro. Doğrudan saldırabilir.",
+    "nameEn": "National List",
+    "textEn": "Materials: 3 units. May attack directly."
   },
   {
     "id": "SND-071",
@@ -849,7 +989,9 @@
     "attack": 2000,
     "defense": 2500,
     "deckLocation": "auxiliary",
-    "text": "2 Kulis. Rakip hızlı büyü kullanamaz."
+    "text": "2 Kulis. Rakip hızlı büyü kullanamaz.",
+    "nameEn": "Shadow Cabinet",
+    "textEn": "Materials: 2 Backroom units. Your opponent cannot activate Quick-Play spells."
   },
   {
     "id": "SND-072",
@@ -861,7 +1003,9 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "auxiliary",
-    "text": "1 Kürsü + 1 Sandık. ATK = saha kadro sayısı × 400 + 1200."
+    "text": "1 Kürsü + 1 Sandık. ATK = saha kadro sayısı × 400 + 1200.",
+    "nameEn": "Election Alliance A",
+    "textEn": "Materials: 1 Podium unit and 1 Ballot unit. ATK equals 1200 plus 400 for every unit on the field."
   },
   {
     "id": "SND-073",
@@ -873,7 +1017,9 @@
     "attack": 1800,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "1 Kürsü + 1 Anket. Çağrılınca rakip 1 set yok et."
+    "text": "1 Kürsü + 1 Anket. Çağrılınca rakip 1 set yok et.",
+    "nameEn": "Election Alliance B",
+    "textEn": "Materials: 1 Podium unit and 1 Poll unit. When summoned, destroy 1 opposing Set card."
   },
   {
     "id": "SND-074",
@@ -885,7 +1031,9 @@
     "attack": 2500,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Kurultay büyüsü + kademe toplamı 7. Çağrılınca OP +1000."
+    "text": "Kurultay büyüsü + kademe toplamı 7. Çağrılınca OP +1000.",
+    "nameEn": "Official Candidate",
+    "textEn": "Ritual: Congress and materials totaling 7 Levels. When summoned, gain 1000 OP."
   },
   {
     "id": "SND-075",
@@ -897,7 +1045,9 @@
     "attack": 1800,
     "defense": 1800,
     "deckLocation": "auxiliary",
-    "text": "Eldeki 1 Kadroyu göstererek özel çağrılır. Rakip o ismi bu tur etkinleştiremez."
+    "text": "Eldeki 1 Kadroyu göstererek özel çağrılır. Rakip o ismi bu tur etkinleştiremez.",
+    "nameEn": "Independent Surprise",
+    "textEn": "Special Summon by revealing 1 unit in your hand. Your opponent cannot activate cards with that name this turn."
   },
   {
     "id": "SND-076",
@@ -909,7 +1059,9 @@
     "attack": 2200,
     "defense": 2200,
     "deckLocation": "auxiliary",
-    "text": "Mezarlıkta 4+ Kadro varken özel çağrılabilir."
+    "text": "Mezarlıkta 4+ Kadro varken özel çağrılabilir.",
+    "nameEn": "Acquired Organization",
+    "textEn": "May be Special Summoned while your grave contains at least 4 units."
   },
   {
     "id": "SND-077",
@@ -921,7 +1073,9 @@
     "attack": 2700,
     "defense": 1900,
     "deckLocation": "main",
-    "text": "Kurultay + 8 kademe. Savaşta yok ettiği kadronun ATK’si kadar OP hasarı ekle."
+    "text": "Kurultay + 8 kademe. Savaşta yok ettiği kadronun ATK’si kadar OP hasarı ekle.",
+    "nameEn": "List Leader",
+    "textEn": "Ritual: Congress and 8 Levels. When this unit destroys a unit in battle, deal additional OP damage equal to that unit’s ATK."
   },
   {
     "id": "SND-078",
@@ -933,7 +1087,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu kart Koalisyon çağrısı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı mezarlığa gönder."
+    "text": "Bu kart Koalisyon çağrısı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı mezarlığa gönder.",
+    "nameEn": "Joint Statement",
+    "textEn": "Counts as auxiliary summon material. When drawn, draw 1 more card and send this card to the grave."
   },
   {
     "id": "SND-079",
@@ -945,7 +1101,9 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "İki Delege Bloğu saha+eldeyken 1 Koalisyon indir (turda 1)."
+    "text": "İki Delege Bloğu saha+eldeyken 1 Koalisyon indir (turda 1).",
+    "nameEn": "Delegate Bloc",
+    "textEn": "Once per turn, while 2 Delegate Blocs are available in your hand and field, summon 1 Coalition."
   },
   {
     "id": "SND-080",
@@ -957,7 +1115,9 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "İki Delege Bloğu saha+eldeyken 1 Koalisyon indir (turda 1)."
+    "text": "İki Delege Bloğu saha+eldeyken 1 Koalisyon indir (turda 1).",
+    "nameEn": "Delegate Bloc",
+    "textEn": "Once per turn, while 2 Delegate Blocs are available in your hand and field, summon 1 Coalition."
   },
   {
     "id": "SND-081",
@@ -969,7 +1129,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef 1 kadron +600 ATK bu tur. O doğrudan saldırırsa hasar tam."
+    "text": "Hedef 1 kadron +600 ATK bu tur. O doğrudan saldırırsa hasar tam.",
+    "nameEn": "Rally Grounds",
+    "textEn": "1 of your units gains 600 ATK this turn. Its direct attacks deal full damage."
   },
   {
     "id": "SND-082",
@@ -981,7 +1143,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "2 kart çek, 1 at."
+    "text": "2 kart çek, 1 at.",
+    "nameEn": "Promise Marathon",
+    "textEn": "Draw 2 cards, then discard 1."
   },
   {
     "id": "SND-083",
@@ -993,7 +1157,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Desteden 1 “Sandık” kadrosu ekle."
+    "text": "Desteden 1 “Sandık” kadrosu ekle.",
+    "nameEn": "Leaflet Rain",
+    "textEn": "Add 1 Ballot unit from your deck to your hand."
   },
   {
     "id": "SND-084",
@@ -1005,7 +1171,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin 1 Kademe 4 veya altı kadrosunu mezarlığa gönder, aynı kademede 1 kendi kadronu özel çağır (elden)."
+    "text": "Rakibin 1 Kademe 4 veya altı kadrosunu mezarlığa gönder, aynı kademede 1 kendi kadronu özel çağır (elden).",
+    "nameEn": "Transfer Bombshell",
+    "textEn": "Send 1 opposing Level 4 or lower unit to the grave, then Special Summon 1 unit of the same Level from your hand."
   },
   {
     "id": "SND-085",
@@ -1017,7 +1185,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır."
+    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır.",
+    "nameEn": "Organization Meeting",
+    "textEn": "Special Summon 1 Level 3 or lower unit from your grave."
   },
   {
     "id": "SND-086",
@@ -1029,7 +1199,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip elini gösterir. 1 Kart seç; o Kampanyaysa atılır."
+    "text": "Rakip elini gösterir. 1 Kart seç; o Kampanyaysa atılır.",
+    "nameEn": "Public Opinion Survey",
+    "textEn": "Reveal your opponent’s hand. Choose 1 card; discard it if it is a Campaign."
   },
   {
     "id": "SND-087",
@@ -1041,7 +1213,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu tur rakip tuzak açamaz."
+    "text": "Bu tur rakip tuzak açamaz.",
+    "nameEn": "Live Link",
+    "textEn": "Your opponent cannot activate traps this turn."
   },
   {
     "id": "SND-088",
@@ -1053,7 +1227,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "OP +1000."
+    "text": "OP +1000.",
+    "nameEn": "Opening Ceremony",
+    "textEn": "Gain 1000 OP."
   },
   {
     "id": "SND-089",
@@ -1065,7 +1241,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadro bu tur savaşta yok olmaz."
+    "text": "Hedef kadro bu tur savaşta yok olmaz.",
+    "nameEn": "Endorsement",
+    "textEn": "1 unit cannot be destroyed in battle this turn."
   },
   {
     "id": "SND-090",
@@ -1077,7 +1255,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadronun etkisi bu tur iptal. OP +500."
+    "text": "Hedef kadronun etkisi bu tur iptal. OP +500.",
+    "nameEn": "Apology Statement",
+    "textEn": "Negate 1 unit’s effects this turn. Gain 500 OP."
   },
   {
     "id": "SND-091",
@@ -1089,7 +1269,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip 1 kadrosunu feda etmek zorunda (yoksa 1 kart atar)."
+    "text": "Rakip 1 kadrosunu feda etmek zorunda (yoksa 1 kart atar).",
+    "nameEn": "Call for Resignation",
+    "textEn": "Your opponent must tribute 1 unit, or discard 1 card if they have no units."
   },
   {
     "id": "SND-092",
@@ -1101,7 +1283,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 kendi set kartını başka boş yuvaya taşı."
+    "text": "1 kendi set kartını başka boş yuvaya taşı.",
+    "nameEn": "Ballot Relocation",
+    "textEn": "Move 1 of your Set cards to another empty zone of the same type."
   },
   {
     "id": "SND-093",
@@ -1113,7 +1297,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün “Sandık” kadrolar +300/+300 tur sonuna."
+    "text": "Bütün “Sandık” kadrolar +300/+300 tur sonuna.",
+    "nameEn": "Hometown Breakfast",
+    "textEn": "All your Ballot units gain 300 ATK and DEF until the end of the turn."
   },
   {
     "id": "SND-094",
@@ -1125,7 +1311,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "OP −1500; Koalisyon destesinden 1 Koalisyon özel çağır (şartları sağlıyorsan)."
+    "text": "OP −1500; Koalisyon destesinden 1 Koalisyon özel çağır (şartları sağlıyorsan).",
+    "nameEn": "Sponsor Dinner",
+    "textEn": "Pay 1500 OP to Special Summon a Coalition if its material requirements are satisfied."
   },
   {
     "id": "SND-095",
@@ -1137,7 +1325,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktaki 1 Normal Kampanya’yı eline al."
+    "text": "Mezarlıktaki 1 Normal Kampanya’yı eline al.",
+    "nameEn": "Repeated Slogan",
+    "textEn": "Return 1 Normal Campaign from your grave to your hand."
   },
   {
     "id": "SND-096",
@@ -1149,7 +1339,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin 1 set kartına bak. İstersen yok et, OP −800."
+    "text": "Rakibin 1 set kartına bak. İstersen yok et, OP −800.",
+    "nameEn": "Archive Leak",
+    "textEn": "Look at 1 opposing Set card. You may pay 800 OP to destroy it."
   },
   {
     "id": "SND-097",
@@ -1161,7 +1353,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu tur bütün savaş hasarı 0. Her iki oyuncu 1 kart çeker."
+    "text": "Bu tur bütün savaş hasarı 0. Her iki oyuncu 1 kart çeker.",
+    "nameEn": "Recount",
+    "textEn": "All battle damage becomes 0 this turn. Both players draw 1 card."
   },
   {
     "id": "SND-098",
@@ -1173,7 +1367,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Sürekli değil: bu tur Kademe 3 veya altı kadrolar saldırı ilan edemez."
+    "text": "Sürekli değil: bu tur Kademe 3 veya altı kadrolar saldırı ilan edemez.",
+    "nameEn": "Election Threshold",
+    "textEn": "Level 3 or lower units cannot declare attacks this turn."
   },
   {
     "id": "SND-099",
@@ -1185,7 +1381,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Desteden 1 Kadro ekle (herhangi)."
+    "text": "Desteden 1 Kadro ekle (herhangi).",
+    "nameEn": "Candidate Poll",
+    "textEn": "Add any 1 unit from your deck to your hand."
   },
   {
     "id": "SND-100",
@@ -1197,7 +1395,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kadro eline al."
+    "text": "Mezarlıktan 1 Kadro eline al.",
+    "nameEn": "Old News Returns",
+    "textEn": "Return 1 unit from your grave to your hand."
   },
   {
     "id": "SND-101",
@@ -1209,7 +1409,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "OP +1000; 1 kart at."
+    "text": "OP +1000; 1 kart at.",
+    "nameEn": "Budget Channel",
+    "textEn": "Gain 1000 OP, then discard 1 card."
   },
   {
     "id": "SND-102",
@@ -1221,7 +1423,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Destenin üst 5’ine bak, 2 al, 3 altta kalsın."
+    "text": "Destenin üst 5’ine bak, 2 al, 3 altta kalsın.",
+    "nameEn": "Closed Poll",
+    "textEn": "Look at the top 5 cards of your deck. Take 2 and put the other 3 on the bottom."
   },
   {
     "id": "SND-103",
@@ -1233,7 +1437,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Her iki oyuncu 1 kadrosunu saldırı konumuna almak zorunda (varsa)."
+    "text": "Her iki oyuncu 1 kadrosunu saldırı konumuna almak zorunda (varsa).",
+    "nameEn": "Open Debate Invitation",
+    "textEn": "Each player must turn 1 of their units to attack position, if possible."
   },
   {
     "id": "SND-104",
@@ -1245,7 +1451,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Elindeki 1 Kadroyu desteye koy, 2 çek."
+    "text": "Elindeki 1 Kadroyu desteye koy, 2 çek.",
+    "nameEn": "List Negotiation",
+    "textEn": "Return 1 unit from your hand to your deck, then draw 2 cards."
   },
   {
     "id": "SND-105",
@@ -1257,7 +1465,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün Kademe 3 veya altı kadrolar mezara gider (her iki taraf). 1 çek."
+    "text": "Bütün Kademe 3 veya altı kadrolar mezara gider (her iki taraf). 1 çek.",
+    "nameEn": "Organization Dissolved",
+    "textEn": "Send all Level 3 or lower units on both fields to the grave, then draw 1 card."
   },
   {
     "id": "SND-106",
@@ -1269,7 +1479,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip 1 set kartını açmak zorunda."
+    "text": "Rakip 1 set kartını açmak zorunda.",
+    "nameEn": "Press Conference",
+    "textEn": "Your opponent must reveal 1 of their Set cards."
   },
   {
     "id": "SND-107",
@@ -1281,7 +1493,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Çek 1. O Skandal ise setleyebilirsin."
+    "text": "Çek 1. O Skandal ise setleyebilirsin.",
+    "nameEn": "Morning Bulletin",
+    "textEn": "Draw 1 card. If it is a Scandal, you may Set it."
   },
   {
     "id": "SND-108",
@@ -1293,7 +1507,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu tur hızlı büyüler rakibe OP −400 ekler."
+    "text": "Bu tur hızlı büyüler rakibe OP −400 ekler.",
+    "nameEn": "Evening Slot",
+    "textEn": "Your Quick-Play spells deal 400 additional OP damage to your opponent this turn."
   },
   {
     "id": "SND-109",
@@ -1305,7 +1521,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef etkiyi iptal et."
+    "text": "Hedef etkiyi iptal et.",
+    "nameEn": "Interrupted Broadcast",
+    "textEn": "Negate the declared effect."
   },
   {
     "id": "SND-110",
@@ -1317,7 +1535,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef Skandal’ı iptal et, o mezara gider."
+    "text": "Hedef Skandal’ı iptal et, o mezara gider.",
+    "nameEn": "Retraction",
+    "textEn": "Negate the activation of a Scandal and send it to the grave."
   },
   {
     "id": "SND-111",
@@ -1329,7 +1549,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadronun ATK/DEF bu tur yer değiştirir."
+    "text": "Hedef kadronun ATK/DEF bu tur yer değiştirir.",
+    "nameEn": "Instant Poll",
+    "textEn": "Swap 1 unit’s ATK and DEF for this turn."
   },
   {
     "id": "SND-112",
@@ -1341,7 +1563,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef saldırıyı iptal et."
+    "text": "Hedef saldırıyı iptal et.",
+    "nameEn": "Please Wait",
+    "textEn": "Cancel the declared attack."
   },
   {
     "id": "SND-113",
@@ -1353,7 +1577,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu zincirde (cevapta) rakip başka kart açamaz."
+    "text": "Bu zincirde (cevapta) rakip başka kart açamaz.",
+    "nameEn": "Advertising Strip",
+    "textEn": "Your opponent cannot respond to your next declared action this turn."
   },
   {
     "id": "SND-114",
@@ -1365,7 +1591,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kürsü kadrolar +400 ATK. Sandık kadrolar +400 DEF."
+    "text": "Kürsü kadrolar +400 ATK. Sandık kadrolar +400 DEF.",
+    "nameEn": "Metropolitan Constituency",
+    "textEn": "Podium units gain 400 ATK. Ballot units gain 400 DEF."
   },
   {
     "id": "SND-115",
@@ -1377,7 +1605,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kademe 3 veya altı +600 DEF. Doğrudan saldırı hasarı −500."
+    "text": "Kademe 3 veya altı +600 DEF. Doğrudan saldırı hasarı −500.",
+    "nameEn": "Provincial Banner",
+    "textEn": "Level 3 or lower units gain 600 DEF. Direct attack damage is reduced by 500."
   },
   {
     "id": "SND-116",
@@ -1389,7 +1619,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hızlı Kampanya elden rakip turunda da açılabilir. Her açılışta OP −300."
+    "text": "Hızlı Kampanya elden rakip turunda da açılabilir. Her açılışta OP −300.",
+    "nameEn": "Studio Night",
+    "textEn": "Quick-Play Campaigns may be activated from the hand during the opposing turn. Each activation costs 300 OP."
   },
   {
     "id": "SND-117",
@@ -1401,7 +1633,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu kart takılı olduğu Kadro'nun Saldırısını ve Savunmasını 500 artırır; o Kadro feda edilirken 1 ek kademe sayılır."
+    "text": "Bu kart takılı olduğu Kadro'nun Saldırısını ve Savunmasını 500 artırır; o Kadro feda edilirken 1 ek kademe sayılır.",
+    "nameEn": "Office Chair",
+    "textEn": "The equipped unit gains 500 ATK and DEF and counts as 1 additional Level when used as tribute material."
   },
   {
     "id": "SND-118",
@@ -1413,7 +1647,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donanan kadro rakip efektle hedef alınamaz."
+    "text": "Donanan kadro rakip efektle hedef alınamaz.",
+    "nameEn": "Protection Convoy",
+    "textEn": "The equipped unit cannot be targeted by opposing effects."
   },
   {
     "id": "SND-119",
@@ -1425,7 +1661,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donanan kadro savaşta yok olursa 1 kart çek."
+    "text": "Donanan kadro savaşta yok olursa 1 kart çek.",
+    "nameEn": "Official Report",
+    "textEn": "If the equipped unit is destroyed in battle, draw 1 card."
   },
   {
     "id": "SND-120",
@@ -1437,7 +1675,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip Normal Summon yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz."
+    "text": "Rakip Normal Summon yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz.",
+    "nameEn": "Live Scandal",
+    "textEn": "When your opponent Normal Summons, turn that unit face-down in defense. It cannot attack this turn."
   },
   {
     "id": "SND-121",
@@ -1449,7 +1689,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef yüzüstü kadroyu yok et."
+    "text": "Hedef yüzüstü kadroyu yok et.",
+    "nameEn": "Old Post",
+    "textEn": "Destroy 1 face-down unit."
   },
   {
     "id": "SND-122",
@@ -1461,7 +1703,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef Kademe 5 veya üstü kadronun etkisini sürekli iptal et (o kadro mezara gidene kadar)."
+    "text": "Hedef Kademe 5 veya üstü kadronun etkisini sürekli iptal et (o kadro mezara gidene kadar).",
+    "nameEn": "Fake Diploma",
+    "textEn": "Negate the effects of 1 Level 5 or higher unit until it leaves the field."
   },
   {
     "id": "SND-123",
@@ -1473,7 +1717,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip büyü açınca: o büyüyü iptal, mezara gider."
+    "text": "Rakip büyü açınca: o büyüyü iptal, mezara gider.",
+    "nameEn": "Secret Recording",
+    "textEn": "When your opponent activates a spell, negate it and send it to the grave."
   },
   {
     "id": "SND-124",
@@ -1485,7 +1731,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadro ATK 0, bu tur."
+    "text": "Hedef kadro ATK 0, bu tur.",
+    "nameEn": "Bribery Allegation",
+    "textEn": "1 unit’s ATK becomes 0 this turn."
   },
   {
     "id": "SND-125",
@@ -1497,7 +1745,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip OP −800, sen OP −400."
+    "text": "Rakip OP −800, sen OP −400.",
+    "nameEn": "Family Company",
+    "textEn": "Your opponent loses 800 OP and you lose 400 OP."
   },
   {
     "id": "SND-126",
@@ -1509,7 +1759,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün set büyü/tuzaklar yok edilir (her iki taraf)."
+    "text": "Bütün set büyü/tuzaklar yok edilir (her iki taraf).",
+    "nameEn": "Vote Transport Tip",
+    "textEn": "Destroy all Set spells and traps on both fields."
   },
   {
     "id": "SND-127",
@@ -1521,7 +1773,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Savaş Evresi başında etkinleşir: bu evre olmaz, M2’ye geçilir."
+    "text": "Savaş Evresi başında etkinleşir: bu evre olmaz, M2’ye geçilir.",
+    "nameEn": "Rally Disrupted",
+    "textEn": "At the start of Battle Phase, skip that phase and proceed to Main Phase 2."
   },
   {
     "id": "SND-128",
@@ -1533,7 +1787,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bu tur elden büyü açamaz."
+    "text": "Rakip bu tur elden büyü açamaz.",
+    "nameEn": "Broadcast Ban",
+    "textEn": "Your opponent cannot activate spells from their hand this turn."
   },
   {
     "id": "SND-129",
@@ -1545,7 +1801,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Doğrudan saldırı beyan edilince: saldırıyı iptal, saldıran yüzüstü savunma."
+    "text": "Doğrudan saldırı beyan edilince: saldırıyı iptal, saldıran yüzüstü savunma.",
+    "nameEn": "Counter-Rally",
+    "textEn": "When a direct attack is declared, cancel it and turn the attacker face-down in defense."
   },
   {
     "id": "SND-130",
@@ -1557,7 +1815,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip feda ilan edince: feda iptal, o kadro kalır."
+    "text": "Rakip feda ilan edince: feda iptal, o kadro kalır.",
+    "nameEn": "Delegate Revolt",
+    "textEn": "When your opponent declares a tribute summon, cancel it. The would-be tributed units remain."
   },
   {
     "id": "SND-131",
@@ -1569,7 +1829,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin “bak ve al” efektini iptal et."
+    "text": "Rakibin “bak ve al” efektini iptal et.",
+    "nameEn": "Poll Cancelled",
+    "textEn": "Negate your opponent’s look-and-take effect."
   },
   {
     "id": "SND-132",
@@ -1581,7 +1843,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip 1 rastgele el kartını atar."
+    "text": "Rakip 1 rastgele el kartını atar.",
+    "nameEn": "Sources",
+    "textEn": "Your opponent discards 1 random card."
   },
   {
     "id": "SND-133",
@@ -1593,7 +1857,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadroyu kontrol eden feda etmek zorunda veya 2000 OP öder."
+    "text": "Hedef kadroyu kontrol eden feda etmek zorunda veya 2000 OP öder.",
+    "nameEn": "Resignation Pressure",
+    "textEn": "The controller of 1 unit must tribute it or pay 2000 OP."
   },
   {
     "id": "SND-134",
@@ -1605,7 +1871,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu tur savaş hasarı her iki tarafa da 0."
+    "text": "Bu tur savaş hasarı her iki tarafa da 0.",
+    "nameEn": "Ballot Challenge",
+    "textEn": "Both players take 0 battle damage this turn."
   },
   {
     "id": "SND-135",
@@ -1617,7 +1885,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin 1 set kartını yok et."
+    "text": "Rakibin 1 set kartını yok et.",
+    "nameEn": "Backroom Raid",
+    "textEn": "Destroy 1 opposing Set card."
   },
   {
     "id": "SND-136",
@@ -1629,7 +1899,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef kadro bu tur etki kullanamaz ve saldıramaz."
+    "text": "Hedef kadro bu tur etki kullanamaz ve saldıramaz.",
+    "nameEn": "Heckling",
+    "textEn": "1 unit cannot activate effects or attack this turn."
   },
   {
     "id": "SND-137",
@@ -1641,7 +1913,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Sürekli büyü/saha büyülerini 1 hedefle mezarlığa gönder."
+    "text": "Sürekli büyü/saha büyülerini 1 hedefle mezarlığa gönder.",
+    "nameEn": "Advertising Cut",
+    "textEn": "Send 1 continuous or field spell to the grave."
   },
   {
     "id": "SND-138",
@@ -1653,7 +1927,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Skandal etkinleşmesini iptal et."
+    "text": "Skandal etkinleşmesini iptal et.",
+    "nameEn": "Retraction Issued",
+    "textEn": "Negate the activation of a Scandal."
   },
   {
     "id": "SND-139",
@@ -1665,7 +1941,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hızlı Kampanya’yı iptal et."
+    "text": "Hızlı Kampanya’yı iptal et.",
+    "nameEn": "Broadcast Halted",
+    "textEn": "Negate a Quick-Play Campaign."
   },
   {
     "id": "SND-140",
@@ -1677,7 +1955,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Özel çağrıyı iptal et, o kart mezara gider."
+    "text": "Özel çağrıyı iptal et, o kart mezara gider.",
+    "nameEn": "Court Injunction",
+    "textEn": "Negate a Special Summon and send that card to the grave."
   },
   {
     "id": "SND-141",
@@ -1689,7 +1969,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kart etkisini iptal et."
+    "text": "Kart etkisini iptal et.",
+    "nameEn": "Censorship Strip",
+    "textEn": "Negate a card effect."
   },
   {
     "id": "SND-142",
@@ -1701,7 +1983,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Savaş yok etmesini iptal et; o kadro kalır, hasar 0."
+    "text": "Savaş yok etmesini iptal et; o kadro kalır, hasar 0.",
+    "nameEn": "Montage Defense",
+    "textEn": "Prevent battle destruction; the unit remains and damage is 0."
   },
   {
     "id": "SND-143",
@@ -1713,7 +1997,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hedef efektin “çek” kısmını iptal et."
+    "text": "Hedef efektin “çek” kısmını iptal et.",
+    "nameEn": "Live Link Lost",
+    "textEn": "Negate only the draw portion of the declared effect."
   },
   {
     "id": "SND-144",
@@ -1725,7 +2011,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Herhangi bir etkinleştirmeyi iptal et; her iki oyuncu 1 kart çeker."
+    "text": "Herhangi bir etkinleştirmeyi iptal et; her iki oyuncu 1 kart çeker.",
+    "nameEn": "Election Board Ruling",
+    "textEn": "Negate any activation, then both players draw 1 card."
   },
   {
     "id": "SND-145",
@@ -1737,7 +2025,9 @@
     "attack": 400,
     "defense": 1400,
     "deckLocation": "main",
-    "text": "Set tuzak varken rakip bu karta efekt hedefi seçemez."
+    "text": "Set tuzak varken rakip bu karta efekt hedefi seçemez.",
+    "nameEn": "Ballot Vigil",
+    "textEn": "While you control a Set trap, opposing effects cannot target this unit."
   },
   {
     "id": "SND-146",
@@ -1749,7 +2039,9 @@
     "attack": 1750,
     "defense": 100,
     "deckLocation": "main",
-    "text": "Koalisyon destesi boşken ATK +800."
+    "text": "Koalisyon destesi boşken ATK +800.",
+    "nameEn": "Unlisted Candidate",
+    "textEn": "Gains 800 ATK while your auxiliary deck is empty."
   },
   {
     "id": "SND-147",
@@ -1761,7 +2053,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Her Normal Summon’da OP +200."
+    "text": "Her Normal Summon’da OP +200.",
+    "nameEn": "Ballot Paper",
+    "textEn": "Whenever a unit is Normal Summoned, gain 200 OP."
   },
   {
     "id": "SND-148",
@@ -1773,7 +2067,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip mezarındaki kartları efektle hareket ettiremez."
+    "text": "Rakip mezarındaki kartları efektle hareket ettiremez.",
+    "nameEn": "Sealed Bag",
+    "textEn": "Your opponent cannot move cards out of their grave using effects."
   },
   {
     "id": "SND-149",
@@ -1785,7 +2081,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Koalisyon destesinden çağrı bu tur 1 kez bedelsiz malzeme sayılır (1 kart eksik)."
+    "text": "Koalisyon destesinden çağrı bu tur 1 kez bedelsiz malzeme sayılır (1 kart eksik).",
+    "nameEn": "Alliance Table",
+    "textEn": "Once this turn, an auxiliary summon requires 1 fewer material."
   },
   {
     "id": "SND-150",
@@ -1797,7 +2095,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün tartışma hasarları +300. End Phase’te her oyuncu 1 kart atar."
+    "text": "Bütün tartışma hasarları +300. End Phase’te her oyuncu 1 kart atar.",
+    "nameEn": "Election Night",
+    "textEn": "All battle damage increases by 300. At each End Phase, both players discard 1 card."
   },
   {
     "id": "SND-151",
@@ -1809,7 +2109,9 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 300 OP kaybet; destenden kademe 3 veya altı 1 Sandık birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 300 OP kaybet; destenden kademe 3 veya altı 1 Sandık kadrosunu eline al ve desteni karıştır.",
+    "nameEn": "Returns Clerk",
+    "textEn": "When Normal Summoned, lose 300 OP; add 1 Level 3 or lower Ballot unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-152",
@@ -1821,7 +2123,9 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 300 OP öde; mezarlığından 1 Sandık birimini eline al. Bu tur savaş aşamasını atla."
+    "text": "Turda bir kez: 300 OP öde; mezarlığından 1 Sandık kadrosunu eline al. Bu tur savaş aşamasını atla.",
+    "nameEn": "Mobile Observer",
+    "textEn": "Once per turn, pay 300 OP; return 1 Ballot unit from your grave to your hand. Skip Battle this turn."
   },
   {
     "id": "SND-153",
@@ -1833,7 +2137,9 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Sandık birimin varken 400 DEF kazanır. Set durumundan açıldığında rakibin kapalı 1 destek kartına bak."
+    "text": "Başka bir Sandık birimin varken 400 DEF kazanır. Kapalı dururken açılınca rakibin kapalı 1 destek kartına bak.",
+    "nameEn": "Ballot Counsel",
+    "textEn": "Gains 400 DEF while you control another Ballot unit. When flipped, look at 1 opposing face-down support card."
   },
   {
     "id": "SND-154",
@@ -1845,7 +2151,9 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki Sandık birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 200 OP kaybet."
+    "text": "Sahadaki Sandık birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 200 OP kaybet.",
+    "nameEn": "District Organizer",
+    "textEn": "Ballot units on the field gain 150 ATK. During your Standby Phase, lose 200 OP."
   },
   {
     "id": "SND-155",
@@ -1857,7 +2165,9 @@
     "attack": 700,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Sandık birimini özel çağır. Turda bir; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Sandık kadrosunu özel çağır. Turda bir; bu tur savaş aşamasını atla.",
+    "nameEn": "School Delegate",
+    "textEn": "Tribute this card: Special Summon 1 Level 2 or lower Ballot unit from your deck. Once per turn; skip Battle this turn."
   },
   {
     "id": "SND-156",
@@ -1869,7 +2179,9 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 550 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Sandık birimine bu tur 300 ATK ver."
+    "text": "Turda bir kez: 550 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Sandık birimine bu tur 300 ATK ver.",
+    "nameEn": "Returns Analyst",
+    "textEn": "Once per turn, pay 550 OP; change 1 opposing face-up Level 3 or lower unit to defense, then give 1 Ballot unit 300 ATK this turn."
   },
   {
     "id": "SND-157",
@@ -1881,7 +2193,9 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Sandık birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Sandık kadrosunu eline al.",
+    "nameEn": "District Coordinator",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Ballot unit from your grave to your hand."
   },
   {
     "id": "SND-158",
@@ -1893,7 +2207,9 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 350 OP kaybet; destenden kademe 3 veya altı 1 Kulis birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 350 OP kaybet; destenden kademe 3 veya altı 1 Kulis kadrosunu eline al ve desteni karıştır.",
+    "nameEn": "Scheduling Secretary",
+    "textEn": "When Normal Summoned, lose 350 OP; add 1 Level 3 or lower Backroom unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-159",
@@ -1905,7 +2221,9 @@
     "attack": 1000,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 350 OP öde; oyun dışındaki kademe 4 veya altı 1 Kulis birimini eline al."
+    "text": "Turda bir kez: 350 OP öde; oyun dışındaki kademe 4 veya altı 1 Kulis kadrosunu eline al.",
+    "nameEn": "Corridor Messenger",
+    "textEn": "Once per turn, pay 350 OP; return 1 banished Level 4 or lower Backroom unit to your hand."
   },
   {
     "id": "SND-160",
@@ -1917,7 +2235,9 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Puanın 3100 altındayken 600 DEF kazanır. Açıldığında 1 Kulis birimini savunmaya geçir."
+    "text": "Puanın 3100 altındayken 600 DEF kazanır. Açıldığında 1 Kulis kadrosunu savunmaya geçir.",
+    "nameEn": "Party Veteran",
+    "textEn": "Gains 600 DEF while your points are below 3100. When flipped, change 1 Backroom unit to defense."
   },
   {
     "id": "SND-161",
@@ -1929,7 +2249,9 @@
     "attack": 1300,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki kademe 3 veya altı Kulis birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 225 OP kaybet."
+    "text": "Sahadaki kademe 3 veya altı Kulis birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 225 OP kaybet.",
+    "nameEn": "List Negotiator",
+    "textEn": "Level 3 or lower Backroom units on the field gain 400 DEF. During your Standby Phase, lose 225 OP."
   },
   {
     "id": "SND-162",
@@ -1941,7 +2263,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Kulis birimini özel çağır; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Kulis kadrosunu özel çağır; bu tur savaş aşamasını atla.",
+    "nameEn": "Provincial Delegate",
+    "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Backroom unit from your grave; skip Battle this turn."
   },
   {
     "id": "SND-163",
@@ -1953,7 +2277,9 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 600 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Kulis birimin bulunmalı."
+    "text": "Turda bir kez: 600 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Kulis birimin bulunmalı.",
+    "nameEn": "Caucus Mediator",
+    "textEn": "Once per turn, pay 600 OP; return 1 opposing face-up support card to its owner's hand. You must control a Backroom unit."
   },
   {
     "id": "SND-164",
@@ -1965,7 +2291,9 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kulis birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kulis kadrosunu eline al.",
+    "nameEn": "Closed Session Chair",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Backroom unit from your grave to your hand."
   },
   {
     "id": "SND-165",
@@ -1977,7 +2305,9 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 400 OP kaybet; destenden kademe 3 veya altı 1 Kürsü birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 400 OP kaybet; destenden kademe 3 veya altı 1 Kürsü kadrosunu eline al ve desteni karıştır.",
+    "nameEn": "Committee Reporter",
+    "textEn": "When Normal Summoned, lose 400 OP; add 1 Level 3 or lower Assembly unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-166",
@@ -1989,7 +2319,9 @@
     "attack": 1100,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 400 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Kürsü birimine bu tur 400 DEF ver."
+    "text": "Turda bir kez: 400 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Kürsü birimine bu tur 400 DEF ver.",
+    "nameEn": "Session Clerk",
+    "textEn": "Once per turn, pay 400 OP; look at 1 opposing face-down card, then give 1 Assembly unit 400 DEF this turn."
   },
   {
     "id": "SND-167",
@@ -2001,7 +2333,9 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Kürsü birimin varken 500 ATK kazanır. Feda edildiğinde 500 OP kazan."
+    "text": "Başka bir Kürsü birimin varken 500 ATK kazanır. Feda edildiğinde 500 OP kazan.",
+    "nameEn": "Procedure Advocate",
+    "textEn": "Gains 500 ATK while you control another Assembly unit. When tributed, gain 500 OP."
   },
   {
     "id": "SND-168",
@@ -2013,7 +2347,9 @@
     "attack": 1400,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir: 400 OP öde; 1 Kürsü birimine bu tur 500 DEF ver."
+    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir kez: 400 OP öde; 1 Kürsü birimine bu tur 500 DEF ver.",
+    "nameEn": "Assembly Spokesperson",
+    "textEn": "Gains 400 ATK while you control a Set trap. Once per turn, pay 400 OP; give 1 Assembly unit 500 DEF this turn."
   },
   {
     "id": "SND-169",
@@ -2025,7 +2361,9 @@
     "attack": 900,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: oyun dışındaki 1 Kürsü birimini eline al, sonra 300 OP kazan."
+    "text": "Bu kartı feda et: oyun dışındaki 1 Kürsü kadrosunu eline al, sonra 300 OP kazan.",
+    "nameEn": "Question Drafter",
+    "textEn": "Tribute this card: return 1 banished Assembly unit to your hand, then gain 300 OP."
   },
   {
     "id": "SND-170",
@@ -2037,7 +2375,9 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 650 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Kürsü birimine bu tur 200 ATK ver."
+    "text": "Turda bir kez: 650 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Kürsü birimine bu tur 200 ATK ver.",
+    "nameEn": "Budget Auditor",
+    "textEn": "Once per turn, pay 650 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Assembly unit 200 ATK this turn."
   },
   {
     "id": "SND-171",
@@ -2049,7 +2389,9 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kürsü birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kürsü kadrosunu eline al.",
+    "nameEn": "Committee Chair",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Assembly unit from your grave to your hand."
   },
   {
     "id": "SND-172",
@@ -2061,7 +2403,9 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 450 OP kaybet; destenden kademe 3 veya altı 1 Belediye birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 450 OP kaybet; destenden kademe 3 veya altı 1 Belediye birimini eline al ve desteni karıştır.",
+    "nameEn": "Planning Archivist",
+    "textEn": "When Normal Summoned, lose 450 OP; add 1 Level 3 or lower Municipal unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-173",
@@ -2073,7 +2417,9 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 450 OP öde; mezarlığından 1 Belediye birimini eline al. Bu tur savaş aşamasını atla."
+    "text": "Turda bir kez: 450 OP öde; mezarlığından 1 Belediye birimini eline al. Bu tur savaş aşamasını atla.",
+    "nameEn": "Parks Supervisor",
+    "textEn": "Once per turn, pay 450 OP; return 1 Municipal unit from your grave to your hand. Skip Battle this turn."
   },
   {
     "id": "SND-174",
@@ -2085,7 +2431,9 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Belediye birimin varken 400 DEF kazanır. Set durumundan açıldığında rakibin kapalı 1 destek kartına bak."
+    "text": "Başka bir Belediye birimin varken 400 DEF kazanır. Kapalı dururken açılınca rakibin kapalı 1 destek kartına bak.",
+    "nameEn": "Disaster Coordinator",
+    "textEn": "Gains 400 DEF while you control another Municipal unit. When flipped, look at 1 opposing face-down support card."
   },
   {
     "id": "SND-175",
@@ -2097,7 +2445,9 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki Belediye birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 275 OP kaybet."
+    "text": "Sahadaki Belediye birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 275 OP kaybet.",
+    "nameEn": "Neighborhood Council Chair",
+    "textEn": "Municipal units on the field gain 150 ATK. During your Standby Phase, lose 275 OP."
   },
   {
     "id": "SND-176",
@@ -2109,7 +2459,9 @@
     "attack": 700,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Belediye birimini özel çağır. Turda bir; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Belediye birimini özel çağır. Turda bir; bu tur savaş aşamasını atla.",
+    "nameEn": "Public Works Engineer",
+    "textEn": "Tribute this card: Special Summon 1 Level 2 or lower Municipal unit from your deck. Once per turn; skip Battle this turn."
   },
   {
     "id": "SND-177",
@@ -2121,7 +2473,9 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 700 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Belediye birimine bu tur 300 ATK ver."
+    "text": "Turda bir kez: 700 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Belediye birimine bu tur 300 ATK ver.",
+    "nameEn": "Tender Observer",
+    "textEn": "Once per turn, pay 700 OP; change 1 opposing face-up Level 3 or lower unit to defense, then give 1 Municipal unit 300 ATK this turn."
   },
   {
     "id": "SND-178",
@@ -2133,7 +2487,9 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Belediye birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Belediye birimini eline al.",
+    "nameEn": "City Planner",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Municipal unit from your grave to your hand."
   },
   {
     "id": "SND-179",
@@ -2145,7 +2501,9 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 500 OP kaybet; destenden kademe 3 veya altı 1 Basın birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 500 OP kaybet; destenden kademe 3 veya altı 1 Basın birimini eline al ve desteni karıştır.",
+    "nameEn": "Night Editor",
+    "textEn": "When Normal Summoned, lose 500 OP; add 1 Level 3 or lower Press unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-180",
@@ -2157,7 +2515,9 @@
     "attack": 1000,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 500 OP öde; oyun dışındaki kademe 4 veya altı 1 Basın birimini eline al."
+    "text": "Turda bir kez: 500 OP öde; oyun dışındaki kademe 4 veya altı 1 Basın birimini eline al.",
+    "nameEn": "Local Reporter",
+    "textEn": "Once per turn, pay 500 OP; return 1 banished Level 4 or lower Press unit to your hand."
   },
   {
     "id": "SND-181",
@@ -2169,7 +2529,9 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Puanın 3400 altındayken 600 DEF kazanır. Açıldığında 1 Basın birimini savunmaya geçir."
+    "text": "Puanın 3400 altındayken 600 DEF kazanır. Açıldığında 1 Basın birimini savunmaya geçir.",
+    "nameEn": "Fact Checker",
+    "textEn": "Gains 600 DEF while your points are below 3400. When flipped, change 1 Press unit to defense."
   },
   {
     "id": "SND-182",
@@ -2181,7 +2543,9 @@
     "attack": 1300,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki kademe 3 veya altı Basın birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 300 OP kaybet."
+    "text": "Sahadaki kademe 3 veya altı Basın birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 300 OP kaybet.",
+    "nameEn": "Broadcast Director",
+    "textEn": "Level 3 or lower Press units on the field gain 400 DEF. During your Standby Phase, lose 300 OP."
   },
   {
     "id": "SND-183",
@@ -2193,7 +2557,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır; bu tur savaş aşamasını atla.",
+    "nameEn": "Field Camera Operator",
+    "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Press unit from your grave; skip Battle this turn."
   },
   {
     "id": "SND-184",
@@ -2205,7 +2571,9 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 750 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Basın birimin bulunmalı."
+    "text": "Turda bir kez: 750 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Basın birimin bulunmalı.",
+    "nameEn": "Press Ombudsman",
+    "textEn": "Once per turn, pay 750 OP; return 1 opposing face-up support card to its owner's hand. You must control a Press unit."
   },
   {
     "id": "SND-185",
@@ -2217,7 +2585,9 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Basın birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Basın birimini eline al.",
+    "nameEn": "Investigative Reporter",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Press unit from your grave to your hand."
   },
   {
     "id": "SND-186",
@@ -2229,7 +2599,9 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 550 OP kaybet; destenden kademe 3 veya altı 1 Anket birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 550 OP kaybet; destenden kademe 3 veya altı 1 Anket birimini eline al ve desteni karıştır.",
+    "nameEn": "Sampling Expert",
+    "textEn": "When Normal Summoned, lose 550 OP; add 1 Level 3 or lower Polling unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-187",
@@ -2241,7 +2613,9 @@
     "attack": 1100,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 550 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Anket birimine bu tur 400 DEF ver."
+    "text": "Turda bir kez: 550 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Anket birimine bu tur 400 DEF ver.",
+    "nameEn": "Phone Pollster",
+    "textEn": "Once per turn, pay 550 OP; look at 1 opposing face-down card, then give 1 Polling unit 400 DEF this turn."
   },
   {
     "id": "SND-188",
@@ -2253,7 +2627,9 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Anket birimin varken 500 ATK kazanır. Feda edildiğinde 650 OP kazan."
+    "text": "Başka bir Anket birimin varken 500 ATK kazanır. Feda edildiğinde 650 OP kazan.",
+    "nameEn": "Data Cleaner",
+    "textEn": "Gains 500 ATK while you control another Polling unit. When tributed, gain 650 OP."
   },
   {
     "id": "SND-189",
@@ -2265,7 +2641,9 @@
     "attack": 1400,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir: 550 OP öde; 1 Anket birimine bu tur 500 DEF ver."
+    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir kez: 550 OP öde; 1 Anket birimine bu tur 500 DEF ver.",
+    "nameEn": "Research Director",
+    "textEn": "Gains 400 ATK while you control a Set trap. Once per turn, pay 550 OP; give 1 Polling unit 500 DEF this turn."
   },
   {
     "id": "SND-190",
@@ -2277,7 +2655,9 @@
     "attack": 900,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: oyun dışındaki 1 Anket birimini eline al, sonra 300 OP kazan."
+    "text": "Bu kartı feda et: oyun dışındaki 1 Anket birimini eline al, sonra 300 OP kazan.",
+    "nameEn": "Focus Group Moderator",
+    "textEn": "Tribute this card: return 1 banished Polling unit to your hand, then gain 300 OP."
   },
   {
     "id": "SND-191",
@@ -2289,7 +2669,9 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 800 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Anket birimine bu tur 200 ATK ver."
+    "text": "Turda bir kez: 800 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Anket birimine bu tur 200 ATK ver.",
+    "nameEn": "Margin Analyst",
+    "textEn": "Once per turn, pay 800 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Polling unit 200 ATK this turn."
   },
   {
     "id": "SND-192",
@@ -2301,7 +2683,9 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Anket birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Anket birimini eline al.",
+    "nameEn": "Voter Behavior Analyst",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Polling unit from your grave to your hand."
   },
   {
     "id": "SND-193",
@@ -2313,7 +2697,9 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 600 OP kaybet; destenden kademe 3 veya altı 1 Kurum birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 600 OP kaybet; destenden kademe 3 veya altı 1 Kurum birimini eline al ve desteni karıştır.",
+    "nameEn": "Records Officer",
+    "textEn": "When Normal Summoned, lose 600 OP; add 1 Level 3 or lower Institution unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-194",
@@ -2325,7 +2711,9 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 600 OP öde; mezarlığından 1 Kurum birimini eline al. Bu tur savaş aşamasını atla."
+    "text": "Turda bir kez: 600 OP öde; mezarlığından 1 Kurum birimini eline al. Bu tur savaş aşamasını atla.",
+    "nameEn": "Archive Inspector",
+    "textEn": "Once per turn, pay 600 OP; return 1 Institution unit from your grave to your hand. Skip Battle this turn."
   },
   {
     "id": "SND-195",
@@ -2337,7 +2725,9 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Kurum birimin varken 400 DEF kazanır. Set durumundan açıldığında rakibin kapalı 1 destek kartına bak."
+    "text": "Başka bir Kurum birimin varken 400 DEF kazanır. Kapalı dururken açılınca rakibin kapalı 1 destek kartına bak.",
+    "nameEn": "Ethics Member",
+    "textEn": "Gains 400 DEF while you control another Institution unit. When flipped, look at 1 opposing face-down support card."
   },
   {
     "id": "SND-196",
@@ -2349,7 +2739,9 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki Kurum birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 350 OP kaybet."
+    "text": "Sahadaki Kurum birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 350 OP kaybet.",
+    "nameEn": "Institution Secretary",
+    "textEn": "Institution units on the field gain 150 ATK. During your Standby Phase, lose 350 OP."
   },
   {
     "id": "SND-197",
@@ -2361,7 +2753,9 @@
     "attack": 700,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Kurum birimini özel çağır. Turda bir; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Kurum birimini özel çağır. Turda bir; bu tur savaş aşamasını atla.",
+    "nameEn": "Field Inspector",
+    "textEn": "Tribute this card: Special Summon 1 Level 2 or lower Institution unit from your deck. Once per turn; skip Battle this turn."
   },
   {
     "id": "SND-198",
@@ -2373,7 +2767,9 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 850 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Kurum birimine bu tur 300 ATK ver."
+    "text": "Turda bir kez: 850 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Kurum birimine bu tur 300 ATK ver.",
+    "nameEn": "Public Ombudsman",
+    "textEn": "Once per turn, pay 850 OP; change 1 opposing face-up Level 3 or lower unit to defense, then give 1 Institution unit 300 ATK this turn."
   },
   {
     "id": "SND-199",
@@ -2385,7 +2781,9 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kurum birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kurum birimini eline al.",
+    "nameEn": "Administrative Judge",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Institution unit from your grave to your hand."
   },
   {
     "id": "SND-200",
@@ -2397,7 +2795,9 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 650 OP kaybet; destenden kademe 3 veya altı 1 Lobi birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 650 OP kaybet; destenden kademe 3 veya altı 1 Lobi birimini eline al ve desteni karıştır.",
+    "nameEn": "Meeting Assistant",
+    "textEn": "When Normal Summoned, lose 650 OP; add 1 Level 3 or lower Lobby unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-201",
@@ -2409,7 +2809,9 @@
     "attack": 1000,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 650 OP öde; oyun dışındaki kademe 4 veya altı 1 Lobi birimini eline al."
+    "text": "Turda bir kez: 650 OP öde; oyun dışındaki kademe 4 veya altı 1 Lobi birimini eline al.",
+    "nameEn": "Sector Delegate",
+    "textEn": "Once per turn, pay 650 OP; return 1 banished Level 4 or lower Lobby unit to your hand."
   },
   {
     "id": "SND-202",
@@ -2421,7 +2823,9 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Puanın 3700 altındayken 600 DEF kazanır. Açıldığında 1 Lobi birimini savunmaya geçir."
+    "text": "Puanın 3700 altındayken 600 DEF kazanır. Açıldığında 1 Lobi birimini savunmaya geçir.",
+    "nameEn": "Compliance Adviser",
+    "textEn": "Gains 600 DEF while your points are below 3700. When flipped, change 1 Lobby unit to defense."
   },
   {
     "id": "SND-203",
@@ -2433,7 +2837,9 @@
     "attack": 1300,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki kademe 3 veya altı Lobi birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 375 OP kaybet."
+    "text": "Sahadaki kademe 3 veya altı Lobi birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 375 OP kaybet.",
+    "nameEn": "Negotiation Chair",
+    "textEn": "Level 3 or lower Lobby units on the field gain 400 DEF. During your Standby Phase, lose 375 OP."
   },
   {
     "id": "SND-204",
@@ -2445,7 +2851,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Lobi birimini özel çağır; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Lobi birimini özel çağır; bu tur savaş aşamasını atla.",
+    "nameEn": "Union Delegate",
+    "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Lobby unit from your grave; skip Battle this turn."
   },
   {
     "id": "SND-205",
@@ -2457,7 +2865,9 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 900 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Lobi birimin bulunmalı."
+    "text": "Turda bir kez: 900 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Lobi birimin bulunmalı.",
+    "nameEn": "Conflict-of-Interest Analyst",
+    "textEn": "Once per turn, pay 900 OP; return 1 opposing face-up support card to its owner's hand. You must control a Lobby unit."
   },
   {
     "id": "SND-206",
@@ -2469,7 +2879,9 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lobi birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lobi birimini eline al.",
+    "nameEn": "Donation Auditor",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Lobby unit from your grave to your hand."
   },
   {
     "id": "SND-207",
@@ -2481,7 +2893,9 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 700 OP kaybet; destenden kademe 3 veya altı 1 Gençlik birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 700 OP kaybet; destenden kademe 3 veya altı 1 Gençlik birimini eline al ve desteni karıştır.",
+    "nameEn": "Campus Volunteer",
+    "textEn": "When Normal Summoned, lose 700 OP; add 1 Level 3 or lower Youth unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-208",
@@ -2493,7 +2907,9 @@
     "attack": 1100,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 700 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Gençlik birimine bu tur 400 DEF ver."
+    "text": "Turda bir kez: 700 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Gençlik birimine bu tur 400 DEF ver.",
+    "nameEn": "Student Delegate",
+    "textEn": "Once per turn, pay 700 OP; look at 1 opposing face-down card, then give 1 Youth unit 400 DEF this turn."
   },
   {
     "id": "SND-209",
@@ -2505,7 +2921,9 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Gençlik birimin varken 500 ATK kazanır. Feda edildiğinde 800 OP kazan."
+    "text": "Başka bir Gençlik birimin varken 500 ATK kazanır. Feda edildiğinde 800 OP kazan.",
+    "nameEn": "Forum Facilitator",
+    "textEn": "Gains 500 ATK while you control another Youth unit. When tributed, gain 800 OP."
   },
   {
     "id": "SND-210",
@@ -2517,7 +2935,9 @@
     "attack": 1400,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir: 700 OP öde; 1 Gençlik birimine bu tur 500 DEF ver."
+    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir kez: 700 OP öde; 1 Gençlik birimine bu tur 500 DEF ver.",
+    "nameEn": "Youth Coordinator",
+    "textEn": "Gains 400 ATK while you control a Set trap. Once per turn, pay 700 OP; give 1 Youth unit 500 DEF this turn."
   },
   {
     "id": "SND-211",
@@ -2529,7 +2949,9 @@
     "attack": 900,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: oyun dışındaki 1 Gençlik birimini eline al, sonra 300 OP kazan."
+    "text": "Bu kartı feda et: oyun dışındaki 1 Gençlik birimini eline al, sonra 300 OP kazan.",
+    "nameEn": "Cycling Volunteer",
+    "textEn": "Tribute this card: return 1 banished Youth unit to your hand, then gain 300 OP."
   },
   {
     "id": "SND-212",
@@ -2541,7 +2963,9 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 950 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Gençlik birimine bu tur 200 ATK ver."
+    "text": "Turda bir kez: 950 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Gençlik birimine bu tur 200 ATK ver.",
+    "nameEn": "Scholarship Monitor",
+    "textEn": "Once per turn, pay 950 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Youth unit 200 ATK this turn."
   },
   {
     "id": "SND-213",
@@ -2553,7 +2977,9 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Gençlik birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Gençlik birimini eline al.",
+    "nameEn": "Campus Spokesperson",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Youth unit from your grave to your hand."
   },
   {
     "id": "SND-214",
@@ -2565,7 +2991,9 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 750 OP kaybet; destenden kademe 3 veya altı 1 Hukuk birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 750 OP kaybet; destenden kademe 3 veya altı 1 Hukuk birimini eline al ve desteni karıştır.",
+    "nameEn": "Petition Writer",
+    "textEn": "When Normal Summoned, lose 750 OP; add 1 Level 3 or lower Law unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-215",
@@ -2577,7 +3005,9 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 750 OP öde; mezarlığından 1 Hukuk birimini eline al. Bu tur savaş aşamasını atla."
+    "text": "Turda bir kez: 750 OP öde; mezarlığından 1 Hukuk birimini eline al. Bu tur savaş aşamasını atla.",
+    "nameEn": "Trainee Lawyer",
+    "textEn": "Once per turn, pay 750 OP; return 1 Law unit from your grave to your hand. Skip Battle this turn."
   },
   {
     "id": "SND-216",
@@ -2589,7 +3019,9 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Hukuk birimin varken 400 DEF kazanır. Set durumundan açıldığında rakibin kapalı 1 destek kartına bak."
+    "text": "Başka bir Hukuk birimin varken 400 DEF kazanır. Kapalı dururken açılınca rakibin kapalı 1 destek kartına bak.",
+    "nameEn": "Rights Advocate",
+    "textEn": "Gains 400 DEF while you control another Law unit. When flipped, look at 1 opposing face-down support card."
   },
   {
     "id": "SND-217",
@@ -2601,7 +3033,9 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki Hukuk birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 425 OP kaybet."
+    "text": "Sahadaki Hukuk birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 425 OP kaybet.",
+    "nameEn": "Crisis Counsel",
+    "textEn": "Law units on the field gain 150 ATK. During your Standby Phase, lose 425 OP."
   },
   {
     "id": "SND-218",
@@ -2613,7 +3047,9 @@
     "attack": 700,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Hukuk birimini özel çağır. Turda bir; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: destenden kademe 2 veya altı 1 Hukuk birimini özel çağır. Turda bir; bu tur savaş aşamasını atla.",
+    "nameEn": "Courthouse Reporter",
+    "textEn": "Tribute this card: Special Summon 1 Level 2 or lower Law unit from your deck. Once per turn; skip Battle this turn."
   },
   {
     "id": "SND-219",
@@ -2625,7 +3061,9 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 1000 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Hukuk birimine bu tur 300 ATK ver."
+    "text": "Turda bir kez: 1000 OP öde; rakibin açık kademe 3 veya altı 1 birimini savunmaya geçir, ardından 1 Hukuk birimine bu tur 300 ATK ver.",
+    "nameEn": "Case Reviewer",
+    "textEn": "Once per turn, pay 1000 OP; change 1 opposing face-up Level 3 or lower unit to defense, then give 1 Law unit 300 ATK this turn."
   },
   {
     "id": "SND-220",
@@ -2637,7 +3075,9 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Hukuk birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Hukuk birimini eline al.",
+    "nameEn": "Constitutional Scholar",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Law unit from your grave to your hand."
   },
   {
     "id": "SND-221",
@@ -2649,7 +3089,9 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 800 OP kaybet; destenden kademe 3 veya altı 1 Koalisyon birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 800 OP kaybet; destenden kademe 3 veya altı 1 Koalisyon birimini eline al ve desteni karıştır.",
+    "nameEn": "Protocol Clerk",
+    "textEn": "When Normal Summoned, lose 800 OP; add 1 Level 3 or lower Coalition unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-222",
@@ -2661,7 +3103,9 @@
     "attack": 1000,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 800 OP öde; oyun dışındaki kademe 4 veya altı 1 Koalisyon birimini eline al."
+    "text": "Turda bir kez: 800 OP öde; oyun dışındaki kademe 4 veya altı 1 Koalisyon birimini eline al.",
+    "nameEn": "Delegation Secretary",
+    "textEn": "Once per turn, pay 800 OP; return 1 banished Level 4 or lower Coalition unit to your hand."
   },
   {
     "id": "SND-223",
@@ -2673,7 +3117,9 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Puanın 4000 altındayken 600 DEF kazanır. Açıldığında 1 Koalisyon birimini savunmaya geçir."
+    "text": "Puanın 4000 altındayken 600 DEF kazanır. Açıldığında 1 Koalisyon birimini savunmaya geçir.",
+    "nameEn": "Consensus Observer",
+    "textEn": "Gains 600 DEF while your points are below 4000. When flipped, change 1 Coalition unit to defense."
   },
   {
     "id": "SND-224",
@@ -2685,7 +3131,9 @@
     "attack": 1300,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Sahadaki kademe 3 veya altı Koalisyon birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 450 OP kaybet."
+    "text": "Sahadaki kademe 3 veya altı Koalisyon birimleri 400 DEF kazanır. Kendi Hazırlık aşamanda 450 OP kaybet.",
+    "nameEn": "Joint Table Spokesperson",
+    "textEn": "Level 3 or lower Coalition units on the field gain 400 DEF. During your Standby Phase, lose 450 OP."
   },
   {
     "id": "SND-225",
@@ -2697,7 +3145,9 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Koalisyon birimini özel çağır; bu tur savaş aşamasını atla."
+    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Koalisyon birimini özel çağır; bu tur savaş aşamasını atla.",
+    "nameEn": "Delegation Courier",
+    "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Coalition unit from your grave; skip Battle this turn."
   },
   {
     "id": "SND-226",
@@ -2709,7 +3159,9 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 1050 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Koalisyon birimin bulunmalı."
+    "text": "Turda bir kez: 1050 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Koalisyon birimin bulunmalı.",
+    "nameEn": "Accord Auditor",
+    "textEn": "Once per turn, pay 1050 OP; return 1 opposing face-up support card to its owner's hand. You must control a Coalition unit."
   },
   {
     "id": "SND-227",
@@ -2721,7 +3173,9 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Koalisyon birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Koalisyon birimini eline al.",
+    "nameEn": "Alliance Negotiator",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Coalition unit from your grave to your hand."
   },
   {
     "id": "SND-228",
@@ -2733,7 +3187,9 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal çağrıldığında 850 OP kaybet; destenden kademe 3 veya altı 1 Lojistik birimini eline al ve desteni karıştır."
+    "text": "Normal çağrıda 850 OP kaybet; destenden kademe 3 veya altı 1 Lojistik birimini eline al ve desteni karıştır.",
+    "nameEn": "Warehouse Counter",
+    "textEn": "When Normal Summoned, lose 850 OP; add 1 Level 3 or lower Logistics unit from your deck to your hand and shuffle."
   },
   {
     "id": "SND-229",
@@ -2745,7 +3201,9 @@
     "attack": 1100,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir: 850 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Lojistik birimine bu tur 400 DEF ver."
+    "text": "Turda bir kez: 850 OP öde; rakibin kapalı 1 kartına bak, ardından 1 Lojistik birimine bu tur 400 DEF ver.",
+    "nameEn": "Bus Coordinator",
+    "textEn": "Once per turn, pay 850 OP; look at 1 opposing face-down card, then give 1 Logistics unit 400 DEF this turn."
   },
   {
     "id": "SND-230",
@@ -2757,7 +3215,9 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Başka bir Lojistik birimin varken 500 ATK kazanır. Feda edildiğinde 950 OP kazan."
+    "text": "Başka bir Lojistik birimin varken 500 ATK kazanır. Feda edildiğinde 950 OP kazan.",
+    "nameEn": "Stage Steward",
+    "textEn": "Gains 500 ATK while you control another Logistics unit. When tributed, gain 950 OP."
   },
   {
     "id": "SND-231",
@@ -2769,7 +3229,9 @@
     "attack": 1400,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir: 850 OP öde; 1 Lojistik birimine bu tur 500 DEF ver."
+    "text": "Kapalı tuzağın varken 400 ATK kazanır. Turda bir kez: 850 OP öde; 1 Lojistik birimine bu tur 500 DEF ver.",
+    "nameEn": "Field Operations Chief",
+    "textEn": "Gains 400 ATK while you control a Set trap. Once per turn, pay 850 OP; give 1 Logistics unit 500 DEF this turn."
   },
   {
     "id": "SND-232",
@@ -2781,7 +3243,9 @@
     "attack": 900,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: oyun dışındaki 1 Lojistik birimini eline al, sonra 300 OP kazan."
+    "text": "Bu kartı feda et: oyun dışındaki 1 Lojistik birimini eline al, sonra 300 OP kazan.",
+    "nameEn": "Poster Distributor",
+    "textEn": "Tribute this card: return 1 banished Logistics unit to your hand, then gain 300 OP."
   },
   {
     "id": "SND-233",
@@ -2793,7 +3257,9 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir: 1100 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Lojistik birimine bu tur 200 ATK ver."
+    "text": "Turda bir kez: 1100 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Lojistik birimine bu tur 200 ATK ver.",
+    "nameEn": "Fuel Auditor",
+    "textEn": "Once per turn, pay 1100 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Logistics unit 200 ATK this turn."
   },
   {
     "id": "SND-234",
@@ -2805,7 +3271,9 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lojistik birimini eline al."
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lojistik birimini eline al.",
+    "nameEn": "Rally Organizer",
+    "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Logistics unit from your grave to your hand."
   },
   {
     "id": "SND-235",
@@ -2817,7 +3285,9 @@
     "attack": 2300,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "Yardımcı deste: 1 Sandık ve 1 Kulis birimi malzeme. Turda bir: 700 OP öde; rakibin 1 açık destek kartını eline gönder."
+    "text": "Yardımcı deste: 1 Sandık ve 1 Kulis birimi malzeme. Turda bir kez: 700 OP öde; rakibin 1 açık destek kartını eline gönder.",
+    "nameEn": "Union of Cities",
+    "textEn": "Auxiliary deck: 1 Ballot and 1 Backroom unit as materials. Once per turn, pay 700 OP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "SND-236",
@@ -2829,7 +3299,9 @@
     "attack": 2400,
     "defense": 2100,
     "deckLocation": "auxiliary",
-    "text": "Yardımcı deste: 1 Kürsü ve 1 Belediye birimi malzeme. Turda bir: 800 OP öde; rakibin 1 açık destek kartını eline gönder."
+    "text": "Yardımcı deste: 1 Kürsü ve 1 Belediye birimi malzeme. Turda bir kez: 800 OP öde; rakibin 1 açık destek kartını eline gönder.",
+    "nameEn": "Joint Election Board",
+    "textEn": "Auxiliary deck: 1 Assembly and 1 Municipal unit as materials. Once per turn, pay 800 OP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "SND-237",
@@ -2841,7 +3313,9 @@
     "attack": 2500,
     "defense": 2200,
     "deckLocation": "auxiliary",
-    "text": "Yardımcı deste: 1 Basın ve 1 Anket birimi malzeme. Turda bir: 900 OP öde; rakibin 1 açık destek kartını eline gönder."
+    "text": "Yardımcı deste: 1 Basın ve 1 Anket birimi malzeme. Turda bir kez: 900 OP öde; rakibin 1 açık destek kartını eline gönder.",
+    "nameEn": "Independent Audit Panel",
+    "textEn": "Auxiliary deck: 1 Press and 1 Polling unit as materials. Once per turn, pay 900 OP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "SND-238",
@@ -2853,7 +3327,9 @@
     "attack": 2600,
     "defense": 2300,
     "deckLocation": "auxiliary",
-    "text": "Yardımcı deste: 1 Kurum ve 1 Lobi birimi malzeme. Turda bir: 1000 OP öde; rakibin 1 açık destek kartını eline gönder."
+    "text": "Yardımcı deste: 1 Kurum ve 1 Lobi birimi malzeme. Turda bir kez: 1000 OP öde; rakibin 1 açık destek kartını eline gönder.",
+    "nameEn": "Social Accord Delegation",
+    "textEn": "Auxiliary deck: 1 Institution and 1 Lobby unit as materials. Once per turn, pay 1000 OP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "SND-239",
@@ -2865,7 +3341,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "400 OP öde; destenden kademe 4 veya altı 1 Sandık birimini eline al, desteni karıştır, sonra elinden 1 kart bırak."
+    "text": "400 OP öde; destenden kademe 4 veya altı 1 Sandık kadrosunu eline al, desteni karıştır, sonra elinden 1 kart bırak.",
+    "nameEn": "Count Appeal",
+    "textEn": "Pay 400 OP; add 1 Level 4 or lower Ballot unit from your deck to your hand, shuffle, then discard 1 card."
   },
   {
     "id": "SND-240",
@@ -2877,7 +3355,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "450 OP öde; destenin üst 2 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Kulis birimin bulunmalı."
+    "text": "450 OP öde; destenin üst 2 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Kulis birimin bulunmalı.",
+    "nameEn": "Corridor Appointment",
+    "textEn": "Pay 450 OP; look at the top 2 cards of your deck, take up to 1 unit and leave the rest on top in order. You must control a Backroom unit."
   },
   {
     "id": "SND-241",
@@ -2889,7 +3369,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "500 OP öde; mezarlığındaki 1 Kürsü birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder."
+    "text": "500 OP öde; mezarlığındaki 1 Kürsü kadrosunu eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "nameEn": "Committee Calendar",
+    "textEn": "Pay 500 OP; return 1 Assembly unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
   {
     "id": "SND-242",
@@ -2901,7 +3383,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "550 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Belediye birimine bu tur 300 DEF ver."
+    "text": "550 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Belediye birimine bu tur 300 DEF ver.",
+    "nameEn": "Planning Notice",
+    "textEn": "Pay 550 OP; return 1 opposing face-up support card to its owner's hand, then give 1 Municipal unit 300 DEF this turn."
   },
   {
     "id": "SND-243",
@@ -2913,7 +3397,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "600 OP öde; destenden kademe 4 veya altı 1 Basın birimini eline al, desteni karıştır, sonra elinden 1 kart bırak."
+    "text": "600 OP öde; destenden kademe 4 veya altı 1 Basın birimini eline al, desteni karıştır, sonra elinden 1 kart bırak.",
+    "nameEn": "Press Review",
+    "textEn": "Pay 600 OP; add 1 Level 4 or lower Press unit from your deck to your hand, shuffle, then discard 1 card."
   },
   {
     "id": "SND-244",
@@ -2925,7 +3411,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "650 OP öde; destenin üst 3 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Anket birimin bulunmalı."
+    "text": "650 OP öde; destenin üst 3 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Anket birimin bulunmalı.",
+    "nameEn": "Raw Data",
+    "textEn": "Pay 650 OP; look at the top 3 cards of your deck, take up to 1 unit and leave the rest on top in order. You must control a Polling unit."
   },
   {
     "id": "SND-245",
@@ -2937,7 +3425,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 OP öde; mezarlığındaki 1 Kurum birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder."
+    "text": "700 OP öde; mezarlığındaki 1 Kurum birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "nameEn": "Archive Request",
+    "textEn": "Pay 700 OP; return 1 Institution unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
   {
     "id": "SND-246",
@@ -2949,7 +3439,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "750 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Lobi birimine bu tur 300 DEF ver."
+    "text": "750 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Lobi birimine bu tur 300 DEF ver.",
+    "nameEn": "Transparent Donation",
+    "textEn": "Pay 750 OP; return 1 opposing face-up support card to its owner's hand, then give 1 Lobby unit 300 DEF this turn."
   },
   {
     "id": "SND-247",
@@ -2961,7 +3453,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "800 OP öde; destenden kademe 4 veya altı 1 Gençlik birimini eline al, desteni karıştır, sonra elinden 1 kart bırak."
+    "text": "800 OP öde; destenden kademe 4 veya altı 1 Gençlik birimini eline al, desteni karıştır, sonra elinden 1 kart bırak.",
+    "nameEn": "Campus Forum",
+    "textEn": "Pay 800 OP; add 1 Level 4 or lower Youth unit from your deck to your hand, shuffle, then discard 1 card."
   },
   {
     "id": "SND-248",
@@ -2973,7 +3467,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "850 OP öde; destenin üst 4 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Hukuk birimin bulunmalı."
+    "text": "850 OP öde; destenin üst 4 kartına bak, aralarından en fazla 1 birimi eline al; kalanları aynı sırayla üste bırak. Bir Hukuk birimin bulunmalı.",
+    "nameEn": "Case Preparation",
+    "textEn": "Pay 850 OP; look at the top 4 cards of your deck, take up to 1 unit and leave the rest on top in order. You must control a Law unit."
   },
   {
     "id": "SND-249",
@@ -2985,7 +3481,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 OP öde; mezarlığındaki 1 Koalisyon birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder."
+    "text": "900 OP öde; mezarlığındaki 1 Koalisyon birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "nameEn": "Joint Working Paper",
+    "textEn": "Pay 900 OP; return 1 Coalition unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
   {
     "id": "SND-250",
@@ -2997,7 +3495,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "950 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Lojistik birimine bu tur 300 DEF ver."
+    "text": "950 OP öde; rakibin açık 1 destek kartını eline gönder, ardından 1 Lojistik birimine bu tur 300 DEF ver.",
+    "nameEn": "Travel Plan",
+    "textEn": "Pay 950 OP; return 1 opposing face-up support card to its owner's hand, then give 1 Logistics unit 300 DEF this turn."
   },
   {
     "id": "SND-251",
@@ -3009,7 +3509,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "600 OP öde; mezarlığından kademe 3 veya altı 1 Sandık birimini özel çağır. Bu tur savaş aşamasını atla."
+    "text": "600 OP öde; mezarlığından kademe 3 veya altı 1 Sandık kadrosunu özel çağır. Bu tur savaş aşamasını atla.",
+    "nameEn": "Count Backup",
+    "textEn": "Pay 600 OP; Special Summon 1 Level 3 or lower Ballot unit from your grave. Skip Battle this turn."
   },
   {
     "id": "SND-252",
@@ -3021,7 +3523,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "650 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Kulis birimin bulunmalı. Set kartı bu tur açamazsın."
+    "text": "650 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Kulis birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "nameEn": "List Revision",
+    "textEn": "Pay 650 OP; Set 1 trap from your grave into a support zone. You must control a Backroom unit. The Set card cannot activate this turn."
   },
   {
     "id": "SND-253",
@@ -3033,7 +3537,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kürsü birimin bulunmalı."
+    "text": "700 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kürsü birimin bulunmalı.",
+    "nameEn": "Procedural Recess",
+    "textEn": "Pay 700 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Assembly unit."
   },
   {
     "id": "SND-254",
@@ -3045,7 +3551,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1150 OP öde; rakibin açık kademe 2 veya altı 1 biriminin kontrolünü bu tur al. Bir Belediye birimin ve boş birim bölgen bulunmalı."
+    "text": "1150 OP öde; rakibin açık kademe 2 veya altı 1 biriminin kontrolünü bu tur al. Bir Belediye birimin ve boş birim bölgen bulunmalı.",
+    "nameEn": "Urgent Maintenance",
+    "textEn": "Pay 1150 OP; take control of 1 opposing face-up Level 2 or lower unit for this turn. You need a Municipal unit and an empty unit zone."
   },
   {
     "id": "SND-255",
@@ -3057,7 +3565,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "800 OP öde; mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır. Bu tur savaş aşamasını atla."
+    "text": "800 OP öde; mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "nameEn": "Second Printing",
+    "textEn": "Pay 800 OP; Special Summon 1 Level 3 or lower Press unit from your grave. Skip Battle this turn."
   },
   {
     "id": "SND-256",
@@ -3069,7 +3579,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "850 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Anket birimin bulunmalı. Set kartı bu tur açamazsın."
+    "text": "850 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Anket birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "nameEn": "Sample Repair",
+    "textEn": "Pay 850 OP; Set 1 trap from your grave into a support zone. You must control a Polling unit. The Set card cannot activate this turn."
   },
   {
     "id": "SND-257",
@@ -3081,7 +3593,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kurum birimin bulunmalı."
+    "text": "900 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kurum birimin bulunmalı.",
+    "nameEn": "Public File",
+    "textEn": "Pay 900 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Institution unit."
   },
   {
     "id": "SND-258",
@@ -3093,7 +3607,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1350 OP öde; rakibin açık kademe 3 veya altı 1 biriminin kontrolünü bu tur al. Bir Lobi birimin ve boş birim bölgen bulunmalı."
+    "text": "1350 OP öde; rakibin açık kademe 3 veya altı 1 biriminin kontrolünü bu tur al. Bir Lobi birimin ve boş birim bölgen bulunmalı.",
+    "nameEn": "Interest Declaration",
+    "textEn": "Pay 1350 OP; take control of 1 opposing face-up Level 3 or lower unit for this turn. You need a Lobby unit and an empty unit zone."
   },
   {
     "id": "SND-259",
@@ -3105,7 +3621,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1000 OP öde; mezarlığından kademe 3 veya altı 1 Gençlik birimini özel çağır. Bu tur savaş aşamasını atla."
+    "text": "1000 OP öde; mezarlığından kademe 3 veya altı 1 Gençlik birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "nameEn": "Volunteer Route",
+    "textEn": "Pay 1000 OP; Special Summon 1 Level 3 or lower Youth unit from your grave. Skip Battle this turn."
   },
   {
     "id": "SND-260",
@@ -3117,7 +3635,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1050 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Hukuk birimin bulunmalı. Set kartı bu tur açamazsın."
+    "text": "1050 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Hukuk birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "nameEn": "Appeal Period",
+    "textEn": "Pay 1050 OP; Set 1 trap from your grave into a support zone. You must control a Law unit. The Set card cannot activate this turn."
   },
   {
     "id": "SND-261",
@@ -3129,7 +3649,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1100 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Koalisyon birimin bulunmalı."
+    "text": "1100 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Koalisyon birimin bulunmalı.",
+    "nameEn": "Table Extension",
+    "textEn": "Pay 1100 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Coalition unit."
   },
   {
     "id": "SND-262",
@@ -3141,7 +3663,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1550 OP öde; rakibin açık kademe 4 veya altı 1 biriminin kontrolünü bu tur al. Bir Lojistik birimin ve boş birim bölgen bulunmalı."
+    "text": "1550 OP öde; rakibin açık kademe 4 veya altı 1 biriminin kontrolünü bu tur al. Bir Lojistik birimin ve boş birim bölgen bulunmalı.",
+    "nameEn": "Sound Check",
+    "textEn": "Pay 1550 OP; take control of 1 opposing face-up Level 4 or lower unit for this turn. You need a Logistics unit and an empty unit zone."
   },
   {
     "id": "SND-263",
@@ -3153,7 +3677,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 300 DEF kazanır. Sahadaki Sandık birimleri 150 ATK kazanır."
+    "text": "Donatılan birim 300 DEF kazanır. Sahadaki Sandık birimleri 150 ATK kazanır.",
+    "nameEn": "Ballot Sack",
+    "textEn": "The equipped unit gains 300 DEF. Ballot units on the field gain 150 ATK."
   },
   {
     "id": "SND-264",
@@ -3165,7 +3691,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 375 ATK kazanır ama 200 DEF kaybeder. Sahadaki Kulis birimleri 100 DEF kazanır."
+    "text": "Donatılan birim 375 ATK kazanır ama 200 DEF kaybeder. Sahadaki Kulis birimleri 100 DEF kazanır.",
+    "nameEn": "Quiet Meeting",
+    "textEn": "The equipped unit gains 375 ATK but loses 200 DEF. Backroom units on the field gain 100 DEF."
   },
   {
     "id": "SND-265",
@@ -3177,7 +3705,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Kürsü birimleri 200 ATK kazanır."
+    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Kürsü birimleri 200 ATK kazanır.",
+    "nameEn": "Interim Committee",
+    "textEn": "The equipped unit gains 300 DEF. Level 3 or lower Assembly units on the field gain 200 ATK."
   },
   {
     "id": "SND-266",
@@ -3189,7 +3719,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 375 DEF kazanır. Sahadaki Belediye birimleri 150 ATK kazanır."
+    "text": "Donatılan birim 375 DEF kazanır. Sahadaki Belediye birimleri 150 ATK kazanır.",
+    "nameEn": "Night Municipal Bus",
+    "textEn": "The equipped unit gains 375 DEF. Municipal units on the field gain 150 ATK."
   },
   {
     "id": "SND-267",
@@ -3201,7 +3733,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 450 ATK kazanır ama 200 DEF kaybeder. Sahadaki Basın birimleri 100 DEF kazanır."
+    "text": "Donatılan birim 450 ATK kazanır ama 200 DEF kaybeder. Sahadaki Basın birimleri 100 DEF kazanır.",
+    "nameEn": "Live Feed",
+    "textEn": "The equipped unit gains 450 ATK but loses 200 DEF. Press units on the field gain 100 DEF."
   },
   {
     "id": "SND-268",
@@ -3213,7 +3747,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Anket birimleri 275 ATK kazanır."
+    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Anket birimleri 275 ATK kazanır.",
+    "nameEn": "Field Verification",
+    "textEn": "The equipped unit gains 300 DEF. Level 3 or lower Polling units on the field gain 275 ATK."
   },
   {
     "id": "SND-269",
@@ -3225,7 +3761,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 450 DEF kazanır. Sahadaki Kurum birimleri 150 ATK kazanır."
+    "text": "Donatılan birim 450 DEF kazanır. Sahadaki Kurum birimleri 150 ATK kazanır.",
+    "nameEn": "Transaction Receipt",
+    "textEn": "The equipped unit gains 450 DEF. Institution units on the field gain 150 ATK."
   },
   {
     "id": "SND-270",
@@ -3237,7 +3775,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 525 ATK kazanır ama 200 DEF kaybeder. Sahadaki Lobi birimleri 100 DEF kazanır."
+    "text": "Donatılan birim 525 ATK kazanır ama 200 DEF kaybeder. Sahadaki Lobi birimleri 100 DEF kazanır.",
+    "nameEn": "Meeting Protocol",
+    "textEn": "The equipped unit gains 525 ATK but loses 200 DEF. Lobby units on the field gain 100 DEF."
   },
   {
     "id": "SND-271",
@@ -3249,7 +3789,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Gençlik birimleri 350 ATK kazanır."
+    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Gençlik birimleri 350 ATK kazanır.",
+    "nameEn": "Student Shuttle",
+    "textEn": "The equipped unit gains 300 DEF. Level 3 or lower Youth units on the field gain 350 ATK."
   },
   {
     "id": "SND-272",
@@ -3261,7 +3803,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 525 DEF kazanır. Sahadaki Hukuk birimleri 150 ATK kazanır."
+    "text": "Donatılan birim 525 DEF kazanır. Sahadaki Hukuk birimleri 150 ATK kazanır.",
+    "nameEn": "Injunction Request",
+    "textEn": "The equipped unit gains 525 DEF. Law units on the field gain 150 ATK."
   },
   {
     "id": "SND-273",
@@ -3273,7 +3817,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 600 ATK kazanır ama 200 DEF kaybeder. Sahadaki Koalisyon birimleri 100 DEF kazanır."
+    "text": "Donatılan birim 600 ATK kazanır ama 200 DEF kaybeder. Sahadaki Koalisyon birimleri 100 DEF kazanır.",
+    "nameEn": "Coalition Workshop",
+    "textEn": "The equipped unit gains 600 ATK but loses 200 DEF. Coalition units on the field gain 100 DEF."
   },
   {
     "id": "SND-274",
@@ -3285,7 +3831,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Lojistik birimleri 425 ATK kazanır."
+    "text": "Donatılan birim 300 DEF kazanır. Sahadaki kademe 3 veya altı Lojistik birimleri 425 ATK kazanır.",
+    "nameEn": "Mobile Lectern",
+    "textEn": "The equipped unit gains 300 DEF. Level 3 or lower Logistics units on the field gain 425 ATK."
   },
   {
     "id": "SND-275",
@@ -3297,7 +3845,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1200 OP öde; 2 kart çek, ardından elinden 2 kart bırak ve bu tur savaş aşamasını atla."
+    "text": "1200 OP öde; 2 kart çek, ardından elinden 2 kart bırak ve bu tur savaş aşamasını atla.",
+    "nameEn": "Last-Minute Accord",
+    "textEn": "Pay 1200 OP; draw 2 cards, then discard 2 cards and skip Battle this turn."
   },
   {
     "id": "SND-276",
@@ -3309,7 +3859,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 350 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Sandık birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 350 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Sandık kadrosunu eline al.",
+    "nameEn": "Seal Mismatch",
+    "textEn": "When the opponent declares an attack: pay 350 OP; cancel the attack, then return 1 Level 2 or lower Ballot unit from your grave to your hand."
   },
   {
     "id": "SND-277",
@@ -3321,7 +3873,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 400 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kulis birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 400 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kulis kadrosunu eline al.",
+    "nameEn": "Leaked Appointment",
+    "textEn": "When the opponent declares an attack: pay 400 OP; cancel the attack, then return 1 Level 2 or lower Backroom unit from your grave to your hand."
   },
   {
     "id": "SND-278",
@@ -3333,7 +3887,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 450 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kürsü birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 450 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kürsü kadrosunu eline al.",
+    "nameEn": "Procedure Objection",
+    "textEn": "When the opponent declares an attack: pay 450 OP; cancel the attack, then return 1 Level 2 or lower Assembly unit from your grave to your hand."
   },
   {
     "id": "SND-279",
@@ -3345,7 +3901,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 500 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Belediye birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 500 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Belediye birimini eline al.",
+    "nameEn": "Missing Permit",
+    "textEn": "When the opponent declares an attack: pay 500 OP; cancel the attack, then return 1 Level 2 or lower Municipal unit from your grave to your hand."
   },
   {
     "id": "SND-280",
@@ -3357,7 +3915,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 550 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Basın birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 550 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Basın birimini eline al.",
+    "nameEn": "Right of Reply",
+    "textEn": "When the opponent declares an attack: pay 550 OP; cancel the attack, then return 1 Level 2 or lower Press unit from your grave to your hand."
   },
   {
     "id": "SND-281",
@@ -3369,7 +3929,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 600 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Anket birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 600 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Anket birimini eline al.",
+    "nameEn": "Faulty Sample",
+    "textEn": "When the opponent declares an attack: pay 600 OP; cancel the attack, then return 1 Level 2 or lower Polling unit from your grave to your hand."
   },
   {
     "id": "SND-282",
@@ -3381,7 +3943,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 650 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kurum birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 650 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kurum birimini eline al.",
+    "nameEn": "Missing Document",
+    "textEn": "When the opponent declares an attack: pay 650 OP; cancel the attack, then return 1 Level 2 or lower Institution unit from your grave to your hand."
   },
   {
     "id": "SND-283",
@@ -3393,7 +3957,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 700 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lobi birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 700 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lobi birimini eline al.",
+    "nameEn": "Donation Inquiry",
+    "textEn": "When the opponent declares an attack: pay 700 OP; cancel the attack, then return 1 Level 2 or lower Lobby unit from your grave to your hand."
   },
   {
     "id": "SND-284",
@@ -3405,7 +3971,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 750 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Gençlik birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 750 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Gençlik birimini eline al.",
+    "nameEn": "Forum Protest",
+    "textEn": "When the opponent declares an attack: pay 750 OP; cancel the attack, then return 1 Level 2 or lower Youth unit from your grave to your hand."
   },
   {
     "id": "SND-285",
@@ -3417,7 +3985,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 800 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Hukuk birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 800 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Hukuk birimini eline al.",
+    "nameEn": "Stay of Execution",
+    "textEn": "When the opponent declares an attack: pay 800 OP; cancel the attack, then return 1 Level 2 or lower Law unit from your grave to your hand."
   },
   {
     "id": "SND-286",
@@ -3429,7 +3999,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 850 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Koalisyon birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 850 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Koalisyon birimini eline al.",
+    "nameEn": "Protocol Breach",
+    "textEn": "When the opponent declares an attack: pay 850 OP; cancel the attack, then return 1 Level 2 or lower Coalition unit from your grave to your hand."
   },
   {
     "id": "SND-287",
@@ -3441,7 +4013,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 900 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lojistik birimini eline al."
+    "text": "Rakip saldırı ilan ettiğinde: 900 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lojistik birimini eline al.",
+    "nameEn": "Cancelled Service",
+    "textEn": "When the opponent declares an attack: pay 900 OP; cancel the attack, then return 1 Level 2 or lower Logistics unit from your grave to your hand."
   },
   {
     "id": "SND-288",
@@ -3453,7 +4027,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 750 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Sandık birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 750 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Sandık birimine bu tur 300 DEF ver.",
+    "nameEn": "Duplicate Count Sheet",
+    "textEn": "When the opponent activates a support card: pay 750 OP; negate the activation, then give 1 Ballot unit 300 DEF this turn."
   },
   {
     "id": "SND-289",
@@ -3465,7 +4041,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 800 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kulis birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 800 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kulis birimine bu tur 300 DEF ver.",
+    "nameEn": "Closed Door",
+    "textEn": "When the opponent activates a support card: pay 800 OP; negate the activation, then give 1 Backroom unit 300 DEF this turn."
   },
   {
     "id": "SND-290",
@@ -3477,7 +4055,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 850 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kürsü birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 850 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kürsü birimine bu tur 300 DEF ver.",
+    "nameEn": "Time Overrun",
+    "textEn": "When the opponent activates a support card: pay 850 OP; negate the activation, then give 1 Assembly unit 300 DEF this turn."
   },
   {
     "id": "SND-291",
@@ -3489,7 +4069,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 900 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Belediye birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 900 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Belediye birimine bu tur 300 DEF ver.",
+    "nameEn": "Planning Appeal",
+    "textEn": "When the opponent activates a support card: pay 900 OP; negate the activation, then give 1 Municipal unit 300 DEF this turn."
   },
   {
     "id": "SND-292",
@@ -3501,7 +4083,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 950 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Basın birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 950 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Basın birimine bu tur 300 DEF ver.",
+    "nameEn": "Live Microphone",
+    "textEn": "When the opponent activates a support card: pay 950 OP; negate the activation, then give 1 Press unit 300 DEF this turn."
   },
   {
     "id": "SND-293",
@@ -3513,7 +4097,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1000 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Anket birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1000 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Anket birimine bu tur 300 DEF ver.",
+    "nameEn": "Data Contradiction",
+    "textEn": "When the opponent activates a support card: pay 1000 OP; negate the activation, then give 1 Polling unit 300 DEF this turn."
   },
   {
     "id": "SND-294",
@@ -3525,7 +4111,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1050 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kurum birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1050 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Kurum birimine bu tur 300 DEF ver.",
+    "nameEn": "Surprise Audit",
+    "textEn": "When the opponent activates a support card: pay 1050 OP; negate the activation, then give 1 Institution unit 300 DEF this turn."
   },
   {
     "id": "SND-295",
@@ -3537,7 +4125,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1100 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Lobi birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1100 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Lobi birimine bu tur 300 DEF ver.",
+    "nameEn": "Conflict of Interest",
+    "textEn": "When the opponent activates a support card: pay 1100 OP; negate the activation, then give 1 Lobby unit 300 DEF this turn."
   },
   {
     "id": "SND-296",
@@ -3549,7 +4139,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1150 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Gençlik birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1150 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Gençlik birimine bu tur 300 DEF ver.",
+    "nameEn": "Campus Boycott",
+    "textEn": "When the opponent activates a support card: pay 1150 OP; negate the activation, then give 1 Youth unit 300 DEF this turn."
   },
   {
     "id": "SND-297",
@@ -3561,7 +4153,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1200 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Hukuk birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1200 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Hukuk birimine bu tur 300 DEF ver.",
+    "nameEn": "Night Summons",
+    "textEn": "When the opponent activates a support card: pay 1200 OP; negate the activation, then give 1 Law unit 300 DEF this turn."
   },
   {
     "id": "SND-298",
@@ -3573,7 +4167,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1250 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Koalisyon birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1250 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Koalisyon birimine bu tur 300 DEF ver.",
+    "nameEn": "Walkout",
+    "textEn": "When the opponent activates a support card: pay 1250 OP; negate the activation, then give 1 Coalition unit 300 DEF this turn."
   },
   {
     "id": "SND-299",
@@ -3585,7 +4181,9 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1300 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Lojistik birimine bu tur 300 DEF ver."
+    "text": "Rakip bir destek kartı etkinleştirdiğinde: 1300 OP öde; etkinleştirmeyi etkisizleştir, ardından 1 Lojistik birimine bu tur 300 DEF ver.",
+    "nameEn": "Logistics Gap",
+    "textEn": "When the opponent activates a support card: pay 1300 OP; negate the activation, then give 1 Logistics unit 300 DEF this turn."
   },
   {
     "id": "SND-300",
@@ -3597,6 +4195,8 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Düelloda bir: rakip doğrudan saldırı ilan ettiğinde 1000 OP öde; saldırıyı iptal et ve 1 kart çek."
+    "text": "Düelloda bir: rakip doğrudan saldırı ilan ettiğinde 1000 OP öde; saldırıyı iptal et ve 1 kart çek.",
+    "nameEn": "Final Objection",
+    "textEn": "Once per duel: when the opponent declares a direct attack, pay 1000 OP; cancel the attack and draw 1 card."
   }
 ]
