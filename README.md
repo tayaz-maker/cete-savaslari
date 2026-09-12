@@ -4,6 +4,8 @@
 
 18+ kurgusal içerik. Gerçek kumar, uyuşturucu veya şiddet teşviki değil.
 
+**Aktif ürün:** [www.tariklab.com](https://www.tariklab.com). Native/Godot şu an durduruldu. Anlamlı web değişiklikleri sonra native eşlemesi için [docs/WEB_APP_SYNC_LEDGER.md](docs/WEB_APP_SYNC_LEDGER.md) dosyasına yazılır. Oyunlar ileride ayrı indirilebilir başlıklar olacak; tek bir dev native uygulama değil.
+
 ## Geliştirme
 
 ```
