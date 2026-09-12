@@ -1,3 +1,4 @@
+import { HELP_SECTIONS } from "./help.js";
 import {
   ALT_PRESETS,
   DOCTRINES,
@@ -179,6 +180,7 @@ function draw(session) {
         "Aylık gündem, iki ana karar, kurum uygulaması ve asla tam olmayan bilgi.",
         "Monthly agenda, two main decisions, institutional implementation and never-complete information.",
       ),
+      help: HELP_SECTIONS,
       slotSummary: (s) =>
         `${s.time?.year || "—"}/${String(s.time?.month || 1).padStart(2, "0")} · ${h(loc(PERIODS[s.eraId]?.name || s.eraId))}`,
     });

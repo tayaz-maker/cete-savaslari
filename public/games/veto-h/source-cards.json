@@ -303,7 +303,7 @@
     "attack": 1700,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda ek 1 Normal Summon: yalnızca Kademe 3 veya altı.",
+    "text": "Turda ek 1 Normal Çağrı: yalnızca Kademe 3 veya altı.",
     "nameEn": "Campaign Director",
     "textEn": "Grants 1 additional Normal Summon each turn, only for a Level 3 or lower unit."
   },
@@ -1675,7 +1675,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip Normal Summon yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz.",
+    "text": "Rakip Normal Çağrı yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz.",
     "nameEn": "Live Scandal",
     "textEn": "When your opponent Normal Summons, turn that unit face-down in defense. It cannot attack this turn."
   },
@@ -2053,7 +2053,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Her Normal Summon’da OP +200.",
+    "text": "Her Normal Çağrı’da OP +200.",
     "nameEn": "Ballot Paper",
     "textEn": "Whenever a unit is Normal Summoned, gain 200 OP."
   },
@@ -2095,7 +2095,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün tartışma hasarları +300. End Phase’te her oyuncu 1 kart atar.",
+    "text": "Bütün tartışma hasarları +300. Tur Sonu’nda her oyuncu 1 kart atar.",
     "nameEn": "Election Night",
     "textEn": "All battle damage increases by 300. At each End Phase, both players discard 1 card."
   },

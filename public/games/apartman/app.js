@@ -1,4 +1,5 @@
 import { PROPOSALS, RESIDENTS } from "../next-wave.js";
+import { HELP_SECTIONS } from "./help.js";
 import {
   bindFrontMenu,
   bindSavePanel,
@@ -6,6 +7,7 @@ import {
   escapeHtml as h,
   frontMenu,
   loc,
+  helpPanel,
   savePanel,
   text as t,
 } from "../next-wave/shared/runtime.js";
@@ -32,10 +34,7 @@ function menu(session) {
         "One building, sixteen flats, issues that never end.",
       ),
       summary: slotSummary,
-      help: t(
-        "Meseleyi seç, dosyayı hazırla, Toplantı Gecesi'nde tek teklifi oylat ve haftayı kapat.",
-        "Choose an issue, prepare its file, vote one proposal on Meeting Night, then close the week.",
-      ),
+      help: HELP_SECTIONS,
     },
   )}</main>`;
   bindFrontMenu(root, session, {
@@ -106,7 +105,7 @@ function draw(session) {
         : ""
     }
     <div class="apt-footer-actions"><button type="button" id="history">${t("Defterden son kayıtlar", "Recent ledger")}</button><button type="button" id="meeting" class="primary" ${meetingDone || !focus ? "disabled" : ""}>${meetingDone ? t("Bu hafta toplantı yapıldı", "Meeting already held this week") : t("TOPLANTI GECESİ", "MEETING NIGHT")}</button><button type="button" id="advance">${t("HAFTAYI KAPAT", "CLOSE THE WEEK")}</button></div>
-    <p class="notice">${h(session.notice)}</p><details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Yunus Apartmanı'nın yöneticisisin: kasaya, binaya ve sakinlere sen bakarsın. Her hafta listeden bir mesele seç, en fazla iki dosya hazırla, sonra Toplantı Gecesi'nde maliyet/risk dengesi taşıyan bir teklifi oylat — sakinler kendi memnuniyetine, etkisine ve geçmiş kararları hatırlayan hafızasına göre oy kullanır. Zaman yalnızca HAFTAYI KAPAT dediğinde ilerler: aidat tahsilatı, bina eskimesi ve ucuz yamalar gibi gecikmiş sonuçlar o anda işlenir. Kasa, aidat ve bina durumunu üst paneldeki göstergelerden, sakinlerin memnuniyetini ve hafızasını duyuru/zil defterinden takip et. Amacın binayı ayakta, kasayı dengede ve sakinleri idare edilebilir tutmak; resmi bir bitiş yok, istediğin kadar hafta yönetebilirsin. Her hamlen aktif kayıt slotuna otomatik işlenir; üç yerel slot birbirinden bağımsızdır.", "Choose an issue. Prepare up to two files. At Meeting Night choose a cost/risk proposal and see the residents' vote. Closing the week processes dues, wear and delayed consequences once.")}</p></details><footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>
+    <p class="notice">${h(session.notice)}</p>${helpPanel(HELP_SECTIONS)}<footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>
     ${state.ui?.meetingOpen ? `<div class="meeting-scene" role="dialog" aria-modal="true" aria-labelledby="meeting-title"><section class="meeting-paper"><p class="eyebrow">${t("GÜNDEM", "AGENDA")}</p><h2 id="meeting-title">${h(loc(focus?.title || t("Apartman bütçesi", "Building budget")))}</h2><p>${t("Hazırlanan dosya", "Prepared files")}: ${(state.flags.prepared || []).length}/2 · ${t("Sakinler salonda. Tek teklif oylanacak.", "Residents are in the room. One proposal will be voted.")}</p><div class="proposal-grid">${PROPOSALS.map((proposal) => `<button type="button" data-proposal="${h(proposal.id)}"><strong>${h(loc(proposal.label))}</strong><br><small>₺${money(proposal.cash || 0)} · ${t("bina", "condition")} ${proposal.condition >= 0 ? "+" : ""}${proposal.condition} · ${t("risk", "risk")} ${proposal.risk}</small></button>`).join("")}</div><button type="button" id="close-meeting">${t("Masaya dön", "Back to desk")}</button></section></div>` : ""}`;
 
   root

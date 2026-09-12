@@ -20,6 +20,7 @@ import {
   presetCardIds,
 } from "./decks.js";
 import { deckListBody, renderSetup } from "./setup-flow.js";
+import { duelHelpBody } from "./help-duel.js";
 import { createMatchTelemetry, recordAction } from "./telemetry.js";
 import { analyzeMatch } from "./analyzer.js";
 import { loadSettings, saveSettings, loadHistory, recordMatch } from "./prefs.js";
@@ -112,17 +113,6 @@ export async function startApp(theme, designs) {
             grave: "Atılan Kartlar",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
-            rules: [
-              "VETO-H!'ta bir siyasi kampanya yürütüyorsun. Amacın rakibinin OP'sini (puanını) sıfıra indirmek; ikiniz de 8000 OP ve 5 kartlık açılış eliyle başlarsınız.",
-              "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
-              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Hamle Aşaması 1, Tartışma, Hamle Aşaması 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Tartışma Aşaması'na giremez.",
-              "Sahanda 5 Kadro ve 5 Destek bölgesi var. Turda 1 kez Kadro çağırabilir veya kapalı savunmada Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Kadro'yu adamalısın, 7+ için 2 Kadro.",
-              "Set ettiğin kartlar (Kadro veya Skandal) kapalı kalır; sonraki bir Hamle Aşaması'nda açabilir veya Kadro'nun pozisyonunu değiştirebilirsin — çağrıldığı tur ve saldırdıktan sonra değişemez.",
-              "Tartışma'da saldıran Kadro'nun gücü, karşısındaki Kadro'nun savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Kadro yoksa doğrudan saldırıp rakibin OP'sini kırabilirsin.",
-              "Rakibin ilan ettiği bir işleme (çağrı, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
-              "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
-              "Düello otomatik kaydedilir — ana menüden Devam Et ile kaldığın yerden sürdürebilirsin.",
-            ],
           },
           en: {
             unit: "Campaigner",
@@ -144,17 +134,6 @@ export async function startApp(theme, designs) {
             grave: "Iskarta",
             "end-main": "Turu Bitir",
             "set-field": "Alanı Set Et",
-            rules: [
-              "GETT-OH!'da sokakta racon kesiyorsun. Amacın rakibinin RP'sini (racon puanını) sıfıra indirmek; ikiniz de 8000 RP ve 5 kartlık açılış eliyle başlarsınız.",
-              "Düellodan önce 300 kartlık Kart Arşivi'nden rastgele, yasal bir 40 kartlık deste kurulur — her yeni düelloda deste yeniden karılır.",
-              "Bir tur şu sırayla ilerler: Kart Çekme, Hazırlık, Hamle Aşaması 1, Kapışma, Hamle Aşaması 2, Tur Sonu. İlk oyuncu ilk turda kart çekmez ve Kapışma Aşaması'na giremez.",
-              "Sahanda 5 Adam ve 5 Destek bölgesi var. Turda 1 kez Adam'ı sahaya sürebilir veya kapalı Set edebilirsin: Kademe 1–4 bedelsiz, 5–6 için 1 Adam'ı feda etmelisin, 7+ için 2 Adam.",
-              "Set ettiğin kartlar (Adam veya İhbar) kapalı kalır; sonraki bir Hamle Aşaması'nda açabilir veya Adam'ın pozisyonunu değiştirebilirsin — sahaya sürüldüğü tur ve saldırdıktan sonra değişemez.",
-              "Kapışma'da saldıran Adam'ın gücü, karşısındaki Adam'ın savunmasıyla ölçülür: yüksek değer kazanır, eşitlikte iki taraf da yok olur. Karşında Adam yoksa doğrudan vurup rakibin RP'sini kırabilirsin.",
-              "Rakibin ilan ettiği bir işleme (sahaya sürme, saldırı, etkinleştirme…) bir kez Cevap Ver diyerek karşılık verebilirsin; zincir sonsuz sürmez.",
-              "Tur Sonu'nda elinde 6'dan fazla kart kalamaz, fazlasını elden bırakırsın. Kart çekmen gerektiğinde desten boşsa kaybedersin; istediğin an Teslim Ol diyebilirsin.",
-              "Düello otomatik kaydedilir — ana menüden Devam Et ile kaldığın yerden sürdürebilirsin.",
-            ],
           },
           en: {
             unit: "Crew",
@@ -179,10 +158,7 @@ export async function startApp(theme, designs) {
     applyDisplay(settings, theme);
   };
   const catalog = () => state?.catalog || Object.fromEntries(pool.map((c) => [c.id, c]));
-  const rulesBody = () => {
-    const rules = t("rules");
-    return Array.isArray(rules) ? rules.map((p) => $("p", {}, p)) : $("p", {}, rules);
-  };
+  const rulesBody = () => duelHelpBody($, theme, lang);
   const button = (label, fn, attrs = {}) =>
     $("button", { type: "button", onclick: fn, ...attrs }, label);
   const actor = () => state?.choice?.player ?? state?.pending?.responding ?? state?.active;

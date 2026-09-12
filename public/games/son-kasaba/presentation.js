@@ -1,3 +1,4 @@
+import { HELP_SECTIONS } from "./help.js";
 import {
   BUILDINGS,
   COHORTS,
@@ -10,7 +11,7 @@ import {
   ROLE_TEXT,
 } from "./data.js";
 import { youngPopulation, indicators, economy, actionInfo, CIVIC_ACTIONS } from "./sim.js";
-import { escapeHtml as h, text as t, language } from "../next-wave/shared/runtime.js";
+import { escapeHtml as h, helpPanel, language, text as t } from "../next-wave/shared/runtime.js";
 export const tr = (p) => t(p[0], p[1]);
 export const number = (n) => Math.round(n).toLocaleString(language() === "en" ? "en-GB" : "tr-TR");
 export const NAV = [
@@ -238,5 +239,8 @@ export function history(s, n = 6) {
   );
 }
 export function help() {
-  return `<details class="town-help"><summary>${t("Nasıl oynanır?", "How to play?")}</summary><p>${t("24 ay boyunca her ay üç karar ver. Önce gündemi ve bütçeyi oku, sonra hizmet, iş, insan veya yatırım için kaynak ayır. Ayı kapatmak gelir/gideri, göçü, bina yıpranmasını ve takip sonuçlarını işler; kullanılmayan haklar kaybolur ve sonraki aya taşınmaz. Kapatılan hizmet para kazandırmaz; yalnız gideri azaltır. İş, sağlık ve okul ailelerin kalmasını etkiler. Çıkar gruplarının sana güveni halk güvenine yansır; yeterince güvenen iki grup ortak bakım koalisyonu kurup bina yıpranmasını yavaşlatabilir. Büyük yatırım hızlı para verir ama kontrol, çevre ve kira bedeli taşır; sonucu birkaç ay sonra görürsün. Ay raporunda bütçe, nüfus ve güvendeki değişimi ay ay takip et. Üç kayıt bağımsızdır; dolu slotun üzerine yazmak onay ister. Yedi final nüfus, hizmet, gençler, güven, bütçe, şirket kontrolü ve eşitsizlikten hesaplanır. Sonuç yalnız zenginlik değildir.", "For 24 months, make three decisions each month. Read the agenda and budget, then allocate resources to services, jobs, people or investment. Closing the month processes income/costs, migration, wear and follow-ups; unused actions expire. Closing services does not earn money, only reduces costs. Jobs, health and schools affect whether families stay. Major investment brings quick money but costs control, environment and rent pressure. Three saves are independent; overwriting an occupied slot requires confirmation. Seven endings use population, services, young people, trust, budget, company control and inequality. Success is not wealth alone.")}</p></details>`;
+  return helpPanel(HELP_SECTIONS, [
+    t("Nasıl oynanır?", "How to play?"),
+    t("Nasıl oynanır?", "How to play?"),
+  ]);
 }

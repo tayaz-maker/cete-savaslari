@@ -597,7 +597,7 @@
     "attack": 1200,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Rakip M1’de Normal Summon yapamaz (bu kart yüzüstü savunmadaysa).",
+    "text": "Rakip Hamle 1’de Normal Çağrı yapamaz (bu kart yüzüstü savunmadaysa).",
     "nameEn": "Night Watchman",
     "textEn": "While this unit is face-down in defense, your opponent cannot Normal Summon in Main Phase 1."
   },
@@ -681,7 +681,7 @@
     "attack": 1300,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "End Phase: konum değiştir (zorunlu değil, 1 ücretsiz ek hak).",
+    "text": "Tur Sonu: konum değiştir (zorunlu değil, 1 ücretsiz ek hak).",
     "nameEn": "Shift Worker",
     "textEn": "During the End Phase, you may make 1 additional free position change."
   },
