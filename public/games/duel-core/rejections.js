@@ -1,0 +1,50 @@
+/** Central TR/EN mapping of engine rejection codes. Engine codes stay stable. */
+export const REJECTION_COPY = {
+  "invalid-action": ["Bu işlem geçersiz.", "That action is not valid."],
+  "duel-ended": ["Düello bitti.", "The duel is over."],
+  "stale-action": ["Durum değişti; işlemi yeniden seç.", "The board changed; pick the action again."],
+  "choice-required": ["Önce bekleyen seçimi bitir.", "Finish the pending choice first."],
+  "legal-option-required": ["Sunulan seçeneklerden birini seç.", "Pick one of the offered options."],
+  "legal-target-required": ["Geçerli bir hedef seç.", "Choose a legal target."],
+  "response-owner": ["Cevap sırası sende değil.", "It is not your response window."],
+  "response-pending": ["Önce bekleyen cevabı tamamla.", "Resolve the pending response first."],
+  "illegal-response": ["Bu kartla şimdi cevap veremezsin.", "This card cannot answer that action."],
+  "opponent-turn": ["Sıra rakipte.", "It is the opponent's turn."],
+  "main-phase-only": ["Bu kart bu aşamada oynanamaz.", "This card cannot be played in this phase."],
+  "hand-limit": ["Tur sonunda elini 6 karta indir.", "Cut your hand to 6 cards at End."],
+  "hand-limit-only": ["Yalnız tur sonunda fazla kart bırakılır.", "You only discard extras at End."],
+  "invalid-unit": ["Bu çağrı eldeki bir birim için.", "This summon needs a unit in hand."],
+  "normal-blocked": ["Bu tur normal çağrı kilitli.", "Normal summons are locked this turn."],
+  "normal-used": ["Bu tur normal çağrı hakkını kullandın.", "You already used your Normal Summon this turn."],
+  "tributes-required": ["Bu çağrı için yeterli adak yok.", "Not enough tributes for this summon."],
+  "unit-zone-required": ["Bu çağrı için yeterli alan yok.", "No free unit zone for this summon."],
+  "invalid-field": ["Alan kartı Hamle Aşaması'nda, elde olmalı.", "Field cards set from hand in Main Phase."],
+  "field-slot-only": ["Bu kart alan bölgesine konur.", "This card goes in the field slot."],
+  "invalid-set": ["Bu kart şimdi set edilemez.", "This card cannot be Set now."],
+  "support-zone-required": ["Boş destek bölgesi yok.", "No free support zone."],
+  "position-used": ["Bu tur pozisyon değiştiremezsin.", "You cannot change position this turn."],
+  "invalid-source": ["Kartın olduğu yerden oynanamaz.", "This card cannot act from where it is."],
+  "unit-must-be-on-field": ["Birim önce sahada olmalı.", "The unit must be on the field first."],
+  "series-required": ["Gerekli seriden bir kart sahada olmalı.", "A card from the required series must be on the field."],
+  "name-locked": ["Bu isim bu tur kilitli.", "That name is locked this turn."],
+  "flip-required": ["Kapalı kartı önce aç.", "Flip the face-down card first."],
+  "effect-negated": ["Etki sahadaki bir kuralla duruyor.", "A field rule is blocking this effect."],
+  "trap-must-wait": ["Bu tuzak henüz hazır değil.", "This trap is not ready yet."],
+  "quick-must-wait": ["Bu tur set edilen hızlı kart beklemeli.", "A Quick-Play Set this turn must wait."],
+  "no-activated-effect": ["Bu kartın şimdi kullanılacak etkisi yok.", "This card has no effect to activate now."],
+  "effect-used": ["Bu etki hakkını kullandın.", "That effect is already spent."],
+  "response-only": ["Yalnız rakibin işlemine cevap olarak oynanır.", "Play this only as a response."],
+  "insufficient-points": ["Bedeli ödeyecek puanın yok.", "Not enough points to pay the cost."],
+  "special-requirements": ["Özel çağrı şartları eksik.", "Special summon requirements are not met."],
+  "no-legal-target": ["Geçerli hedef yok.", "There is no legal target."],
+  "battle-unavailable": ["Bu tur savaş yok.", "Battle is not available this turn."],
+  "attack-used": ["Bu birim bu tur saldırdı.", "This unit already attacked this turn."],
+  "attack-blocked": ["Bu saldırı şu an yasak.", "That attack is blocked right now."],
+  "unknown-action": ["Bu hamle tanınmıyor.", "Unknown action."],
+};
+
+export function rejectionText(code, lang = "tr") {
+  const row = REJECTION_COPY[code];
+  if (!row) return lang === "tr" ? "Şu anda uygun değil." : "Not available now.";
+  return row[lang === "en" ? 1 : 0];
+}
