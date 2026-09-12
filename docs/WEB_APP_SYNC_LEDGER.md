@@ -43,3 +43,13 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 - Shared-content source: yes (`tayaz-maker/tariklab-content` created)
 - Native follow-up: already done (`tariklab-app` tag `veto-h-native-pilot`). Native paused after this.
 - Commits: web `8355384` / merge `7eec58f`; content `d6fa1d6`; app `dc610c4`
+
+### 2026-09-13 — VETO-H! + GETT-OH! mega refinement
+- Web change: Humanized TR/EN card copy (IDs/mechanics unchanged); 5 AI profiles; match action history; post-match analysis + OP graph; inspector related cards; VETO-H! campaign styles + election-night result + campaign file; GETT-OH! neighborhood identity; drag/drop with tap fallback; hover/dblclick/long-press inspector; valid-target glow; rejection copy; keyboard 1–5/Esc/Space/I/H/A; UI scale / card size / table density
+- Content: yes (TR/EN display copy)
+- Artwork: no
+- Gameplay/rules: no (AI weights only; identities cosmetic)
+- UI/presentation: yes
+- Shared-content source: yes (`tariklab-content` VETO-H! authored fields + new GETT-OH! `games/gett-oh/cards.json`)
+- Native follow-up: yes (paused) — later standalone titles need: humanized names/copy, AI personalities, telemetry/history, post-match analysis, card relationships, campaign styles, election-night result, campaign history, neighborhood identity, drag/drop, inspector gestures, target glow, rejection explanations, keyboard/mobile controls, UI scale, card size, table density, resolution/windowed/fullscreen
+- Commits: web `509cc29` (copy) `4deb0c9` (AI/telemetry) `57edb79` (UX) `757620d` (tests/ledger); content `672bf82`; app untouched (`dc610c4`)

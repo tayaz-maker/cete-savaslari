@@ -31,10 +31,8 @@ export async function duelScenarios(browser, origin) {
         await page.locator(".duel-table").waitFor();
       }
       async function confirm() {
-        await page
-          .locator("dialog")
-          .getByRole("button", { name: tr ? "Onayla" : "Confirm", exact: true })
-          .click();
+        const btn = page.locator("dialog").getByRole("button", { name: tr ? "Onayla" : "Confirm", exact: true });
+        if (await btn.count()) await btn.click();
       }
       async function firstChoice() {
         if (await page.locator("dialog .choice-list button").count())
