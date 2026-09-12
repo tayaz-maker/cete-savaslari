@@ -31,35 +31,39 @@
   --layout-gap: calc(var(--space-3) * var(--gap-scale, 1));
   --shadow-panel: 0 16px 44px #0005;
   --shadow-card: 0 3px 7px #0006;
-  --background: #171c20;
-  --surface: #232a2e;
-  --surface-raised: #2d363a;
-  --table: #303b3c;
-  --foreground: #f2edde;
-  --muted: #bdc5c2;
-  --brass: #ddc184;
-  --accent: #b7d0c3;
-  --red: #efaaa2;
-  --paper: #eee4ce;
-  --ink: #242b2c;
-  --line: #c6c3ad38;
-  --frame-edge: #aa9569;
+  /* VETO-H!: campaign command centre — charcoal slate, dossier cream,
+     restrained gold and a muted institutional blue accent. */
+  --background: #171b21;
+  --surface: #222834;
+  --surface-raised: #2d3442;
+  --table: #303845;
+  --foreground: #f4efe3;
+  --muted: #bcc3cf;
+  --brass: #dcbf85;
+  --accent: #93aac6;
+  --red: #eca39c;
+  --paper: #f1e8d5;
+  --ink: #1f252e;
+  --line: #c3c8d43a;
+  --frame-edge: #a4926a;
   font-size: 16px;
 }
 body[data-theme="gett-oh"] {
-  --background: #151a16;
-  --surface: #222c23;
-  --surface-raised: #313b2d;
-  --table: #233c30;
-  --foreground: #f0e4cb;
-  --muted: #c2b89d;
-  --brass: #dfad69;
-  --accent: #b7caa2;
-  --paper: #e4d3ac;
-  --ink: #30281e;
-  --red: #e9a398;
-  --line: #bca37445;
-  --frame-edge: #8d643f;
+  /* GETT-OH!: Istanbul night — deep green felt, amber lamp light,
+     tobacco brown frames and a muted red for danger. */
+  --background: #131811;
+  --surface: #1f2a1e;
+  --surface-raised: #2c3826;
+  --table: #1f3a2b;
+  --foreground: #f1e5c8;
+  --muted: #c3b494;
+  --brass: #e2a75c;
+  --accent: #aec293;
+  --paper: #e7d5aa;
+  --ink: #2b2317;
+  --red: #dd8f81;
+  --line: #b99b6a45;
+  --frame-edge: #8a5f3a;
   --radius-table: 48px;
 }
 body {
@@ -864,8 +868,16 @@ body[data-screen="duel"] .ledger {
     --hand-width: calc(116px * var(--card-scale, 1));
   }
   .action-dock {
-    position: static;
+    /* Once a unit is on the field the dock grows past a short viewport, so on
+       phones it sticks to the bottom and scrolls inside itself: the turn
+       actions stay reachable instead of sliding below the fold. */
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
     gap: var(--space-1);
+    max-height: 38dvh;
+    overflow-y: auto;
+    box-shadow: 0 -6px 18px #0006;
   }
   .action-dock button {
     font-size: var(--text-secondary);

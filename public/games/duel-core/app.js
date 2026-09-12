@@ -1138,7 +1138,9 @@ export async function startApp(theme, designs) {
           )
         : null,
       card.rulesNote ? $("small", {}, text(card.rulesNote)) : null,
-      $("h3", {}, t("action")),
+      // With no legal move the "Neden Kullanamıyorum?" block below carries the
+      // explanation, so an empty heading would just be a dead row.
+      groups.length ? $("h3", {}, t("action")) : null,
       $(
         "div",
         { class: "inspector-actions" },
