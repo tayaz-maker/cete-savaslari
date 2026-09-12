@@ -1020,7 +1020,9 @@ export async function startApp(theme, designs) {
               : `${card.attacksUsed} attack(s) made this turn.`,
           )
         : null,
-      card.kind === "unit" && (card.attack !== card.baseAttack || card.defense !== card.baseDefense)
+      card.kind === "unit" &&
+      Number.isFinite(card.baseAttack) &&
+      (card.attack !== card.baseAttack || card.defense !== card.baseDefense)
         ? $(
             "p",
             { class: "stat-change" },
@@ -1424,6 +1426,7 @@ export async function startApp(theme, designs) {
             )
           : null,
         card.kind === "unit" &&
+        Number.isFinite(card.baseAttack) &&
         (card.attack !== card.baseAttack || card.defense !== card.baseDefense)
           ? $(
               "p",
