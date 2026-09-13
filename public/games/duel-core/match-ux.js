@@ -298,10 +298,19 @@ export function historyBody($, t, lang, theme, history, catalog) {
   ];
 }
 
+/**
+ * Turn-by-turn flow, split by phase.
+ *
+ * Grouping only by turn made a legal sequence — set a card in Standby, play
+ * another in Main 1 — read as several plays crammed into one moment, which is
+ * what made the opponent look like it was breaking the rules.
+ */
 export function actionLogBody($, t, events, catalog, lang) {
   const grouped = [];
   for (const e of events || []) {
-    if (!grouped.length || grouped.at(-1).turn !== e.turn) grouped.push({ turn: e.turn, rows: [] });
+    const head = grouped.at(-1);
+    if (!head || head.turn !== e.turn || head.phase !== e.phase)
+      grouped.push({ turn: e.turn, phase: e.phase, rows: [] });
     grouped.at(-1).rows.push(e);
   }
   if (!grouped.length) return [$("p", {}, t("noHistory"))];
@@ -309,7 +318,12 @@ export function actionLogBody($, t, events, catalog, lang) {
     $(
       "section",
       {},
-      $("h3", {}, `${t("turn")} ${g.turn ?? 0}`),
+      $(
+        "h3",
+        {},
+        `${t("turn")} ${g.turn ?? 0}`,
+        g.phase ? $("span", { class: "history-phase" }, ` · ${t(g.phase)}`) : null,
+      ),
       $(
         "ol",
         {},
