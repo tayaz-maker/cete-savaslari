@@ -58,10 +58,45 @@
     </main>
     <dialog id="help">
       <h2>Nasıl oynanır</h2>
-      <p>10×10 ızgara. Filo: Amiral 5, Kruvazör 4, Fırkateyn 3, Korvet 3, Karakol 2. Yatay veya dikey; üst üste binmez. Gemiler birbirine değebilir.</p>
-      <p>Tur başına bir atış. İsabet, ıska, gemi battı. Rakibin bütün filosu batarsa oyun biter.</p>
-      <p>Kolay rastgele-benzer hedefler. Orta isabet sonrası komşuya döner. Zor kalan gemi boylarına göre yoğunluk hesaplar. Motor rakip gemilerin yerini okumaz.</p>
-      <p>Kayıt bu tarayıcıda tutulur; yarıda kalan maç devam eder.</p>
+      <div class="help-body">
+        <h3>Amaç</h3>
+        <p>Rakibin bütün gemilerini, o senin filonu batırmadan önce batırmak. İki taraf da birbirinin ızgarasını göremez.</p>
+
+        <h3>Önce filonu yerleştir</h3>
+        <ul>
+          <li>10×10 ızgara. Filo: Amiral 5, Kruvazör 4, Fırkateyn 3, Korvet 3, Karakol 2 kare.</li>
+          <li>Gemiler yatay veya dikey durur, üst üste binemez. Birbirine değmeleri serbesttir.</li>
+          <li>Döndür (R) ile yönünü çevir, "Kendin yerleştir" ile tamamını rastgele diz.</li>
+        </ul>
+
+        <h3>Bir tur nasıl işler?</h3>
+        <ul>
+          <li>Tur başına bir atış yaparsın: rakip ızgarada bir kareye dokun.</li>
+          <li>Sonuç üç şeyden biridir: ıska, isabet ya da gemi battı.</li>
+          <li>Sonra rakip atışını yapar.</li>
+        </ul>
+
+        <h3>Nasıl kazanırım, nasıl kaybederim?</h3>
+        <p>Rakibin bütün filosu batarsa kazanırsın; seninki önce batarsa kaybedersin.</p>
+
+        <h3>Zorluk</h3>
+        <ul>
+          <li>Kolay: rastgeleye yakın hedefler seçer.</li>
+          <li>Orta: isabet aldıktan sonra komşu karelere yönelir.</li>
+          <li>Zor: kalan gemi boylarına göre yoğunluk hesaplar.</li>
+          <li>Motor hiçbir zorlukta senin gemilerinin yerini okumaz.</li>
+        </ul>
+
+        <h3>Sık yapılan hatalar</h3>
+        <ul>
+          <li>İsabetten sonra rastgele yere atmak; önce komşu kareleri dene.</li>
+          <li>Bütün gemileri ızgaranın ortasına toplamak.</li>
+          <li>Batan geminin çevresini taramaya devam edip atış harcamak.</li>
+        </ul>
+
+        <h3>Kayıt</h3>
+        <p>Kayıt bu tarayıcıda tutulur; yarıda kalan maç kaldığı yerden devam eder.</p>
+      </div>
       <button type="button" id="help-close">Kapat</button>
     </dialog>
     <script type="module" src="./js/app.js"></script>

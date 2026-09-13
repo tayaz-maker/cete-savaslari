@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { duelScenarios } from "./duel-browser-scenarios.mjs";
 const origin = "http://127.0.0.1:8082";
@@ -143,12 +143,18 @@ try {
         .evaluate(async (img) => {
           await img.decode();
         });
+      // Each theme's art is rendered at its own size; read the declared width
+      // from the manifest rather than pinning a constant that goes stale the
+      // next time the art is regenerated.
+      const artWidth = JSON.parse(
+        readFileSync(`public/games/${theme}/assets/art-manifest.json`, "utf8"),
+      ).summary.dimensions[0];
       assert.equal(
         await page
           .locator(".archive-grid img")
           .first()
           .evaluate((img) => img.naturalWidth),
-        400,
+        artWidth,
       );
       assert.equal(await page.locator('.archive-grid [data-used="true"]').count(), 0);
       assert.equal(await page.locator(".archive-grid .playing-card").count(), 24);
@@ -186,6 +192,43 @@ try {
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
       await page.getByRole("button", { name: labels.menu, exact: true }).click();
       await page.getByRole("button", { name: labels.new, exact: true }).click();
+
+      // Three-step setup: deck, opponent style, summary. The chosen deck must
+      // survive Back/Next and be the deck the duel is actually dealt from.
+      await page.locator(".setup-wizard").waitFor();
+      const deckChips = page.locator(".setup-wizard .identity-grid .choice-chip");
+      assert.equal(await deckChips.count(), 5, "five deck presets");
+      await deckChips.nth(2).click();
+      assert.equal(await deckChips.nth(2).getAttribute("aria-pressed"), "true", "deck selects");
+      const chosenDeck = (await deckChips.nth(2).locator("strong").innerText()).trim();
+      await page.locator('[data-pick="inspect-deck"]').click();
+      const listed = await page.locator(".deck-preview .deck-card-count").allInnerTexts();
+      assert.equal(
+        listed.reduce((n, c) => n + Number(c.replace("×", "")), 0),
+        40,
+        "deck preview lists all 40 cards",
+      );
+      await page.locator('[data-pick="inspect-deck"]').click();
+      await page.locator('[data-pick="setup-next"]').click();
+      const aiChips = page.locator(".setup-wizard .identity-grid .choice-chip");
+      await aiChips.nth(1).click();
+      const chosenAi = (await aiChips.nth(1).locator("strong").innerText()).trim();
+      await page.locator('[data-pick="setup-back"]').click();
+      assert.equal(
+        await page
+          .locator(".setup-wizard .identity-grid .choice-chip")
+          .nth(2)
+          .getAttribute("aria-pressed"),
+        "true",
+        "deck choice survives Back",
+      );
+      await page.locator('[data-pick="setup-next"]').click();
+      await page.locator('[data-pick="setup-next"]').click();
+      assert.equal((await page.locator('[data-value="deck"]').innerText()).trim(), chosenDeck);
+      assert.equal((await page.locator('[data-value="ai"]').innerText()).trim(), chosenAi);
+      assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
+      await page.locator('[data-pick="setup-start"]').click();
+
       for (let tries = 0; tries < 20; tries++) {
         if (await page.getByRole("button", { name: labels.rock, exact: true }).isVisible())
           await page.getByRole("button", { name: labels.rock, exact: true }).click();
@@ -200,15 +243,15 @@ try {
           exact: true,
         })
         .click();
-      assert.equal(await page.locator(".dialog-body > div").count(), 40);
+      assert.equal(
+        (await page.locator(".dialog-body .deck-card-count").allInnerTexts()).reduce(
+          (n, c) => n + Number(c.replace("×", "")),
+          0,
+        ),
+        40,
+      );
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
-      await page
-        .locator("dialog")
-        .getByRole("button", {
-          name: lang === "tr" ? "Oyunlara Dön" : "Back to Games",
-          exact: true,
-        })
-        .click();
+      await page.locator('[data-pick="preview-back"]').click();
       await page.getByRole("button", { name: labels.start, exact: true }).click();
       await page.locator(".duel-table").waitFor();
       await page.waitForFunction((k) => {
@@ -275,12 +318,21 @@ try {
         });
         if (await summon.count()) {
           await summon.click();
+          // Choosing the zone finishes a plain summon; only a card that still
+          // needs a target or a cost stops for a separate Confirm.
           if (await page.locator("dialog .choice-list button").count())
             await page.locator("dialog .choice-list button").first().click();
-          await page
+          const confirm = page
             .locator("dialog")
-            .getByRole("button", { name: labels.confirm, exact: true })
-            .click();
+            .getByRole("button", { name: labels.confirm, exact: true });
+          if (await confirm.count()) await confirm.click();
+          await page.waitForFunction(
+            (k) =>
+              JSON.parse(JSON.parse(localStorage.getItem(k)).payload).players[0].units.some(
+                Boolean,
+              ),
+            key,
+          );
           break;
         }
       }

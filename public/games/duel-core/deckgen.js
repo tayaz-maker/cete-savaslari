@@ -1,4 +1,5 @@
 import { pick, random, shuffle } from "./random.js";
+import { copyKey } from "./card-data.js";
 
 export function generateDeck(pool, seed) {
   const rng = { rng: seed >>> 0 },
@@ -21,9 +22,9 @@ export function generateDeck(pool, seed) {
         (c) =>
           c.kind === kind &&
           c.deckLocation === "main" &&
-          (copies.get(c.name.tr) || 0) < 3 &&
+          (copies.get(copyKey(c)) || 0) < 3 &&
           !(c.level >= 5 && c.level <= 6 && middle >= 6) &&
-          !(c.level >= 7 && bosses.size >= 2 && !bosses.has(c.name.tr)),
+          !(c.level >= 7 && bosses.size >= 2 && !bosses.has(copyKey(c))),
       );
       if (!eligible.length) throw new Error(`Insufficient legal ${kind} pool`);
       const weighted = eligible.flatMap((c) =>
@@ -34,9 +35,9 @@ export function generateDeck(pool, seed) {
       );
       const card = pick(weighted, rng);
       main.push(card.id);
-      copies.set(card.name.tr, (copies.get(card.name.tr) || 0) + 1);
+      copies.set(copyKey(card), (copies.get(copyKey(card)) || 0) + 1);
       if (card.level >= 5 && card.level <= 6) middle++;
-      if (card.level >= 7) bosses.add(card.name.tr);
+      if (card.level >= 7) bosses.add(copyKey(card));
     }
   }
   const auxiliary = shuffle(
@@ -69,11 +70,11 @@ export function validateDeck(deck, pool) {
   for (const id of deck.main) {
     const card = byId.get(id);
     if (!card || card.deckLocation !== "main") return false;
-    copies.set(card.name.tr, (copies.get(card.name.tr) || 0) + 1);
-    if (copies.get(card.name.tr) > 3) return false;
+    copies.set(copyKey(card), (copies.get(copyKey(card)) || 0) + 1);
+    if (copies.get(copyKey(card)) > 3) return false;
     counts[card.kind]++;
     if (card.level >= 5 && card.level <= 6) middle++;
-    if (card.level >= 7) bosses.add(card.name.tr);
+    if (card.level >= 7) bosses.add(copyKey(card));
   }
   return (
     counts.unit >= 22 &&

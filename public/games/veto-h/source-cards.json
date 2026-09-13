@@ -93,7 +93,7 @@
     "attack": 600,
     "defense": 500,
     "deckLocation": "main",
-    "text": "Sahanda kapalı bir Skandal'ın varken bu kartın Saldırısı 400 artar.",
+    "text": "Sahanda kapalı bir Skandal’ın varken bu kartın Saldırısı 400 artar.",
     "nameEn": "District Clerk",
     "textEn": "Gains 400 ATK while you control a Set trap."
   },
@@ -303,7 +303,7 @@
     "attack": 1700,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda ek 1 Normal Summon: yalnızca Kademe 3 veya altı.",
+    "text": "Turda ek 1 Normal Çağrı: yalnızca Kademe 3 veya altı.",
     "nameEn": "Campaign Director",
     "textEn": "Grants 1 additional Normal Summon each turn, only for a Level 3 or lower unit."
   },
@@ -911,7 +911,7 @@
   },
   {
     "id": "SND-066",
-    "name": "Kurultay Delegesi",
+    "name": "Kurultay Yedek Delegesi",
     "kind": "unit",
     "subtype": "effect",
     "series": "Ritüel / Extra kadro",
@@ -920,7 +920,7 @@
     "defense": 400,
     "deckLocation": "main",
     "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
-    "nameEn": "Congress Delegate",
+    "nameEn": "Alternate Delegate",
     "textEn": "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon."
   },
   {
@@ -1107,7 +1107,7 @@
   },
   {
     "id": "SND-080",
-    "name": "Delege Bloğu",
+    "name": "Yedek Delege Bloğu",
     "kind": "unit",
     "subtype": "effect",
     "series": "Ritüel / Extra kadro",
@@ -1116,7 +1116,7 @@
     "defense": 1000,
     "deckLocation": "main",
     "text": "İki Delege Bloğu saha+eldeyken 1 Koalisyon indir (turda 1).",
-    "nameEn": "Delegate Bloc",
+    "nameEn": "Reserve Delegate Bloc",
     "textEn": "Once per turn, while 2 Delegate Blocs are available in your hand and field, summon 1 Coalition."
   },
   {
@@ -1592,7 +1592,7 @@
     "defense": 0,
     "deckLocation": "main",
     "text": "Kürsü kadrolar +400 ATK. Sandık kadrolar +400 DEF.",
-    "nameEn": "Metropolitan Constituency",
+    "nameEn": "Metro Constituency",
     "textEn": "Podium units gain 400 ATK. Ballot units gain 400 DEF."
   },
   {
@@ -1633,7 +1633,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu kart takılı olduğu Kadro'nun Saldırısını ve Savunmasını 500 artırır; o Kadro feda edilirken 1 ek kademe sayılır.",
+    "text": "Bu kart takılı olduğu Kadro’nun Saldırısını ve Savunmasını 500 artırır; o Kadro feda edilirken 1 ek kademe sayılır.",
     "nameEn": "Office Chair",
     "textEn": "The equipped unit gains 500 ATK and DEF and counts as 1 additional Level when used as tribute material."
   },
@@ -1675,7 +1675,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip Normal Summon yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz.",
+    "text": "Rakip Normal Çağrı yapınca: o kadroyu yüzüstü savunmaya al, bu tur saldırmaz.",
     "nameEn": "Live Scandal",
     "textEn": "When your opponent Normal Summons, turn that unit face-down in defense. It cannot attack this turn."
   },
@@ -2053,7 +2053,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Her Normal Summon’da OP +200.",
+    "text": "Her Normal Çağrı’da OP +200.",
     "nameEn": "Ballot Paper",
     "textEn": "Whenever a unit is Normal Summoned, gain 200 OP."
   },
@@ -2095,7 +2095,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bütün tartışma hasarları +300. End Phase’te her oyuncu 1 kart atar.",
+    "text": "Bütün tartışma hasarları +300. Tur Sonu’nda her oyuncu 1 kart atar.",
     "nameEn": "Election Night",
     "textEn": "All battle damage increases by 300. At each End Phase, both players discard 1 card."
   },
@@ -2446,7 +2446,7 @@
     "defense": 1200,
     "deckLocation": "main",
     "text": "Sahadaki Belediye birimleri 150 ATK kazanır. Kendi Hazırlık aşamanda 275 OP kaybet.",
-    "nameEn": "Neighborhood Council Chair",
+    "nameEn": "Council Chair",
     "textEn": "Municipal units on the field gain 150 ATK. During your Standby Phase, lose 275 OP."
   },
   {
@@ -2866,7 +2866,7 @@
     "defense": 1000,
     "deckLocation": "main",
     "text": "Turda bir kez: 900 OP öde; rakibin açık 1 destek kartını eline gönder. Bir Lobi birimin bulunmalı.",
-    "nameEn": "Conflict-of-Interest Analyst",
+    "nameEn": "Conflict Auditor",
     "textEn": "Once per turn, pay 900 OP; return 1 opposing face-up support card to its owner's hand. You must control a Lobby unit."
   },
   {

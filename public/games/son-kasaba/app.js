@@ -1,3 +1,4 @@
+import { HELP_SECTIONS } from "./help.js";
 import {
   bootGame,
   frontMenu,
@@ -39,7 +40,7 @@ function draw(session) {
   lastState = s;
   if (!s) {
     if (view === "setup") return setup(session);
-    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header>${frontMenu(session, { title: "SON KASABA", eyebrow: t("BİR KASABANIN SON ŞANSI", "A TOWN'S LAST CHANCE"), pitch: t("Herkes gidiyor. Sen kalıp kasabayı yaşatmaya çalışıyorsun.", "Everyone is leaving. You stay and try to keep the town alive."), help: t("24 ay, her ay üç karar. Gündem, hizmet, iş ve göç birbirine bağlıdır. Ayı kapatınca sonuç raporunu oku. Kasabayı kurtarmanın tek yolu yok.", "24 months, three decisions each month. Agenda, services, jobs and migration are connected. Read the report after closing each month. There is no single way to save the town."), slotSummary: (s) => `${s.name} · ${t("Ay", "Month")} ${s.month}/24 · ${population(s)} ${t("kişi", "people")}` })}</main>`;
+    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header>${frontMenu(session, { title: "SON KASABA", eyebrow: t("BİR KASABANIN SON ŞANSI", "A TOWN'S LAST CHANCE"), pitch: t("Herkes gidiyor. Sen kalıp kasabayı yaşatmaya çalışıyorsun.", "Everyone is leaving. You stay and try to keep the town alive."), help: HELP_SECTIONS, slotSummary: (s) => `${s.name} · ${t("Ay", "Month")} ${s.month}/24 · ${population(s)} ${t("kişi", "people")}` })}</main>`;
     bindFrontMenu(root, session, {
       onNew: () => {
         draft = { name: "Çınarlı", context: "balanced" };

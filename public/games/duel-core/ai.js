@@ -3,24 +3,33 @@
 
 export const AI_PROFILES = {
   aggressive: {
-    tr: { name: "Saldırgan", blurb: "Baskı, tempo, erken tartışma. Kaynağı tutmaz." },
-    en: { name: "Aggressive", blurb: "Pressure and tempo. Spends resources to keep the line moving." },
+    tr: { name: "Saldırgan", blurb: "Tempoyu sever. Fırsat bulunca baskıyı artırır." },
+    en: { name: "Aggressive", blurb: "Likes a fast game. Pushes harder when an opening appears." },
   },
   patient: {
-    tr: { name: "Sabırlı", blurb: "Zayıf takası geç. Daha iyi pencereyi bekler." },
-    en: { name: "Patient", blurb: "Skips weak trades. Holds cards for a cleaner window." },
+    tr: { name: "Sabırlı", blurb: "Kartlarını kolay harcamaz. Daha temiz fırsatı bekler." },
+    en: { name: "Patient", blurb: "Does not spend cards lightly. Waits for a better opportunity." },
   },
   trapper: {
-    tr: { name: "Tuzakçı", blurb: "Set, cevap, tuzak hattı. Rakibi kendi hamlesinde yakalar." },
-    en: { name: "Trapper", blurb: "Sets, answers, bait. Prefers to catch you on your action." },
+    tr: {
+      name: "Tuzakçı",
+      blurb: "Set ve cevap kartlarını sever. Seni kendi hamlende yakalamaya çalışır.",
+    },
+    en: {
+      name: "Trapper",
+      blurb: "Likes set cards and responses. Tries to catch you during your own move.",
+    },
   },
   gambler: {
-    tr: { name: "Risk Alan", blurb: "Yüksek sapma. Artı için eksiye razı." },
-    en: { name: "Gambler", blurb: "High variance. Takes the upside line even when it can miss." },
+    tr: { name: "Risk Alan", blurb: "Güvenli oyundan çok büyük hamleleri tercih eder." },
+    en: { name: "Gambler", blurb: "Prefers a big play to a safe one." },
   },
   controlled: {
-    tr: { name: "Kontrollü", blurb: "Dengeli hat. Kart avantajı, az gereksiz risk." },
-    en: { name: "Controlled", blurb: "Balanced. Card advantage first, fewer needless risks." },
+    tr: {
+      name: "Kontrollü",
+      blurb: "Dengeli oynar. Kart avantajını ve güvenli hamleleri önemser.",
+    },
+    en: { name: "Controlled", blurb: "Plays steadily, valuing card advantage and safer moves." },
   },
 };
 

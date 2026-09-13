@@ -1,4 +1,5 @@
 import { definition } from "./model.js";
+import { copyKey } from "./card-data.js";
 import { standing, suppressed, modified } from "./modifiers.js";
 export function flagActive(state, player, name) {
   const f = state.players[player].flags[name];
@@ -13,7 +14,7 @@ export function canRespond(state, uid, player, fromDeck = false) {
     c = state.cards[uid],
     t = d?.traits || {},
     a = state.pending?.action;
-  if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === d?.name.tr)
+  if (p.flags.lockedName?.until >= state.turn && p.flags.lockedName.value === copyKey(d))
     return false;
   if (
     !a ||

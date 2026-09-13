@@ -1,4 +1,5 @@
 import { APPS, CONTACTS, DISCOVERABLES, ENDINGS } from "../next-wave.js";
+import { HELP_SECTIONS } from "./help.js";
 import { THREADS } from "../next-wave/kayip-data.js";
 import {
   bindFrontMenu,
@@ -9,6 +10,7 @@ import {
   loc,
   savePanel,
   text as t,
+  helpPanel,
 } from "../next-wave/shared/runtime.js";
 
 const root = document.body;
@@ -50,10 +52,7 @@ function menu(session) {
         "A phone was found. The life inside does not belong to you.",
       ),
       summary: slotSummary,
-      help: t(
-        "Açık uygulamalardaki öğeleri incele. Her dokunuş bulgu üretirken mahremiyet bedelini artırabilir. Telefonu istediğin an iade edebilirsin.",
-        "Inspect items in unlocked apps. Every touch may create evidence and increase the privacy cost. You may return the phone at any time.",
-      ),
+      help: HELP_SECTIONS,
     },
   )}</main>`;
   bindFrontMenu(root, session, {
@@ -117,14 +116,20 @@ function draw(session) {
           `<p class="muted">${t("Bu uygulamada yeni öğe yok.", "No new item in this app.")}</p>`
         }</div></section><aside class="evidence"><p class="eyebrow">${t("BULGULAR", "EVIDENCE")}</p><p>${t("Doğrulanan", "Corroborated")} ${state.corroboration.length} · ${t("Çelişki", "Contradictions")} ${state.contradiction.length}</p><div class="evidence-list">${state.corroboration
           .slice(-4)
-          .map((row) => `<div class="evidence-row">✓ ${h(clueLabel(row.item))} ↔ ${h(clueLabel(row.with))}</div>`)
+          .map(
+            (row) =>
+              `<div class="evidence-row">✓ ${h(clueLabel(row.item))} ↔ ${h(clueLabel(row.with))}</div>`,
+          )
           .join("")}${state.contradiction
           .slice(-4)
-          .map((row) => `<div class="evidence-row contra">! ${h(clueLabel(row.item))} ≠ ${h(clueLabel(row.with))}</div>`)
+          .map(
+            (row) =>
+              `<div class="evidence-row contra">! ${h(clueLabel(row.item))} ≠ ${h(clueLabel(row.with))}</div>`,
+          )
           .join(
             "",
           )}${!state.corroboration.length && !state.contradiction.length ? `<p class="muted">${t("Öğeleri okuyup ilişkileri kendin kur.", "Read items and build the links yourself.")}</p>` : ""}</div></aside></div><div class="return-bar"><span>${t("Telefonu her an iade edebilirsin; bu dosyayı kapatır.", "You may return the phone at any time; this closes the case.")}</span><button type="button" id="return">${t("TELEFONU İADE ET", "RETURN PHONE")}</button></div>`
-  }</div></section><p class="notice">${h(session.notice)}</p><details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Amacın, bulduğun telefonun sahibi hakkında öğrendiklerinle dosyayı ne zaman kapatacağına karar vermek. Açık uygulamalardaki öğelere dokunarak ipucu topla; her yeni öğe bir bulgu bırakır, MAHREMİYET göstergesini yükseltir ve bazen yeni bir uygulamanın kilidini açar. Kilitli bir öğeyi okumak için önce onunla ilişkili başka bir ipucunu bulmuş olman gerekir. BULGULAR panelinde ipuçlarının birbirini doğruladığını (✓) veya çeliştiğini (!) görüp hikâyeyi kendin kurarsın. TELEFONU İADE ET, dosyayı kapatan geri dönüşü olmayan bir karardır ve teyit ister; o ana kadar ne bulduğun ve mahremiyeti ne kadar zorladığın sonucu belirler. Her dokunuşun aktif kayıt slotuna otomatik işlenir.", "Touch real items inside unlocked apps. Each item processes its clue, privacy cost and possible app unlock in one transaction. Locked items cannot bypass their requirement. Returning the phone is terminal and requires confirmation.")}</p></details></main>`;
+  }</div></section><p class="notice">${h(session.notice)}</p>${helpPanel(HELP_SECTIONS)}</main>`;
   root
     .querySelectorAll("[data-app]")
     .forEach((button) =>

@@ -26,6 +26,34 @@ export function text(tr, en) {
   return language() === "en" ? en : tr;
 }
 
+/**
+ * Structured "Nasıl oynanır" panel.
+ *
+ * Sections are rendered as a heading plus short paragraphs and bullets, so a
+ * first-time player can find one answer without reading a wall of text. Each
+ * section is `{ h: [tr, en], p: [[tr, en], …], list: [[tr, en], …] }`.
+ */
+export function helpSections(sections) {
+  if (!Array.isArray(sections)) return `<p>${escapeHtml(sections || "")}</p>`;
+  const pair = (value) => (Array.isArray(value) ? text(value[0], value[1]) : value);
+  return sections
+    .map((section) => {
+      const paragraphs = (section.p || []).map((row) => `<p>${escapeHtml(pair(row))}</p>`).join("");
+      const items = (section.list || []).map((row) => `<li>${escapeHtml(pair(row))}</li>`).join("");
+      return (
+        `<h3>${escapeHtml(pair(section.h))}</h3>${paragraphs}` +
+        (items ? `<ul class="help-list">${items}</ul>` : "")
+      );
+    })
+    .join("");
+}
+
+export function helpPanel(sections, title) {
+  const label = Array.isArray(title) ? text(title[0], title[1]) : title;
+  const summary = escapeHtml(label || text("Nasıl oynanır", "How to play"));
+  return `<details class="help"><summary>${summary}</summary><div class="help-body">${helpSections(sections)}</div></details>`;
+}
+
 export function createActionGate(windowMs = 140, clock = () => performance.now()) {
   let blockedUntil = -1;
   return () => {
@@ -43,7 +71,9 @@ function readSlot(id, slot, normalizer = normalize, backup = false) {
       const parsed = raw === null ? null : JSON.parse(raw);
       const state = parsed ? normalizer(id, parsed) : null;
       if (state) return state;
-    } catch { /* Try only this slot's backup. */ }
+    } catch {
+      /* Try only this slot's backup. */
+    }
   }
   return null;
 }
@@ -99,7 +129,7 @@ export function frontMenu(session, options) {
       <button type="button" id="menu-help" aria-expanded="false">${text("NASIL OYNANIR?", "HOW TO PLAY?")}</button>
       <button type="button" id="menu-delete" class="danger" ${selected?.filled ? "" : "disabled"}>${text("SİL", "DELETE")}</button>
     </div>
-    <div id="menu-help-body" class="front-menu__help" hidden>${escapeHtml(options.help || options.pitch)}</div>
+    <div id="menu-help-body" class="front-menu__help help-body" hidden>${helpSections(options.help || options.pitch)}</div>
     <p class="notice">${escapeHtml(session.notice)}</p>
   </section>`;
 }
@@ -133,10 +163,17 @@ export function bindSavePanel(root, session) {
     button.addEventListener("click", () => {
       const slot = Number(button.dataset.saveSlot);
       const occupied = session.slotSummaries().find((entry) => entry.number === slot)?.filled;
-      if (slot !== session.active && occupied && !window.confirm(text(
-        `Slot ${slot} dolu. Üzerine yazılsın mı?`,
-        `Slot ${slot} is occupied. Overwrite it?`,
-      ))) return;
+      if (
+        slot !== session.active &&
+        occupied &&
+        !window.confirm(
+          text(
+            `Slot ${slot} dolu. Üzerine yazılsın mı?`,
+            `Slot ${slot} is occupied. Overwrite it?`,
+          ),
+        )
+      )
+        return;
       session.save(slot);
     });
   });
@@ -150,10 +187,16 @@ export function bindSavePanel(root, session) {
 }
 
 export function bootGame(id, draw, engine = {}) {
-  const make = engine.create || create, loadState = engine.normalize || normalize, actState = engine.applyAction || applyAction;
+  const make = engine.create || create,
+    loadState = engine.normalize || normalize,
+    actState = engine.applyAction || applyAction;
   const safe = Boolean(engine.safe);
   let active = 1;
-  try { active = Math.min(3, Math.max(1, Number(localStorage.getItem(`${NS}${id}.active`)) || 1)); } catch { /* Allow an in-memory game. */ }
+  try {
+    active = Math.min(3, Math.max(1, Number(localStorage.getItem(`${NS}${id}.active`)) || 1));
+  } catch {
+    /* Allow an in-memory game. */
+  }
   let slots = [1, 2, 3].map((slot) => readSlot(id, slot, loadState, safe));
   let state = null;
   let newGameAuthorized = false;
@@ -164,11 +207,16 @@ export function bootGame(id, draw, engine = {}) {
   const persist = (slot = active) => {
     if (!state) return false;
     try {
-      const data = JSON.stringify(state), key = `${NS}${id}.slot${slot}`;
+      const data = JSON.stringify(state),
+        key = `${NS}${id}.slot${slot}`;
       if (safe) {
         const old = localStorage.getItem(key);
         let validOld = false;
-        try { validOld = old && !!loadState(id, JSON.parse(old)); } catch { /* Never back up corrupt data. */ }
+        try {
+          validOld = old && !!loadState(id, JSON.parse(old));
+        } catch {
+          /* Never back up corrupt data. */
+        }
         if (validOld) localStorage.setItem(`${key}.backup`, old);
       }
       localStorage.setItem(key, data);
@@ -176,15 +224,27 @@ export function bootGame(id, draw, engine = {}) {
       notice = text(`Slot ${slot} kaydedildi.`, `Saved to slot ${slot}.`);
       return true;
     } catch {
-      notice = text("Kayıt yazılamadı. Oyun bellekte devam ediyor; sayfayı kapatmadan tekrar kaydet.", "Save failed. Play continues in memory; save again before closing this page.");
+      notice = text(
+        "Kayıt yazılamadı. Oyun bellekte devam ediyor; sayfayı kapatmadan tekrar kaydet.",
+        "Save failed. Play continues in memory; save again before closing this page.",
+      );
       return false;
     }
   };
-  const rememberActive = () => { try { localStorage.setItem(`${NS}${id}.active`, String(active)); } catch { /* Main save reports failures. */ } };
+  const rememberActive = () => {
+    try {
+      localStorage.setItem(`${NS}${id}.active`, String(active));
+    } catch {
+      /* Main save reports failures. */
+    }
+  };
 
   const render = () => {
     draw(api);
-    compactNavigation(document.querySelector(".life-nav, .state-nav"), text("Diğer bölümler", "More sections"));
+    compactNavigation(
+      document.querySelector(".life-nav, .state-nav"),
+      text("Diğer bölümler", "More sections"),
+    );
     const host = document.querySelector("[data-lang-host]");
     if (host && window.tlabI18n) window.tlabI18n.mountLangToggle(host);
     if (window.tlabI18n?.getLang?.() === "en") {
@@ -302,7 +362,7 @@ export function bootGame(id, draw, engine = {}) {
       return true;
     },
     save(slot = active) {
-      if (!state || ![1,2,3].includes(slot)) return false;
+      if (!state || ![1, 2, 3].includes(slot)) return false;
       active = slot;
       rememberActive();
       const saved = persist(slot);
@@ -310,11 +370,15 @@ export function bootGame(id, draw, engine = {}) {
       return saved;
     },
     load(slot) {
-      if (![1,2,3].includes(slot)) return false;
+      if (![1, 2, 3].includes(slot)) return false;
       const loaded = readSlot(id, slot, loadState, safe);
       if (!loaded) {
-        notice = text("Kayıt boş veya bozuk; açık oyun korunuyor.", "Save empty or corrupt; current game preserved.");
-        render(); return false;
+        notice = text(
+          "Kayıt boş veya bozuk; açık oyun korunuyor.",
+          "Save empty or corrupt; current game preserved.",
+        );
+        render();
+        return false;
       }
       active = slot;
       rememberActive();
@@ -326,11 +390,15 @@ export function bootGame(id, draw, engine = {}) {
       render();
     },
     remove(slot) {
-      if (![1,2,3].includes(slot)) return false;
+      if (![1, 2, 3].includes(slot)) return false;
       try {
         localStorage.removeItem(`${NS}${id}.slot${slot}.backup`);
         localStorage.removeItem(`${NS}${id}.slot${slot}`);
-      } catch { notice = text("Kayıt silinemedi.", "Could not delete save."); render(); return false; }
+      } catch {
+        notice = text("Kayıt silinemedi.", "Could not delete save.");
+        render();
+        return false;
+      }
       slots[slot - 1] = null;
       if (slot === active) state = null;
       notice = text(`Slot ${slot} silindi.`, `Deleted slot ${slot}.`);

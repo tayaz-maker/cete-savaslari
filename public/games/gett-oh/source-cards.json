@@ -471,7 +471,7 @@
     "attack": 1300,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "1 Set kartını mezarlığa gönder, 0 ATK / 1000 DEF'lik bir Duvar token’ı özel çağır.",
+    "text": "1 Set kartını mezarlığa gönder, 0 ATK / 1000 DEF’lik bir Duvar token’ı özel çağır.",
     "nameEn": "Crane Operator",
     "textEn": "Send 1 Set card to the grave and Special Summon a Wall token with 0 ATK and 1000 DEF."
   },
@@ -597,7 +597,7 @@
     "attack": 1200,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Rakip M1’de Normal Summon yapamaz (bu kart yüzüstü savunmadaysa).",
+    "text": "Rakip Hamle 1’de Normal Çağrı yapamaz (bu kart yüzüstü savunmadaysa).",
     "nameEn": "Night Watchman",
     "textEn": "While this unit is face-down in defense, your opponent cannot Normal Summon in Main Phase 1."
   },
@@ -681,7 +681,7 @@
     "attack": 1300,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "End Phase: konum değiştir (zorunlu değil, 1 ücretsiz ek hak).",
+    "text": "Tur Sonu: konum değiştir (zorunlu değil, 1 ücretsiz ek hak).",
     "nameEn": "Shift Worker",
     "textEn": "During the End Phase, you may make 1 additional free position change."
   },
@@ -1269,7 +1269,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 çek, RP +300",
+    "text": "1 kart çek ve 300 RP kazan.",
     "nameEn": "Collect Protection",
     "textEn": "Draw 1 card and gain 300 RP."
   },
@@ -1283,7 +1283,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "rakip RP −800",
+    "text": "Rakip 800 RP kaybeder.",
     "nameEn": "District Tribute",
     "textEn": "Your opponent loses 800 RP."
   },
@@ -1297,7 +1297,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Taksi +600 bu tur",
+    "text": "1 Taksi adamı bu tur 600 ATK kazanır.",
     "nameEn": "Travel Money",
     "textEn": "1 Taxi unit gains 600 ATK this turn."
   },
@@ -1311,7 +1311,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef +800 ATK, Tur Sonu’nda o adam mezara gider",
+    "text": "1 adam 800 ATK kazanır; Tur Sonu’nda o adamı mezarlığa gönder.",
     "nameEn": "Draw a Weapon",
     "textEn": "1 unit gains 800 ATK; send it to the grave during the End Phase."
   },
@@ -1325,7 +1325,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef ekipman veya saha mezara gider",
+    "text": "1 donanım veya saha kartını mezarlığa gönder.",
     "nameEn": "Car Fire",
     "textEn": "Send 1 equip or field card to the grave."
   },
@@ -1339,7 +1339,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "2 çek 1 at",
+    "text": "2 kart çek, sonra 1 kart at.",
     "nameEn": "Coffee Session",
     "textEn": "Draw 2 cards, then discard 1."
   },
@@ -1353,7 +1353,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "desteden 1 Adam",
+    "text": "Destenden 1 adamı eline al.",
     "nameEn": "Wedding Invitation",
     "textEn": "Add 1 unit from your deck to your hand."
   },
@@ -1367,7 +1367,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef bu tur yok olmaz, RP −1000",
+    "text": "1000 RP öde: 1 adam bu tur yok edilemez.",
     "nameEn": "Bail",
     "textEn": "Pay 1000 RP: 1 unit cannot be destroyed this turn."
   },
@@ -1381,7 +1381,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "kontrol al Kademe 3 veya altı bu tur",
+    "text": "Rakibin kademe 3 veya altı 1 adamını bu tur kontrol et.",
     "nameEn": "Man Transfer",
     "textEn": "Take control of 1 Level 3 or lower opposing unit for this turn."
   },
@@ -1395,7 +1395,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Adam ele",
+    "text": "Mezarlığından 1 adamı eline al.",
     "nameEn": "Graveyard Visit",
     "textEn": "Return 1 unit from your grave to your hand."
   },
@@ -1409,7 +1409,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef imha",
+    "text": "Sahadaki 1 kartı oyun dışına gönder.",
     "nameEn": "Exile",
     "textEn": "Banish 1 card on the field."
   },
@@ -1423,7 +1423,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bu tur tuzak açılamaz",
+    "text": "Bu tur hiçbir tuzak açılamaz.",
     "nameEn": "Detention Ban",
     "textEn": "Traps cannot be activated this turn."
   },
@@ -1437,7 +1437,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "RP −1500, Birleşim çağrısı",
+    "text": "1500 RP öde: Birleşik Deste’nden özel çağrı yap.",
     "nameEn": "Bribe",
     "textEn": "Pay 1500 RP to summon from your auxiliary deck."
   },
@@ -1451,7 +1451,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 set rakibe bak, isteğe yok et RP −700",
+    "text": "Rakibin 1 kapalı kartına bak. İstersen 700 RP ödeyip o kartı yok et.",
     "nameEn": "Fake Permit",
     "textEn": "Look at 1 opposing Set card. You may pay 700 RP to destroy it."
   },
@@ -1465,7 +1465,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 Duvar 0/2000 özel",
+    "text": "0 ATK / 2000 DEF değerinde 1 Duvar token’ı özel çağır.",
     "nameEn": "Warehouse Key",
     "textEn": "Special Summon 1 Wall token (0 ATK / 2000 DEF)."
   },
@@ -1493,7 +1493,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bütün Kademe 2 veya altı adam mezara gider",
+    "text": "Kademe 2 veya altı bütün adamları mezarlığa gönder.",
     "nameEn": "Morning Cleanup",
     "textEn": "Send all Level 2 or lower units to the grave."
   },
@@ -1507,7 +1507,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "desteden Baba veya Mertebe 1",
+    "text": "Destenden 1 Baba serisi adamı veya kademe 1 bir adamı eline al.",
     "nameEn": "Whisper a Name",
     "textEn": "Add 1 Boss-series or Level 1 unit from your deck to your hand."
   },
@@ -1521,7 +1521,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "rakip 1 kart atar",
+    "text": "Rakip elinden 1 kart atar.",
     "nameEn": "We Talked",
     "textEn": "Your opponent discards 1 card."
   },
@@ -1535,7 +1535,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan normal Racon ele",
+    "text": "Mezarlığından 1 Normal Racon kartını eline al.",
     "nameEn": "Old Ledger",
     "textEn": "Return 1 Normal Racon card from your grave to your hand."
   },
@@ -1549,7 +1549,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "desteden Saha",
+    "text": "Destenden 1 saha kartını eline al.",
     "nameEn": "District Map",
     "textEn": "Add 1 field card from your deck to your hand."
   },
@@ -1563,7 +1563,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "2 Çayhane desteden ele, 1 at",
+    "text": "Destenden 2 Çayhane kartını eline al, sonra 1 kart at.",
     "nameEn": "Tea Counter",
     "textEn": "Add 2 Teahouse cards from your deck to your hand, then discard 1 card."
   },
@@ -1577,7 +1577,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan ekipman ele",
+    "text": "Mezarlığından 1 donanım kartını eline al.",
     "nameEn": "Garage Door",
     "textEn": "Return 1 equip card from your grave to your hand."
   },
@@ -1591,7 +1591,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 İhbar desteden set",
+    "text": "Destenden 1 İhbar kartını kapalı set et.",
     "nameEn": "Harbor Watch",
     "textEn": "Set 1 Tip-off from your deck."
   },
@@ -1605,7 +1605,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "saldırıyı iptal, saldıran desteye",
+    "text": "Bir saldırıyı iptal et ve saldıran adamı desteye geri gönder.",
     "nameEn": "Getaway Car",
     "textEn": "Cancel an attack and return its attacker to the deck."
   },
@@ -1619,7 +1619,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef etki iptal",
+    "text": "İlan edilen etkiyi iptal et.",
     "nameEn": "Phone Disconnected",
     "textEn": "Negate the declared effect."
   },
@@ -1633,7 +1633,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "doğrudan saldırı iptal",
+    "text": "Doğrudan saldırıyı iptal et.",
     "nameEn": "I Was Not There",
     "textEn": "Cancel a direct attack."
   },
@@ -1647,7 +1647,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef ATK bu tur 0",
+    "text": "1 adamın ATK değeri bu tur 0 olur.",
     "nameEn": "Sudden Pressure",
     "textEn": "1 unit’s ATK becomes 0 this turn."
   },
@@ -1661,7 +1661,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bütün rakip DEF −800 bu tur",
+    "text": "Rakibin bütün adamları bu tur 800 DEF kaybeder.",
     "nameEn": "Intimidation",
     "textEn": "All opposing units lose 800 DEF this turn."
   },
@@ -1675,7 +1675,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kademe 3 veya altı +500 Sırt",
+    "text": "Kademe 3 veya altı adamlar 500 DEF kazanır.",
     "nameEn": "Lower District",
     "textEn": "Level 3 or lower units gain 500 DEF."
   },
@@ -1689,7 +1689,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kademe 5 veya üstü +400 Baskı",
+    "text": "Kademe 5 veya üstü adamlar 400 ATK kazanır.",
     "nameEn": "Upper District",
     "textEn": "Level 5 or higher units gain 400 ATK."
   },
@@ -1703,7 +1703,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Liman doğrudan +300",
+    "text": "Liman adamları doğrudan saldırıda 300 fazladan hasar verir.",
     "nameEn": "Harbor Strip",
     "textEn": "Harbor units deal 300 additional direct attack damage."
   },
@@ -1717,7 +1717,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Hazırlık Aşamanda her oyuncu RP −200, sen Çarşı varsa +400 net",
+    "text": "Hazırlık aşamasında iki oyuncu da 200 RP kaybeder. Sahanda bir Çarşı adamı varsa sen bunun yerine net 400 RP kazanırsın.",
     "nameEn": "Inside the Bazaar",
     "textEn": "During Standby, both players lose 200 RP. If you control a Bazaar unit, your net change is instead +400 RP."
   },
@@ -1731,7 +1731,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "donanan set tuzak açılışını gör",
+    "text": "Donattığın adam sayesinde açılan kapalı tuzakları görebilirsin.",
     "nameEn": "Handheld Radio",
     "textEn": "The equipped unit lets you inspect Set trap activations."
   },
@@ -1745,7 +1745,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "+500 ATK, doğrudan yarı ek hasar",
+    "text": "Donattığın adam 500 ATK kazanır ve doğrudan saldırı hasarının yarısı kadar fazladan hasar verir.",
     "nameEn": "Official Car",
     "textEn": "The equipped unit gains 500 ATK and deals an extra half of its direct attack damage."
   },
@@ -1759,7 +1759,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "+700 ATK, DEF 0",
+    "text": "Donattığın adam 700 ATK kazanır, DEF değeri 0 olur.",
     "nameEn": "Iron Bar",
     "textEn": "The equipped unit gains 700 ATK and its DEF becomes 0."
   },
@@ -1773,7 +1773,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "saldırı ilanında saldıranı yok et, hasar 0",
+    "text": "Bir saldırı ilan edildiğinde saldıran adamı yok et; savaş hasarı verilmez.",
     "nameEn": "Ambush",
     "textEn": "When an attack is declared, destroy the attacker and deal no battle damage."
   },
@@ -1787,7 +1787,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "rakip summon’da o adam yüzüstü savunma",
+    "text": "Rakip bir adam çağırdığında o adamı kapalı savunma konumuna çevir.",
     "nameEn": "Tip-off Line",
     "textEn": "When your opponent summons, turn that unit face-down in defense."
   },
@@ -1801,7 +1801,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 set yok et",
+    "text": "1 kapalı kartı yok et.",
     "nameEn": "Raid",
     "textEn": "Destroy 1 Set card."
   },
@@ -1815,7 +1815,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "doğrudan iptal",
+    "text": "Doğrudan saldırıyı iptal et.",
     "nameEn": "Station Response",
     "textEn": "Cancel a direct attack."
   },
@@ -1829,7 +1829,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bütün setlere bak",
+    "text": "Bütün kapalı kartlara bak.",
     "nameEn": "Estate Camera",
     "textEn": "Look at all Set cards."
   },
@@ -1843,7 +1843,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef yüzüstü adam yok et",
+    "text": "Kapalı duran 1 adamı yok et.",
     "nameEn": "Neighbor Saw",
     "textEn": "Destroy 1 face-down unit."
   },
@@ -1857,7 +1857,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "rakip 1 rastgele el at",
+    "text": "Rakip elinden rastgele 1 kart atar.",
     "nameEn": "Informer",
     "textEn": "Your opponent discards 1 random card."
   },
@@ -1871,7 +1871,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef saha/sürekli mezara gider",
+    "text": "1 saha veya sürekli kartı mezarlığa gönder.",
     "nameEn": "False Address",
     "textEn": "Send 1 field or continuous card to the grave."
   },
@@ -1885,7 +1885,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "BP başı: BP olmaz",
+    "text": "Kapışma aşaması başında: bu tur kapışma aşaması yapılmaz.",
     "nameEn": "Mined Coffee",
     "textEn": "At the start of Battle Phase, skip it."
   },
@@ -1899,7 +1899,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "savunma konumundaki hedefi ATK vs ATK say",
+    "text": "Bu tur savunmadaki 1 adama yapılan saldırılarda DEF yerine ATK değeri sayılır.",
     "nameEn": "Door Broken",
     "textEn": "For this turn, attacks against 1 defending unit use its ATK instead of DEF."
   },
@@ -1913,7 +1913,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Taksi rakip saldırmaz bu tur",
+    "text": "Rakibin Taksi adamları bu tur saldıramaz.",
     "nameEn": "Road Closed",
     "textEn": "Opposing Taxi units cannot attack this turn."
   },
@@ -1927,7 +1927,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "bütün özel çağrılar bu tur yasak",
+    "text": "Bu tur iki oyuncu da özel çağrı yapamaz.",
     "nameEn": "Police Incoming",
     "textEn": "Neither player may Special Summon this turn."
   },
@@ -1941,7 +1941,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "her iki taraf 1 adam yok et",
+    "text": "Her oyuncu kendi adamlarından 1’ini yok eder.",
     "nameEn": "Gang Clash",
     "textEn": "Each player destroys 1 of their units."
   },
@@ -1955,7 +1955,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef saldıramaz, sen 1 çek",
+    "text": "1 adam bu tur saldıramaz. 1 kart çek.",
     "nameEn": "Hostage",
     "textEn": "1 unit cannot attack this turn. Draw 1 card."
   },
@@ -1969,7 +1969,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "yok edilen Çayhane ele dön",
+    "text": "Yok edilen Çayhane adamını sahibinin eline geri gönder.",
     "nameEn": "Escaping Courier",
     "textEn": "Return the destroyed Teahouse unit to its owner’s hand."
   },
@@ -1983,7 +1983,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 İhbar sete",
+    "text": "Mezarlığından 1 İhbar kartını kapalı set et.",
     "nameEn": "Old Score",
     "textEn": "Set 1 Tip-off from your grave."
   },
@@ -1997,7 +1997,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "saha yok + 800 RP hasar",
+    "text": "1 saha kartını yok et ve rakibe 800 RP hasar ver.",
     "nameEn": "District Raid",
     "textEn": "Destroy a field card and deal 800 RP damage to your opponent."
   },
@@ -2011,7 +2011,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "efektler bu tur end phase’e kadar yok",
+    "text": "Bu turun sonuna kadar kart etkileri iptal edilir.",
     "nameEn": "Silent Night",
     "textEn": "Negate card effects until the end of this turn."
   },
@@ -2025,7 +2025,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "İhbar iptal",
+    "text": "Bir İhbar açılışını iptal et.",
     "nameEn": "False Tip-off",
     "textEn": "Negate a Tip-off activation."
   },
@@ -2039,7 +2039,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "yok etmeyi iptal",
+    "text": "Yok etmeyi iptal et.",
     "nameEn": "Lawyer Arrived",
     "textEn": "Negate destruction."
   },
@@ -2053,7 +2053,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Racon iptal",
+    "text": "Bir Racon büyüsünü iptal et.",
     "nameEn": "Municipal Patrol",
     "textEn": "Negate a Racon spell."
   },
@@ -2067,7 +2067,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef etki iptal",
+    "text": "İlan edilen etkiyi iptal et.",
     "nameEn": "Missing File",
     "textEn": "Negate the declared effect."
   },
@@ -2081,7 +2081,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "hedef almayı iptal; Semt Korudu: savaş yok etmesi iptal",
+    "text": "Bir kartı hedef alan etkiyi iptal et. Semt Korudu kipinde bunun yerine savaşta yok olmayı engeller.",
     "aliases": [
       "Semt Korudu"
     ],
@@ -2098,7 +2098,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "herhangi etkinleştirme iptal, her iki taraf 1 çek",
+    "text": "Herhangi bir etkinleştirmeyi iptal et, sonra iki oyuncu da 1 kart çeker.",
     "nameEn": "Council Halt",
     "textEn": "Negate any activation, then both players draw 1 card."
   },
@@ -3275,7 +3275,7 @@
     "defense": 1800,
     "deckLocation": "main",
     "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Baba birimini eline al.",
-    "nameEn": "New Generation Spokesperson",
+    "nameEn": "New Voice",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Boss unit from your grave to your hand."
   },
   {

@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 1,
+  "theme": "gett-oh",
+  "decks": [
+    {
+      "id": "kadikoy",
+      "name": {
+        "tr": "Kadıköy",
+        "en": "Kadıköy"
+      },
+      "blurb": {
+        "tr": "Masa kalabalık, çay sıcak. Kart akışı ve sabırla RP'ni koru, uzun geceye oyna.",
+        "en": "A full table and hot tea. Card flow and patience protect your RP for a long night."
+      },
+      "cards": [
+        {
+          "id": "RCN-001",
+          "count": 3
+        },
+        {
+          "id": "RCN-002",
+          "count": 3
+        },
+        {
+          "id": "RCN-003",
+          "count": 2
+        },
+        {
+          "id": "RCN-006",
+          "count": 2
+        },
+        {
+          "id": "RCN-010",
+          "count": 2
+        },
+        {
+          "id": "RCN-013",
+          "count": 3
+        },
+        {
+          "id": "RCN-091",
+          "count": 2
+        },
+        {
+          "id": "RCN-153",
+          "count": 2
+        },
+        {
+          "id": "RCN-187",
+          "count": 3
+        },
+        {
+          "id": "RCN-188",
+          "count": 2
+        },
+        {
+          "id": "RCN-216",
+          "count": 1
+        },
+        {
+          "id": "RCN-241",
+          "count": 3
+        },
+        {
+          "id": "RCN-246",
+          "count": 3
+        },
+        {
+          "id": "RCN-250",
+          "count": 3
+        },
+        {
+          "id": "RCN-276",
+          "count": 3
+        },
+        {
+          "id": "RCN-300",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "RCN-083",
+          "count": 1
+        },
+        {
+          "id": "RCN-084",
+          "count": 1
+        },
+        {
+          "id": "RCN-085",
+          "count": 1
+        },
+        {
+          "id": "RCN-089",
+          "count": 1
+        },
+        {
+          "id": "RCN-235",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "usküdar",
+      "name": {
+        "tr": "Üsküdar",
+        "en": "Üsküdar"
+      },
+      "blurb": {
+        "tr": "Sözünü tut, sırtını sağlama al. Yüksek savunma ve iptallerle masayı sakin tut.",
+        "en": "Keep your word, cover your back. High defense and negations keep the table calm."
+      },
+      "cards": [
+        {
+          "id": "RCN-041",
+          "count": 3
+        },
+        {
+          "id": "RCN-045",
+          "count": 3
+        },
+        {
+          "id": "RCN-054",
+          "count": 2
+        },
+        {
+          "id": "RCN-064",
+          "count": 2
+        },
+        {
+          "id": "RCN-065",
+          "count": 2
+        },
+        {
+          "id": "RCN-081",
+          "count": 3
+        },
+        {
+          "id": "RCN-082",
+          "count": 1
+        },
+        {
+          "id": "RCN-088",
+          "count": 1
+        },
+        {
+          "id": "RCN-090",
+          "count": 2
+        },
+        {
+          "id": "RCN-183",
+          "count": 2
+        },
+        {
+          "id": "RCN-197",
+          "count": 2
+        },
+        {
+          "id": "RCN-245",
+          "count": 3
+        },
+        {
+          "id": "RCN-247",
+          "count": 3
+        },
+        {
+          "id": "RCN-257",
+          "count": 3
+        },
+        {
+          "id": "RCN-259",
+          "count": 1
+        },
+        {
+          "id": "RCN-288",
+          "count": 1
+        },
+        {
+          "id": "RCN-292",
+          "count": 3
+        },
+        {
+          "id": "RCN-294",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "RCN-083",
+          "count": 1
+        },
+        {
+          "id": "RCN-084",
+          "count": 1
+        },
+        {
+          "id": "RCN-086",
+          "count": 1
+        },
+        {
+          "id": "RCN-087",
+          "count": 1
+        },
+        {
+          "id": "RCN-089",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "fatih",
+      "name": {
+        "tr": "Fatih",
+        "en": "Fatih"
+      },
+      "blurb": {
+        "tr": "Çarşı hesabı kapanır. Yok etme, borç baskısı ve doğrudan hasarla sıkıştır.",
+        "en": "The bazaar settles its books. Removal, debt pressure and direct damage."
+      },
+      "cards": [
+        {
+          "id": "RCN-038",
+          "count": 2
+        },
+        {
+          "id": "RCN-040",
+          "count": 3
+        },
+        {
+          "id": "RCN-166",
+          "count": 2
+        },
+        {
+          "id": "RCN-168",
+          "count": 2
+        },
+        {
+          "id": "RCN-169",
+          "count": 1
+        },
+        {
+          "id": "RCN-170",
+          "count": 3
+        },
+        {
+          "id": "RCN-177",
+          "count": 3
+        },
+        {
+          "id": "RCN-208",
+          "count": 2
+        },
+        {
+          "id": "RCN-210",
+          "count": 2
+        },
+        {
+          "id": "RCN-212",
+          "count": 3
+        },
+        {
+          "id": "RCN-243",
+          "count": 3
+        },
+        {
+          "id": "RCN-244",
+          "count": 3
+        },
+        {
+          "id": "RCN-249",
+          "count": 2
+        },
+        {
+          "id": "RCN-256",
+          "count": 3
+        },
+        {
+          "id": "RCN-290",
+          "count": 3
+        },
+        {
+          "id": "RCN-291",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "RCN-083",
+          "count": 1
+        },
+        {
+          "id": "RCN-084",
+          "count": 1
+        },
+        {
+          "id": "RCN-089",
+          "count": 1
+        },
+        {
+          "id": "RCN-236",
+          "count": 1
+        },
+        {
+          "id": "RCN-239",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "besiktas",
+      "name": {
+        "tr": "Beşiktaş",
+        "en": "Beşiktaş"
+      },
+      "blurb": {
+        "tr": "Sokak haber alır. İhbar tuzakları rakibin saldırısını daha başlamadan keser.",
+        "en": "The street hears first. Tip-off traps cut their attack before it starts."
+      },
+      "cards": [
+        {
+          "id": "RCN-201",
+          "count": 2
+        },
+        {
+          "id": "RCN-202",
+          "count": 2
+        },
+        {
+          "id": "RCN-203",
+          "count": 3
+        },
+        {
+          "id": "RCN-205",
+          "count": 3
+        },
+        {
+          "id": "RCN-206",
+          "count": 2
+        },
+        {
+          "id": "RCN-222",
+          "count": 2
+        },
+        {
+          "id": "RCN-223",
+          "count": 2
+        },
+        {
+          "id": "RCN-224",
+          "count": 3
+        },
+        {
+          "id": "RCN-226",
+          "count": 3
+        },
+        {
+          "id": "RCN-227",
+          "count": 1
+        },
+        {
+          "id": "RCN-248",
+          "count": 3
+        },
+        {
+          "id": "RCN-251",
+          "count": 3
+        },
+        {
+          "id": "RCN-260",
+          "count": 3
+        },
+        {
+          "id": "RCN-263",
+          "count": 1
+        },
+        {
+          "id": "RCN-283",
+          "count": 3
+        },
+        {
+          "id": "RCN-286",
+          "count": 3
+        },
+        {
+          "id": "RCN-295",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "RCN-083",
+          "count": 1
+        },
+        {
+          "id": "RCN-084",
+          "count": 1
+        },
+        {
+          "id": "RCN-085",
+          "count": 1
+        },
+        {
+          "id": "RCN-089",
+          "count": 1
+        },
+        {
+          "id": "RCN-240",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "beyoglu",
+      "name": {
+        "tr": "Beyoğlu",
+        "en": "Beyoğlu"
+      },
+      "blurb": {
+        "tr": "Gece kuralları esnetir. Adam kapma, mezarlıktan dönüş ve beklenmedik çağrılar.",
+        "en": "Night bends the rules. Stealing crews, grave returns and sudden summons."
+      },
+      "cards": [
+        {
+          "id": "RCN-020",
+          "count": 3
+        },
+        {
+          "id": "RCN-025",
+          "count": 2
+        },
+        {
+          "id": "RCN-026",
+          "count": 2
+        },
+        {
+          "id": "RCN-044",
+          "count": 1
+        },
+        {
+          "id": "RCN-048",
+          "count": 3
+        },
+        {
+          "id": "RCN-051",
+          "count": 3
+        },
+        {
+          "id": "RCN-099",
+          "count": 3
+        },
+        {
+          "id": "RCN-100",
+          "count": 3
+        },
+        {
+          "id": "RCN-105",
+          "count": 3
+        },
+        {
+          "id": "RCN-110",
+          "count": 2
+        },
+        {
+          "id": "RCN-158",
+          "count": 2
+        },
+        {
+          "id": "RCN-160",
+          "count": 2
+        },
+        {
+          "id": "RCN-163",
+          "count": 3
+        },
+        {
+          "id": "RCN-164",
+          "count": 2
+        },
+        {
+          "id": "RCN-277",
+          "count": 3
+        },
+        {
+          "id": "RCN-289",
+          "count": 3
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "RCN-083",
+          "count": 1
+        },
+        {
+          "id": "RCN-084",
+          "count": 1
+        },
+        {
+          "id": "RCN-086",
+          "count": 1
+        },
+        {
+          "id": "RCN-087",
+          "count": 1
+        },
+        {
+          "id": "RCN-089",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}
