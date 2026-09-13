@@ -92,6 +92,14 @@ try {
             width: document.documentElement.clientWidth,
             scroll: document.documentElement.scrollWidth,
             text: document.body.innerText.length,
+            // Nullish must never reach the player as words. Unicode-aware
+            // boundaries: \b treats Turkish "ı" as a non-word character, so a
+            // plain \bNaN\b would match inside "alınan".
+            nullish: (
+              document.body.innerText.match(
+                /(?<![\p{L}\p{N}_])(null|undefined)(?![\p{L}\p{N}_])|(?<![\p{L}\p{N}_])NaN(?![\p{L}\p{N}_])|\[object Object\]/gu,
+              ) || []
+            ).slice(0, 4),
             offenders: [...document.querySelectorAll("body *")]
               .filter((el) => {
                 const r = el.getBoundingClientRect();
@@ -107,16 +115,74 @@ try {
               })),
           }));
           assert.ok(d.text > 50);
+          assert.equal(
+            d.nullish.length,
+            0,
+            `${theme}/${lang}/${stage}/${width}: nullish text on screen (${d.nullish.join(", ")})`,
+          );
           assert.ok(
             d.scroll <= d.width + 1,
             `${theme}/${lang}/${stage}/${width}: ${JSON.stringify(d)}`,
           );
           if (stage === "board") {
-            const dock = await page.locator(".action-dock").boundingBox();
-            assert.ok(
-              dock && dock.y >= 0 && dock.y + dock.height <= height + 1,
-              `${theme}/${width}: action dock outside viewport ${JSON.stringify(dock)}`,
+            // The duel board is one complete two-sided object: opponent half,
+            // phase divider and player half all visible together with no
+            // internal vertical scroll, the hand under it and the turn
+            // controls under that, centred and never covering the hand.
+            const g = await page.evaluate(async () => {
+              // Geometry is only meaningful once the resize has been laid out.
+              await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+              const box = (el) => (el ? el.getBoundingClientRect() : null);
+              const table = document.querySelector(".duel-table");
+              const opp = box(document.querySelector(".player-field.opponent"));
+              const own = box(document.querySelector(".player-field.player"));
+              const hand = box(document.querySelector(".hand-row"));
+              const dockEl = document.querySelector(".action-dock");
+              const dock = box(dockEl);
+              const t = box(table);
+              const buttons = dockEl
+                ? [...dockEl.querySelectorAll("button")].map((b) => b.getBoundingClientRect())
+                : [];
+              const overlap = (a, b) =>
+                a && b ? Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) : 0;
+              return {
+                boardScrolls: table ? table.scrollHeight > table.clientHeight + 2 : true,
+                halvesInBoard: t && opp && own && opp.top >= t.top - 2 && own.bottom <= t.bottom + 2,
+                halvesApart: opp && own && own.top >= opp.bottom - 2,
+                handBelowBoard: hand && own && hand.top >= own.bottom - 2,
+                dockCoversHand: Math.max(0, Math.round(overlap(hand, dock))),
+                dockAfterHand:
+                  hand && dock
+                    ? Boolean(
+                        document
+                          .querySelector(".hand-row")
+                          .compareDocumentPosition(dockEl) & Node.DOCUMENT_POSITION_FOLLOWING,
+                      )
+                    : false,
+                // Defect E: the button group sits centred in the gameplay column.
+                skew: buttons.length
+                  ? Math.round(
+                      Math.abs(
+                        Math.min(...buttons.map((b) => b.left)) -
+                          dock.left -
+                          (dock.right - Math.max(...buttons.map((b) => b.right))),
+                      ),
+                    )
+                  : 0,
+              };
+            });
+            const at = `${theme}/${lang}/${width}x${height}`;
+            assert.equal(g.boardScrolls, false, `${at}: duel board still scrolls internally`);
+            assert.ok(g.halvesInBoard, `${at}: a field half sits outside the board box`);
+            assert.ok(g.halvesApart, `${at}: the two field halves overlap`);
+            assert.ok(g.handBelowBoard, `${at}: the hand overlaps the board`);
+            assert.ok(g.dockAfterHand, `${at}: the action dock precedes the hand`);
+            assert.equal(
+              g.dockCoversHand,
+              0,
+              `${at}: the action dock covers the hand by ${g.dockCoversHand}px`,
             );
+            assert.ok(g.skew <= 2, `${at}: action buttons off-centre by ${g.skew}px`);
           }
           metrics.push({ theme, lang, stage, width, overflow: d.scroll - d.width });
         }
@@ -188,7 +254,41 @@ try {
       await page.locator(".filters select").nth(4).selectOption("");
       await page.locator(".archive-grid .playing-card").first().click();
       await measure("archive-inspector");
+
+      // Navigation semantics. A layer opened straight from a screen has no
+      // level above it, so it offers `Kapat` only. Following a combo is a step
+      // down, and both `Geri` and Escape must walk back exactly one level
+      // rather than dismissing the whole stack.
+      assert.equal(
+        await page.locator('[data-pick="dialog-up"]').count(),
+        0,
+        `${theme}/${lang}: a top-level layer must not offer Geri`,
+      );
+      const cardTitle = await page.locator("dialog h2").innerText();
+      if (await page.locator('[data-pick^="combo-"]').count()) {
+        await page.locator('[data-pick^="combo-"]').first().click();
+        await page.locator('[data-pick="dialog-up"]').waitFor({ timeout: 4000 });
+        await page.locator('[data-pick="dialog-up"]').click();
+        assert.equal(
+          await page.locator("dialog h2").innerText(),
+          cardTitle,
+          `${theme}/${lang}: Geri did not return to the card it was opened from`,
+        );
+        await page.locator('[data-pick^="combo-"]').first().click();
+        await page.locator('[data-pick="dialog-up"]').waitFor({ timeout: 4000 });
+        await page.keyboard.press("Escape");
+        assert.equal(
+          await page.locator("dialog[open]").count(),
+          1,
+          `${theme}/${lang}: Escape closed the whole stack instead of one level`,
+        );
+        assert.equal(await page.locator("dialog h2").innerText(), cardTitle);
+      }
       await page.getByRole("button", { name: labels.close, exact: true }).click();
+      assert.ok(
+        await page.locator(".archive-grid").isVisible(),
+        `${theme}/${lang}: Kapat did not leave the archive screen underneath`,
+      );
       assert.equal(await page.evaluate((k) => localStorage.getItem(k), key), null);
       await page.getByRole("button", { name: labels.menu, exact: true }).click();
       await page.getByRole("button", { name: labels.new, exact: true }).click();

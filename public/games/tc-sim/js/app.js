@@ -243,6 +243,7 @@ function startScreen(loadResult) {
   const active = getActiveSlot(localStorage);
   app.innerHTML = `
     <main class="start-wrap">
+      <a class="start-exit" href="/">← Oyunlar</a>
       <section class="start-card" aria-labelledby="start-title">
         <h1 id="start-title">TC SIM</h1>
         <p>18 yaşında, İstanbul'da aile evinde başlayan küçük bir hayat. Her hafta yalnız iki önemli karar verebilirsin.</p>
@@ -1130,7 +1131,7 @@ function render() {
       <header class="game-topbar">
         <div class="game-brand"><strong>TC SIM</strong><span>Yaşam Yönetimi</span></div>
         <div class="top-meta"><span><b>${escapeText(state.player.name)}</b> · ${state.player.age}</span><span>${state.time.year} / ${state.time.month}. ay / H${state.time.weekOfMonth}</span><span class="top-money">${money(state.finances.balance)}</span></div>
-        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><span class="slot-mini">Slot ${getActiveSlot(localStorage)}</span><button class="button button-quiet" id="help-open" aria-haspopup="dialog">? Nasıl Oynanır</button><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
+        <div class="save-area"><span class="save-status" role="status">${escapeText(saveStatus)}</span><span class="slot-mini">Slot ${getActiveSlot(localStorage)}</span><button class="button button-quiet" id="help-open" aria-haspopup="dialog">? Nasıl Oynanır</button><button class="button button-quiet" id="save-game">Kaydet</button><button class="button button-quiet" id="main-menu">Ana Menü</button><button class="button button-quiet button-danger" id="new-game">Yeni oyun</button></div>
       </header>
       <div class="game-body">
         <nav class="side-nav" aria-label="Oyun bölümleri">${terminal ? "Yaşam raporu" : renderNav()}</nav>
@@ -1297,6 +1298,15 @@ function render() {
     state = null;
     notice = "";
     saveStatus = "";
+    weekStartSnapshot = null;
+    render();
+  });
+  // The root screen, reached without discarding anything: the life is saved
+  // first so returning to it is never a way to lose the run.
+  document.querySelector("#main-menu")?.addEventListener("click", () => {
+    persist();
+    state = null;
+    notice = "";
     weekStartSnapshot = null;
     render();
   });

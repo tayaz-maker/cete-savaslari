@@ -21,6 +21,7 @@ import {
 } from "./decks.js";
 import { deckListBody, renderSetup } from "./setup-flow.js";
 import { duelHelpBody } from "./help-duel.js";
+import { detailLine, joinText, localized, plain } from "./render-safe.js";
 import { createMatchTelemetry, recordAction } from "./telemetry.js";
 import { analyzeMatch } from "./analyzer.js";
 import { loadSettings, saveSettings, loadHistory, recordMatch } from "./prefs.js";
@@ -147,11 +148,7 @@ export async function startApp(theme, designs) {
         };
   const t = (key) =>
     typeof key === "string" ? themeLabels[lang][key] || labels[lang][key] || key : "";
-  const text = (value) => {
-    const localized =
-      value && typeof value === "object" ? (value[lang] ?? value.tr ?? value.en) : value;
-    return typeof localized === "string" || typeof localized === "number" ? String(localized) : "";
-  };
+  const text = (value) => localized(value, lang);
   const persistSettings = (patch = {}) => {
     settings = { ...settings, ...patch, motion };
     saveSettings(storage, settings);
@@ -185,11 +182,22 @@ export async function startApp(theme, designs) {
     error === "storage-failed" ? t("saveError") : error === "no-save" ? t("noSave") : t("corrupt");
   const dialog = $("dialog", { "aria-labelledby": "dialog-title" });
   document.body.append(dialog);
+  /**
+   * Navigation semantics for every layer opened over a screen.
+   *
+   * `Kapat` dismisses only the layer on screen and leaves the screen beneath
+   * it — and any half-finished setup — exactly as it was. `Geri` steps one
+   * level up, back to the layer that opened this one. `Ana Menü` is the only
+   * control that jumps to the root. Escape follows `Geri` when there is a
+   * level above and only closes the layer when there is not.
+   */
+  let dialogBack = null;
   function close() {
+    dialogBack = null;
     dialog.close();
     dialog.replaceChildren();
   }
-  function show(title, body, cls = "") {
+  function show(title, body, cls = "", onBack = null) {
     const previousFocus = dialog.contains(document.activeElement)
       ? document.activeElement.dataset.pick
       : null;
@@ -197,12 +205,20 @@ export async function startApp(theme, designs) {
     const refreshing = dialog.open && dialog.className === cls;
     if (dialog.open) dialog.close();
     dialog.className = cls;
+    dialogBack = typeof onBack === "function" ? onBack : null;
     dialog.replaceChildren(
       $(
         "div",
         { class: "dialog-head" },
+        dialogBack
+          ? button(t("up"), () => dialogBack?.(), {
+              class: "ghost dialog-up",
+              "data-pick": "dialog-up",
+              "aria-label": t("up"),
+            })
+          : null,
         $("h2", { id: "dialog-title" }, title),
-        button(t("close"), close, { "aria-label": t("close") }),
+        button(t("close"), close, { "aria-label": t("close"), "data-pick": "dialog-close" }),
       ),
       $("div", { class: "dialog-body" }, body),
     );
@@ -226,7 +242,11 @@ export async function startApp(theme, designs) {
       endDrag(true);
       if (dialog.open) {
         e.preventDefault();
-        close();
+        // One level per press: a card detail opened from the archive goes back
+        // to the archive rather than dismissing everything at once.
+        const up = dialogBack;
+        if (up) up();
+        else close();
       }
       if (screen === "duel") render();
       return;
@@ -635,6 +655,13 @@ export async function startApp(theme, designs) {
     return findPreset(decks, stored)?.id || decks[0]?.id || null;
   }
   function beginSetup() {
+    // Closing the wizard with `Kapat` leaves the half-finished setup intact,
+    // so coming back resumes on the step it was left on. Only `Vazgeç` and a
+    // started duel clear it.
+    if (setup && !setup.decks) {
+      setupWizard();
+      return;
+    }
     const seed = crypto.getRandomValues(new Uint32Array(1))[0];
     setup = {
       seed,
@@ -712,9 +739,9 @@ export async function startApp(theme, designs) {
       $(
         "div",
         { class: "dialog-actions" },
-        $("button", { type: "button", "data-pick": "preview-back", onclick: onBack }, t("back")),
+        $("button", { type: "button", "data-pick": "preview-back", onclick: onBack }, t("up")),
       ),
-    ]);
+    ], "", onBack);
   }
   function rps(message = "") {
     show(t("rps"), [
@@ -994,16 +1021,15 @@ export async function startApp(theme, designs) {
     if (action.slot !== undefined) title += ` · ${t("zone")} ${action.slot + 1}`;
     const materials = action.tributes || action.materials;
     if (materials?.length)
-      title += ` · ${t(action.tributes ? "tributes" : "materials")}: ${materials.map((id) => cname(id, v)).join(", ")}`;
-    if (action.targets?.length)
-      title += ` · ${action.targets.map((id) => cname(id, v)).join(", ")}`;
+      title += ` · ${t(action.tributes ? "tributes" : "materials")}: ${joinText(materials.map((id) => cname(id, v)))}`;
+    if (action.targets?.length) title += ` · ${joinText(action.targets.map((id) => cname(id, v)))}`;
     if (action.option) title += ` · ${optionName(action.option)}`;
     return title;
   }
   function optionName(id) {
     const option = state?.choice?.options?.find((o) => o.id === id);
     if (option?.card)
-      return `${cname(option.card)}${option.materials?.length ? ` · ${t("materials")}: ${option.materials.map((uid) => cname(uid)).join(", ")}` : ""}`;
+      return `${cname(option.card)}${option.materials?.length ? ` · ${t("materials")}: ${joinText(option.materials.map((uid) => cname(uid)))}` : ""}`;
     if (id.startsWith("zone-")) return `${t("zone")} ${id.slice(5)}`;
     const cost = option?.effects?.find((op) => op.op === "points" && op.amount < 0)?.amount;
     return (
@@ -1084,11 +1110,7 @@ export async function startApp(theme, designs) {
       $("h2", { class: "inspect-name" }, text(card.name) || t("hidden")),
       cardEl({ ...card, face: card.name ? "up" : card.face }, uid, null),
       card.name
-        ? $(
-            "small",
-            {},
-            `${card.id} · ${[].concat(card.series || []).join(" / ")} · ${t(card.kind)}`,
-          )
+        ? $("small", {}, detailLine([plain(card.id), joinText(card.series, " / "), t(card.kind)]))
         : null,
       card.text
         ? $("h3", {}, lang === "tr" ? "Bu Kart Ne Yapar?" : "What Does This Card Do?")
@@ -1207,17 +1229,20 @@ export async function startApp(theme, designs) {
         lang,
         related,
         (other) => {
+          // Following a combo is a step down, so `Geri` returns to the card
+          // the player was reading rather than dismissing the inspector.
+          const here = () => inspect(uid);
           const live = Object.values(view().cards).find((c) => c.id === other.id && c.name);
-          if (live) inspect(live.uid);
-          else archiveInspect(other);
+          if (live) inspect(live.uid, here);
+          else archiveInspect(other, here);
         },
         theme,
       ),
     );
     return body;
   }
-  function inspect(uid) {
-    show(t("inspector"), inspectBody(uid), "inspector-sheet");
+  function inspect(uid, onBack = null) {
+    show(t("inspector"), inspectBody(uid), "inspector-sheet", onBack);
   }
   function pile(player, key, v) {
     if (key === "deck") return;
@@ -1232,7 +1257,7 @@ export async function startApp(theme, designs) {
     show(
       t(key),
       ids?.length
-        ? ids.map((uid) => button(cname(uid, v), () => inspect(uid)))
+        ? ids.map((uid) => button(cname(uid, v), () => inspect(uid, () => pile(player, key, v))))
         : $("p", {}, t("empty")),
     );
   }
@@ -1347,7 +1372,7 @@ export async function startApp(theme, designs) {
       const atkName = cname(e.attacker, v),
         iAttacked = e.player === 0;
       if (lang !== "tr")
-        return `${who} attacked with “${atkName}”: ${e.damage.join(" / ")} ${point}.`;
+        return `${who} attacked with “${atkName}”: ${joinText(e.damage, " / ")} ${point}.`;
       if (e.damage[1] > 0)
         return iAttacked
           ? `“${atkName}” rakibine ${e.damage[1]} ${point} hasar verdi.`
@@ -1564,7 +1589,7 @@ export async function startApp(theme, designs) {
       text(card.name),
       [
         cardEl(card, card.id, null),
-        $("small", {}, `${card.id} · ${t(card.kind)} · ${card.series.join(" / ")}`),
+        $("small", {}, detailLine([plain(card.id), t(card.kind), joinText(card.series, " / ")])),
         $("p", { class: "effect-text" }, text(card.text)),
         card.hint ? $("small", {}, text(card.hint)) : null,
         card.attacksUsed > 0
@@ -1591,7 +1616,9 @@ export async function startApp(theme, designs) {
           t,
           lang,
           relatedCards(card, pool, showAllCombos ? 12 : 4),
-          (next) => archiveInspect(next, onBack),
+          // Following a combo is a step down, so `Geri` comes back to this
+          // card rather than skipping to whatever opened it.
+          (next) => archiveInspect(next, () => archiveInspect(card, onBack, showAllCombos)),
           theme,
           showAllCombos ? null : () => archiveInspect(card, onBack, true),
         ),
@@ -1599,11 +1626,12 @@ export async function startApp(theme, designs) {
           ? $(
               "div",
               { class: "dialog-actions" },
-              $("button", { type: "button", "data-pick": "card-back", onclick: onBack }, t("back")),
+              $("button", { type: "button", "data-pick": "card-back", onclick: onBack }, t("up")),
             )
           : null,
       ],
       "inspector-sheet",
+      onBack,
     );
   }
   function archiveTabs() {

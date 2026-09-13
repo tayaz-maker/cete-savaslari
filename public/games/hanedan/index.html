@@ -2014,6 +2014,7 @@ svg.face { display:block; flex:0 0 auto; }
     clear(tabs);
     if (view === "title") {
       tabs.style.display = "none";
+      add(header, el("a", { cls: "ghost", href: "/", text: "\u2190 Oyunlar" }));
       add(header, el("strong", { cls: "grow", text: "HANEDAN" }));
       add(header, el("button", {text:"Nasıl oynanır", "data-act":"help"}));
       add(main, el("p", { cls: "kicker", text: "Çete Savaşları" }));
@@ -2109,6 +2110,7 @@ svg.face { display:block; flex:0 0 auto; }
 
     tabs.style.display = "flex";
     if (S && S.font) document.documentElement.style.fontSize = S.font + "px";
+    add(header, el("button", { cls: "ghost", text: "Ana Menü", "data-act": "title" }));
     add(header, el("strong", { cls: "grow", text: S.name }));
     add(header, el("button", {text:"?", "aria-label":"Nasıl oynanır", "data-act":"help"}));
     add(header, el("button", {text:"Kaydet", "data-act":"save"}));

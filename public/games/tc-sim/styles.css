@@ -1276,3 +1276,17 @@ select {
     padding: 10px;
   }
 }
+
+/* One way out of the game from its root screen. */
+.start-wrap .start-exit {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  opacity: 0.8;
+}
+.start-wrap .start-exit:hover,
+.start-wrap .start-exit:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}

@@ -173,7 +173,9 @@ function draw(session) {
   }
   if (!state) {
     if (view === "setup") return setupScreen(session);
-    root.innerHTML = frontMenu(session, {
+    // The front screen carries the same way out as every other screen, so the
+    // player is never stranded on the slot picker.
+    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header>${frontMenu(session, {
       title: "TC SIM: DEVLET",
       eyebrow: t("4000 YILLIK DEVLET AKLI", "4,000 YEARS OF STATECRAFT"),
       pitch: t(
@@ -183,7 +185,7 @@ function draw(session) {
       help: HELP_SECTIONS,
       slotSummary: (s) =>
         `${s.time?.year || "—"}/${String(s.time?.month || 1).padStart(2, "0")} · ${h(loc(PERIODS[s.eraId]?.name || s.eraId))}`,
-    });
+    })}</main>`;
     bindFrontMenu(root, session, {
       onNew: () => {
         setupDraft = { era: null, mode: null, goal: null, doctrine: null, alt: null };

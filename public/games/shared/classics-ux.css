@@ -33,3 +33,18 @@ dialog { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflo
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Every classic keeps one way out of the game, on its own line above the
+   title so it never competes with the heading for the same row. */
+.masthead .masthead-exit {
+  flex: 1 0 100%;
+  order: -1;
+  font-size: 0.9rem;
+  text-decoration: none;
+  opacity: 0.8;
+}
+.masthead .masthead-exit:hover,
+.masthead .masthead-exit:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}
