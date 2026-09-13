@@ -72,12 +72,18 @@ try {
       .evaluate(async (image) => {
         await image.decode();
       });
+    // Each theme's art is rendered at its own size; read the declared width
+    // from the manifest rather than pinning a constant that goes stale the
+    // next time the art is regenerated. VETO-H! is 576 wide, GETT-OH! 400.
+    const artWidth = JSON.parse(
+      readFileSync(`public/games/${theme}/assets/art-manifest.json`, "utf8"),
+    ).summary.dimensions[0];
     assert.equal(
       await game
         .locator(".archive-grid img")
         .first()
         .evaluate((image) => image.naturalWidth),
-      400,
+      artWidth,
     );
     await game.getByRole("button", { name: "Ana Menü", exact: true }).click();
     await game.getByRole("button", { name: "Devam Et", exact: true }).click();

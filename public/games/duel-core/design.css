@@ -379,6 +379,37 @@ h3 {
   margin-top: var(--space-2);
   padding: var(--space-1);
 }
+/* Hand card interior.
+   The card's outer size, artwork and information are unchanged; only the
+   internal type scale moves down 1-2px and the four bands — title, artwork,
+   type, stats — are given a clear order of precedence. The title stays the
+   loudest element, the type tag recedes to a muted label, and the stat
+   numbers read before their ATK/DEF captions. */
+.hand-row .playing-card {
+  --text-card: clamp(12px, calc(13.5px * var(--ui-scale)), 16px);
+  --text-meta: clamp(11px, calc(11.5px * var(--ui-scale)), 14px);
+}
+.hand-row .playing-card .card-name {
+  letter-spacing: -0.005em;
+  /* Exactly two lines of room, so a long name clamps instead of clipping. */
+  min-height: calc(2em * var(--leading-title));
+}
+.hand-row .playing-card .card-level,
+.hand-row .playing-card .card-kind-tag {
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.hand-row .playing-card .card-stats {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  align-items: baseline;
+}
+.hand-row .playing-card .card-stats small {
+  font-size: 0.82em;
+  font-weight: 400;
+  color: var(--muted);
+  margin-inline-end: 0.2em;
+}
 .phase-strip {
   font-size: var(--text-meta);
   padding: var(--space-2) 0;
@@ -530,6 +561,18 @@ dialog::backdrop {
 }
 .dialog-head h2 {
   font-size: var(--text-title);
+  /* The title takes the slack so `Geri` stays hard left and `Kapat` hard
+     right, and the two never swap places as titles change length. */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dialog-head .dialog-up {
+  order: -1;
+  flex-shrink: 0;
+  color: var(--brass);
+}
+.dialog-head .dialog-up::before {
+  content: "← ";
 }
 .dialog-body {
   overflow: auto;
@@ -802,12 +845,16 @@ body[data-targeting="true"] .playing-card:not(.valid-target):not(.selected) {
 .inspector {
   max-height: calc(100dvh - 88px);
 }
-/* The hand and commands occupy their own rows; they never cover the table. */
+/* The hand and commands occupy their own rows; they never cover the table.
+   The board itself is one complete two-sided object: pinning the duel screen to
+   the viewport used to squeeze the table into whatever space the hand and dock
+   left over, so the player's own half sat behind an internal scrollbar. The
+   table now takes its natural height and the page extends instead, while the
+   side rails and the action dock stay pinned so nothing goes out of reach. */
 body[data-screen="duel"] #app {
-  height: 100dvh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 body[data-screen="duel"] .operations,
 body[data-screen="duel"] .notice {
@@ -817,31 +864,45 @@ body[data-screen="duel"] .notice:empty {
   display: none;
 }
 body[data-screen="duel"] .duel-layout {
-  flex: 1;
-  min-height: 0;
   width: 100%;
-  overflow: hidden;
-  align-items: stretch;
+  align-items: start;
 }
 body[data-screen="duel"] .table-workspace {
   display: grid;
-  min-height: 0;
-  grid-template-rows: minmax(120px, 1fr) auto auto;
+  grid-template-rows: auto auto auto;
+  row-gap: var(--space-2);
 }
 body[data-screen="duel"] .duel-table {
-  overflow-y: auto;
-  min-height: 0;
-  overscroll-behavior: contain;
+  overflow-y: visible;
+  min-height: min-content;
+  padding: var(--space-2);
 }
-body[data-screen="duel"] .inspector {
+body[data-screen="duel"] .action-dock p {
+  /* The turn readout keeps its own line so the controls below it stay a
+     single centred group rather than being pushed off-centre by its width. */
+  flex: 1 0 100%;
+  margin: 0;
+  text-align: center;
+  font-size: var(--text-meta);
+  line-height: 1.3;
+}
+body[data-screen="duel"] .action-dock {
+  /* The board is one tall two-sided object, so the gameplay column is the
+     thing that scrolls. Both pinned variants were tried and both failed: a
+     sticky or fixed dock sits on the viewport floor and covers the hand by up
+     to 90px at the top of the page, however much room the column reserves
+     below it. Keeping the dock in flow is what the required order actually
+     asks for — board, then hand, then the turn controls under them. */
   position: static;
-  max-height: none;
-  min-height: 0;
+  justify-content: center;
 }
+body[data-screen="duel"] .inspector,
 body[data-screen="duel"] .ledger {
-  position: static;
-  max-height: none;
+  position: sticky;
+  top: var(--space-2);
+  max-height: calc(100dvh - var(--space-5));
   min-height: 0;
+  overflow-y: auto;
 }
 .action-dock {
   position: static;
@@ -868,16 +929,7 @@ body[data-screen="duel"] .ledger {
     --hand-width: calc(116px * var(--card-scale, 1));
   }
   .action-dock {
-    /* Once a unit is on the field the dock grows past a short viewport, so on
-       phones it sticks to the bottom and scrolls inside itself: the turn
-       actions stay reachable instead of sliding below the fold. */
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
     gap: var(--space-1);
-    max-height: 38dvh;
-    overflow-y: auto;
-    box-shadow: 0 -6px 18px #0006;
   }
   .action-dock button {
     font-size: var(--text-secondary);

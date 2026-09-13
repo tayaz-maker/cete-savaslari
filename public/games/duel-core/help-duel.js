@@ -89,6 +89,7 @@ function sections(theme, lang) {
         list: [
           `Summon a ${unit.toLowerCase()}: once per turn. Levels 1–4 are free. Levels 5–6 need 1 ${tribute}, level 7+ needs 2 — you give up ${unit.toLowerCase()}s already on the field to pay.`,
           `Set a card: place it face-down. A set ${unit.toLowerCase()} defends; a set ${trap.toLowerCase()} waits for its moment. Set cards cannot be used the same turn.`,
+          `How many times: the once-per-turn limit covers only ${unit.toLowerCase()}s — summoning one or setting one uses the same single right. ${spell}s and ${trap.toLowerCase()}s are not limited that way: you may set as many as you hold, while support zones remain free. The opponent plays under exactly these rules, so several set cards in one of its turns is legal, not a cheat.`,
           `Play a ${spell.toLowerCase()}: use its effect immediately.`,
           `Attack in ${battle}: each ${unit.toLowerCase()} normally attacks once. Higher attack wins; equal attack destroys both. Against a defending card, attack is compared with its defense — beat a defender and nothing happens to your ${P}, but a stronger defender damages you instead.`,
           `Attack directly: if the opponent's field is empty, your attack hits their ${P} for its full value.`,
@@ -199,6 +200,7 @@ function sections(theme, lang) {
       list: [
         `${unit} çağır: turda 1 kez. Kademe 1–4 bedelsizdir. Kademe 5–6 için 1 ${tribute}, kademe 7 ve üstü için 2 ${tribute} gerekir; bedeli sahandaki ${unit.toLowerCase()}larını vererek ödersin.`,
         `Kart set et: kartı kapalı koyarsın. Kapalı ${unit.toLowerCase()} savunmada bekler, kapalı ${trap.toLowerCase()} sırasını bekler. Set edilen kart aynı tur kullanılamaz.`,
+        `Kaç kez: turda bir kez sınırı yalnız ${unit.toLowerCase()}lar içindir — birini çağırmak da set etmek de aynı tek hakkı harcar. ${spell} ve ${trap.toLowerCase()} kartları bu sınıra girmez: destek bölgen boş kaldıkça elindeki kadarını set edebilirsin. Rakip de tam olarak bu kurallarla oynar; bir turunda birkaç kart setlemesi kural dışı değildir.`,
         `${spell} oyna: etkisi hemen çalışır.`,
         `${battle}'da saldır: her ${unit.toLowerCase()} normalde turda 1 kez saldırır. Yüksek saldırı kazanır, eşitlikte iki kart da yok olur. Savunmadaki bir karta saldırırken saldırı değeri onun savunmasıyla karşılaştırılır; savunması seninkinden yüksekse aradaki fark sana hasar olarak döner.`,
         `Doğrudan saldır: rakibin sahası boşsa saldırın doğrudan ${P} değerini kırar.`,

@@ -7,6 +7,9 @@ export const labels = {
     help: "Nasıl Oynanır",
     settings: "Ayarlar",
     back: "Oyunlara Dön",
+    /* One level up inside the game. Distinct from `back`, which leaves for the
+       portal, and from `menu`, which jumps all the way to the root. */
+    up: "Geri",
     menu: "Ana Menü",
     close: "Kapat",
     cancel: "Vazgeç",
@@ -168,6 +171,7 @@ export const labels = {
     help: "How to Play",
     settings: "Settings",
     back: "Back to Games",
+    up: "Back",
     menu: "Main Menu",
     close: "Close",
     cancel: "Cancel",
