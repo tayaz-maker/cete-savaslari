@@ -396,7 +396,10 @@ h3 {
 }
 .hand-row .playing-card .card-level,
 .hand-row .playing-card .card-kind-tag {
-  color: var(--muted);
+  /* --muted is the quiet colour for dark panels; on the pale card face it
+     came out at 1.46:1 and the level and type were all but invisible. On
+     paper the subordinate colour is a softened ink, not a light grey. */
+  color: color-mix(in srgb, var(--ink) 68%, var(--paper));
   letter-spacing: 0.04em;
 }
 .hand-row .playing-card .card-stats {
@@ -1253,4 +1256,148 @@ body[data-screen="duel"] .table-workspace {
   /* --ink is the dark-on-paper colour used inside cards; on this panel it is
      all but invisible. The muted token is the panel's own quiet text. */
   color: var(--muted);
+}
+
+/* First-duel coach marks. Positioned beside their anchor, never over it, and
+   never covering the controls — the player can keep playing straight through
+   the guide. */
+.coach-mark {
+  position: fixed;
+  z-index: 6;
+  width: min(328px, calc(100vw - 16px));
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 10px 30px #000a;
+}
+.coach-mark h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-section);
+  color: var(--brass);
+}
+.coach-mark .coach-step {
+  margin: 0;
+  font-size: var(--text-meta);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.coach-mark .coach-body {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+}
+.coach-mark .coach-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+/* The anchor is marked, not masked: nothing is covered or made unclickable. */
+.coach-target {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+  border-radius: var(--radius-panel);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .coach-mark {
+    animation: coach-in 160ms ease-out;
+  }
+  @keyframes coach-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------
+   Final thematic colour pass. Colour, edges and glow only — no card moves,
+   changes size, or loses information, and the layout above is untouched.
+   ------------------------------------------------------------------------ */
+
+/* Card categories read at a glance by a stripe down the frame edge, so the
+   kind of a card is legible before its text is. Each theme uses its own
+   fiction: VETO-H! runs institutional blue / campaign gold / scandal red,
+   GETT-OH! runs lamp amber / felt green / warning burgundy. */
+:root {
+  --kind-unit: #93aac6;
+  --kind-spell: #dcbf85;
+  --kind-trap: #eca39c;
+}
+body[data-theme="gett-oh"] {
+  --kind-unit: #aec293;
+  --kind-spell: #e2a75c;
+  --kind-trap: #d08878;
+}
+.playing-card[data-kind] {
+  border-inline-start: 3px solid var(--kind, var(--frame-edge));
+}
+.playing-card[data-kind="unit"] {
+  --kind: var(--kind-unit);
+}
+.playing-card[data-kind="spell"] {
+  --kind: var(--kind-spell);
+}
+.playing-card[data-kind="trap"] {
+  --kind: var(--kind-trap);
+}
+/* The stat strip picks up the same hue at low strength, so a card's category
+   is still readable when only its bottom edge is showing in a crowded hand. */
+.playing-card[data-kind] .card-stats {
+  border-top: 1px solid color-mix(in srgb, var(--kind, var(--line)) 40%, transparent);
+}
+/* Level stars carry a hint of the theme's metal, but ink stays dominant: at
+   70% gold they washed out to 1.4:1 on the pale card face. */
+.playing-card .card-level {
+  color: color-mix(in srgb, var(--kind-spell) 22%, var(--ink));
+}
+
+/* Selection and targeting stay distinguishable without relying on colour:
+   selection lifts and outlines, a legal target pulses its edge. Colour only
+   reinforces what shape and motion already say. */
+.playing-card.selected {
+  box-shadow:
+    0 0 0 1px var(--brass),
+    0 6px 18px #0008;
+}
+.playing-card.valid-target {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .playing-card.valid-target {
+    animation: target-breathe 1.8s ease-in-out infinite;
+  }
+  @keyframes target-breathe {
+    50% {
+      outline-color: var(--brass);
+    }
+  }
+}
+
+/* Zones: the unit row is where the fight happens, the support row is quieter.
+   A faint tint separates them without adding a border or moving anything. */
+.zones:not(.support-row) .zone {
+  background: color-mix(in srgb, var(--kind-unit) 5%, transparent);
+}
+.support-row .zone {
+  background: color-mix(in srgb, var(--kind-spell) 5%, transparent);
+}
+
+/* The live phase is the one thing on the strip that should catch the eye. */
+.phase-strip .current {
+  box-shadow: inset 0 -2px 0 var(--brass);
+}
+
+/* Table surface: a soft centre light so the board reads as a lit table rather
+   than a flat panel. VETO-H! is a cold room, GETT-OH! a warm one. */
+body[data-theme="veto-h"] .duel-table {
+  background-image: radial-gradient(circle at 50% 42%, #3a445422 0%, transparent 62%);
+}
+body[data-theme="gett-oh"] .duel-table {
+  background-image: radial-gradient(circle at 50% 42%, #e2a75c14 0%, transparent 62%);
 }

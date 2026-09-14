@@ -14,10 +14,6 @@
       },
       "cards": [
         {
-          "id": "SND-155",
-          "count": 3
-        },
-        {
           "id": "SND-156",
           "count": 2
         },
@@ -35,7 +31,7 @@
         },
         {
           "id": "SND-176",
-          "count": 3
+          "count": 1
         },
         {
           "id": "SND-177",
@@ -76,6 +72,14 @@
         {
           "id": "SND-290",
           "count": 3
+        },
+        {
+          "id": "SND-040",
+          "count": 3
+        },
+        {
+          "id": "SND-026",
+          "count": 2
         }
       ],
       "auxiliary": [
@@ -129,20 +133,8 @@
           "count": 2
         },
         {
-          "id": "SND-193",
-          "count": 2
-        },
-        {
           "id": "SND-195",
           "count": 3
-        },
-        {
-          "id": "SND-197",
-          "count": 2
-        },
-        {
-          "id": "SND-214",
-          "count": 2
         },
         {
           "id": "SND-216",
@@ -175,6 +167,18 @@
         {
           "id": "SND-294",
           "count": 3
+        },
+        {
+          "id": "SND-022",
+          "count": 2
+        },
+        {
+          "id": "SND-015",
+          "count": 2
+        },
+        {
+          "id": "SND-016",
+          "count": 2
         }
       ],
       "auxiliary": [
@@ -212,16 +216,12 @@
       },
       "cards": [
         {
-          "id": "SND-027",
-          "count": 2
-        },
-        {
           "id": "SND-028",
-          "count": 2
+          "count": 1
         },
         {
           "id": "SND-031",
-          "count": 2
+          "count": 1
         },
         {
           "id": "SND-036",
@@ -233,11 +233,11 @@
         },
         {
           "id": "SND-042",
-          "count": 2
+          "count": 1
         },
         {
           "id": "SND-081",
-          "count": 3
+          "count": 1
         },
         {
           "id": "SND-089",
@@ -274,6 +274,18 @@
         {
           "id": "SND-292",
           "count": 3
+        },
+        {
+          "id": "SND-040",
+          "count": 2
+        },
+        {
+          "id": "SND-212",
+          "count": 3
+        },
+        {
+          "id": "SND-082",
+          "count": 2
         }
       ],
       "auxiliary": [

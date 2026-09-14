@@ -191,7 +191,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Mezarlıktan özel çağrılabilir; yalnızca bir Çayhane yok olduğunda, o zincirde.",
+    "text": "Iskarta’dan özel çağrılabilir; yalnızca bir Çayhane yok olduğunda, o zincirde.",
     "nameEn": "Reserve Man",
     "textEn": "May Special Summon itself from the grave in the same resolution in which a Teahouse unit is destroyed."
   },
@@ -247,7 +247,7 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Flip: rakip elini göster.",
+    "text": "Açıldığında: rakip elini göster.",
     "nameEn": "Radar Man",
     "textEn": "Flip: reveal your opponent’s hand."
   },
@@ -275,7 +275,7 @@
     "attack": 1300,
     "defense": 1100,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 Çayhane mezarlıktan özel çağır.",
+    "text": "Çağrıldığında 1 Çayhane Iskarta’dan özel çağır.",
     "nameEn": "Shuttle Driver",
     "textEn": "When summoned, Special Summon 1 Teahouse unit from your grave."
   },
@@ -345,7 +345,7 @@
     "attack": 1200,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 ekipman eline al.",
+    "text": "Iskarta’dan 1 ekipman eline al.",
     "nameEn": "Recovery Driver",
     "textEn": "Return 1 equip card from your grave to your hand."
   },
@@ -443,7 +443,7 @@
     "attack": 1700,
     "defense": 1200,
     "deckLocation": "main",
-    "text": "Yok ettiği adam mezarlık yerine sürgün.",
+    "text": "Yok ettiği adam Iskarta yerine sürgün.",
     "nameEn": "Butcher",
     "textEn": "Units destroyed by this unit are banished instead of going to the grave."
   },
@@ -471,7 +471,7 @@
     "attack": 1300,
     "defense": 1300,
     "deckLocation": "main",
-    "text": "1 Set kartını mezarlığa gönder, 0 ATK / 1000 DEF’lik bir Duvar token’ı özel çağır.",
+    "text": "1 Set kartını Iskarta’ya gönder, 0 ATK / 1000 DEF’lik bir Duvar token’ı özel çağır.",
     "nameEn": "Crane Operator",
     "textEn": "Send 1 Set card to the grave and Special Summon a Wall token with 0 ATK and 1000 DEF."
   },
@@ -541,7 +541,7 @@
     "attack": 1100,
     "defense": 1100,
     "deckLocation": "main",
-    "text": "Her iki Standby’da rakip RP −200.",
+    "text": "Her iki Hazırlık Aşaması’nda rakip RP −200.",
     "nameEn": "Loan Shark Apprentice",
     "textEn": "During either player’s Standby Phase, your opponent loses 200 RP."
   },
@@ -667,7 +667,7 @@
     "attack": 900,
     "defense": 1700,
     "deckLocation": "main",
-    "text": "Flip: 1 İhbar mezarlıktan sete.",
+    "text": "Açıldığında: 1 İhbar Iskarta’dan sete.",
     "nameEn": "Sentry",
     "textEn": "Flip: Set 1 Tip-off from your grave."
   },
@@ -877,7 +877,7 @@
     "attack": 1800,
     "defense": 2000,
     "deckLocation": "main",
-    "text": "Yakılan adam mezarlık yerine elde 1 Racon ara.",
+    "text": "Yakılan adam Iskarta yerine elde 1 Racon ara.",
     "nameEn": "Construction Partner",
     "textEn": "When a unit is tributed, banish it instead of leaving it in the grave and search your deck for 1 Racon card."
   },
@@ -989,7 +989,7 @@
     "attack": 2800,
     "defense": 2500,
     "deckLocation": "main",
-    "text": "Yakılan her adam için +200 ATK. Mezarlıkta 3+ ise doğrudan saldırabilir.",
+    "text": "Yakılan her adam için +200 ATK. Iskarta’da 3+ ise doğrudan saldırabilir.",
     "nameEn": "The Boss",
     "textEn": "Gains 200 ATK for each unit tributed to summon it. May attack directly while your grave contains at least 3 cards."
   },
@@ -1241,7 +1241,7 @@
     "attack": 1800,
     "defense": 1800,
     "deckLocation": "auxiliary",
-    "text": "1 adam mezarlıktan malzeme. Çağrılınca o mezarlıktan Kademe 3 veya altı özel çağır.",
+    "text": "1 adam Iskarta’dan malzeme. Çağrılınca o Iskarta’dan Kademe 3 veya altı özel çağır.",
     "nameEn": "Adopted Son",
     "textEn": "Material: 1 unit from your grave. When summoned, Special Summon 1 Level 3 or lower unit from that grave."
   },
@@ -1255,7 +1255,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Ritüel büyüsü: mertebe toplamı kadar mezarlığa adam gönder, ritüeli çağır.",
+    "text": "Ritüel büyüsü: mertebe toplamı kadar Iskarta’ya adam gönder, ritüeli çağır.",
     "nameEn": "Oath Text",
     "textEn": "Ritual instruction: send units whose Levels meet the requirement to the grave, then summon the ritual unit."
   },
@@ -1311,7 +1311,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 adam 800 ATK kazanır; Tur Sonu’nda o adamı mezarlığa gönder.",
+    "text": "1 adam 800 ATK kazanır; Tur Sonu’nda o adamı Iskarta’ya gönder.",
     "nameEn": "Draw a Weapon",
     "textEn": "1 unit gains 800 ATK; send it to the grave during the End Phase."
   },
@@ -1325,7 +1325,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 donanım veya saha kartını mezarlığa gönder.",
+    "text": "1 donanım veya saha kartını Iskarta’ya gönder.",
     "nameEn": "Car Fire",
     "textEn": "Send 1 equip or field card to the grave."
   },
@@ -1395,7 +1395,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlığından 1 adamı eline al.",
+    "text": "Iskarta’dan 1 adamı eline al.",
     "nameEn": "Graveyard Visit",
     "textEn": "Return 1 unit from your grave to your hand."
   },
@@ -1493,7 +1493,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Kademe 2 veya altı bütün adamları mezarlığa gönder.",
+    "text": "Kademe 2 veya altı bütün adamları Iskarta’ya gönder.",
     "nameEn": "Morning Cleanup",
     "textEn": "Send all Level 2 or lower units to the grave."
   },
@@ -1535,7 +1535,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlığından 1 Normal Racon kartını eline al.",
+    "text": "Iskarta’dan 1 Normal Racon kartını eline al.",
     "nameEn": "Old Ledger",
     "textEn": "Return 1 Normal Racon card from your grave to your hand."
   },
@@ -1577,7 +1577,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlığından 1 donanım kartını eline al.",
+    "text": "Iskarta’dan 1 donanım kartını eline al.",
     "nameEn": "Garage Door",
     "textEn": "Return 1 equip card from your grave to your hand."
   },
@@ -1871,7 +1871,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1 saha veya sürekli kartı mezarlığa gönder.",
+    "text": "1 saha veya sürekli kartı Iskarta’ya gönder.",
     "nameEn": "False Address",
     "textEn": "Send 1 field or continuous card to the grave."
   },
@@ -1983,7 +1983,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlığından 1 İhbar kartını kapalı set et.",
+    "text": "Iskarta’dan 1 İhbar kartını kapalı set et.",
     "nameEn": "Old Score",
     "textEn": "Set 1 Tip-off from your grave."
   },
@@ -2112,7 +2112,7 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Çayhane adamını eline al, ardından 250 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Çayhane adamını eline al, ardından 250 RP kazan.",
     "nameEn": "Tea Master",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Teahouse crew from your grave to your hand, then gain 250 RP."
   },
@@ -2126,7 +2126,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 300 RP öde; mezarlığından 1 Çayhane adamını eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 300 RP öde; Iskarta’dan 1 Çayhane adamını eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Table Runner",
     "textEn": "Once per turn, pay 300 RP; return 1 Teahouse unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2140,7 +2140,7 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 400 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 400 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Shift Sister",
     "textEn": "Gains 400 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2182,7 +2182,7 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 350 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 350 RP kaybeder.",
     "nameEn": "Tab Keeper",
     "textEn": "Tribute this card: banish 1 Level 2 or lower crew from the opposing grave, then the opponent loses 350 RP."
   },
@@ -2196,7 +2196,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Çayhane adamını eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Çayhane adamını eline al.",
     "nameEn": "Regulars Spokesperson",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Teahouse unit from your grave to your hand."
   },
@@ -2210,7 +2210,7 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Taksi adamını eline al, ardından 275 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Taksi adamını eline al, ardından 275 RP kazan.",
     "nameEn": "Stand Clerk",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Taxi crew from your grave to your hand, then gain 275 RP."
   },
@@ -2238,7 +2238,7 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 425 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 425 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Night Mechanic",
     "textEn": "Gains 425 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2280,7 +2280,7 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 375 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 375 RP kaybeder.",
     "nameEn": "Plate Tracker",
     "textEn": "Tribute this card: banish 1 Level 3 or lower crew from the opposing grave, then the opponent loses 375 RP."
   },
@@ -2294,7 +2294,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Taksi adamını eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Taksi adamını eline al.",
     "nameEn": "Rank Veteran",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Taxi unit from your grave to your hand."
   },
@@ -2308,7 +2308,7 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Sanayi adamını eline al, ardından 300 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Sanayi adamını eline al, ardından 300 RP kazan.",
     "nameEn": "Parts Finder",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Workshop crew from your grave to your hand, then gain 300 RP."
   },
@@ -2336,7 +2336,7 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 450 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 450 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Welder",
     "textEn": "Gains 450 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2378,7 +2378,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 400 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 400 RP kaybeder.",
     "nameEn": "Vehicle Assessor",
     "textEn": "Tribute this card: banish 1 Level 4 or lower crew from the opposing grave, then the opponent loses 400 RP."
   },
@@ -2392,7 +2392,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Sanayi adamını eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Sanayi adamını eline al.",
     "nameEn": "Engine Rebuilder",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Workshop unit from your grave to your hand."
   },
@@ -2406,7 +2406,7 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Çarşı adamını eline al, ardından 325 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Çarşı adamını eline al, ardından 325 RP kazan.",
     "nameEn": "Morning Wholesaler",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Bazaar crew from your grave to your hand, then gain 325 RP."
   },
@@ -2420,7 +2420,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 450 RP öde; mezarlığından 1 Çarşı birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 450 RP öde; Iskarta’dan 1 Çarşı birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Market Porter",
     "textEn": "Once per turn, pay 450 RP; return 1 Bazaar unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2434,7 +2434,7 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 475 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 475 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Tailor Sister",
     "textEn": "Gains 475 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2476,7 +2476,7 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 425 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 425 RP kaybeder.",
     "nameEn": "Scale Inspector",
     "textEn": "Tribute this card: banish 1 Level 2 or lower crew from the opposing grave, then the opponent loses 425 RP."
   },
@@ -2490,7 +2490,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Çarşı birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Çarşı birimini eline al.",
     "nameEn": "Bazaar Spokesperson",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Bazaar unit from your grave to your hand."
   },
@@ -2504,7 +2504,7 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Liman adamını eline al, ardından 350 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Liman adamını eline al, ardından 350 RP kazan.",
     "nameEn": "Warehouse Clerk",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Port crew from your grave to your hand, then gain 350 RP."
   },
@@ -2532,7 +2532,7 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 500 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 500 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Quay Watcher",
     "textEn": "Gains 500 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2574,7 +2574,7 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 450 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 450 RP kaybeder.",
     "nameEn": "Seal Inspector",
     "textEn": "Tribute this card: banish 1 Level 3 or lower crew from the opposing grave, then the opponent loses 450 RP."
   },
@@ -2588,7 +2588,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Liman birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Liman birimini eline al.",
     "nameEn": "Pier Foreman",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Port unit from your grave to your hand."
   },
@@ -2602,7 +2602,7 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Apartman adamını eline al, ardından 375 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Apartman adamını eline al, ardından 375 RP kazan.",
     "nameEn": "Dues Clerk",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Apartment crew from your grave to your hand, then gain 375 RP."
   },
@@ -2630,7 +2630,7 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 525 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 525 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Building Technician",
     "textEn": "Gains 525 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2672,7 +2672,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 475 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 475 RP kaybeder.",
     "nameEn": "Meter Reader",
     "textEn": "Tribute this card: banish 1 Level 4 or lower crew from the opposing grave, then the opponent loses 475 RP."
   },
@@ -2686,7 +2686,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Apartman birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Apartman birimini eline al.",
     "nameEn": "Owners Spokesperson",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Apartment unit from your grave to your hand."
   },
@@ -2700,7 +2700,7 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Aile adamını eline al, ardından 400 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Aile adamını eline al, ardından 400 RP kazan.",
     "nameEn": "Wedding Inviter",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Family crew from your grave to your hand, then gain 400 RP."
   },
@@ -2714,7 +2714,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 600 RP öde; mezarlığından 1 Aile birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 600 RP öde; Iskarta’dan 1 Aile birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Table Setter",
     "textEn": "Once per turn, pay 600 RP; return 1 Family unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2728,7 +2728,7 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 550 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 550 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Family Mediator",
     "textEn": "Gains 550 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2770,7 +2770,7 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 500 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 500 RP kaybeder.",
     "nameEn": "Dowry Counter",
     "textEn": "Tribute this card: banish 1 Level 2 or lower crew from the opposing grave, then the opponent loses 500 RP."
   },
@@ -2784,7 +2784,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Aile birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Aile birimini eline al.",
     "nameEn": "Elder Aunt",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Family unit from your grave to your hand."
   },
@@ -2798,7 +2798,7 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Dernek adamını eline al, ardından 425 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Dernek adamını eline al, ardından 425 RP kazan.",
     "nameEn": "Membership Clerk",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Association crew from your grave to your hand, then gain 425 RP."
   },
@@ -2826,7 +2826,7 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 575 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 575 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Hall Steward",
     "textEn": "Gains 575 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2868,7 +2868,7 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 525 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 525 RP kaybeder.",
     "nameEn": "Cash Auditor",
     "textEn": "Tribute this card: banish 1 Level 3 or lower crew from the opposing grave, then the opponent loses 525 RP."
   },
@@ -2882,7 +2882,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Dernek birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Dernek birimini eline al.",
     "nameEn": "Terrace Mediator",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Association unit from your grave to your hand."
   },
@@ -2896,7 +2896,7 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Borç adamını eline al, ardından 450 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Borç adamını eline al, ardından 450 RP kazan.",
     "nameEn": "Credit Clerk",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Debt crew from your grave to your hand, then gain 450 RP."
   },
@@ -2924,7 +2924,7 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 600 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 600 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Guarantor Uncle",
     "textEn": "Gains 600 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -2966,7 +2966,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 550 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 550 RP kaybeder.",
     "nameEn": "Accounts Mediator",
     "textEn": "Tribute this card: banish 1 Level 4 or lower crew from the opposing grave, then the opponent loses 550 RP."
   },
@@ -2980,7 +2980,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Borç birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Borç birimini eline al.",
     "nameEn": "Creditors Spokesperson",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Debt unit from your grave to your hand."
   },
@@ -2994,7 +2994,7 @@
     "attack": 600,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Haber adamını eline al, ardından 475 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Haber adamını eline al, ardından 475 RP kazan.",
     "nameEn": "Street Listener",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Rumor crew from your grave to your hand, then gain 475 RP."
   },
@@ -3008,7 +3008,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 750 RP öde; mezarlığından 1 Haber birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 750 RP öde; Iskarta’dan 1 Haber birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Paper Deliverer",
     "textEn": "Once per turn, pay 750 RP; return 1 Rumor unit from your grave to your hand. Skip Battle this turn."
   },
@@ -3022,7 +3022,7 @@
     "attack": 800,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 625 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 625 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Quiet Witness",
     "textEn": "Gains 625 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -3064,7 +3064,7 @@
     "attack": 1100,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 575 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 2 veya altı 1 adamı oyun dışına gönder, sonra rakip 575 RP kaybeder.",
     "nameEn": "Recording Reviewer",
     "textEn": "Tribute this card: banish 1 Level 2 or lower crew from the opposing grave, then the opponent loses 575 RP."
   },
@@ -3078,7 +3078,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Haber birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Haber birimini eline al.",
     "nameEn": "Source Protector",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Rumor unit from your grave to your hand."
   },
@@ -3092,7 +3092,7 @@
     "attack": 700,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Sokak adamını eline al, ardından 500 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Sokak adamını eline al, ardından 500 RP kazan.",
     "nameEn": "Street Mapper",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Street crew from your grave to your hand, then gain 500 RP."
   },
@@ -3120,7 +3120,7 @@
     "attack": 900,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 650 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 650 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Corner Watcher",
     "textEn": "Gains 650 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -3162,7 +3162,7 @@
     "attack": 1200,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 600 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 3 veya altı 1 adamı oyun dışına gönder, sonra rakip 600 RP kaybeder.",
     "nameEn": "Trail Reader",
     "textEn": "Tribute this card: banish 1 Level 3 or lower crew from the opposing grave, then the opponent loses 600 RP."
   },
@@ -3176,7 +3176,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Sokak birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Sokak birimini eline al.",
     "nameEn": "Neighborhood Mediator",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Street unit from your grave to your hand."
   },
@@ -3190,7 +3190,7 @@
     "attack": 800,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Normal sahaya sürüldüğünde mezarlığından kademe 2 veya altı 1 Baba adamını eline al, ardından 525 RP kazan.",
+    "text": "Normal sahaya sürüldüğünde Iskarta’dan kademe 2 veya altı 1 Baba adamını eline al, ardından 525 RP kazan.",
     "nameEn": "Old Bookkeeper",
     "textEn": "When Normal Summoned, return 1 Level 2 or lower Boss crew from your grave to your hand, then gain 525 RP."
   },
@@ -3218,7 +3218,7 @@
     "attack": 1000,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "Donatılmışken 675 ATK kazanır. Kapalı dururken açılınca mezarlığındaki 1 donanım kartını eline al.",
+    "text": "Donatılmışken 675 ATK kazanır. Kapalı dururken açılınca Iskarta’daki 1 donanım kartını eline al.",
     "nameEn": "Family Friend",
     "textEn": "Gains 675 ATK while equipped. When flipped from Set, return 1 Equip card from your grave to your hand."
   },
@@ -3260,7 +3260,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: rakibin mezarlığındaki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 625 RP kaybeder.",
+    "text": "Bu kartı feda et: rakibin Iskarta’daki kademe 4 veya altı 1 adamı oyun dışına gönder, sonra rakip 625 RP kaybeder.",
     "nameEn": "Promise Keeper",
     "textEn": "Tribute this card: banish 1 Level 4 or lower crew from the opposing grave, then the opponent loses 625 RP."
   },
@@ -3274,7 +3274,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Baba birimini eline al.",
+    "text": "Çağırmak için 1 feda gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Iskarta’dan kademe 3 veya altı 1 Baba birimini eline al.",
     "nameEn": "New Voice",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Boss unit from your grave to your hand."
   },
@@ -3400,7 +3400,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "500 RP öde; mezarlığındaki 1 Sanayi adamını eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "500 RP öde; Iskarta’daki 1 Sanayi adamını eline al, ardından rakip Iskarta’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Parts Receipt",
     "textEn": "Pay 500 RP; return 1 Workshop unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3456,7 +3456,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 RP öde; mezarlığındaki 1 Aile birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "700 RP öde; Iskarta’daki 1 Aile birimini eline al, ardından rakip Iskarta’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Place at the Table",
     "textEn": "Pay 700 RP; return 1 Family unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3512,7 +3512,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 RP öde; mezarlığındaki 1 Sokak birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "900 RP öde; Iskarta’daki 1 Sokak birimini eline al, ardından rakip Iskarta’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Backstreet Route",
     "textEn": "Pay 900 RP; return 1 Street unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3540,7 +3540,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "600 RP öde; mezarlığından kademe 3 veya altı 1 Çayhane adamını özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "600 RP öde; Iskarta’dan kademe 3 veya altı 1 Çayhane adamını özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Empty Table",
     "textEn": "Pay 600 RP; Special Summon 1 Level 3 or lower Teahouse unit from your grave. Skip Battle this turn."
   },
@@ -3554,7 +3554,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "650 RP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Taksi birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "650 RP öde; Iskarta’daki 1 tuzağı destek bölgesine set et. Bir Taksi birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "Roadside Assistance",
     "textEn": "Pay 650 RP; Set 1 trap from your grave into a support zone. You must control a Taxi unit. The Set card cannot activate this turn."
   },
@@ -3568,7 +3568,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 RP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Sanayi birimin bulunmalı.",
+    "text": "700 RP öde; rakibin Iskarta’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Sanayi birimin bulunmalı.",
     "nameEn": "Scrap Exchange",
     "textEn": "Pay 700 RP; banish 1 unit from the opposing grave and draw 1 card. You must control a Workshop unit."
   },
@@ -3596,7 +3596,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "800 RP öde; mezarlığından kademe 3 veya altı 1 Liman birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "800 RP öde; Iskarta’dan kademe 3 veya altı 1 Liman birimini özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Shift Change",
     "textEn": "Pay 800 RP; Special Summon 1 Level 3 or lower Port unit from your grave. Skip Battle this turn."
   },
@@ -3610,7 +3610,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "850 RP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Apartman birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "850 RP öde; Iskarta’daki 1 tuzağı destek bölgesine set et. Bir Apartman birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "Building Meeting",
     "textEn": "Pay 850 RP; Set 1 trap from your grave into a support zone. You must control a Apartment unit. The Set card cannot activate this turn."
   },
@@ -3624,7 +3624,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 RP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Aile birimin bulunmalı.",
+    "text": "900 RP öde; rakibin Iskarta’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Aile birimin bulunmalı.",
     "nameEn": "Wedding Chest",
     "textEn": "Pay 900 RP; banish 1 unit from the opposing grave and draw 1 card. You must control a Family unit."
   },
@@ -3652,7 +3652,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1000 RP öde; mezarlığından kademe 3 veya altı 1 Borç birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "1000 RP öde; Iskarta’dan kademe 3 veya altı 1 Borç birimini özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Note Transfer",
     "textEn": "Pay 1000 RP; Special Summon 1 Level 3 or lower Debt unit from your grave. Skip Battle this turn."
   },
@@ -3666,7 +3666,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1050 RP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Haber birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "1050 RP öde; Iskarta’daki 1 tuzağı destek bölgesine set et. Bir Haber birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "Camera Recording",
     "textEn": "Pay 1050 RP; Set 1 trap from your grave into a support zone. You must control a Rumor unit. The Set card cannot activate this turn."
   },
@@ -3680,7 +3680,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1100 RP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Sokak birimin bulunmalı.",
+    "text": "1100 RP öde; rakibin Iskarta’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Sokak birimin bulunmalı.",
     "nameEn": "Corner Light",
     "textEn": "Pay 1100 RP; banish 1 unit from the opposing grave and draw 1 card. You must control a Street unit."
   },
@@ -3862,7 +3862,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 350 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Çayhane adamını eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 350 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Çayhane adamını eline al.",
     "nameEn": "Cold Tea",
     "textEn": "When the opponent declares an attack: pay 350 RP; cancel the attack, then return 1 Level 2 or lower Teahouse unit from your grave to your hand."
   },
@@ -3876,7 +3876,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 400 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Taksi adamını eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 400 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Taksi adamını eline al.",
     "nameEn": "Wrong Plate",
     "textEn": "When the opponent declares an attack: pay 400 RP; cancel the attack, then return 1 Level 2 or lower Taxi unit from your grave to your hand."
   },
@@ -3890,7 +3890,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 450 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Sanayi adamını eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 450 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Sanayi adamını eline al.",
     "nameEn": "Counterfeit Part",
     "textEn": "When the opponent declares an attack: pay 450 RP; cancel the attack, then return 1 Level 2 or lower Workshop unit from your grave to your hand."
   },
@@ -3904,7 +3904,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 500 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Çarşı birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 500 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Çarşı birimini eline al.",
     "nameEn": "Short Weight",
     "textEn": "When the opponent declares an attack: pay 500 RP; cancel the attack, then return 1 Level 2 or lower Bazaar unit from your grave to your hand."
   },
@@ -3918,7 +3918,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 550 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Liman birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 550 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Liman birimini eline al.",
     "nameEn": "Broken Seal",
     "textEn": "When the opponent declares an attack: pay 550 RP; cancel the attack, then return 1 Level 2 or lower Port unit from your grave to your hand."
   },
@@ -3932,7 +3932,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 600 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Apartman birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 600 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Apartman birimini eline al.",
     "nameEn": "Locked Door",
     "textEn": "When the opponent declares an attack: pay 600 RP; cancel the attack, then return 1 Level 2 or lower Apartment unit from your grave to your hand."
   },
@@ -3946,7 +3946,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 650 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Aile birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 650 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Aile birimini eline al.",
     "nameEn": "Broken Engagement",
     "textEn": "When the opponent declares an attack: pay 650 RP; cancel the attack, then return 1 Level 2 or lower Family unit from your grave to your hand."
   },
@@ -3960,7 +3960,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 700 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Dernek birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 700 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Dernek birimini eline al.",
     "nameEn": "Missing Kit",
     "textEn": "When the opponent declares an attack: pay 700 RP; cancel the attack, then return 1 Level 2 or lower Association unit from your grave to your hand."
   },
@@ -3974,7 +3974,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 750 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Borç birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 750 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Borç birimini eline al.",
     "nameEn": "Unpaid Note",
     "textEn": "When the opponent declares an attack: pay 750 RP; cancel the attack, then return 1 Level 2 or lower Debt unit from your grave to your hand."
   },
@@ -3988,7 +3988,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 800 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Haber birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 800 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Haber birimini eline al.",
     "nameEn": "Contradictory Witness",
     "textEn": "When the opponent declares an attack: pay 800 RP; cancel the attack, then return 1 Level 2 or lower Rumor unit from your grave to your hand."
   },
@@ -4002,7 +4002,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 850 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Sokak birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 850 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Sokak birimini eline al.",
     "nameEn": "Camera Outage",
     "textEn": "When the opponent declares an attack: pay 850 RP; cancel the attack, then return 1 Level 2 or lower Street unit from your grave to your hand."
   },
@@ -4016,7 +4016,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 900 RP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Baba birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 900 RP öde; saldırıyı iptal et, ardından Iskarta’dan kademe 2 veya altı 1 Baba birimini eline al.",
     "nameEn": "Broken Promise",
     "textEn": "When the opponent declares an attack: pay 900 RP; cancel the attack, then return 1 Level 2 or lower Boss unit from your grave to your hand."
   },

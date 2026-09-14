@@ -81,5 +81,9 @@ export function legalActions(state, player) {
     }
     return variants;
   });
-  return expanded.filter((action) => action.type === "special" || !rejection(state, action));
+  // Every candidate goes through the one validator, specials included. They
+  // used to be trusted because they came from specialPlans, which meant the
+  // action list and the validator could disagree about what is legal — and
+  // any rule added to the validator simply did not apply to them.
+  return expanded.filter((action) => !rejection(state, action));
 }

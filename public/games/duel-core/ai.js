@@ -111,11 +111,16 @@ function applyProfile(profile, view, action, value) {
     if (action.type === "set-unit") value -= 8;
     if (action.type === "end-main" || action.type === "phase") value -= 6;
   } else if (profile === "patient") {
-    if (action.type === "attack" && value < 180) value -= 35;
-    if (action.type === "set-unit") value += 22;
+    // A winning attack scores 150 + edge/100, so the old "value < 180" gate
+    // wanted a 3000 ATK advantage before this profile would swing — it
+    // declined nearly every attack, set its units face-down instead of
+    // summoning them, and nudged itself to end the turn. It lost to random
+    // play. Patient means declining thin trades, not refusing to fight.
+    if (action.type === "attack" && value < 155) value -= 20;
+    if (action.type === "set-unit") value += 10;
     if (action.type === "set-support") value += 10;
     if (action.type === "summon" && (card?.attack || 0) < 1400) value -= 10;
-    if (action.type === "end-main") value += 4;
+    if (action.type === "end-main") value += 1;
   } else if (profile === "trapper") {
     if (action.type === "set-support") value += 55;
     if (action.type === "respond") value += 40;

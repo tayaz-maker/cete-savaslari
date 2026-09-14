@@ -21,6 +21,17 @@ import { specialPlans, ritualPlans } from "./summoning.js";
 import { attackTargets, attackBlocked, traits as combatTraits } from "./combat-rules.js";
 import { canRespond, flagActive, hasTrait } from "./timing.js";
 
+/**
+ * Per-turn action economy, identical for both seats.
+ *
+ * One Normal Summon/Set (two with a card granting extraNormalMaxLevel) was
+ * already the rule. These two are new: traced matches averaged five card
+ * plays on turn one and could fill all five unit zones before the opponent
+ * had taken a turn.
+ */
+export const SPECIAL_PER_TURN = 1;
+export const SUPPORT_SETS_PER_TURN = 2;
+
 export function createDuel(pool, theme, seed, first = 0, prepared = null) {
   const state = {
     version: 1,
@@ -56,6 +67,8 @@ export function createDuel(pool, theme, seed, first = 0, prepared = null) {
       support: Array(5).fill(null),
       field: null,
       normalUsed: 0,
+      specialUsed: 0,
+      supportSetUsed: 0,
       flags: {},
       used: {},
       fieldHistory: [],
@@ -531,6 +544,10 @@ export function rejection(state, action) {
       : "hand-limit-only";
   if (action.type === "special") {
     if (!MAIN.includes(state.phase)) return "main-phase-only";
+    // One Special Summon a turn, the same way a Normal Summon is one a turn.
+    // Uncapped special summons let either seat put three or four bodies down
+    // on turn one, which is what made the opponent look like it was cheating.
+    if ((p.specialUsed || 0) >= SPECIAL_PER_TURN) return "special-used";
     const plans = [...specialPlans(state, action.player), ...ritualPlans(state, action.player)];
     return plans.some(
       (plan) =>
@@ -598,6 +615,9 @@ export function rejection(state, action) {
       !["spell", "trap"].includes(def?.kind)
     )
       return "invalid-set";
+    // Support sets were bounded only by the five zones, so a full hand could
+    // become a wall of face-down cards in one turn.
+    if ((p.supportSetUsed || 0) >= SUPPORT_SETS_PER_TURN) return "support-limit";
     return Number.isInteger(action.slot) &&
       action.slot >= 0 &&
       action.slot < 5 &&
@@ -968,6 +988,8 @@ export function dispatch(original, action) {
       index = 0;
       for (const player of state.players) {
         player.normalUsed = 0;
+        player.specialUsed = 0;
+        player.supportSetUsed = 0;
         player.flags = Object.fromEntries(
           Object.entries(player.flags).filter(([key]) => key === "skipDraw"),
         );
@@ -989,6 +1011,7 @@ export function dispatch(original, action) {
     ctx.emit("set", { player: action.player, uid: action.card });
   } else if (action.type === "set-support") {
     ctx.move(action.card, "support", "set", action.player, action.slot);
+    p.supportSetUsed = (p.supportSetUsed || 0) + 1;
     card.face = "down";
     card.setTurn = state.turn;
     ctx.emit("set", { player: action.player, uid: action.card });
@@ -1002,6 +1025,7 @@ export function dispatch(original, action) {
     if (flip) ctx.emit("flip", { player: action.player, uid: action.card });
   } else {
     if (["summon", "set-unit"].includes(action.type)) p.normalUsed++;
+    if (action.type === "special") p.specialUsed = (p.specialUsed || 0) + 1;
     if (action.type === "attack") card.attacksUsed++;
     if (action.type === "activate") {
       card.used.activate = state.turn;

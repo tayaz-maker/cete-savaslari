@@ -48,6 +48,16 @@ const SPECIFIC = {
       ? `Bu tur normal çağrı hakkını kullandın (${used}). Yeni bir ${unitWord} çağırmak için sıradaki turu bekle.`
       : `You have used your Normal Summon this turn (${used}). Wait for your next turn.`;
   },
+  "special-used": ({ lang }) =>
+    lang === "tr"
+      ? "Bu tur özel çağrı hakkını kullandın; turda bir özel çağrı yapılır."
+      : "You have used your Special Summon this turn; one is allowed per turn.",
+  "support-limit": ({ state, lang }) => {
+    const used = state.players?.[0]?.supportSetUsed ?? 2;
+    return lang === "tr"
+      ? `Bu tur ${used} destek kartı set ettin; turda en fazla 2 set edilir.`
+      : `You have Set ${used} support cards this turn; the limit is 2.`;
+  },
   "normal-blocked": ({ lang }) =>
     lang === "tr"
       ? "Sahadaki bir kart bu tur normal çağrıyı kilitliyor."

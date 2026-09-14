@@ -11,6 +11,13 @@ import { PHASES } from "./model.js";
 import { labels } from "./labels.js";
 import { rejectionText } from "./rejections.js";
 import { explainRejection } from "./explain.js";
+import { eventStory, moveStory } from "./flow-copy.js";
+import {
+  markOnboardingSeen,
+  onboardingSeen,
+  onboardingSteps,
+  resetOnboarding,
+} from "./onboarding.js";
 import { relatedCards } from "./relationships.js";
 import {
   DECK_SCHEMA_VERSION,
@@ -170,7 +177,27 @@ export async function startApp(theme, designs) {
     applyDisplay(settings, theme);
   };
   const catalog = () => state?.catalog || Object.fromEntries(pool.map((c) => [c.id, c]));
-  const rulesBody = () => duelHelpBody($, theme, lang);
+  const rulesBody = () => [
+    // The first-duel guide is replayable rather than a one-time thing the
+    // player can lose by tapping Skip once, and it sits at the top: someone
+    // looking for it should not have to read twelve sections to find it.
+    screen === "duel"
+      ? $(
+          "div",
+          { class: "dialog-actions coach-replay-row" },
+          button(
+            lang === "tr" ? "İlk Düello Rehberini Tekrar Göster" : "Replay the First-Duel Guide",
+            () => {
+              resetOnboarding(storage);
+              close();
+              startCoach(true);
+            },
+            { "data-pick": "coach-replay" },
+          ),
+        )
+      : null,
+    duelHelpBody($, theme, lang),
+  ];
   const button = (label, fn, attrs = {}) =>
     $("button", { type: "button", onclick: fn, ...attrs }, label);
   const actor = () => state?.choice?.player ?? state?.pending?.responding ?? state?.active;
@@ -555,6 +582,15 @@ export async function startApp(theme, designs) {
       $("div", { class: "notice", role: "status", "aria-live": "polite" }, notice),
       screen === "archive" ? archive() : screen === "duel" ? board() : menu(),
     );
+    // Measured against the freshly rendered board, so it lands beside its
+    // anchor rather than where the anchor used to be.
+    for (const stale of root.querySelectorAll(".coach-target"))
+      stale.classList.remove("coach-target");
+    const coach = coachMark();
+    if (coach) {
+      root.append(coach);
+      coach.placeBeside?.();
+    }
   }
   function menu() {
     return $(
@@ -852,10 +888,15 @@ export async function startApp(theme, designs) {
           lastAnalysis = null;
           setup = null;
           screen = "duel";
+          startFirstDuelCoach = !onboardingSeen(storage);
           lastPoints = null;
           close();
           save();
           render();
+          if (startFirstDuelCoach) {
+            startFirstDuelCoach = false;
+            startCoach();
+          }
           scheduleAI();
         },
         { class: "primary" },
@@ -1468,28 +1509,9 @@ export async function startApp(theme, designs) {
           : `Rakip ${e.count} kart çekti.`
         : `${who} drew ${e.count} card(s).`;
     if (e.event === "move") {
-      const label = cname(e.uid, v);
-      const verb = {
-        tr: {
-          units: e.player === 0 ? "sahaya sürdün" : "sahaya sürdü",
-          support: e.player === 0 ? "oynadın" : "oynadı",
-          hand: e.player === 0 ? "eline aldın" : "eline aldı",
-          grave: e.player === 0 ? "mezarlığa gönderdin" : "mezarlığa gönderdi",
-          banished: e.player === 0 ? "oyun dışı bıraktın" : "oyun dışı bıraktı",
-          deck: e.player === 0 ? "destene geri koydun" : "destesine geri koydu",
-        },
-        en: {
-          units: "put onto the field",
-          support: "played",
-          hand: "returned to hand",
-          grave: "sent to the graveyard",
-          banished: "banished",
-          deck: "returned to the deck",
-        },
-      }[lang][e.to];
-      if (verb)
-        return lang === "tr" ? `${who} “${label}” kartını ${verb}.` : `${who} ${verb} “${label}”.`;
-      return `${who}: ${label} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
+      const told = moveStory(e, storyCtx(e, v));
+      if (told) return detailLine([told.head, told.why, told.note], " ");
+      return `${who}: ${cname(e.uid, v)} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
     }
     if (e.event === "phase") {
       const label = phaseFullName[e.phase] || t(e.phase);
@@ -1502,7 +1524,101 @@ export async function startApp(theme, designs) {
     if (e.event === "result") return t("finished");
     if (e.event === "targets-unavailable") return t("targetsUnavailable");
     if (e.event === "start") return lang === "tr" ? "Düello başladı." : "The duel began.";
+    // Everything else used to collapse into a bare "Rakip: Etki", which is how
+    // cards came to vanish with no explanation.
+    const story = eventStory(e, storyCtx(e, v));
+    if (story) return story;
     return `${who}: ${t(e.event === "look" ? "select" : e.event === "reveal" ? "effect" : e.event === "token" ? "summon" : "effect")}`;
+  }
+  /**
+   * First-duel coach marks. One note at a time, anchored beside the thing it
+   * describes, never covering it and never blocking a click.
+   */
+  let coachStep = 0,
+    coachOn = false,
+    startFirstDuelCoach = false;
+  function startCoach(force = false) {
+    if (!force && onboardingSeen(storage)) return;
+    coachStep = 0;
+    coachOn = true;
+    render();
+  }
+  function endCoach() {
+    coachOn = false;
+    markOnboardingSeen(storage);
+    render();
+  }
+  function coachMark() {
+    if (!coachOn || screen !== "duel") return null;
+    const steps = onboardingSteps(theme, lang, {
+      unit: t("unit"),
+      battle: t("battle"),
+    });
+    const step = steps[coachStep];
+    if (!step) return null;
+    const host = root.querySelector(step.anchor);
+    const box = host?.getBoundingClientRect();
+    const note = $(
+      "div",
+      {
+        class: "coach-mark",
+        role: "dialog",
+        "aria-live": "polite",
+        "aria-label": step.title,
+        "data-step": step.id,
+      },
+      $("p", { class: "coach-step" }, `${coachStep + 1} / ${steps.length}`),
+      $("h3", {}, step.title),
+      $("p", { class: "coach-body" }, step.body),
+      $(
+        "div",
+        { class: "coach-actions" },
+        button(lang === "tr" ? "Geç" : "Skip", endCoach, {
+          class: "ghost",
+          "data-pick": "coach-skip",
+        }),
+        button(
+          coachStep + 1 < steps.length
+            ? lang === "tr"
+              ? "Devam"
+              : "Next"
+            : lang === "tr"
+              ? "Başla"
+              : "Play",
+          () => {
+            coachStep += 1;
+            if (coachStep >= steps.length) endCoach();
+            else render();
+          },
+          { class: "primary", "data-pick": "coach-next" },
+        ),
+      ),
+    );
+    if (box) host.classList.add("coach-target");
+    // Placed after it is in the document so its real height is known: guessing
+    // the height ran the note off the bottom of a 390px-wide phone.
+    note.placeBeside = () => {
+      if (!box) return;
+      const self = note.getBoundingClientRect();
+      const gap = 8;
+      const fitsBelow = box.bottom + gap + self.height <= innerHeight - gap;
+      const top = fitsBelow ? box.bottom + gap : box.top - gap - self.height;
+      note.style.top = `${Math.min(Math.max(gap, top), Math.max(gap, innerHeight - self.height - gap))}px`;
+      note.style.left = `${Math.min(Math.max(gap, box.left), Math.max(gap, innerWidth - self.width - gap))}px`;
+    };
+    return note;
+  }
+  /** Everything flow-copy.js needs to word one event. */
+  function storyCtx(e, v) {
+    const uid = e.uid ?? e.attacker ?? e.card ?? (e.cards || [])[0];
+    return {
+      lang,
+      point,
+      you: t("you"),
+      foe: t("opponent"),
+      mine: e.player === 0,
+      name: uid ? cname(uid, v) : "",
+    };
   }
   function board() {
     const v = view(),

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { pools } from "./duel-pools.mjs";
+import { SPECIAL_PER_TURN, SUPPORT_SETS_PER_TURN } from "../public/games/duel-core/rules.js";
 import { expandDeck } from "../public/games/duel-core/decks.js";
 import { createDuel, dispatch, rejection } from "../public/games/duel-core/rules.js";
 import { legalActions } from "../public/games/duel-core/actions.js";
@@ -87,18 +88,23 @@ for (const theme of THEMES) {
     // offered must not depend on which seat it is.
     for (const preset of decks) {
       for (const first of [0, 1]) {
-        const prepared = [expandDeck(preset, pool, 3), expandDeck(preset, pool, 3)];
-        let state = createDuel(pool, theme, 99, first, prepared);
+        // Pooled over several seeds: whether a seat ever reaches a position
+        // change in one scripted match is luck, but the vocabulary available
+        // to a seat is not, and that is what this asserts.
         const seen = { 0: new Set(), 1: new Set() };
-        for (let step = 0; step < 400 && !state.result; step++) {
-          const actor = actorOf(state);
-          const legal = legalActions(state, actor);
-          for (const a of legal) seen[actor].add(a.type);
-          const action = chooseAction(publicView(state, actor), legal, "controlled");
-          if (!action) break;
-          const result = dispatchPresented(state, action);
-          if (!result.ok) break;
-          state = result.state;
+        for (const seed of [3, 17, 41, 88]) {
+          const prepared = [expandDeck(preset, pool, seed), expandDeck(preset, pool, seed)];
+          let state = createDuel(pool, theme, seed * 11, first, prepared);
+          for (let step = 0; step < 400 && !state.result; step++) {
+            const actor = actorOf(state);
+            const legal = legalActions(state, actor);
+            for (const a of legal) seen[actor].add(a.type);
+            const action = chooseAction(publicView(state, actor), legal, "controlled");
+            if (!action) break;
+            const result = dispatchPresented(state, action);
+            if (!result.ok) break;
+            state = result.state;
+          }
         }
         // Neither seat may hold an action type the other never saw.
         const only0 = [...seen[0]].filter((t) => !seen[1].has(t));
@@ -150,13 +156,14 @@ for (const theme of THEMES) {
   });
 }
 
-/* ---------------------------------------- support sets are uncapped, evenly */
+/* ------------------------------------ the support-set cap binds both seats */
 
 for (const theme of THEMES) {
-  test(`${theme}: support sets are never capped per turn for either seat`, () => {
+  test(`${theme}: the per-turn support-set cap binds both seats equally`, () => {
     const pool = pools[theme];
     const decks = decksOf(theme).decks;
     let observed = 0;
+    const reached = new Set();
     for (let seed = 1; seed <= 10; seed++) {
       const prepared = [
         expandDeck(decks[seed % decks.length], pool, seed),
@@ -171,28 +178,131 @@ for (const theme of THEMES) {
           if (state.pending || state.choice) return;
           if (!["main1", "main2"].includes(state.phase) || actor !== state.active) return;
           const p = state.players[actor];
+          const used = p.supportSetUsed || 0;
+          // The cap is a rule, not a presentation filter: under it every
+          // settable card is offered, at it none is, and that is true of
+          // whichever seat is acting.
+          assert.ok(
+            used <= SUPPORT_SETS_PER_TURN,
+            `${theme}#${seed}: seat ${actor} set ${used} support cards in one turn`,
+          );
           if (!p.support.includes(null)) return;
           const settable = p.hand.filter((uid) => {
             const def = state.catalog[state.cards[uid].id];
             return ["spell", "trap"].includes(def.kind) && def.subtype !== "field";
           });
-          if (settable.length < 2) return;
-          const offered = new Set(
-            legal.filter((a) => a.type === "set-support").map((a) => a.card),
-          );
-          // Every settable card in hand must be offered, however many were
-          // already set this turn: the engine has no per-turn set cap.
-          for (const uid of settable)
-            assert.ok(
-              offered.has(uid),
-              `${theme}#${seed}: seat ${actor} holds a settable card with no set-support action ` +
-                `(turn ${state.turn}, ${offered.size}/${settable.length} offered)`,
+          if (!settable.length) return;
+          const offered = new Set(legal.filter((a) => a.type === "set-support").map((a) => a.card));
+          if (used >= SUPPORT_SETS_PER_TURN) {
+            assert.equal(
+              offered.size,
+              0,
+              `${theme}#${seed}: seat ${actor} was offered a set at the cap (used ${used})`,
             );
-          observed++;
+            reached.add(actor);
+          } else {
+            for (const uid of settable)
+              assert.ok(
+                offered.has(uid),
+                `${theme}#${seed}: seat ${actor} holds a settable card with no set-support ` +
+                  `action below the cap (turn ${state.turn}, used ${used})`,
+              );
+            observed++;
+          }
         },
       });
     }
     assert.ok(observed > 20, `${theme}: only ${observed} settable states observed`);
+    assert.equal(reached.size, 2, `${theme}: only seats [${[...reached]}] were seen at the cap`);
+  });
+}
+
+/* ------------------------------------- the special-summon cap binds both seats */
+
+for (const theme of THEMES) {
+  test(`${theme}: one Special Summon per turn, for whichever seat is acting`, () => {
+    const pool = pools[theme];
+    const decks = decksOf(theme).decks;
+    const perTurn = new Map();
+    const reached = new Set();
+    let specials = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const prepared = [
+        expandDeck(decks[seed % decks.length], pool, seed),
+        expandDeck(decks[(seed + 2) % decks.length], pool, seed + 17),
+      ];
+      playMatch({
+        theme,
+        seed: seed * 53,
+        decks: prepared,
+        profiles: ["aggressive", "risky"],
+        onAction: ({ state, actor, action, legal }) => {
+          const p = state.players[actor];
+          const used = p.specialUsed || 0;
+          assert.ok(
+            used <= SPECIAL_PER_TURN,
+            `${theme}#${seed}: seat ${actor} made ${used} special summons in one turn`,
+          );
+          // At the cap the action list must not offer one either — the list
+          // and the validator agree because both come from rejection().
+          if (used >= SPECIAL_PER_TURN && ["main1", "main2"].includes(state.phase)) {
+            assert.equal(
+              legal.filter((a) => a.type === "special").length,
+              0,
+              `${theme}#${seed}: seat ${actor} was offered a special summon at the cap`,
+            );
+            reached.add(actor);
+          }
+          if (action?.type === "special") {
+            specials++;
+            const key = `${seed}|${state.turn}|${actor}`;
+            perTurn.set(key, (perTurn.get(key) || 0) + 1);
+            assert.ok(
+              perTurn.get(key) <= SPECIAL_PER_TURN,
+              `${theme}#${seed}: ${perTurn.get(key)} specials on turn ${state.turn} for seat ${actor}`,
+            );
+          }
+        },
+      });
+    }
+    assert.ok(specials > 10, `${theme}: only ${specials} special summons observed`);
+    assert.equal(reached.size, 2, `${theme}: only seats [${[...reached]}] were seen at the cap`);
+  });
+}
+
+/* ------------------------- the action list never offers what the validator refuses */
+
+for (const theme of THEMES) {
+  test(`${theme}: every offered action survives the shared validator`, () => {
+    const pool = pools[theme];
+    const decks = decksOf(theme).decks;
+    let checked = 0;
+    for (let seed = 1; seed <= 8; seed++) {
+      const prepared = [
+        expandDeck(decks[seed % decks.length], pool, seed),
+        expandDeck(decks[(seed + 4) % decks.length], pool, seed + 11),
+      ];
+      playMatch({
+        theme,
+        seed: seed * 29,
+        decks: prepared,
+        profiles: ["controlled", "trapper"],
+        onAction: ({ state, legal }) => {
+          // Specials were once exempt from this filter, so the list could
+          // offer a move the validator would refuse — and any rule added to
+          // the validator did not reach them.
+          for (const action of legal) {
+            assert.equal(
+              rejection(state, action),
+              null,
+              `${theme}#${seed}: offered ${action.type} is refused by the validator`,
+            );
+            checked++;
+          }
+        },
+      });
+    }
+    assert.ok(checked > 2000, `${theme}: only ${checked} offered actions checked`);
   });
 }
 
@@ -216,7 +326,10 @@ test("stress: AI play stays legal, terminating and numerically sound", () => {
             theme,
             seed: seed * 101 + decks.indexOf(preset),
             decks: prepared,
-            profiles: [profile, AI_PROFILE_IDS[(AI_PROFILE_IDS.indexOf(profile) + 2) % AI_PROFILE_IDS.length]],
+            profiles: [
+              profile,
+              AI_PROFILE_IDS[(AI_PROFILE_IDS.indexOf(profile) + 2) % AI_PROFILE_IDS.length],
+            ],
             onAction: ({ state, action }) => {
               actions++;
               revisions.push(state.revision);
