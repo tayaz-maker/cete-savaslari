@@ -88,18 +88,23 @@ for (const theme of THEMES) {
     // offered must not depend on which seat it is.
     for (const preset of decks) {
       for (const first of [0, 1]) {
-        const prepared = [expandDeck(preset, pool, 3), expandDeck(preset, pool, 3)];
-        let state = createDuel(pool, theme, 99, first, prepared);
+        // Pooled over several seeds: whether a seat ever reaches a position
+        // change in one scripted match is luck, but the vocabulary available
+        // to a seat is not, and that is what this asserts.
         const seen = { 0: new Set(), 1: new Set() };
-        for (let step = 0; step < 400 && !state.result; step++) {
-          const actor = actorOf(state);
-          const legal = legalActions(state, actor);
-          for (const a of legal) seen[actor].add(a.type);
-          const action = chooseAction(publicView(state, actor), legal, "controlled");
-          if (!action) break;
-          const result = dispatchPresented(state, action);
-          if (!result.ok) break;
-          state = result.state;
+        for (const seed of [3, 17, 41, 88]) {
+          const prepared = [expandDeck(preset, pool, seed), expandDeck(preset, pool, seed)];
+          let state = createDuel(pool, theme, seed * 11, first, prepared);
+          for (let step = 0; step < 400 && !state.result; step++) {
+            const actor = actorOf(state);
+            const legal = legalActions(state, actor);
+            for (const a of legal) seen[actor].add(a.type);
+            const action = chooseAction(publicView(state, actor), legal, "controlled");
+            if (!action) break;
+            const result = dispatchPresented(state, action);
+            if (!result.ok) break;
+            state = result.state;
+          }
         }
         // Neither seat may hold an action type the other never saw.
         const only0 = [...seen[0]].filter((t) => !seen[1].has(t));
