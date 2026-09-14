@@ -11,6 +11,7 @@ import { PHASES } from "./model.js";
 import { labels } from "./labels.js";
 import { rejectionText } from "./rejections.js";
 import { explainRejection } from "./explain.js";
+import { eventStory, moveStory } from "./flow-copy.js";
 import { relatedCards } from "./relationships.js";
 import {
   DECK_SCHEMA_VERSION,
@@ -1468,28 +1469,9 @@ export async function startApp(theme, designs) {
           : `Rakip ${e.count} kart çekti.`
         : `${who} drew ${e.count} card(s).`;
     if (e.event === "move") {
-      const label = cname(e.uid, v);
-      const verb = {
-        tr: {
-          units: e.player === 0 ? "sahaya sürdün" : "sahaya sürdü",
-          support: e.player === 0 ? "oynadın" : "oynadı",
-          hand: e.player === 0 ? "eline aldın" : "eline aldı",
-          grave: e.player === 0 ? "mezarlığa gönderdin" : "mezarlığa gönderdi",
-          banished: e.player === 0 ? "oyun dışı bıraktın" : "oyun dışı bıraktı",
-          deck: e.player === 0 ? "destene geri koydun" : "destesine geri koydu",
-        },
-        en: {
-          units: "put onto the field",
-          support: "played",
-          hand: "returned to hand",
-          grave: "sent to the graveyard",
-          banished: "banished",
-          deck: "returned to the deck",
-        },
-      }[lang][e.to];
-      if (verb)
-        return lang === "tr" ? `${who} “${label}” kartını ${verb}.` : `${who} ${verb} “${label}”.`;
-      return `${who}: ${label} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
+      const told = moveStory(e, storyCtx(e, v));
+      if (told) return detailLine([told.head, told.why, told.note], " ");
+      return `${who}: ${cname(e.uid, v)} → ${t(e.to === "hand" ? "hand" : e.to === "units" ? "unit" : e.to)}`;
     }
     if (e.event === "phase") {
       const label = phaseFullName[e.phase] || t(e.phase);
@@ -1502,7 +1484,23 @@ export async function startApp(theme, designs) {
     if (e.event === "result") return t("finished");
     if (e.event === "targets-unavailable") return t("targetsUnavailable");
     if (e.event === "start") return lang === "tr" ? "Düello başladı." : "The duel began.";
+    // Everything else used to collapse into a bare "Rakip: Etki", which is how
+    // cards came to vanish with no explanation.
+    const story = eventStory(e, storyCtx(e, v));
+    if (story) return story;
     return `${who}: ${t(e.event === "look" ? "select" : e.event === "reveal" ? "effect" : e.event === "token" ? "summon" : "effect")}`;
+  }
+  /** Everything flow-copy.js needs to word one event. */
+  function storyCtx(e, v) {
+    const uid = e.uid ?? e.attacker ?? e.card ?? (e.cards || [])[0];
+    return {
+      lang,
+      point,
+      you: t("you"),
+      foe: t("opponent"),
+      mine: e.player === 0,
+      name: uid ? cname(uid, v) : "",
+    };
   }
   function board() {
     const v = view(),
