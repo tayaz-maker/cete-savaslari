@@ -10,6 +10,7 @@ import { random } from "./random.js";
 import { PHASES } from "./model.js";
 import { labels } from "./labels.js";
 import { rejectionText } from "./rejections.js";
+import { explainRejection } from "./explain.js";
 import { relatedCards } from "./relationships.js";
 import {
   DECK_SCHEMA_VERSION,
@@ -35,6 +36,22 @@ import {
   actionLogBody,
 } from "./match-ux.js";
 
+/**
+ * The one rule for what may become a child node.
+ *
+ * Conditional rendering leaves `null` in the child list wherever an optional
+ * field is absent. `$` has always dropped those, but `replaceChildren` and
+ * `append` stringify whatever they are handed, so a list passed to them
+ * directly turned every empty slot into the literal word "null" on screen.
+ * Both paths now go through here.
+ */
+const renderable = (children) =>
+  [children]
+    .flat(Infinity)
+    .filter(
+      (child) => child instanceof Node || typeof child === "string" || typeof child === "number",
+    )
+    .map((child) => (child instanceof Node ? child : document.createTextNode(String(child))));
 const $ = (tag, attrs = {}, ...children) => {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -44,9 +61,7 @@ const $ = (tag, attrs = {}, ...children) => {
     else if (value !== false && value !== null && value !== undefined)
       el.setAttribute(key, value === true ? "" : String(value));
   }
-  for (const child of children.flat(Infinity))
-    if (child instanceof Node || typeof child === "string" || typeof child === "number")
-      el.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  el.append(...renderable(children));
   return el;
 };
 export async function startApp(theme, designs) {
@@ -448,6 +463,32 @@ export async function startApp(theme, designs) {
   function reason(code) {
     return rejectionText(code, lang);
   }
+  /**
+   * The name of an action the player expected to be able to take, worded the
+   * same way the enabled button would word it.
+   */
+  function blockedLabel(type, card, v) {
+    return cardActionTitle(
+      { type, card: card?.uid ?? null, tributes: [] },
+      card,
+      v,
+      theme,
+      lang,
+      t(type),
+    );
+  }
+  /** Why that action is unavailable, specific to this board where possible. */
+  function whyBlocked(code, card) {
+    return explainRejection(code, {
+      state,
+      card,
+      lang,
+      theme,
+      point,
+      label: (key) => t(key),
+      unitWord: t("unit"),
+    });
+  }
   function scheduleAI() {
     clearTimeout(timer);
     if (screen !== "duel" || !state || state.result || actor() !== 1) return;
@@ -711,37 +752,42 @@ export async function startApp(theme, designs) {
     const counted = new Map();
     for (const card of cards.filter(Boolean))
       counted.set(card.id, { card, count: (counted.get(card.id)?.count || 0) + 1 });
-    show(t("preview"), [
-      $("p", {}, t("previewNote")),
-      $(
-        "ul",
-        { class: "deck-card-list" },
-        ...[...counted.values()]
-          .sort((a, b) => text(a.card.name).localeCompare(text(b.card.name), lang))
-          .map(({ card, count }) =>
-            $(
-              "li",
-              {},
+    show(
+      t("preview"),
+      [
+        $("p", {}, t("previewNote")),
+        $(
+          "ul",
+          { class: "deck-card-list" },
+          ...[...counted.values()]
+            .sort((a, b) => text(a.card.name).localeCompare(text(b.card.name), lang))
+            .map(({ card, count }) =>
               $(
-                "button",
-                {
-                  type: "button",
-                  class: "deck-card-row",
-                  "data-pick": `deck-card-${card.id}`,
-                  onclick: () => archiveInspect(card, () => previewDeck(onBack)),
-                },
-                $("span", { class: "deck-card-name" }, text(card.name)),
-                $("span", { class: "deck-card-count" }, `×${count}`),
+                "li",
+                {},
+                $(
+                  "button",
+                  {
+                    type: "button",
+                    class: "deck-card-row",
+                    "data-pick": `deck-card-${card.id}`,
+                    onclick: () => archiveInspect(card, () => previewDeck(onBack)),
+                  },
+                  $("span", { class: "deck-card-name" }, text(card.name)),
+                  $("span", { class: "deck-card-count" }, `×${count}`),
+                ),
               ),
             ),
-          ),
-      ),
-      $(
-        "div",
-        { class: "dialog-actions" },
-        $("button", { type: "button", "data-pick": "preview-back", onclick: onBack }, t("up")),
-      ),
-    ], "", onBack);
+        ),
+        $(
+          "div",
+          { class: "dialog-actions" },
+          $("button", { type: "button", "data-pick": "preview-back", onclick: onBack }, t("up")),
+        ),
+      ],
+      "",
+      onBack,
+    );
   }
   function rps(message = "") {
     show(t("rps"), [
@@ -908,7 +954,7 @@ export async function startApp(theme, designs) {
   function previewInspect(uid) {
     const body = root.querySelector(".inspector-body");
     if (!body || screen !== "duel" || dialog.open) return;
-    body.replaceChildren(...inspectBody(uid));
+    body.replaceChildren(...renderable(inspectBody(uid)));
   }
   function beginDrag(el, uid, ev) {
     if (screen !== "duel" || !state || state.result || actor() !== 0) return;
@@ -1201,26 +1247,58 @@ export async function startApp(theme, designs) {
         : [];
     if (!available.length || blockedTypes.length)
       body.push($("h3", {}, lang === "tr" ? "Neden Kullanamıyorum?" : "Why Can't I Use This?"));
-    if (!available.length) body.push($("p", {}, t("noActions")));
-    for (const type of blockedTypes) {
-      const error = rejection(state, {
-        type,
-        player: 0,
-        revision: state.revision,
-        card: uid,
-        slot: 0,
-        target: null,
-        tributes: [],
-      });
+    // The generic line only earns its place when there is no specific reason
+    // below it; with blocked actions listed it is just noise before the detail.
+    if (!available.length && !blockedTypes.length)
+      body.push(
+        $(
+          "p",
+          {},
+          card.name && card.owner === 1
+            ? lang === "tr"
+              ? "Bu kart rakibin; onun kartlarıyla hamle yapamazsın."
+              : "This is the opponent's card; you cannot act with it."
+            : t("noActions"),
+        ),
+      );
+    const blocked = blockedTypes.map((type) => ({
+      name: blockedLabel(type, card, v),
+      why: whyBlocked(
+        rejection(state, {
+          type,
+          player: 0,
+          revision: state.revision,
+          card: uid,
+          slot: 0,
+          target: null,
+          tributes: [],
+        }),
+        card,
+      ),
+    }));
+    // One shared blocker — usually the phase — is one sentence, not the same
+    // sentence repeated under every action name.
+    const shared = blocked.length > 1 && new Set(blocked.map((row) => row.why)).size === 1;
+    const rows = shared
+      ? [
+          {
+            name: joinText(
+              blocked.map((row) => row.name),
+              " · ",
+            ),
+            why: blocked[0].why,
+          },
+        ]
+      : blocked;
+    for (const row of rows)
       body.push(
         $(
           "div",
-          {},
-          button(t(type), () => {}, { disabled: true }),
-          $("small", {}, ` ${reason(error)}`),
+          { class: "blocked-action" },
+          $("strong", { class: "blocked-action-name" }, row.name),
+          $("small", { class: "blocked-action-why" }, row.why),
         ),
       );
-    }
     const related = card.name ? relatedCards(card, pool, 4) : [];
     body.push(
       ...relatedBlock(

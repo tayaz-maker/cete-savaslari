@@ -1207,3 +1207,50 @@ body[data-screen="duel"] .table-workspace {
 .help-list li {
   line-height: var(--leading-body);
 }
+
+/* Kart Ayrıntısı typography.
+   Body and meta copy drop about 1px so a long effect text and its reasons sit
+   in the rail without crowding. Section headings and line-height are left
+   alone so the panel keeps its structure and stays readable. Scoped to the
+   inspector: hand cards, the board and the Oyun Akışı rail are untouched. */
+.inspector-body,
+.inspector-sheet .dialog-body {
+  --text-body: clamp(14px, calc(15px * var(--ui-scale)), 19px);
+  --text-secondary: clamp(12px, calc(13px * var(--ui-scale)), 17px);
+  --text-meta: clamp(11px, calc(12px * var(--ui-scale)), 15px);
+}
+.inspector-body .effect-text,
+.inspector-sheet .dialog-body .effect-text {
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+}
+/* Secondary copy in the panel was set to body size, which is what made the
+   rail read as a wall. It steps down to the secondary token so the effect
+   text stays the loudest thing in the card detail. */
+.inspector-body small,
+.inspector-sheet .dialog-body small {
+  font-size: var(--text-secondary);
+}
+/* An unavailable action reads as a pair: what it is, then why it is blocked. */
+.blocked-action {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block: var(--space-2);
+  padding-inline-start: var(--space-2);
+  border-inline-start: 2px solid var(--line);
+}
+.blocked-action-name {
+  font-size: var(--text-secondary);
+  /* The action names the player expected to use, so it leads the pair in the
+     panel's normal text colour; the reason under it is the quieter half. */
+  color: inherit;
+}
+.inspector-body .blocked-action-why,
+.inspector-sheet .dialog-body .blocked-action-why {
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  /* --ink is the dark-on-paper colour used inside cards; on this panel it is
+     all but invisible. The muted token is the panel's own quiet text. */
+  color: var(--muted);
+}
