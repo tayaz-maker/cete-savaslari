@@ -235,6 +235,7 @@ function apartmanVote(s, proposal) {
   const hike = proposal.id === "raise-dues";
   let yes = 0;
   let no = 0;
+  const ballots = {};
   for (const r of s.residents) {
     let score = (r.satisfaction - 50) / 24 + (r.trust - 50) / 28 + r.influence / 220;
     if (!r.pays) score -= 0.35;
@@ -250,10 +251,11 @@ function apartmanVote(s, proposal) {
     const allyMood = allies.reduce((sum, id) => sum + (s.residents.find((x) => x.id === id)?.trust || 50) - 50, 0);
     score += allyMood / 240;
     if (s.issues.some((i) => (i.parties || []).includes(r.id))) score += 0.2;
+    ballots[r.id] = score >= 0;
     if (score >= 0) yes += 1;
     else no += 1;
   }
-  return { yes, no, accepted: yes > no };
+  return { yes, no, accepted: yes > no, ballots };
 }
 
 function updateApartmanPolitics(s) {
@@ -275,11 +277,11 @@ function updateApartmanPolitics(s) {
   if (s.building.condition < 35) s.politics.warnings.push("Bina güvenliği kritik eşiğe yaklaşıyor.");
 }
 
-function rememberProposal(s, r, proposal, accepted) {
+function rememberProposal(s, r, proposal, accepted, votedYes) {
   const D = globalThis.TarikLabDepth;
   const dislikes = proposal.id === "raise-dues" ? r.income === "kırılgan" : proposal.id === "wait" ? r.owner : proposal.id === "cheap-patch" ? r.personality === "kanaat önderi" : false;
   const repeated = (s.flags.proposalCounts?.[proposal.id] || 0) >= 3;
-  const sentiment = accepted ? (dislikes || repeated ? -2 : proposal.id === "durable-maintenance" ? 2 : 1) : -1;
+  const sentiment = accepted ? (dislikes || repeated ? -2 : proposal.id === "durable-maintenance" ? 2 : 1) : (votedYes ? -1 : 0);
   D.remember(r, { id: `${proposal.id}-${s.week}`, type: proposal.id, turn: s.week, sentiment, weight: Math.abs(sentiment), tags: [accepted ? "kabul" : "ret"] });
   r.trust = D.clamp(r.trust + sentiment * 2, 0, 100);
 }
@@ -318,7 +320,7 @@ function applyApartmanProposal(s, proposal, meetingType) {
   if (vote.accepted) s.flags.proposalCounts[proposal.id] = (s.flags.proposalCounts[proposal.id] || 0) + 1;
   for (const r of s.residents) {
     r.memory = (r.memory || []).concat(proposal.id).slice(-6);
-    rememberProposal(s, r, proposal, vote.accepted);
+    rememberProposal(s, r, proposal, vote.accepted, vote.ballots?.[r.id]);
   }
   const financeOnce = s.flags.financeWeek !== s.week;
   if (vote.accepted) {
@@ -409,6 +411,18 @@ function tickApartman(s) {
   if (s.flags.cheapPatch > 0) {
     s.flags.cheapPatch -= 1;
   }
+  // The repeat-use penalty (apartmanVote) is meant to stop spamming the same
+  // proposal week after week, not to permanently retire a proposal type for
+  // the rest of a 60+ week run the first time it is used more than twice.
+  // Left unbounded it made the single best proposal (durable-maintenance)
+  // unusable forever after its third acceptance. A slow weekly decay keeps
+  // rapid repetition costly while letting the penalty fade if the board
+  // moves on to other business for a while.
+  if (s.flags.proposalCounts) {
+    for (const key of Object.keys(s.flags.proposalCounts)) {
+      s.flags.proposalCounts[key] = Math.max(0, s.flags.proposalCounts[key] - 0.15);
+    }
+  }
   if ((s.flags.duesHikes || 0) >= 2 && !s.flags.duesRevolt) {
     s.flags.duesRevolt = true;
     for (const r of s.residents) {
@@ -446,8 +460,17 @@ function tickApartman(s) {
     if (!retained) s.politics.recoveryUntil = s.week + 2;
     s.politics.electionDue = s.week + 12;
   }
-  if (s.politics.recoveryUntil && s.week > s.politics.recoveryUntil && s.politics.confidence < 38) {
-    s.runSummary = { result: "Yönetim değişti", week: s.week, cause: "Güven kaybı toparlanma penceresinde giderilemedi", confidence: s.politics.confidence, phase: s.progression.phase, decisions: s.history.filter((x) => x.type === "meeting").slice(-8) };
+  if (s.politics.recoveryUntil && s.week > s.politics.recoveryUntil) {
+    if (s.politics.confidence < 38) {
+      s.runSummary = { result: "Yönetim değişti", week: s.week, cause: "Güven kaybı toparlanma penceresinde giderilemedi", confidence: s.politics.confidence, phase: s.progression.phase, decisions: s.history.filter((x) => x.type === "meeting").slice(-8) };
+    } else {
+      // The two-week recovery window closed with confidence back at or above
+      // the floor: the window is spent. Left set, this flag stayed armed for
+      // the rest of the run, so any later, unrelated dip below 38 - even
+      // after winning several subsequent elections - ended the game citing a
+      // recovery window that had actually closed dozens of weeks earlier.
+      s.politics.recoveryUntil = null;
+    }
   }
 }
 
