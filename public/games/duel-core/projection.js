@@ -71,6 +71,8 @@ export function publicView(state, viewer) {
       banished: [...p.banished],
       auxiliaryCount: p.auxiliary.length,
       normalUsed: p.normalUsed,
+      specialUsed: p.specialUsed || 0,
+      supportSetUsed: p.supportSetUsed || 0,
     })),
     cards,
     log: state.log.filter((e) => e.private === undefined || e.private === viewer),

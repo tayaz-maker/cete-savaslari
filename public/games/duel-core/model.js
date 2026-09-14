@@ -189,7 +189,12 @@ export function validateState(state) {
       !Array.isArray(p.fieldHistory) ||
       !Number.isSafeInteger(p.normalUsed) ||
       p.normalUsed < 0 ||
-      p.normalUsed > 2
+      p.normalUsed > 2 ||
+      // Older saves predate these counters; absent reads as zero.
+      !Number.isSafeInteger(p.specialUsed ?? 0) ||
+      (p.specialUsed ?? 0) < 0 ||
+      !Number.isSafeInteger(p.supportSetUsed ?? 0) ||
+      (p.supportSetUsed ?? 0) < 0
     )
       return false;
     for (const zone of [...PILES, ...ROWS, "field"]) {
