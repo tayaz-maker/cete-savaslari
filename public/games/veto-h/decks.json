@@ -31,7 +31,7 @@
         },
         {
           "id": "SND-176",
-          "count": 3
+          "count": 1
         },
         {
           "id": "SND-177",
@@ -76,6 +76,10 @@
         {
           "id": "SND-040",
           "count": 3
+        },
+        {
+          "id": "SND-026",
+          "count": 2
         }
       ],
       "auxiliary": [
