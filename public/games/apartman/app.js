@@ -82,8 +82,12 @@ function draw(session) {
   const meetingDone = state.flags.meetingWeek === state.week;
   const confidence = state.politics?.confidence ?? 50;
   if (state.runSummary) {
-    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="card run-summary"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>${h(state.runSummary.result)}</h1><p>${h(state.runSummary.cause)}</p><div class="apt-metrics"><span class="pill">${state.week}. ${t("hafta", "week")}</span><span class="pill">${t("Güven", "Confidence")} ${confidence}/100</span><span class="pill">${h(state.runSummary.phase)}</span></div><h2>${t("Karar izi", "Decision trail")}</h2>${state.runSummary.decisions.map((row) => `<p>${h(row.proposal)} · ${row.accepted ? t("kabul", "passed") : t("ret", "rejected")} · ${row.yes}-${row.no}</p>`).join("")}<button type="button" id="to-menu" class="primary">${t("MENÜ", "MENU")}</button></section></main>`;
-    root.querySelector("#to-menu")?.addEventListener("click", () => location.reload());
+    // Matches son-100-gun's terminal report: the save panel stays reachable
+    // here too. Without it, the only exit from an ended run was "MENÜ", which
+    // reloads the page into the same active slot and the same ended state -
+    // a dead end with no way to load a different slot or start over.
+    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="card run-summary"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>${h(state.runSummary.result)}</h1><p>${h(state.runSummary.cause)}</p><div class="apt-metrics"><span class="pill">${state.week}. ${t("hafta", "week")}</span><span class="pill">${t("Güven", "Confidence")} ${confidence}/100</span><span class="pill">${h(state.runSummary.phase)}</span></div><h2>${t("Karar izi", "Decision trail")}</h2>${state.runSummary.decisions.map((row) => `<p>${h(row.proposal)} · ${row.accepted ? t("kabul", "passed") : t("ret", "rejected")} · ${row.yes}-${row.no}</p>`).join("")}<p class="muted">${t("Yeni bir yönetim için farklı bir kayıt yerini yükle.", "Load a different save slot to take on a new management.")}</p></section></main>`;
+    bindSavePanel(root, session);
     return;
   }
   root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">APARTMAN · ${t("YÖNETİCİ DEFTERİ", "MANAGER LEDGER")}</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header>

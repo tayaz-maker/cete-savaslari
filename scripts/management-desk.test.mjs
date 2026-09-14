@@ -23,7 +23,7 @@ test("frozen baseline: all 35 content, simulation, persistence and projection so
   assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "c1e89a2c376a5514eb502c3ba56bf68bf69dfa87f820b8b34f95ba8dc7a03d04");
+  assert.equal(hash.digest("hex"), "26e6d09030ebef820fa3f26ceab6a6e9bf69ef42c366b801caef8cac9a28cd91");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);
