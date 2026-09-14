@@ -149,7 +149,7 @@
     "attack": 0,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Savaşta yok olmaz. Her Standby’da OP −200.",
+    "text": "Savaşta yok olmaz. Her Hazırlık Aşaması’nda OP −200.",
     "nameEn": "Ballot Bag",
     "textEn": "Cannot be destroyed in battle. Lose 200 OP during every Standby Phase."
   },
@@ -429,7 +429,7 @@
     "attack": 1800,
     "defense": 1500,
     "deckLocation": "main",
-    "text": "Çağrıldığında 1 Skandal’ı mezarlıktan sete koy.",
+    "text": "Çağrıldığında 1 Skandal’ı Atılan Kartlar’dan sete koy.",
     "nameEn": "Party Spokesperson",
     "textEn": "When summoned, Set 1 Scandal from your grave."
   },
@@ -485,7 +485,7 @@
     "attack": 1500,
     "defense": 2100,
     "deckLocation": "main",
-    "text": "M1 başında OP +400.",
+    "text": "Hamle 1 başında OP +400.",
     "nameEn": "Chamber Federation",
     "textEn": "At the start of your Main Phase 1, gain 400 OP."
   },
@@ -541,7 +541,7 @@
     "attack": 1600,
     "defense": 1600,
     "deckLocation": "main",
-    "text": "İstifa maliyeti bu kart için 1 yerine mezarlıktan 1 Kampanya atarak ödenebilir.",
+    "text": "İstifa maliyeti bu kart için 1 yerine Atılan Kartlar’dan 1 Kampanya atarak ödenebilir.",
     "nameEn": "Senior Lobbyist",
     "textEn": "Instead of tributing 1 unit to summon this card, you may banish 1 Campaign from your grave."
   },
@@ -695,7 +695,7 @@
     "attack": 2200,
     "defense": 2200,
     "deckLocation": "main",
-    "text": "Standby: OP +800, el 1 at.",
+    "text": "Hazırlık Aşaması’nda: OP +800, el 1 at.",
     "nameEn": "Diaspora Treasury",
     "textEn": "During your Standby Phase, gain 800 OP and discard 1 card."
   },
@@ -779,7 +779,7 @@
     "attack": 1000,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Flip: rakibin bütün set kartlarını aç (bak), sonra eski konum.",
+    "text": "Açıldığında: rakibin bütün set kartlarını aç (bak), sonra eski konum.",
     "nameEn": "Exit Poll",
     "textEn": "Flip: look at all opposing Set cards, then leave them in their previous positions."
   },
@@ -877,7 +877,7 @@
     "attack": 900,
     "defense": 900,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır, sonra bu kartı imha et.",
+    "text": "Atılan Kartlar’dan 1 Kademe 3 veya altı kadro özel çağır, sonra bu kartı imha et.",
     "nameEn": "Undercurrent",
     "textEn": "Special Summon 1 Level 3 or lower unit from your grave, then banish this card."
   },
@@ -905,7 +905,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
+    "text": "Ritüel malzemesi. Atılan Kartlar’dayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
     "nameEn": "Congress Delegate",
     "textEn": "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon."
   },
@@ -919,7 +919,7 @@
     "attack": 400,
     "defense": 400,
     "deckLocation": "main",
-    "text": "Ritüel malzemesi. mezarlıktayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
+    "text": "Ritüel malzemesi. Atılan Kartlar’dayken 1 kez: ritüel çağrısında 1 kademe sayılır.",
     "nameEn": "Alternate Delegate",
     "textEn": "Ritual material. Once while in the grave, may contribute 1 Level to a ritual summon."
   },
@@ -933,7 +933,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Ritüel çağrı yaparken ek 1 malzeme mezarlıktan sayılabilir.",
+    "text": "Ritüel çağrı yaparken ek 1 malzeme Atılan Kartlar’dan sayılabilir.",
     "nameEn": "List Contractor",
     "textEn": "When performing a ritual summon, you may count 1 additional material from your grave."
   },
@@ -947,7 +947,7 @@
     "attack": 2400,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "2 Kadro birleştir (el/saha/mezarlık etiket “koalisyon malzeme”). Çağrılınca 1 kart çek.",
+    "text": "2 Kadro birleştir (el/saha/Atılan Kartlar etiket “koalisyon malzeme”). Çağrılınca 1 kart çek.",
     "nameEn": "Joint Candidate",
     "textEn": "Combine 2 Coalition-material units from hand, field or grave. When summoned, draw 1 card."
   },
@@ -1059,7 +1059,7 @@
     "attack": 2200,
     "defense": 2200,
     "deckLocation": "auxiliary",
-    "text": "Mezarlıkta 4+ Kadro varken özel çağrılabilir.",
+    "text": "Atılan Kartlar’da 4+ Kadro varken özel çağrılabilir.",
     "nameEn": "Acquired Organization",
     "textEn": "May be Special Summoned while your grave contains at least 4 units."
   },
@@ -1087,7 +1087,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Bu kart Koalisyon çağrısı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı mezarlığa gönder.",
+    "text": "Bu kart Koalisyon çağrısı malzemesi sayılır. Çekildiğinde 1 kart çek, bu kartı Atılan Kartlar’a gönder.",
     "nameEn": "Joint Statement",
     "textEn": "Counts as auxiliary summon material. When drawn, draw 1 more card and send this card to the grave."
   },
@@ -1171,7 +1171,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakibin 1 Kademe 4 veya altı kadrosunu mezarlığa gönder, aynı kademede 1 kendi kadronu özel çağır (elden).",
+    "text": "Rakibin 1 Kademe 4 veya altı kadrosunu Atılan Kartlar’a gönder, aynı kademede 1 kendi kadronu özel çağır (elden).",
     "nameEn": "Transfer Bombshell",
     "textEn": "Send 1 opposing Level 4 or lower unit to the grave, then Special Summon 1 unit of the same Level from your hand."
   },
@@ -1185,7 +1185,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kademe 3 veya altı kadro özel çağır.",
+    "text": "Atılan Kartlar’dan 1 Kademe 3 veya altı kadro özel çağır.",
     "nameEn": "Organization Meeting",
     "textEn": "Special Summon 1 Level 3 or lower unit from your grave."
   },
@@ -1325,7 +1325,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktaki 1 Normal Kampanya’yı eline al.",
+    "text": "Atılan Kartlar’daki 1 Normal Kampanya’yı eline al.",
     "nameEn": "Repeated Slogan",
     "textEn": "Return 1 Normal Campaign from your grave to your hand."
   },
@@ -1395,7 +1395,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Mezarlıktan 1 Kadro eline al.",
+    "text": "Atılan Kartlar’dan 1 Kadro eline al.",
     "nameEn": "Old News Returns",
     "textEn": "Return 1 unit from your grave to your hand."
   },
@@ -1773,7 +1773,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Savaş Evresi başında etkinleşir: bu evre olmaz, M2’ye geçilir.",
+    "text": "Tartışma Aşaması başında etkinleşir: bu evre olmaz, Hamle 2’ye geçilir.",
     "nameEn": "Rally Disrupted",
     "textEn": "At the start of Battle Phase, skip that phase and proceed to Main Phase 2."
   },
@@ -1913,7 +1913,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Sürekli büyü/saha büyülerini 1 hedefle mezarlığa gönder.",
+    "text": "Sürekli büyü/saha büyülerini 1 hedefle Atılan Kartlar’a gönder.",
     "nameEn": "Advertising Cut",
     "textEn": "Send 1 continuous or field spell to the grave."
   },
@@ -2123,7 +2123,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 300 OP öde; mezarlığından 1 Sandık kadrosunu eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 300 OP öde; Atılan Kartlar’dan 1 Sandık kadrosunu eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Mobile Observer",
     "textEn": "Once per turn, pay 300 OP; return 1 Ballot unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2193,7 +2193,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Sandık kadrosunu eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Sandık kadrosunu eline al.",
     "nameEn": "District Coordinator",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Ballot unit from your grave to your hand."
   },
@@ -2263,7 +2263,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Kulis kadrosunu özel çağır; bu tur savaş aşamasını atla.",
+    "text": "Bu kartı feda et: Atılan Kartlar’dan kademe 3 veya altı 1 Kulis kadrosunu özel çağır; bu tur savaş aşamasını atla.",
     "nameEn": "Provincial Delegate",
     "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Backroom unit from your grave; skip Battle this turn."
   },
@@ -2291,7 +2291,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kulis kadrosunu eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Kulis kadrosunu eline al.",
     "nameEn": "Closed Session Chair",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Backroom unit from your grave to your hand."
   },
@@ -2375,7 +2375,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir kez: 650 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Kürsü birimine bu tur 200 ATK ver.",
+    "text": "Turda bir kez: 650 OP öde; rakibin Atılan Kartlar’daki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Kürsü birimine bu tur 200 ATK ver.",
     "nameEn": "Budget Auditor",
     "textEn": "Once per turn, pay 650 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Assembly unit 200 ATK this turn."
   },
@@ -2389,7 +2389,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kürsü kadrosunu eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Kürsü kadrosunu eline al.",
     "nameEn": "Committee Chair",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Assembly unit from your grave to your hand."
   },
@@ -2417,7 +2417,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 450 OP öde; mezarlığından 1 Belediye birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 450 OP öde; Atılan Kartlar’dan 1 Belediye birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Parks Supervisor",
     "textEn": "Once per turn, pay 450 OP; return 1 Municipal unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2487,7 +2487,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Belediye birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Belediye birimini eline al.",
     "nameEn": "City Planner",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Municipal unit from your grave to your hand."
   },
@@ -2557,7 +2557,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır; bu tur savaş aşamasını atla.",
+    "text": "Bu kartı feda et: Atılan Kartlar’dan kademe 3 veya altı 1 Basın birimini özel çağır; bu tur savaş aşamasını atla.",
     "nameEn": "Field Camera Operator",
     "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Press unit from your grave; skip Battle this turn."
   },
@@ -2585,7 +2585,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Basın birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Basın birimini eline al.",
     "nameEn": "Investigative Reporter",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Press unit from your grave to your hand."
   },
@@ -2669,7 +2669,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir kez: 800 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Anket birimine bu tur 200 ATK ver.",
+    "text": "Turda bir kez: 800 OP öde; rakibin Atılan Kartlar’daki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Anket birimine bu tur 200 ATK ver.",
     "nameEn": "Margin Analyst",
     "textEn": "Once per turn, pay 800 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Polling unit 200 ATK this turn."
   },
@@ -2683,7 +2683,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Anket birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Anket birimini eline al.",
     "nameEn": "Voter Behavior Analyst",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Polling unit from your grave to your hand."
   },
@@ -2711,7 +2711,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 600 OP öde; mezarlığından 1 Kurum birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 600 OP öde; Atılan Kartlar’dan 1 Kurum birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Archive Inspector",
     "textEn": "Once per turn, pay 600 OP; return 1 Institution unit from your grave to your hand. Skip Battle this turn."
   },
@@ -2781,7 +2781,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Kurum birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Kurum birimini eline al.",
     "nameEn": "Administrative Judge",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Institution unit from your grave to your hand."
   },
@@ -2851,7 +2851,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Lobi birimini özel çağır; bu tur savaş aşamasını atla.",
+    "text": "Bu kartı feda et: Atılan Kartlar’dan kademe 3 veya altı 1 Lobi birimini özel çağır; bu tur savaş aşamasını atla.",
     "nameEn": "Union Delegate",
     "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Lobby unit from your grave; skip Battle this turn."
   },
@@ -2879,7 +2879,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lobi birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Lobi birimini eline al.",
     "nameEn": "Donation Auditor",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Lobby unit from your grave to your hand."
   },
@@ -2963,7 +2963,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir kez: 950 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Gençlik birimine bu tur 200 ATK ver.",
+    "text": "Turda bir kez: 950 OP öde; rakibin Atılan Kartlar’daki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Gençlik birimine bu tur 200 ATK ver.",
     "nameEn": "Scholarship Monitor",
     "textEn": "Once per turn, pay 950 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Youth unit 200 ATK this turn."
   },
@@ -2977,7 +2977,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Gençlik birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Gençlik birimini eline al.",
     "nameEn": "Campus Spokesperson",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Youth unit from your grave to your hand."
   },
@@ -3005,7 +3005,7 @@
     "attack": 900,
     "defense": 700,
     "deckLocation": "main",
-    "text": "Turda bir kez: 750 OP öde; mezarlığından 1 Hukuk birimini eline al. Bu tur savaş aşamasını atla.",
+    "text": "Turda bir kez: 750 OP öde; Atılan Kartlar’dan 1 Hukuk birimini eline al. Bu tur savaş aşamasını atla.",
     "nameEn": "Trainee Lawyer",
     "textEn": "Once per turn, pay 750 OP; return 1 Law unit from your grave to your hand. Skip Battle this turn."
   },
@@ -3075,7 +3075,7 @@
     "attack": 1900,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Hukuk birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Hukuk birimini eline al.",
     "nameEn": "Constitutional Scholar",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Law unit from your grave to your hand."
   },
@@ -3145,7 +3145,7 @@
     "attack": 800,
     "defense": 800,
     "deckLocation": "main",
-    "text": "Bu kartı feda et: mezarlığından kademe 3 veya altı 1 Koalisyon birimini özel çağır; bu tur savaş aşamasını atla.",
+    "text": "Bu kartı feda et: Atılan Kartlar’dan kademe 3 veya altı 1 Koalisyon birimini özel çağır; bu tur savaş aşamasını atla.",
     "nameEn": "Delegation Courier",
     "textEn": "Tribute this card: Special Summon 1 Level 3 or lower Coalition unit from your grave; skip Battle this turn."
   },
@@ -3173,7 +3173,7 @@
     "attack": 2000,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Koalisyon birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Koalisyon birimini eline al.",
     "nameEn": "Alliance Negotiator",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Coalition unit from your grave to your hand."
   },
@@ -3257,7 +3257,7 @@
     "attack": 1300,
     "defense": 1000,
     "deckLocation": "main",
-    "text": "Turda bir kez: 1100 OP öde; rakibin mezarlığındaki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Lojistik birimine bu tur 200 ATK ver.",
+    "text": "Turda bir kez: 1100 OP öde; rakibin Atılan Kartlar’daki kademe 4 veya altı 1 birimi oyun dışına gönder, ardından 1 Lojistik birimine bu tur 200 ATK ver.",
     "nameEn": "Fuel Auditor",
     "textEn": "Once per turn, pay 1100 OP; banish 1 Level 4 or lower unit from the opposing grave, then give 1 Logistics unit 200 ATK this turn."
   },
@@ -3271,7 +3271,7 @@
     "attack": 2100,
     "defense": 1800,
     "deckLocation": "main",
-    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda mezarlığından kademe 3 veya altı 1 Lojistik birimini eline al.",
+    "text": "Sahaya sürmek için 1 adak gerekir. Her çağrı fedası için 200 ATK kazanır. Savaşta yok olduğunda Atılan Kartlar’dan kademe 3 veya altı 1 Lojistik birimini eline al.",
     "nameEn": "Rally Organizer",
     "textEn": "Requires 1 tribute to summon. Gains 200 ATK for each summon tribute. When destroyed in battle, return 1 Level 3 or lower Logistics unit from your grave to your hand."
   },
@@ -3369,7 +3369,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "500 OP öde; mezarlığındaki 1 Kürsü kadrosunu eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "500 OP öde; Atılan Kartlar’daki 1 Kürsü kadrosunu eline al, ardından rakip Atılan Kartlar’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Committee Calendar",
     "textEn": "Pay 500 OP; return 1 Assembly unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3425,7 +3425,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 OP öde; mezarlığındaki 1 Kurum birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "700 OP öde; Atılan Kartlar’daki 1 Kurum birimini eline al, ardından rakip Atılan Kartlar’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Archive Request",
     "textEn": "Pay 700 OP; return 1 Institution unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3481,7 +3481,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 OP öde; mezarlığındaki 1 Koalisyon birimini eline al, ardından rakip mezarlığındaki 1 birimi oyun dışına gönder.",
+    "text": "900 OP öde; Atılan Kartlar’daki 1 Koalisyon birimini eline al, ardından rakip Atılan Kartlar’daki 1 birimi oyun dışına gönder.",
     "nameEn": "Joint Working Paper",
     "textEn": "Pay 900 OP; return 1 Coalition unit from your grave to your hand, then banish 1 unit from the opposing grave."
   },
@@ -3509,7 +3509,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "600 OP öde; mezarlığından kademe 3 veya altı 1 Sandık kadrosunu özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "600 OP öde; Atılan Kartlar’dan kademe 3 veya altı 1 Sandık kadrosunu özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Count Backup",
     "textEn": "Pay 600 OP; Special Summon 1 Level 3 or lower Ballot unit from your grave. Skip Battle this turn."
   },
@@ -3523,7 +3523,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "650 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Kulis birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "650 OP öde; Atılan Kartlar’daki 1 tuzağı destek bölgesine set et. Bir Kulis birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "List Revision",
     "textEn": "Pay 650 OP; Set 1 trap from your grave into a support zone. You must control a Backroom unit. The Set card cannot activate this turn."
   },
@@ -3537,7 +3537,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "700 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kürsü birimin bulunmalı.",
+    "text": "700 OP öde; rakibin Atılan Kartlar’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kürsü birimin bulunmalı.",
     "nameEn": "Procedural Recess",
     "textEn": "Pay 700 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Assembly unit."
   },
@@ -3565,7 +3565,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "800 OP öde; mezarlığından kademe 3 veya altı 1 Basın birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "800 OP öde; Atılan Kartlar’dan kademe 3 veya altı 1 Basın birimini özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Second Printing",
     "textEn": "Pay 800 OP; Special Summon 1 Level 3 or lower Press unit from your grave. Skip Battle this turn."
   },
@@ -3579,7 +3579,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "850 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Anket birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "850 OP öde; Atılan Kartlar’daki 1 tuzağı destek bölgesine set et. Bir Anket birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "Sample Repair",
     "textEn": "Pay 850 OP; Set 1 trap from your grave into a support zone. You must control a Polling unit. The Set card cannot activate this turn."
   },
@@ -3593,7 +3593,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "900 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kurum birimin bulunmalı.",
+    "text": "900 OP öde; rakibin Atılan Kartlar’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Kurum birimin bulunmalı.",
     "nameEn": "Public File",
     "textEn": "Pay 900 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Institution unit."
   },
@@ -3621,7 +3621,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1000 OP öde; mezarlığından kademe 3 veya altı 1 Gençlik birimini özel çağır. Bu tur savaş aşamasını atla.",
+    "text": "1000 OP öde; Atılan Kartlar’dan kademe 3 veya altı 1 Gençlik birimini özel çağır. Bu tur savaş aşamasını atla.",
     "nameEn": "Volunteer Route",
     "textEn": "Pay 1000 OP; Special Summon 1 Level 3 or lower Youth unit from your grave. Skip Battle this turn."
   },
@@ -3635,7 +3635,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1050 OP öde; mezarlığındaki 1 tuzağı destek bölgesine set et. Bir Hukuk birimin bulunmalı. Set kartı bu tur açamazsın.",
+    "text": "1050 OP öde; Atılan Kartlar’daki 1 tuzağı destek bölgesine set et. Bir Hukuk birimin bulunmalı. Set kartı bu tur açamazsın.",
     "nameEn": "Appeal Period",
     "textEn": "Pay 1050 OP; Set 1 trap from your grave into a support zone. You must control a Law unit. The Set card cannot activate this turn."
   },
@@ -3649,7 +3649,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "1100 OP öde; rakibin mezarlığındaki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Koalisyon birimin bulunmalı.",
+    "text": "1100 OP öde; rakibin Atılan Kartlar’daki 1 birimi oyun dışına gönder ve 1 kart çek. Bir Koalisyon birimin bulunmalı.",
     "nameEn": "Table Extension",
     "textEn": "Pay 1100 OP; banish 1 unit from the opposing grave and draw 1 card. You must control a Coalition unit."
   },
@@ -3859,7 +3859,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 350 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Sandık kadrosunu eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 350 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Sandık kadrosunu eline al.",
     "nameEn": "Seal Mismatch",
     "textEn": "When the opponent declares an attack: pay 350 OP; cancel the attack, then return 1 Level 2 or lower Ballot unit from your grave to your hand."
   },
@@ -3873,7 +3873,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 400 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kulis kadrosunu eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 400 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Kulis kadrosunu eline al.",
     "nameEn": "Leaked Appointment",
     "textEn": "When the opponent declares an attack: pay 400 OP; cancel the attack, then return 1 Level 2 or lower Backroom unit from your grave to your hand."
   },
@@ -3887,7 +3887,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 450 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kürsü kadrosunu eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 450 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Kürsü kadrosunu eline al.",
     "nameEn": "Procedure Objection",
     "textEn": "When the opponent declares an attack: pay 450 OP; cancel the attack, then return 1 Level 2 or lower Assembly unit from your grave to your hand."
   },
@@ -3901,7 +3901,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 500 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Belediye birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 500 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Belediye birimini eline al.",
     "nameEn": "Missing Permit",
     "textEn": "When the opponent declares an attack: pay 500 OP; cancel the attack, then return 1 Level 2 or lower Municipal unit from your grave to your hand."
   },
@@ -3915,7 +3915,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 550 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Basın birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 550 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Basın birimini eline al.",
     "nameEn": "Right of Reply",
     "textEn": "When the opponent declares an attack: pay 550 OP; cancel the attack, then return 1 Level 2 or lower Press unit from your grave to your hand."
   },
@@ -3929,7 +3929,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 600 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Anket birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 600 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Anket birimini eline al.",
     "nameEn": "Faulty Sample",
     "textEn": "When the opponent declares an attack: pay 600 OP; cancel the attack, then return 1 Level 2 or lower Polling unit from your grave to your hand."
   },
@@ -3943,7 +3943,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 650 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Kurum birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 650 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Kurum birimini eline al.",
     "nameEn": "Missing Document",
     "textEn": "When the opponent declares an attack: pay 650 OP; cancel the attack, then return 1 Level 2 or lower Institution unit from your grave to your hand."
   },
@@ -3957,7 +3957,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 700 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lobi birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 700 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Lobi birimini eline al.",
     "nameEn": "Donation Inquiry",
     "textEn": "When the opponent declares an attack: pay 700 OP; cancel the attack, then return 1 Level 2 or lower Lobby unit from your grave to your hand."
   },
@@ -3971,7 +3971,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 750 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Gençlik birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 750 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Gençlik birimini eline al.",
     "nameEn": "Forum Protest",
     "textEn": "When the opponent declares an attack: pay 750 OP; cancel the attack, then return 1 Level 2 or lower Youth unit from your grave to your hand."
   },
@@ -3985,7 +3985,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 800 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Hukuk birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 800 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Hukuk birimini eline al.",
     "nameEn": "Stay of Execution",
     "textEn": "When the opponent declares an attack: pay 800 OP; cancel the attack, then return 1 Level 2 or lower Law unit from your grave to your hand."
   },
@@ -3999,7 +3999,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 850 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Koalisyon birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 850 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Koalisyon birimini eline al.",
     "nameEn": "Protocol Breach",
     "textEn": "When the opponent declares an attack: pay 850 OP; cancel the attack, then return 1 Level 2 or lower Coalition unit from your grave to your hand."
   },
@@ -4013,7 +4013,7 @@
     "attack": 0,
     "defense": 0,
     "deckLocation": "main",
-    "text": "Rakip saldırı ilan ettiğinde: 900 OP öde; saldırıyı iptal et, ardından mezarlığından kademe 2 veya altı 1 Lojistik birimini eline al.",
+    "text": "Rakip saldırı ilan ettiğinde: 900 OP öde; saldırıyı iptal et, ardından Atılan Kartlar’dan kademe 2 veya altı 1 Lojistik birimini eline al.",
     "nameEn": "Cancelled Service",
     "textEn": "When the opponent declares an attack: pay 900 OP; cancel the attack, then return 1 Level 2 or lower Logistics unit from your grave to your hand."
   },
