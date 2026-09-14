@@ -34,6 +34,18 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-14 — Depth Framework wave 1: Racon Manager + Apartman
+- Web change: Incremental systemic-depth pass limited to Racon Manager and Apartman. A small shared depth primitive supplies durable actor memory, delayed-effect settlement, event cooldowns and risk bands without replacing either game's controller or visual identity.
+- Racon Manager: job orders now build a saved Racon identity, write memories to participating crew, schedule causal callbacks and show finance/police/crew risk before critical orders. End-of-run output includes a concrete loss cause and recent decision trail.
+- Apartman: v2 normalization adds durable resident profiles/memories/relations, confidence, opposition/alliances, delayed proposal consequences, cooldown-backed issue selection, building phases, periodic confidence votes with a recovery window, transparent danger warnings and causal run history. New games use fourteen persistent households; legacy sixteen-resident saves remain intact.
+- Content: yes (short causal callback and warning copy only). Artwork: no. Audio: no.
+- Gameplay/rules: yes — identity/memory/delayed consequences in Racon; resident politics, confidence election and macro building progression in Apartman.
+- UI/presentation: yes — risk previews, confidence/politics state, warnings and history summaries; existing responsive structures retained.
+- Save: Apartman schema normalizes v1→v2 in place and now keeps a valid per-slot backup. Racon keeps `racon_v1` and fills the optional depth fields during its existing migration.
+- Shared-content source: no (no authored card/art bundle changed).
+- Native follow-up: yes (paused) — standalone versions should later reproduce the causal/memory contract, not share the website controller.
+- Commits: ships with the first-wave depth implementation commit.
+
 ### 2026-09-12 — VETO-H! + portal
 - Web change: Approved 300 Astra card illustrations (576×384 WebP) and prism/spectrum portal background
 - Content: no (authored cards unchanged)

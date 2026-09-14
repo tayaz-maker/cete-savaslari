@@ -12,9 +12,9 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // Donmuş taban: içerik/simülasyon kaynakları yalnız bilinçli bir ürün kararıyla
 // değişir. Taban en son "Nasıl Oynanır" kapanışında yenilendi: paylaşılan
 // runtime'a yapılandırılmış yardım bölümleri (helpSections/helpPanel) eklendi ve
-// DEVLET'in tek paragraflık yardımı bu bölümlere taşındı. Simülasyon, içerik ve
-// kalıcılık davranışı değişmedi; masa yeniden tasarımı bu dosyalara hâlâ
-// dokunmuyor.
+// DEVLET'in tek paragraflık yardımı bu bölümlere taşındı. 2026-09-14'te onaylı
+// ilk depth dalgası yalnız next-wave.js içindeki Apartman state/simülasyonunu
+// değiştirdi; TC SIM ve DEVLET kaynakları bu turda hâlâ donmuş durumda.
 test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -23,7 +23,7 @@ test("frozen baseline: all 35 content, simulation, persistence and projection so
   assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "80561d7e6f84f2b81945bbe64209595c6bfc5a14fe7f57d2d5e0ffb5e93961b0");
+  assert.equal(hash.digest("hex"), "c1e89a2c376a5514eb502c3ba56bf68bf69dfa87f820b8b34f95ba8dc7a03d04");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

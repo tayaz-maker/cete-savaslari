@@ -1,4 +1,5 @@
 export const VERSION = 1;
+import "./shared/depth-framework.js";
 export const seeds = (n) => {
   let x = n >>> 0;
   return () => (x = (Math.imul(x, 1664525) + 1013904223) >>> 0) / 4294967296;
@@ -61,7 +62,7 @@ const defs = {
     tag: "Toplantı Gecesi",
     screens: ["Genel", "Sakinler", "Bina", "Aidat/Kasa", "Meseleler", "Toplantı", "Geçmiş"],
     initial: () => ({
-      meta: { version: 1, id: "apartman" },
+      meta: { version: 2, id: "apartman" },
       week: 1,
       building: {
         systems: SYSTEMS.map((x) => x.id),
@@ -69,13 +70,29 @@ const defs = {
         parts: SYSTEMS.map((x) => ({ id: x.id, name: x.name, condition: x.condition })),
       },
       finance: { cash: 12000, dues: 2400, arrears: 1800 },
-      residents: RESIDENTS.map((r) => ({ ...r, memory: [] })),
+      residents: RESIDENTS.slice(0, 14).map((r) => ({
+        ...r,
+        trust: r.satisfaction,
+        income: r.owner ? "orta" : "kırılgan",
+        household: r.owner ? "hane" : "kiracı hane",
+        interest: r.bloc === "eski" ? "mülk değeri" : r.bloc === "kiraci" ? "ödenebilir aidat" : "düzen",
+        personality: r.influence >= 65 ? "kanaat önderi" : r.pays ? "temkinli" : "itirazcı",
+        memory: [],
+        memories: [],
+        relations: {},
+        currentIssue: null,
+      })),
       issues: ISSUES.map((i) => ({ ...i })),
       meetings: MEETINGS.map((m) => m.id),
       lastMeeting: null,
       openCases: [],
       history: [],
-      flags: { meeting: false, cheapPatch: 0, cheapCount: 0, duesHikes: 0, financeWeek: 0 },
+      delayedEffects: [],
+      eventDirector: { history: [], cooldowns: {} },
+      politics: { confidence: 58, opposition: [], alliances: [], electionDue: 12, warnings: [] },
+      progression: { phase: "yıpranmış bina", investments: 0, path: "kararsız", score: 0 },
+      runSummary: null,
+      flags: { meeting: false, cheapPatch: 0, cheapCount: 0, duesHikes: 0, financeWeek: 0, lastIssueTemplate: "" },
       ui: { screen: "Genel" },
     }),
   },
@@ -161,10 +178,11 @@ const defs = {
 export function create(id) {
   const s = defs[id].initial();
   s.meta.seed = 12345;
+  if (id === "apartman") ensureApartmanState(s);
   return s;
 }
 export function validate(s, id) {
-  if (!s || s.meta?.version !== 1) return false;
+  if (!s || ![1, 2].includes(s.meta?.version)) return false;
   if (!Array.isArray(s.history) || !Array.isArray(s.openCases)) return false;
   // A save only belongs to the game that wrote it. Without this an apartman
   // payload validated cleanly as another game's save and would have been fed
@@ -174,8 +192,41 @@ export function validate(s, id) {
 }
 export function normalize(id, raw) {
   if (!validate(raw, id)) return raw ? null : create(id);
+  if (id === "apartman") ensureApartmanState(raw);
   if (id === "son-100-gun") ensureSonState(raw);
   return raw;
+}
+
+function ensureApartmanState(s) {
+  const D = globalThis.TarikLabDepth;
+  s.meta.version = 2;
+  s.delayedEffects = Array.isArray(s.delayedEffects) ? s.delayedEffects : [];
+  s.eventDirector = s.eventDirector && typeof s.eventDirector === "object" ? s.eventDirector : { history: [], cooldowns: {} };
+  s.eventDirector.history = Array.isArray(s.eventDirector.history) ? s.eventDirector.history : [];
+  s.eventDirector.cooldowns = s.eventDirector.cooldowns || {};
+  s.politics = Object.assign({ confidence: 58, opposition: [], alliances: [], electionDue: Math.max(12, s.week + 4), warnings: [] }, s.politics || {});
+  s.progression = Object.assign({ phase: "yıpranmış bina", investments: 0, path: "kararsız", score: 0 }, s.progression || {});
+  s.residents = (s.residents || []).map((r) => ({
+    ...r,
+    memory: Array.isArray(r.memory) ? r.memory : [],
+    trust: Number.isFinite(r.trust) ? r.trust : r.satisfaction,
+    income: r.income || (r.owner ? "orta" : "kırılgan"),
+    household: r.household || (r.owner ? "hane" : "kiracı hane"),
+    interest: r.interest || (r.pays ? "istikrar" : "ödenebilir aidat"),
+    personality: r.personality || (r.influence >= 65 ? "kanaat önderi" : "temkinli"),
+    memories: Array.isArray(r.memories) ? r.memories : (r.memory || []).map((id, i) => ({ id: `legacy-${id}-${i}`, type: id, turn: Math.max(1, s.week - i), weight: 1 })),
+    relations: r.relations && typeof r.relations === "object" ? r.relations : {},
+    currentIssue: r.currentIssue || null,
+  }));
+  s.residents.forEach((resident) => {
+    s.residents.forEach((other) => {
+      if (resident.id === other.id || Number.isFinite(resident.relations[other.id])) return;
+      resident.relations[other.id] = resident.bloc === other.bloc ? 25 : [resident.bloc, other.bloc].includes("eski") && [resident.bloc, other.bloc].includes("yeni") ? -15 : 0;
+    });
+  });
+  if (!D) return s;
+  s.politics.confidence = D.clamp(s.politics.confidence, 0, 100);
+  return s;
 }
 
 function apartmanVote(s, proposal) {
@@ -185,7 +236,7 @@ function apartmanVote(s, proposal) {
   let yes = 0;
   let no = 0;
   for (const r of s.residents) {
-    let score = (r.satisfaction - 50) / 20 + r.influence / 200;
+    let score = (r.satisfaction - 50) / 24 + (r.trust - 50) / 28 + r.influence / 220;
     if (!r.pays) score -= 0.35;
     if (!r.owner) score -= 0.1;
     if (cheap) score += r.satisfaction < 55 ? 0.25 : -0.15;
@@ -193,6 +244,11 @@ function apartmanVote(s, proposal) {
     if (hike) score += r.owner ? -0.1 : -0.35;
     if ((r.memory || []).includes("cheap-patch") && cheap) score -= 0.35;
     if ((r.memory || []).includes("raise-dues") && hike) score -= 0.5;
+    if ((r.memories || []).some((m) => m.type === proposal.id && m.sentiment < 0)) score -= 0.45;
+    score -= Math.max(0, (s.flags.proposalCounts?.[proposal.id] || 0) - 1) * 0.42;
+    const allies = Object.entries(r.relations || {}).filter(([, value]) => value >= 20).map(([id]) => id);
+    const allyMood = allies.reduce((sum, id) => sum + (s.residents.find((x) => x.id === id)?.trust || 50) - 50, 0);
+    score += allyMood / 240;
     if (s.issues.some((i) => (i.parties || []).includes(r.id))) score += 0.2;
     if (score >= 0) yes += 1;
     else no += 1;
@@ -200,14 +256,69 @@ function apartmanVote(s, proposal) {
   return { yes, no, accepted: yes > no };
 }
 
+function updateApartmanPolitics(s) {
+  const D = globalThis.TarikLabDepth;
+  const avgTrust = s.residents.reduce((sum, r) => sum + r.trust, 0) / Math.max(1, s.residents.length);
+  const openSeverity = s.issues.filter((i) => i.status === "acik").reduce((sum, i) => sum + (i.severity || 1), 0);
+  s.politics.confidence = D.clamp(Math.round(avgTrust - openSeverity * 1.1 + s.building.condition * 0.22), 0, 100);
+  s.politics.opposition = s.residents.filter((r) => r.trust < 40).sort((a, b) => b.influence - a.influence).map((r) => r.id);
+  const blocs = {};
+  s.residents.forEach((r) => { (blocs[r.bloc] ||= []).push(r); });
+  s.politics.alliances = Object.entries(blocs).filter(([, people]) => people.length >= 2 && people.reduce((n, r) => n + r.trust, 0) / people.length >= 54).map(([bloc]) => bloc);
+  s.politics.warnings = [];
+  s.residents.forEach((resident) => {
+    resident.currentAttitude = resident.trust < 35 ? "muhalif" : resident.trust >= 65 ? "destekçi" : "kararsız";
+    resident.currentIssue = s.issues.find((issue) => issue.status === "acik" && (issue.parties || []).includes(resident.id))?.id || null;
+  });
+  if (s.politics.confidence < 35) s.politics.warnings.push("Yönetim desteği kritik; seçimden önce iki haftalık toparlanma penceresi var.");
+  if (s.finance.cash < 1500) s.politics.warnings.push("Kasa kritik; kalıcı bakım kararı borç baskısı yaratabilir.");
+  if (s.building.condition < 35) s.politics.warnings.push("Bina güvenliği kritik eşiğe yaklaşıyor.");
+}
+
+function rememberProposal(s, r, proposal, accepted) {
+  const D = globalThis.TarikLabDepth;
+  const dislikes = proposal.id === "raise-dues" ? r.income === "kırılgan" : proposal.id === "wait" ? r.owner : proposal.id === "cheap-patch" ? r.personality === "kanaat önderi" : false;
+  const repeated = (s.flags.proposalCounts?.[proposal.id] || 0) >= 3;
+  const sentiment = accepted ? (dislikes || repeated ? -2 : proposal.id === "durable-maintenance" ? 2 : 1) : -1;
+  D.remember(r, { id: `${proposal.id}-${s.week}`, type: proposal.id, turn: s.week, sentiment, weight: Math.abs(sentiment), tags: [accepted ? "kabul" : "ret"] });
+  r.trust = D.clamp(r.trust + sentiment * 2, 0, 100);
+}
+
+function resolveApartmanEffect(s, effect) {
+  const D = globalThis.TarikLabDepth;
+  if (effect.type === "patch-failure") {
+    s.issues.push({ id: `callback-${effect.system}-${s.week}`, type: "bakım", system: effect.system, title: "Ucuz yama yeniden arızalandı", status: "acik", severity: 4, chainId: effect.chainId });
+    s.residents.filter((r) => (r.memories || []).some((m) => m.type === "cheap-patch")).forEach((r) => { r.trust = D.clamp(r.trust - 7); });
+    pushHist(s, { type: "callback", text: "Ucuz çözüm geri tepti; bunu destekleyenler bile yönetimi sorguluyor.", cause: effect.cause });
+  } else if (effect.type === "investment-return") {
+    s.building.condition = D.clamp(s.building.condition + 5);
+    s.progression.investments += 1;
+    s.progression.score += 12;
+    s.residents.forEach((r) => { r.trust = D.clamp(r.trust + (r.owner ? 4 : 2)); });
+    pushHist(s, { type: "callback", text: "Kalıcı bakımın faturası ağırdı; arıza yükü şimdi belirgin biçimde azaldı.", cause: effect.cause });
+  } else if (effect.type === "dues-opposition") {
+    s.residents.filter((r) => r.income === "kırılgan").forEach((r) => { r.trust = D.clamp(r.trust - 8); r.pays = r.trust >= 32; });
+    pushHist(s, { type: "callback", text: "Aidat artışı muhalefeti aynı masada topladı.", cause: effect.cause });
+  } else if (effect.type === "neglect") {
+    const issue = s.issues.find((i) => i.id === effect.issue && i.status === "acik");
+    if (issue) issue.severity = Math.min(5, (issue.severity || 1) + 1);
+    s.politics.confidence = D.clamp(s.politics.confidence - 6);
+    pushHist(s, { type: "callback", text: "Ertelenen mesele büyüdü; sakinler kararın kaynağını hatırlıyor.", cause: effect.cause });
+  }
+}
+
 function applyApartmanProposal(s, proposal, meetingType) {
+  ensureApartmanState(s);
   if (s.flags.meetingWeek === s.week) return { ...(s.lastMeeting || {}), duplicate: true };
   const vote = apartmanVote(s, proposal);
   s.flags.meeting = true;
   s.flags.meetingWeek = s.week;
   s.lastMeeting = { type: meetingType, proposal: proposal.id, ...vote, week: s.week };
+  s.flags.proposalCounts = s.flags.proposalCounts || {};
+  if (vote.accepted) s.flags.proposalCounts[proposal.id] = (s.flags.proposalCounts[proposal.id] || 0) + 1;
   for (const r of s.residents) {
     r.memory = (r.memory || []).concat(proposal.id).slice(-6);
+    rememberProposal(s, r, proposal, vote.accepted);
   }
   const financeOnce = s.flags.financeWeek !== s.week;
   if (vote.accepted) {
@@ -226,11 +337,13 @@ function applyApartmanProposal(s, proposal, meetingType) {
       s.flags.cheapPatch = 3;
       s.flags.cheapSystem = targetSys || "asansor";
       s.flags.cheapCount = (s.flags.cheapCount || 0) + 1;
+      globalThis.TarikLabDepth.schedule(s, { id: `patch-${s.week}`, type: "patch-failure", dueTurn: s.week + 3, system: targetSys || "asansor", chainId: `bakim-${s.week}`, cause: proposal.id });
     }
     if (proposal.id === "raise-dues") {
       s.finance.dues += proposal.duesDelta || 350;
       s.flags.duesHikes = (s.flags.duesHikes || 0) + 1;
       for (const r of s.residents) r.satisfaction = clamp(r.satisfaction - (r.pays ? 8 : 4));
+      globalThis.TarikLabDepth.schedule(s, { id: `dues-${s.week}`, type: "dues-opposition", dueTurn: s.week + 2, cause: proposal.id });
     }
     if (proposal.id === "durable-maintenance") {
       s.issues = s.issues.map((i) =>
@@ -238,7 +351,9 @@ function applyApartmanProposal(s, proposal, meetingType) {
           ? { ...i, status: "kapali" }
           : i,
       );
+      globalThis.TarikLabDepth.schedule(s, { id: `investment-${s.week}`, type: "investment-return", dueTurn: s.week + 4, cause: proposal.id });
     }
+    if (proposal.id === "wait") globalThis.TarikLabDepth.schedule(s, { id: `neglect-${s.week}`, type: "neglect", dueTurn: s.week + 2, issue: s.flags.focusIssue, cause: proposal.id });
     if (proposal.id === "cheap-patch") {
       s.issues = s.issues.map((i) =>
         i.status === "acik" && i.system === "asansor" ? { ...i, status: "kapali" } : i,
@@ -258,10 +373,22 @@ function applyApartmanProposal(s, proposal, meetingType) {
     yes: vote.yes,
     no: vote.no,
   });
+  globalThis.TarikLabDepth.noteEvent(s, `proposal:${proposal.id}`, s.week, 4);
+  updateApartmanPolitics(s);
   return vote;
 }
 
+export function apartmanForecast(s, proposal) {
+  ensureApartmanState(s);
+  const cashAfter = s.finance.cash - (proposal.cash || 0);
+  const financeRisk = cashAfter < 1500 ? 82 : cashAfter < 5000 ? 52 : proposal.id === "raise-dues" ? 38 : 22;
+  const socialRisk = proposal.id === "raise-dues" ? 78 : proposal.id === "cheap-patch" ? 58 : proposal.id === "wait" ? 46 : 28;
+  const longRisk = proposal.id === "wait" ? 76 : proposal.id === "cheap-patch" ? 72 : proposal.id === "raise-dues" ? 55 : 24;
+  return { financeRisk, socialRisk, longRisk, bands: [financeRisk, socialRisk, longRisk].map(globalThis.TarikLabDepth.riskBand) };
+}
+
 function tickApartman(s) {
+  ensureApartmanState(s);
   s.week += 1;
   s.flags.meeting = false;
   s.flags.prepared = [];
@@ -281,24 +408,6 @@ function tickApartman(s) {
   );
   if (s.flags.cheapPatch > 0) {
     s.flags.cheapPatch -= 1;
-    if (s.flags.cheapPatch === 0) {
-      const sys = cheapSys;
-      s.issues.push({
-        id: "cb_" + sys + "_" + s.week,
-        type: "bakım",
-        system: sys,
-        title: sys === "asansor" ? "Ucuz asansör yaması tutmadı" : "Ucuz yama tutmadı",
-        status: "acik",
-        severity: 4,
-      });
-      pushHist(s, {
-        type: "callback",
-        text: "Ucuz asansör bakımı ikinci haftada ses yaptı.",
-        system: sys,
-      });
-      const remember = s.residents.filter((r) => (r.memory || []).includes("cheap-patch"));
-      for (const r of remember) r.satisfaction = clamp(r.satisfaction - 5);
-    }
   }
   if ((s.flags.duesHikes || 0) >= 2 && !s.flags.duesRevolt) {
     s.flags.duesRevolt = true;
@@ -322,10 +431,23 @@ function tickApartman(s) {
       if (el) el.satisfaction = clamp(el.satisfaction - 6);
     }
   }
+  globalThis.TarikLabDepth.settleDue(s, s.week, (effect) => resolveApartmanEffect(s, effect));
   if (s.issues.filter((i) => i.status === "acik").length < 4) {
     const used = new Set(s.issues.map((i) => i.id));
-    const next = ISSUE_TEMPLATES.find((t) => !used.has(t.id));
-    if (next) s.issues.push({ ...next, status: "acik" });
+    const next = ISSUE_TEMPLATES.find((t) => !used.has(t.id) && globalThis.TarikLabDepth.canShowEvent(s, t.id, s.week));
+    if (next) { s.issues.push({ ...next, status: "acik" }); globalThis.TarikLabDepth.noteEvent(s, next.id, s.week, 6); }
+  }
+  if (s.week >= 8 && s.progression.phase === "yıpranmış bina") s.progression.phase = "yenileme baskısı";
+  if (s.week >= 20) { s.progression.phase = s.progression.investments >= 2 ? "kademeli yenileme" : "dönüşüm tartışması"; s.progression.path = s.progression.investments >= 2 ? "yenile" : "diren/borçlan"; }
+  updateApartmanPolitics(s);
+  if (s.week >= s.politics.electionDue) {
+    const retained = s.politics.confidence >= 42;
+    pushHist(s, { type: "election", text: retained ? "Güven oylamasını geçtin; yeni dönem başladı." : "Güven oylamasını kaybettin; iki haftalık devir ve toparlanma süresi başladı.", confidence: s.politics.confidence });
+    if (!retained) s.politics.recoveryUntil = s.week + 2;
+    s.politics.electionDue = s.week + 12;
+  }
+  if (s.politics.recoveryUntil && s.week > s.politics.recoveryUntil && s.politics.confidence < 38) {
+    s.runSummary = { result: "Yönetim değişti", week: s.week, cause: "Güven kaybı toparlanma penceresinde giderilemedi", confidence: s.politics.confidence, phase: s.progression.phase, decisions: s.history.filter((x) => x.type === "meeting").slice(-8) };
   }
 }
 
@@ -408,6 +530,7 @@ function devletAdvance(s) {
 export function applyAction(id, s, action) {
   if (!s) return null;
   if (typeof action !== "string") return s;
+  if (id === "apartman" && s.runSummary) return s;
   if (id === "apartman" && action.startsWith("focus:")) {
     const issueId = action.slice(6);
     if (s.issues.some((issue) => issue.id === issueId && issue.status === "acik"))

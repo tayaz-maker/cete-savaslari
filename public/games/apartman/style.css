@@ -137,13 +137,18 @@ body {
   .apt-board {
     grid-template-columns: 1fr 1.5fr;
   }
-  .notice-board {
+.notice-board {
     grid-column: 1/-1;
   }
   .resident-list {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.danger-warning { margin: 8px 0; padding: 10px 12px; border-left: 4px solid #b45309; background: #fff7ed; color: #7c2d12; font-weight: 700; }
+.danger-pill { border-color: #b91c1c !important; color: #991b1b !important; }
+.risk-preview { display: block; margin-top: 8px; font-size: .76rem; line-height: 1.35; color: var(--ink-soft); }
+.run-summary { max-width: 780px; margin: 8vh auto; }
 @media (max-width: 620px) {
   .apt-head {
     grid-template-columns: 1fr;

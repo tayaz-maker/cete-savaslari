@@ -1,4 +1,4 @@
-import { PROPOSALS, RESIDENTS } from "../next-wave.js";
+import { apartmanForecast, PROPOSALS, RESIDENTS } from "../next-wave.js";
 import { HELP_SECTIONS } from "./help.js";
 import {
   bindFrontMenu,
@@ -80,8 +80,15 @@ function draw(session) {
     .map((id) => state.residents.find((resident) => resident.id === id))
     .filter(Boolean);
   const meetingDone = state.flags.meetingWeek === state.week;
+  const confidence = state.politics?.confidence ?? 50;
+  if (state.runSummary) {
+    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span data-lang-host></span></header><section class="card run-summary"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>${h(state.runSummary.result)}</h1><p>${h(state.runSummary.cause)}</p><div class="apt-metrics"><span class="pill">${state.week}. ${t("hafta", "week")}</span><span class="pill">${t("Güven", "Confidence")} ${confidence}/100</span><span class="pill">${h(state.runSummary.phase)}</span></div><h2>${t("Karar izi", "Decision trail")}</h2>${state.runSummary.decisions.map((row) => `<p>${h(row.proposal)} · ${row.accepted ? t("kabul", "passed") : t("ret", "rejected")} · ${row.yes}-${row.no}</p>`).join("")}<button type="button" id="to-menu" class="primary">${t("MENÜ", "MENU")}</button></section></main>`;
+    root.querySelector("#to-menu")?.addEventListener("click", () => location.reload());
+    return;
+  }
   root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">APARTMAN · ${t("YÖNETİCİ DEFTERİ", "MANAGER LEDGER")}</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header>
-    <section class="apt-head"><div><p class="eyebrow">${state.week}. ${t("HAFTA", "WEEK")}</p><h1>${t("Yönetici Masası", "Manager Desk")}</h1></div><div class="apt-metrics"><span class="pill metric">${t("Kasa", "Cash")} ₺${money(state.finance.cash)}</span><span class="pill metric">${t("Aidat", "Dues")} ₺${money(state.finance.dues)}</span><span class="pill">${t("Bina", "Building")} ${state.building.condition}/100</span></div></section>
+    <section class="apt-head"><div><p class="eyebrow">${state.week}. ${t("HAFTA", "WEEK")} · ${h(state.progression?.phase || "yıpranmış bina")}</p><h1>${t("Yönetici Masası", "Manager Desk")}</h1></div><div class="apt-metrics"><span class="pill metric">${t("Kasa", "Cash")} ₺${money(state.finance.cash)}</span><span class="pill metric">${t("Aidat", "Dues")} ₺${money(state.finance.dues)}</span><span class="pill">${t("Bina", "Building")} ${state.building.condition}/100</span><span class="pill ${confidence < 35 ? "danger-pill" : ""}">${t("Güven", "Confidence")} ${confidence}/100</span></div></section>
+    ${(state.politics?.warnings || []).map((warning) => `<p class="danger-warning">⚠ ${h(loc(warning))}</p>`).join("")}
     <section class="apt-board"><aside class="card"><p class="eyebrow">${t("BİNA", "BUILDING")}</p><div class="building-list">${state.building.parts.map((part) => `<div class="building-row"><span>${h(loc(part.name))}</span><b>${Math.round(part.condition)}</b><div class="meter"><i style="--value:${part.condition}%"></i></div></div>`).join("")}</div></aside>
       <section class="card desk"><p class="eyebrow">${t("BUGÜNÜN MESELELERİ", "TODAY'S ISSUES")}</p><div class="issue-list">${
         open
@@ -91,7 +98,7 @@ function draw(session) {
         `<p>${t("Açık mesele yok; haftayı kapatabilirsin.", "No open issue; you can close the week.")}</p>`
       }</div>
         ${focus ? `<div class="desk-actions"><button type="button" data-prepare="${h(focus.id)}" ${(state.flags.prepared || []).includes(focus.id) || (state.flags.prepared || []).length >= 2 ? "disabled" : ""}>${t("Dosyayı hazırla", "Prepare file")} · ${(state.flags.prepared || []).length}/2</button><span class="muted">${t("Toplantı gündemi", "Meeting agenda")}: ${h(loc(focus.title))}</span></div>` : ""}</section>
-      <aside class="card notice-board"><p class="eyebrow">${t("DUYURU / ZİL DEFTERİ", "NOTICE / INTERCOM LOG")}</p><div class="resident-list">${(residents.length ? residents : state.residents.slice(0, 4)).map((resident) => `<div class="resident"><strong>${h(resident.name)}</strong><br>${resident.floor}. ${t("kat", "floor")} · ${resident.pays ? t("aidat tamam", "dues paid") : t("aidat gecikmiş", "dues late")} · ${t("memnuniyet", "satisfaction")} ${resident.satisfaction}${resident.memory?.length ? `<br>${t("Son hafıza", "Last memory")}: ${h(loc(resident.memory.at(-1)))}` : ""}</div>`).join("")}</div></aside></section>
+      <aside class="card notice-board"><p class="eyebrow">${t("BİNA SİYASETİ", "BUILDING POLITICS")}</p><p class="muted">${t("İttifak", "Alliances")}: ${(state.politics?.alliances || []).join(", ") || "—"} · ${t("Muhalefet", "Opposition")}: ${state.politics?.opposition?.length || 0}</p><div class="resident-list">${(residents.length ? residents : state.residents.slice(0, 5)).map((resident) => `<div class="resident"><strong>${h(resident.name)}</strong> · ${t("güven", "trust")} ${resident.trust}<br>${h(resident.personality)} · ${h(resident.interest)}${resident.memories?.length ? `<br>${t("Hatırlıyor", "Remembers")}: ${h(loc(resident.memories.at(-1).type))}` : ""}</div>`).join("")}</div></aside></section>
     ${state.lastMeeting ? `<section class="card vote-result"><strong>${t("Son oylama", "Last vote")}: ${state.lastMeeting.yes}-${state.lastMeeting.no}</strong> · ${state.lastMeeting.accepted ? t("Kabul", "Passed") : t("Ret", "Rejected")} · ${h(loc(PROPOSALS.find((p) => p.id === state.lastMeeting.proposal)?.label || state.lastMeeting.proposal))}</section>` : ""}
     ${
       state.ui?.ledgerOpen
@@ -106,7 +113,18 @@ function draw(session) {
     }
     <div class="apt-footer-actions"><button type="button" id="history">${t("Defterden son kayıtlar", "Recent ledger")}</button><button type="button" id="meeting" class="primary" ${meetingDone || !focus ? "disabled" : ""}>${meetingDone ? t("Bu hafta toplantı yapıldı", "Meeting already held this week") : t("TOPLANTI GECESİ", "MEETING NIGHT")}</button><button type="button" id="advance">${t("HAFTAYI KAPAT", "CLOSE THE WEEK")}</button></div>
     <p class="notice">${h(session.notice)}</p>${helpPanel(HELP_SECTIONS)}<footer class="footer">© 2026 TarikLab · Tarık Halil Ayaz</footer></main>
-    ${state.ui?.meetingOpen ? `<div class="meeting-scene" role="dialog" aria-modal="true" aria-labelledby="meeting-title"><section class="meeting-paper"><p class="eyebrow">${t("GÜNDEM", "AGENDA")}</p><h2 id="meeting-title">${h(loc(focus?.title || t("Apartman bütçesi", "Building budget")))}</h2><p>${t("Hazırlanan dosya", "Prepared files")}: ${(state.flags.prepared || []).length}/2 · ${t("Sakinler salonda. Tek teklif oylanacak.", "Residents are in the room. One proposal will be voted.")}</p><div class="proposal-grid">${PROPOSALS.map((proposal) => `<button type="button" data-proposal="${h(proposal.id)}"><strong>${h(loc(proposal.label))}</strong><br><small>₺${money(proposal.cash || 0)} · ${t("bina", "condition")} ${proposal.condition >= 0 ? "+" : ""}${proposal.condition} · ${t("risk", "risk")} ${proposal.risk}</small></button>`).join("")}</div><button type="button" id="close-meeting">${t("Masaya dön", "Back to desk")}</button></section></div>` : ""}`;
+    ${
+      state.ui?.meetingOpen
+        ? `<div class="meeting-scene" role="dialog" aria-modal="true" aria-labelledby="meeting-title"><section class="meeting-paper"><p class="eyebrow">${t("GÜNDEM", "AGENDA")}</p><h2 id="meeting-title">${h(loc(focus?.title || t("Apartman bütçesi", "Building budget")))}</h2><p>${t("Hazırlanan dosya", "Prepared files")}: ${(state.flags.prepared || []).length}/2 · ${t("Sakinler salonda. Her teklif başka bir bedel taşır.", "Residents are in the room. Every proposal carries a different cost.")}</p><div class="proposal-grid">${PROPOSALS.map(
+            (proposal) => {
+              const forecast = apartmanForecast(state, proposal);
+              return `<button type="button" data-proposal="${h(proposal.id)}"><strong>${h(loc(proposal.label))}</strong><br><small>₺${money(proposal.cash || 0)} · ${t("bina", "condition")} ${proposal.condition >= 0 ? "+" : ""}${proposal.condition}</small><span class="risk-preview">${t("Mali", "Finance")}: ${forecast.bands[0]} · ${t("Sosyal", "Social")}: ${forecast.bands[1]} · ${t("Uzun", "Long")}: ${forecast.bands[2]}</span></button>`;
+            },
+          ).join(
+            "",
+          )}</div><button type="button" id="close-meeting">${t("Masaya dön", "Back to desk")}</button></section></div>`
+        : ""
+    }`;
 
   root
     .querySelectorAll("[data-issue]")
@@ -136,4 +154,4 @@ function draw(session) {
   bindSavePanel(root, session);
 }
 
-bootGame("apartman", draw);
+bootGame("apartman", draw, { safe: true });

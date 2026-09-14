@@ -182,6 +182,8 @@ html,body{margin:0;height:100%;max-height:100%;background:var(--bg);color:var(--
   min-height:52px;padding:8px 12px;text-align:left;line-height:1.3}
 .btn.emir b{font-weight:600;letter-spacing:.04em}
 .btn.emir .ne{color:var(--ink-dim);font-size:12px}
+.btn.emir .riskline{color:#d8b36a;font-size:11px;font-weight:650;letter-spacing:.02em}
+.identity-line{padding:8px 10px;border-left:3px solid var(--accent);background:rgba(216,179,106,.07)}
 .btn.emir .sayi{color:var(--accent);font-size:11px;font-variant-numeric:tabular-nums}
 .btn.emir.danger .sayi{color:#d9a599}
 .log .lg-adim{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--line);padding-top:8px}
@@ -580,6 +582,7 @@ html,body{font-size:14px}
 </div>
 <div id="grain"></div>
 <div id="vig"></div>
+<script src="../shared/depth-framework.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1365,6 +1368,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         ? { agiz: num(m.uzmanSayac.agiz, 0), kirici: num(m.uzmanSayac.kirici, 0), gozcu: num(m.uzmanSayac.gozcu, 0), hapishane_kusu: num(m.uzmanSayac.hapishane_kusu, 0), sofor: num(m.uzmanSayac.sofor, 0) }
         : { agiz: 0, kirici: 0, gozcu: 0, hapishane_kusu: 0, sofor: 0 },
       kesifSeviyesi: [0, 1, 2, 3].indexOf(m.kesifSeviyesi) >= 0 ? m.kesifSeviyesi : 3
+      ,memories: Array.isArray(m.memories) ? m.memories.slice(-12) : []
     };
   }
   function migrateJob(j) {
@@ -1457,6 +1461,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       plateBook: [],
       kefiller: [],
       weekColor: "normal",
+      depth: { version: 1, identityScores: { merhametli: 0, korkulan: 0, pragmatik: 0, paraOdakli: 0, sadik: 0, hain: 0, kontrollu: 0, fevri: 0 }, identity: "kontrollu", decisions: [], delayedEffects: [], eventDirector: { history: [], cooldowns: {} }, endHistory: [] },
       savedAt: 0,
       seed: 1,
       screen: "olaylar"
@@ -1558,6 +1563,16 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }) : [],
       weekColor: ["normal", "ramazan", "derbi", "pazar", "cenaze"].indexOf(raw.weekColor) >= 0 ? raw.weekColor : "normal"
     };
+    var rd = raw.depth && typeof raw.depth === "object" ? raw.depth : {};
+    out.depth = {
+      version: 1,
+      identityScores: Object.assign({}, b.depth.identityScores, rd.identityScores || {}),
+      identity: str(rd.identity, "kontrollu"),
+      decisions: arr(rd.decisions, []).slice(-80),
+      delayedEffects: arr(rd.delayedEffects, []).slice(-40),
+      eventDirector: (rd.eventDirector && typeof rd.eventDirector === "object") ? rd.eventDirector : { history: [], cooldowns: {} },
+      endHistory: arr(rd.endHistory, []).slice(-20)
+    };
     out.streets.forEach(function (st) {
       if (!out.people.filter(function (p) { return p.kind === "esnaf" && p.streetId === st.id; })[0]) {
         out.people.push({ id: "p_esnaf_" + st.id, ad: ESNAF_AD[out.people.length % ESNAF_AD.length], kind: "esnaf",
@@ -1591,6 +1606,48 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     out.scene = raw.scene || null;
     out.jobs.forEach(function(j){if(j.phase==="running"&&!out.scene) j.phase="idle";});
     return out;
+  }
+  function depthRecordDecision(kind, choice, actors, consequence) {
+    var D = window.TarikLabDepth, d = S.depth;
+    var map = {
+      sessiz: { kontrollu: 2, pragmatik: 1 },
+      sikistir: { korkulan: 2, fevri: 1 },
+      cekil: { merhametli: 2, kontrollu: 1, paraOdakli: -1 },
+      ates: { fevri: 3, korkulan: 2, merhametli: -2 }
+    }[choice] || { pragmatik: 1 };
+    Object.keys(map).forEach(function (key) { d.identityScores[key] = num(d.identityScores[key], 0) + map[key]; });
+    d.identity = D.dominantIdentity(d.identityScores);
+    d.decisions.push({ id: kind + "-" + S.week + "-" + S.day + "-" + d.decisions.length, week: S.week, day: S.day, kind: kind, choice: choice, consequence: consequence });
+    d.decisions = d.decisions.slice(-80);
+    (actors || []).forEach(function (m) {
+      D.remember(m, { id: "racon-" + kind + "-" + S.week + "-" + S.day + "-" + choice, type: choice, turn: S.week, sentiment: choice === "ates" ? -2 : choice === "cekil" ? 1 : 0, tags: [kind, d.identity] });
+    });
+  }
+  function depthScheduleJobEcho(j, choice, fired, fled) {
+    var D = window.TarikLabDepth;
+    var type = fired ? "violent-echo" : fled ? "mercy-echo" : choice === "sikistir" ? "fear-echo" : "quiet-echo";
+    D.schedule(S.depth, { id: "job-echo-" + j.id, type: type, dueTurn: S.week + (fired ? 2 : 3), jobId: j.id, manIds: (j.assigned || []).slice(), streetId: j.streetId, choice: choice, cause: "H" + S.week + " iş emri" });
+  }
+  function depthSettle() {
+    var D = window.TarikLabDepth;
+    D.settleDue(S.depth, S.week, function (effect) {
+      var names = (effect.manIds || []).map(manBy).filter(Boolean);
+      if (effect.type === "violent-echo") {
+        filePressure(5, "Gecikmiş tanık ifadesi");
+        names.forEach(function (m) { m.gonul = clamp(m.gonul - 5, 0, 100); nedenEkle(m, "ateş emrinin yankısı"); });
+        pushInbox("Eski iş yeniden açıldı.", effect.cause + " tanık ifadesiyle dosyaya döndü.");
+      } else if (effect.type === "mercy-echo") {
+        addRep("saygi", 3); names.forEach(function (m) { m.gonul = clamp(m.gonul + 3, 0, 100); });
+        pushInbox("Çekildiğin gün unutulmadı.", "Para kaçtı ama mahallede sözün biraz ağırlaştı.");
+      } else if (effect.type === "fear-echo") {
+        addRep("korku", 2); addRep("saygi", -2);
+        pushInbox("Sıkıştırmanın yankısı geldi.", "Esnaf ödüyor; ama selamlar kısaldı.");
+      } else {
+        addRep("saygi", 2); S.flags.sessizIsSayisi = num(S.flags.sessizIsSayisi, 0) + 1;
+        pushInbox("Sessiz iş itibar bıraktı.", "Kimse konuşmadı; ekip emrin ölçülü olduğunu hatırladı.");
+      }
+      S.depth.endHistory.push({ week: S.week, type: effect.type, cause: effect.cause });
+    });
   }
   function blank(lakap) {
     var s = canonical();
@@ -2880,6 +2937,9 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     }
     recalcDosya();
     S.flags.completedJobs=doneJobN()+1; j.completedSeq=S.flags.completedJobs;
+    var dominantOrder = fired ? "ates" : fled ? "cekil" : orders.indexOf("sikistir") >= 0 ? "sikistir" : "sessiz";
+    depthRecordDecision(j.kind, dominantOrder, crewOf(j), "para " + para + " · heat " + heatD + " · tanık " + tanik);
+    depthScheduleJobEcho(j, dominantOrder, fired, fled);
     j.phase = "done";
     stageGate();
     UI.jobDone = true;
@@ -4210,6 +4270,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       throneTick();
       rivalMatrisTick();
       zamTalebiTick();
+      depthSettle();
       if (sezonBitti()) sezonKapat();
     }
     /* 12 — kademe · konuşulmama · lakap teklifi */
@@ -4689,17 +4750,17 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         "</div>";
     } else if (UI.jobWait && (step === "temas" || step === "tepki")) {
       var emirler = [
-        { id: "sessiz", ad: "Sessiz", not: "Ses çıkarmadan hallet." },
-        { id: "sikistir", ad: "Sıkıştır", not: "Yakasına yapış, korkut." },
-        { id: "cekil", ad: "Çekil", not: "Bırak, çık. Para yok." },
-        { id: "ates", ad: "Ateş", not: "Silah çek. Geri dönüşü yok." }
+        { id: "sessiz", ad: "Sessiz", not: "Para şansı korunur; nüfuz yavaş büyür.", risk: "Para Orta · Emniyet Düşük · Ekip Düşük" },
+        { id: "sikistir", ad: "Sıkıştır", not: "Korku büyür; saygı ve esnaf tavrı aşınabilir.", risk: "Para Orta · Emniyet Orta · Ekip Orta" },
+        { id: "cekil", ad: "Çekil", not: "Bugünkü paradan vazgeç; ileride saygı kazanabilirsin.", risk: "Para Yüksek · Emniyet Düşük · Ekip Düşük" },
+        { id: "ates", ad: "Ateş", not: "Tanık, dosya ve ekip yankısı gecikmeli gelir.", risk: "Para Orta · Emniyet Yüksek · Ekip Yüksek" }
       ];
-      acts = '<p class="dim">Talimat · ne seçersen ne olur</p><div class="emirler">' +
+      acts = '<p class="identity-line">Racon kimliği: <b>' + esc((S.depth && S.depth.identity) || "kontrollu") + '</b> · Adamların önemli emirleri hatırlar.</p><p class="dim">Talimat · ne seçersen ne olur</p><div class="emirler">' +
         emirler.map(function (e) {
           return '<button type="button" class="btn emir' + (e.id === "ates" ? " danger" : "") +
             '" data-act="job-emir" data-id="' + e.id + '"><b>' + e.ad + "</b>" +
             '<span class="ne">' + esc(e.not) + "</span>" +
-            '<span class="sayi">' + esc(emirYazi(j.kind, e.id)) + "</span></button>";
+            '<span class="riskline">' + esc(e.risk) + '</span><span class="sayi">' + esc(emirYazi(j.kind, e.id)) + "</span></button>";
         }).join("") + "</div>";
     } else if (UI.jobWait) {
       acts = '<div class="acts"><button type="button" class="btn primary" data-act="job-emir" data-id="devam">Devam</button></div>';
@@ -5049,11 +5110,13 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
   function drawStage() {
     if (!S) { document.getElementById("stage").innerHTML = ""; return; }
     if (S.flags && S.flags.oyunSonu) {
+      var depthRows = ((S.depth && S.depth.decisions) || []).slice(-6).reverse().map(function (d) { return '<p class="dim">H' + d.week + ' · ' + esc(d.kind) + ' · ' + esc(d.choice) + ' → ' + esc(d.consequence) + '</p>'; }).join("");
+      var kayipNedeni = S.flags.oyunSonu === "hanedan" ? "Halef seçilmedi; taht üç haftalık boşlukta dağıldı." : "İki sezon hedefleri kaçtı; Amca desteğini çekti.";
       document.getElementById("stage").innerHTML =
         '<div class="card gate"><p class="ttl">Mahalle elden gitti</p>' +
-        "<p>" + (S.flags.oyunSonu === "hanedan" ? "Taht üç hafta boş kaldı. Ekibi sürdürecek bir halef seçilmedi." : "Amca iki dönem üst üste yüz çevirdi. Mahalledeki düzenin sona erdi.") + "</p>" +
+        '<p><b>Kaybetme nedeni:</b> ' + esc(kayipNedeni) + '</p>' +
         "<p>"+esc(S.lakap)+" · "+S.week+" hafta · "+doneJobN()+" tamamlanan iş</p>"+
-        "<p>Son kasa: ₺"+S.kasa.toLocaleString("tr-TR")+" · "+ownN()+" sokak</p>" +
+        "<p>Son kasa: ₺"+S.kasa.toLocaleString("tr-TR")+" · "+ownN()+" sokak · Kimlik: "+esc((S.depth&&S.depth.identity)||"kontrollu")+"</p>" + depthRows +
         '<div class="acts"><button type="button" class="btn primary" data-act="menu" data-go="home">Menü</button></div></div>';
       return;
     }
