@@ -1254,3 +1254,59 @@ body[data-screen="duel"] .table-workspace {
      all but invisible. The muted token is the panel's own quiet text. */
   color: var(--muted);
 }
+
+/* First-duel coach marks. Positioned beside their anchor, never over it, and
+   never covering the controls — the player can keep playing straight through
+   the guide. */
+.coach-mark {
+  position: fixed;
+  z-index: 6;
+  width: min(328px, calc(100vw - 16px));
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 10px 30px #000a;
+}
+.coach-mark h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-section);
+  color: var(--brass);
+}
+.coach-mark .coach-step {
+  margin: 0;
+  font-size: var(--text-meta);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.coach-mark .coach-body {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-secondary);
+  line-height: 1.5;
+}
+.coach-mark .coach-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+/* The anchor is marked, not masked: nothing is covered or made unclickable. */
+.coach-target {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+  border-radius: var(--radius-panel);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .coach-mark {
+    animation: coach-in 160ms ease-out;
+  }
+  @keyframes coach-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
