@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { create, applyAction, normalize, SON_ACTIONS } from "../public/games/next-wave.js";
 import { EVENTS as SON_EVENTS, SON_CALLBACKS } from "../public/games/next-wave/son100-data.js";
 import {
@@ -216,4 +217,82 @@ test("20 Son Kasaba investment, migration, service and cash policies remain boun
   }
   updateTownProgression(high);
   assert.equal(high.progression.stage, "regional");
+});
+
+function stepSonDay(s, preferredOrder) {
+  const startDay = s.day;
+  let guard = 0;
+  while (s.day === startDay && s.remainingDays > 0) {
+    guard++;
+    if (guard > 6) {
+      applyAction("son-100-gun", s, "act:rest");
+      continue;
+    }
+    if (s.actionsRemaining > 0) {
+      const acts = availableSonActions(s);
+      const id = preferredOrder.find((x) => acts.includes(x)) || acts[0];
+      if (id) applyAction("son-100-gun", s, `act:${id}`);
+      else applyAction("son-100-gun", s, "advance");
+    } else {
+      applyAction("son-100-gun", s, "advance");
+    }
+  }
+}
+
+test("Son 100 Gün: write-will stays reachable during the legal crisis chain's preparation window", () => {
+  // Regression for a real bug: availableSonActions() truncates to 10 ids, and
+  // write-will/forgive/confess/donate/report-crime/legacy used to be appended
+  // AFTER the fracture/scarcity/collapse "chaos" options (quit/party/drink/
+  // travel/confront/sex/pray), which alone already fill the 10-slot cap during
+  // those phases. That made write-will - the only real preparation for the
+  // "legal-return" crisis chain - silently invisible for its entire due
+  // window (remainingDays 40 down to 33), so no amount of player skill could
+  // reduce that chain's risk. Assert it now actually appears in that window.
+  const s = create("son-100-gun");
+  applyAction("son-100-gun", s, "scenario:financial-recovery");
+  while (s.remainingDays > 40) stepSonDay(s, ["work"]);
+  let sawWriteWill = false;
+  while (s.remainingDays >= 33 && s.remainingDays > 0) {
+    if (availableSonActions(s).includes("write-will")) sawWriteWill = true;
+    stepSonDay(s, ["write-will"]);
+  }
+  assert.equal(sawWriteWill, true);
+  const chain = s.depth.resolved.find((c) => c.id === "legal-return");
+  assert.ok(chain, "legal-return chain must have resolved by remainingDays 33");
+  assert.ok(
+    chain.preparation >= 6,
+    `a player who spends the whole window on write-will should reach high legal preparation, got ${chain.preparation}`,
+  );
+});
+
+test("Son 100 Gün: a save with a duplicate openCases id is rejected by normalize", () => {
+  // Regression: validateSonState had no uniqueness check on openCases (unlike
+  // Son Kasaba's equivalent check on `pending`), so a corrupted/tampered save
+  // with two entries sharing one id would pass validation and later have its
+  // consequence applied twice by resolveCases().
+  const tampered = create("son-100-gun");
+  tampered.openCases.push({ id: "dup-x", title: "a", due: tampered.day + 5, status: "open" });
+  tampered.openCases.push({ id: "dup-x", title: "b", due: tampered.day + 5, status: "open" });
+  assert.equal(normalize("son-100-gun", tampered), null);
+  const clean = create("son-100-gun");
+  assert.notEqual(normalize("son-100-gun", clean), null);
+});
+
+test("Son 100 Gün: phase/forecast bilingual text is rendered with text(), not passed whole into loc()", () => {
+  // Regression: sonPhase().label/.note and sonForecast().title/.band are all
+  // [tr, en] pairs. app.js used to hand the whole pair straight to loc(),
+  // which expects a single Turkish string and returns its argument unchanged
+  // when not in English - so the pair array reached a template literal and
+  // Array#toString joined it as "Türkçe,English" (e.g. "HAZIRLIK,PREPARATION"
+  // in the phase eyebrow, and again in the new risk-forecast panel and the
+  // final report's crisis dossier). The fix added a local pair() helper that
+  // calls text(tr, en) for arrays instead. This test guards the four call
+  // sites directly against a regression back to bare loc(...).
+  const source = readFileSync(new URL("../public/games/son-100-gun/app.js", import.meta.url), "utf8");
+  for (const broken of ["loc(phase.label)", "loc(phase.note)", "loc(forecast.title)", "loc(forecast.band)"]) {
+    assert.ok(!source.includes(broken), `${broken} must not appear - use pair(...) for [tr, en] fields`);
+  }
+  for (const fixed of ["pair(phase.label)", "pair(phase.note)", "pair(forecast.title)", "pair(forecast.band)"]) {
+    assert.ok(source.includes(fixed), `expected ${fixed} in app.js`);
+  }
 });

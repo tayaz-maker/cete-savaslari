@@ -19,6 +19,13 @@ import {
   text as t,
   helpPanel,
 } from "../next-wave/shared/runtime.js";
+// loc() expects a single Turkish string it can run through the site-wide
+// phrase dictionary for English; it is not for [tr, en] pairs, which already
+// carry both languages explicitly and must use text(tr, en) instead. Mixing
+// the two made phase/forecast text render as "Türkçe,English" once passed
+// through loc() with only one argument (loc(tr) with no en leaves the pair
+// array itself as the return value, and Array#toString joins it on a comma).
+const pair = (value) => (Array.isArray(value) ? t(value[0], value[1]) : loc(value));
 
 const root = document.body;
 const actionById = new Map(SON_ACTIONS.map((action) => [action.id, action]));
@@ -126,7 +133,7 @@ function draw(session) {
     root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">0</div><div><p class="eyebrow">${t("ÖLÜM VE HÜKÜM", "DEATH AND VERDICT")}</p><h1>${h(loc(report.verdictTitle || t("Yüz gün bitti", "The hundred days are over")))}</h1></div></section>
       <section class="card verdict-banner"><p class="verdict-kicker">${h(loc(report.verdictKicker || ""))}</p><p class="verdict-line">${h(loc(report.verdictLine || ""))}</p><p>${h(loc(report.verdictText || ""))}</p><p class="muted">${h(loc(scene))}</p></section>
       <section class="card"><div class="stat-list"><div>${t("Nakit / borç", "Cash / debt")}<strong>₺${state.resources.money}</strong></div><div>${t("Enerji", "Energy")}<strong>${state.resources.energy}</strong></div><div>${t("Umut", "Hope")}<strong>${state.resources.hope}</strong></div><div>${t("Merhamet", "Mercy")}<strong>${report.mercy || 0}</strong></div><div>${t("Zarar", "Harm")}<strong>${report.harm || 0}</strong></div><div>${t("İman", "Faith")}<strong>${report.faith || 0}</strong></div><div>${t("Kaçan yüküm", "Missed obligations")}<strong>${(state.missed || []).length}</strong></div></div></section>
-      <section class="card"><h3>${t("Arkanda kalan", "What remains")}</h3><ul class="report-list">${(report.helped || []).map((row) => `<li>${h(loc(row))}</li>`).join("")}${(report.harmed || []).map((row) => `<li>${h(loc(row))}</li>`).join("") || `<li>${t("Kimseye özel bir iz bırakmadın.", "You left no particular mark on anyone.")}</li>`}</ul><p>${t("Açık dosya", "Open files")}: ${(report.unresolved || []).map((row) => h(loc(row))).join(" · ") || t("yok", "none")}</p><h3>${t("Kriz dosyası", "Crisis dossier")}</h3><ul class="report-list">${(report.crises || []).map((row) => `<li>${h(loc(row.title || row.id))} · ${row.outcome === "prepared" ? t("hazırlık tuttu", "preparation held") : t("kriz vurdu", "crisis hit")} · ${t("öngörülen risk", "forecast risk")} %${row.risk}</li>`).join("") || `<li>${t("Kapanmış kriz zinciri yok.", "No completed crisis chain.")}</li>`}</ul><h3>${t("İnsan hafızası", "People memory")}</h3><p>${(report.actors || []).map((actor) => `${h(personLabel(actor.id))} ${actor.trust}`).join(" · ")}</p></section>
+      <section class="card"><h3>${t("Arkanda kalan", "What remains")}</h3><ul class="report-list">${(report.helped || []).map((row) => `<li>${h(loc(row))}</li>`).join("")}${(report.harmed || []).map((row) => `<li>${h(loc(row))}</li>`).join("") || `<li>${t("Kimseye özel bir iz bırakmadın.", "You left no particular mark on anyone.")}</li>`}</ul><p>${t("Açık dosya", "Open files")}: ${(report.unresolved || []).map((row) => h(loc(row))).join(" · ") || t("yok", "none")}</p><h3>${t("Kriz dosyası", "Crisis dossier")}</h3><ul class="report-list">${(report.crises || []).map((row) => `<li>${h(pair(row.title || row.id))} · ${row.outcome === "prepared" ? t("hazırlık tuttu", "preparation held") : t("kriz vurdu", "crisis hit")} · ${t("öngörülen risk", "forecast risk")} %${row.risk}</li>`).join("") || `<li>${t("Kapanmış kriz zinciri yok.", "No completed crisis chain.")}</li>`}</ul><h3>${t("İnsan hafızası", "People memory")}</h3><p>${(report.actors || []).map((actor) => `${h(personLabel(actor.id))} ${actor.trust}`).join(" · ")}</p></section>
       <details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Final rapor terminaldir; yeni gün veya üçüncü aksiyon üretmez. Hüküm kayıttan hesaplanır, yenilenmez.", "The final report is terminal; it cannot create another day or third action. The verdict is computed from the save and does not reroll.")}</p></details></main>`;
     bindSavePanel(root, session);
     return;
@@ -140,7 +147,7 @@ function draw(session) {
   const choiceIds = availableSonActions(state);
   const today = state.day;
   const locked = state.actionsRemaining <= 0;
-  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">SON 100 GÜN</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">${state.remainingDays}</div><div><p class="eyebrow">${h(loc(phase.label))}</p><h1>${h(loc(SCENARIOS.find((scenario) => scenario.id === state.scenarioId)?.name || state.scenarioId))}</h1></div><div class="action-counter">${t("AKSİYON", "ACTION")} ${2 - state.actionsRemaining}/2<br><small class="muted">${t("Gün", "Day")} ${today}</small></div></section>
+  root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">SON 100 GÜN</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">${state.remainingDays}</div><div><p class="eyebrow">${h(pair(phase.label))}</p><h1>${h(loc(SCENARIOS.find((scenario) => scenario.id === state.scenarioId)?.name || state.scenarioId))}</h1></div><div class="action-counter">${t("AKSİYON", "ACTION")} ${2 - state.actionsRemaining}/2<br><small class="muted">${t("Gün", "Day")} ${today}</small></div></section>
     <section class="hundred-grid"><aside class="card"><p class="eyebrow">${t("TAKVİM", "CALENDAR")}</p><div class="calendar-strip">${Array.from(
       { length: 7 },
       (_, offset) => {
@@ -155,8 +162,8 @@ function draw(session) {
       },
     ).join("")}</div></aside>
       <section class="card today-panel"><p class="eyebrow">${t("BUGÜN", "TODAY")}</p>
-      <p class="phase-note">${h(loc(phase.note))}</p>
-      ${forecast ? `<div class="risk-forecast"><p class="eyebrow">${t("YAKLAŞAN RİSK", "UPCOMING RISK")}</p><strong>${h(loc(forecast.title))}</strong><p>${t("Yaklaşık", "About")} ${forecast.days} ${t("gün · risk", "days · risk")} ${h(loc(forecast.band))} (%${forecast.chance}) · ${t("hazırlık", "preparation")} ${forecast.preparation}/8</p></div>` : ""}
+      <p class="phase-note">${h(pair(phase.note))}</p>
+      ${forecast ? `<div class="risk-forecast"><p class="eyebrow">${t("YAKLAŞAN RİSK", "UPCOMING RISK")}</p><strong>${h(pair(forecast.title))}</strong><p>${t("Yaklaşık", "About")} ${forecast.days} ${t("gün · risk", "days · risk")} ${h(pair(forecast.band))} (%${forecast.chance}) · ${t("hazırlık", "preparation")} ${forecast.preparation}/8</p></div>` : ""}
       ${openWindows.map((window) => `<div class="window"><strong>${h(loc(window.title))}</strong><br><small>${t("Son gün", "Last day")} ${window.expiresOn} · ${h(loc(window.text || t("kaçarsa sonuç doğar", "missing it has a consequence")))}</small></div>`).join("")}
       ${openCases.map((item) => `<div class="window case"><strong>${h(loc(item.title))}</strong><br><small>${t("Geri dönüş", "Callback")} · ${t("gün", "day")} ${item.due}</small></div>`).join("")}
       ${!openWindows.length && !openCases.length ? `<p class="muted">${t("Bugün açık pencere yok; iki hakkını nasıl yakacağın hâlâ bir karar.", "No open window today; how you spend two rights is still a decision.")}</p>` : ""}
@@ -165,7 +172,7 @@ function draw(session) {
           const action = actionById.get(id);
           if (!action) return "";
           const preview = sonActionForecast(state, id);
-          return `<button type="button" class="action-card" data-action="${h(id)}" ${locked ? "disabled" : ""}><strong>${h(loc(action.label))}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}${preview ? ` · ${t("hazırlık", "prep")} ${h(loc(preview.label))} +${preview.gain}` : ""}</small></button>`;
+          return `<button type="button" class="action-card" data-action="${h(id)}" ${locked ? "disabled" : ""}><strong>${h(loc(action.label))}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}${preview ? ` · ${t("hazırlık", "prep")} ${h(pair(preview.label))} +${preview.gain}` : ""}</small></button>`;
         })
         .join(
           "",

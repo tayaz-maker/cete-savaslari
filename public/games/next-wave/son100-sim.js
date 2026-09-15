@@ -278,6 +278,7 @@ export function validateSonState(s) {
     !Array.isArray(s.obligations) ||
     !Array.isArray(s.opportunities) ||
     !Array.isArray(s.openCases) ||
+    new Set(s.openCases.map((item) => item.id)).size !== s.openCases.length ||
     !Array.isArray(s.history) ||
     !s.flags ||
     !s.ui
@@ -376,6 +377,24 @@ export function availableSonActions(s) {
     ids.add("hide");
     ids.add("work");
   }
+  // Crisis-chain preparation actions (write-will/forgive/confess/donate/
+  // report-crime/legacy) are added before the wide "chaos" option block below
+  // so the final slice(0, 10) truncation can't silently drop them. They used
+  // to be added after quit/party/drink/travel/confront/sex/pray, which by
+  // itself already fills the 10-slot cap during fracture/scarcity/collapse -
+  // making write-will (the only real prep for the legal crisis chain)
+  // effectively never appear on screen during its entire due window.
+  if (left <= 40) ids.add("write-will");
+  if (left <= 30) ids.add("forgive");
+  if (left <= 20) ids.add("confess");
+  if (money > 800) ids.add("donate");
+  if (soul.crime >= 4 || s.flags.legalRisk >= 6) ids.add("crime");
+  if (s.flags.legalRisk >= 8) ids.add("report-crime");
+  if (left <= 14) {
+    ids.add("legacy");
+    ids.add("call-ex");
+    ids.add("visit-friend");
+  }
   if (["fracture", "scarcity", "collapse"].includes(phase)) {
     ids.add("quit");
     ids.add("party");
@@ -387,21 +406,10 @@ export function availableSonActions(s) {
   }
   if (soul.anger >= 12 || phase === "fracture") ids.add("revenge");
   if (soul.faith >= 8 || phase === "collapse" || phase === "finale") ids.add("pray");
-  if (left <= 40) ids.add("write-will");
-  if (left <= 30) ids.add("forgive");
-  if (left <= 20) ids.add("confess");
-  if (money > 800) ids.add("donate");
   if (phase === "fracture" && money > 300) ids.add("gamble");
   if (phase === "fracture" && soul.hedonism >= 8) {
     ids.add("drugs");
     ids.add("escort");
-  }
-  if (soul.crime >= 4 || s.flags.legalRisk >= 6) ids.add("crime");
-  if (s.flags.legalRisk >= 8) ids.add("report-crime");
-  if (left <= 14) {
-    ids.add("legacy");
-    ids.add("call-ex");
-    ids.add("visit-friend");
   }
   if (left <= 3) {
     return ["family", "pray", "confess", "forgive", "write-will", "legacy"].filter((id) =>
