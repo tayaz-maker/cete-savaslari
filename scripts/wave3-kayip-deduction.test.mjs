@@ -174,6 +174,17 @@ test("a save with a broken flags block loads playable instead of soft-locking", 
   assert.ok(Object.hasOwn(ENDINGS, restored.flags.ending));
 });
 
+test("finite legacy privacy values are clamped before UI and ending evaluation", () => {
+  const raw = copy(createPhoneState(3));
+  raw.privacyPressure = 999;
+  raw.ownerRisk = -40;
+  const loaded = normalize("kayip-telefon", raw);
+  assert.equal(loaded.privacyPressure, 100);
+  assert.equal(loaded.ownerRisk, 0);
+  closeCase(loaded);
+  assert.equal(loaded.flags.ending, "reckless");
+});
+
 test("a run that opens nothing is never reported as a leaked life", () => {
   for (const option of ["planned", "abduction", "impulse"]) {
     const state = createPhoneState(3);

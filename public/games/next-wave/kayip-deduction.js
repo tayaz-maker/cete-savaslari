@@ -102,6 +102,11 @@ export function ensurePhoneState(s) {
   s.caseSeed = (Number(s.caseSeed ?? s.meta.seed) || 12345) >>> 0;
   s.meta.seed = s.caseSeed;
   s.caseLayout = s.caseLayout?.apps && Array.isArray(s.caseLayout.activeSecrets) ? s.caseLayout : caseLayout(s.caseSeed);
+  // Valid legacy saves already keep these in range, but a finite, partially
+  // written value such as 999 previously rendered as "999/100" and forced the
+  // wrong ending until another discovery happened to clamp it.
+  s.privacyPressure = Math.max(0, Math.min(100, s.privacyPressure));
+  s.ownerRisk = Math.max(0, Math.min(100, s.ownerRisk));
   // The link graph is player-controlled, so a hand-edited or half-written save
   // must not be able to seed the notebook with edges linkEvidence() would have
   // refused: unknown/undiscovered endpoints, self-links, or the same pair
