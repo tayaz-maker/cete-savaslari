@@ -30,10 +30,10 @@ test("canonical town content is complete and bilingual with distinct state-drive
   assert.equal(NPCS.length, 12);
   assert.equal(GROUPS.length, 9);
   assert.equal(INVESTORS.length, 7);
-  assert.equal(EVENTS.length, 45);
+  assert.ok(EVENTS.length >= 45);
   assert.equal(Object.keys(ENDINGS).length, 7);
-  assert.equal(new Set(EVENTS.map((e) => e.id)).size, 45);
-  assert.equal(new Set(EVENTS.map((e) => e.text[0])).size, 45);
+  assert.equal(new Set(EVENTS.map((e) => e.id)).size, EVENTS.length);
+  assert.equal(new Set(EVENTS.map((e) => e.text[0])).size, EVENTS.length);
   for (const e of EVENTS) {
     assert.ok(e.title[0] && e.title[1] && e.text[0] !== e.text[1]);
     assert.ok(e.choices.every((c) => Object.keys(c.effects).length));

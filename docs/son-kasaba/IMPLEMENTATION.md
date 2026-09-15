@@ -1,14 +1,17 @@
-# Son Kasaba — Wave 2 / V2 contract
+# SON KÖY MANAGER — Wave 2 / V2 contract
+
+Display name: **SON KÖY MANAGER** (engine/save id remains `son-kasaba`). Canonical play route `/oyna/son-koy-manager`; `/oyna/son-kasaba` is a backward-compatible alias. Save keys stay `tariklab.nextwave.son-kasaba.slotN`.
 
 Source: the user's **TARIKLAB_ASTRA_HAYAT_CETE_REFOUNDATION_PLUS_SON_KASABA_MASTER** and its complete Appendix A. The master strengthens the original minimum to seven endings; this implementation uses a 24-month campaign.
 
 ## Product and modules
 
-- `public/games/son-kasaba/data.js`: 13 buildings, 8 mutually exclusive population cohorts, 12 named people, 9 interest groups, 7 investor offers and 45 distinct bilingual events.
+- `public/games/son-kasaba/data.js`: 13 buildings, 8 mutually exclusive population cohorts, 12 named people, 9 interest groups, 7 investor offers and the original 45 bilingual events plus the Wave 2 catalog in `content.js`.
+- `content.js`: NPC bibles, group/investor voices, 24 event chains (~105 extra nodes). Content flags live in existing `flags.townArcs`.
 - `sim.js`: pure deterministic actions, economy, migration, service dependencies, delayed results, identity and endings. No DOM, timers, network or runtime AI.
-- `presentation.js`: bilingual read-only panels, effect previews, reports and help.
+- `presentation.js`: bilingual read-only panels, effect previews, reports and help. Anadolu köy / saha defteri chrome; no kilim kitsch.
 - `app.js`: pregame/setup and actual control bindings. Commands capture the displayed month so stale callbacks cannot apply to the next month.
-- `style.css`: municipal journal/paper identity, compact management layout, responsive navigation and controls.
+- `style.css`: toprak / kiremit / tarla manager panel. Compact management layout, responsive navigation and controls.
 
 Reuse is limited to the existing pregame/save/action gate/i18n/navigation helpers. Other games' engines and content packs are not imported into the town simulation.
 

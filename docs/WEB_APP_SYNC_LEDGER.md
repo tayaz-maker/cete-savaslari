@@ -34,6 +34,17 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-15 — SON 100 GÜN + SON KÖY MANAGER content-max
+- Web change: Content-only Wave 2 expansion of Son 100 Gün and the Son Kasaba rename to **SON KÖY MANAGER**. Engines, save keys, 2-action/day, 5-phase math, crisis formula, 3-decision/month, 24-month campaign, 8 cohorts, 6 institution modifiers, 7 investor grant/control numbers and 7 ending conditions are unchanged.
+- Son 100 Gün: +80 authored events, 22 mini-arcs, 34 delayed callbacks, actor-memory and preparation-sensitive follow-ups, exclusive branches, dossier traces. Content flags in existing `flags.sonArcs`. Phase/forecast/preparation/crisis/dossier visual polish only.
+- SON KÖY MANAGER: user-facing rename; canonical route `/oyna/son-koy-manager`; `/oyna/son-kasaba` remains an alias. Save id stays `son-kasaba`. 12 NPC bibles, 9 group voices, 7 investor voices, 24 chains / 105 extra nodes, Anadolu toprak/kiremit manager chrome. Content flags in existing `flags.townArcs`.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no.
+- UI/presentation: yes — theme polish and manager chrome only; no redesign.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone titles should carry these catalogs, village identity and the route alias, not the website controller.
+- Commits: `grok/wave2-max-content-son-koy-manager` (not merged to main).
+
 ### 2026-09-15 — Racon Manager + Apartman content-max (narrative chains)
 - Web change: Content-only expansion of Racon Manager and Apartman on the existing Depth Framework. No engine rewrite, no save-schema change, no election/recovery/proposal math change. New authored NPC/household bibles, multi-stage event chains, delayed callbacks, exclusive branches and identity/politics-sensitive copy. Chain state persists in existing `flags.chains` / `flags.chainFlags` and `depth.delayedEffects`.
 - Racon Manager: 16 NPC bibles; 24 chains / 96 nodes; identity-toned copy on 21 nodes; 12 mutually exclusive chains; delayed chain-echo callbacks; crew memory only (people memories still stripped on load). UI: existing olaylar list now renders chain choice buttons (`data-act="chain-choice"`). Catalog lives in `public/games/racon/content.js`.

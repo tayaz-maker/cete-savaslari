@@ -155,6 +155,23 @@ function makeTownEventReachable(event) {
   if (event.gate === "retirement") s.cohorts.find((c) => c.id === "retired").count = 250;
   if (event.gate === "division") m.inequality = 100;
   if (event.gate === "company") m.company = 100;
+  if (event.requireStage) s.progression.stage = event.requireStage;
+  if (event.requireInstitution && !s.progression.institutions.includes(event.requireInstitution))
+    s.progression.institutions = s.progression.institutions.concat(event.requireInstitution);
+  if (event.requireIdentity) s.identity = event.requireIdentity;
+  if (event.requireInvestor) {
+    const inv = s.investors.find((i) => i.id === event.requireInvestor);
+    if (inv) inv.status = "accepted";
+  }
+  if (event.requireNpc) {
+    const npc = s.npcs.find((n) => n.id === event.requireNpc);
+    if (npc) npc.present = true;
+  }
+  if (event.requireMemory) {
+    const npc = s.npcs.find((n) => n.id === event.requireMemory);
+    if (npc) npc.memory = [{ month: s.month, text: ["gate", "gate"] }];
+  }
+  if (event.requireFlag) s.flags.townArcs[event.requireFlag] = event.requireValue ?? true;
   return s;
 }
 

@@ -36,7 +36,7 @@ In the table below, “native app” for Çete Savaşları means a first-party R
 | Kayıp Telefon | `kayip-telefon` | `/oyna/kayip-telefon` | [docs/kayip-telefon/](kayip-telefon/00_PRODUCT_IDENTITY.md) | `public/games/kayip-telefon/` | |
 | Son 100 Gün | `son-100-gun` | `/oyna/son-100-gun` | [docs/son-100-gun/](son-100-gun/00_PRODUCT_IDENTITY.md) | `public/games/son-100-gun/` | Reuses the Life Sim engine family (see Shared Systems). |
 | TC SIM: DEVLET | `tc-sim-devlet` | `/oyna/tc-sim-devlet` | [docs/tc-sim-devlet/](tc-sim-devlet/TC_SIM_DEVLET_MASTER.md) | `public/games/tc-sim-devlet/` | |
-| Son Kasaba | `son-kasaba` | `/oyna/son-kasaba` | [docs/son-kasaba/](son-kasaba/IMPLEMENTATION.md) | `public/games/son-kasaba/` | |
+| SON KÖY MANAGER | `son-kasaba` | `/oyna/son-koy-manager` | [docs/son-kasaba/](son-kasaba/IMPLEMENTATION.md) | `public/games/son-kasaba/` | Canonical play route `/oyna/son-koy-manager`; `/oyna/son-kasaba` remains an alias. Save id stays `son-kasaba`. |
 | VETO-H! | `veto-h` | `/oyna/veto-h` | [docs/veto-h/](veto-h/README.md) | `public/games/veto-h/` | Shares the duel engine with GETT-OH! (see Shared Systems). |
 | GETT-OH! | `gett-oh` | `/oyna/gett-oh` | [docs/gett-oh/](gett-oh/README.md) | `public/games/gett-oh/` | Shares the duel engine with VETO-H! (see Shared Systems). |
 
