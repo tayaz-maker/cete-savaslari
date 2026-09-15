@@ -164,3 +164,91 @@ test("20 strategy lives stay finite, diverse and bounded", { timeout: 120_000 },
   assert.ok(Math.max(...echoCounts) > 0);
   assert.equal(getAvailableDecisions(createNewGame()).length > 0, true);
 });
+
+// ---------------------------------------------------------------------------
+// Wave 4 adversarial review regressions
+// ---------------------------------------------------------------------------
+import { HOMES, getEffectiveCommuteLoad } from "../public/games/tc-sim/js/life.js";
+import { ensureLifeDepthState, applyLifeDepthResolution as resolveDepth } from "../public/games/tc-sim/js/life-depth.js";
+
+test("derived commute is the game's own zone model, so housing stays a real trade-off", () => {
+  // It used to be guessed from the home id ("center"/"central" matched nothing,
+  // so shared and studio scored identically and family scored worst whatever
+  // the job was) which made the pricier flat strictly dominated.
+  for (const home of HOMES) {
+    for (const jobId of ["market", "office", "developer", "taxi", "teacher", "factory"]) {
+      const state = createNewGame({ seed: 5 });
+      state.household.homeId = home.id;
+      state.career.jobId = jobId;
+      assert.equal(economyCausality(state).commute, getEffectiveCommuteLoad(state), `${home.id}/${jobId}`);
+    }
+  }
+  // every home must be the commute-optimal choice for some job zone
+  const best = new Set();
+  for (const jobId of ["market", "office", "taxi"]) {
+    const rows = HOMES.map((home) => {
+      const state = createNewGame({ seed: 5 });
+      state.household.homeId = home.id;
+      state.career.jobId = jobId;
+      return { home: home.id, time: economyCausality(state).timePressure };
+    });
+    const min = Math.min(...rows.map((r) => r.time));
+    for (const row of rows) if (row.time === min) best.add(row.home);
+  }
+  assert.equal(best.size, HOMES.length, `only ${[...best].join(",")} are ever commute-optimal`);
+  // a car still reduces the load, matching getEffectiveCommuteLoad
+  const driver = createNewGame({ seed: 5 });
+  driver.household.homeId = "studio";
+  driver.career.jobId = "office";
+  const onFoot = economyCausality(driver).commute;
+  driver.wealth = { ...(driver.wealth || {}), vehicle: { id: "car", currentValue: 100000 } };
+  assert.equal(economyCausality(driver).commute, Math.max(0, onFoot - 1));
+});
+
+test("the education payoff stays once per life even after the effect ledger rolls over", () => {
+  const state = createNewGame({ seed: 5 });
+  state.education.level = "lisans";
+  state.career.jobId = "office";
+  let fires = 0;
+  for (let week = 0; week < 240; week += 1) {
+    state.career.performance = 70;
+    // a long life resolves far more than the 32 entries resolvedEffects keeps,
+    // which used to evict the marker and reopen the gate
+    const depth = ensureLifeDepthState(state);
+    if (week % 3 === 0) depth.resolvedEffects.push(`overwork-echo:${state.time.absoluteWeek}`);
+    const before = new Set(ensureLifeDepthState(state).resolvedEffects.filter((x) => x.startsWith("education-leverage")));
+    for (const eventId of processLifeDepthWeek(state)) {
+      if (eventId !== "life_depth_education_leverage") continue;
+      resolveDepth(state, LIFE_DEPTH_EVENTS.find((x) => x.id === eventId), "specialize");
+    }
+    for (const id of ensureLifeDepthState(state).resolvedEffects)
+      if (id.startsWith("education-leverage") && !before.has(id)) fires += 1;
+    state.time.absoluteWeek += 1;
+  }
+  assert.equal(fires, 1, `education leverage resolved ${fires} times`);
+  assert.equal(state.flags.lifeDepthEducationLeverage, true);
+  // a save written before the marker existed must still be closed on load
+  const legacy = createNewGame({ seed: 5 });
+  ensureLifeDepthState(legacy).resolvedEffects.push("education-leverage:12");
+  delete legacy.flags.lifeDepthEducationLeverage;
+  ensureLifeDepthState(legacy);
+  assert.equal(legacy.flags.lifeDepthEducationLeverage, true);
+});
+
+test("resolving one chain twice in a week does not stack duplicate actor memories", () => {
+  const state = createNewGame({ seed: 9 });
+  const definition = LIFE_DEPTH_EVENTS.find((x) => x.id === "life_depth_friend_return");
+  for (let i = 0; i < 25; i += 1) resolveDepth(state, definition, "use-referral");
+  const mehmet = state.people.find((x) => x.id === "mehmet");
+  const tagged = mehmet.memories.filter((x) => String(x.id).startsWith("wave4:"));
+  assert.equal(tagged.length, 1, `${tagged.length} entries for one week`);
+  // separate weeks still record separately
+  for (let week = 2; week <= 5; week += 1) {
+    state.time.absoluteWeek = week;
+    resolveDepth(state, definition, "use-referral");
+  }
+  const later = mehmet.memories.filter((x) => String(x.id).startsWith("wave4:"));
+  assert.equal(later.length, 5);
+  assert.equal(new Set(later.map((x) => x.id)).size, later.length);
+  assert.ok(mehmet.memories.length <= 50);
+});

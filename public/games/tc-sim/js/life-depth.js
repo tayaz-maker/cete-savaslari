@@ -1,4 +1,8 @@
 /** TC SIM Wave 4 — bounded causal life arcs built on the existing simulation. */
+// catalog.js is a leaf module, so importing the commute primitive here cannot
+// create a cycle (life.js, which wraps it, reaches state.js and back again).
+import { getCommuteLoad } from "./catalog.js?v=10";
+
 export const LIFE_ARC_IDS = [
   "career", "education", "relationship", "family", "finance",
   "housing", "social", "status", "health", "crisis",
@@ -69,6 +73,11 @@ export function ensureLifeDepthState(state) {
   // or weekly tick and must not continue writing into a detached container.
   Object.assign(raw, normalized);
   state.lifeDepth = raw;
+  // Backfill the durable once-per-life marker from a save whose ledger still
+  // carries it, so the education payoff cannot reopen when that bounded entry
+  // later rolls off.
+  if (state.flags && normalized.resolvedEffects.some((x) => x.startsWith("education-leverage")))
+    state.flags.lifeDepthEducationLeverage = true;
   return raw;
 }
 
@@ -102,8 +111,14 @@ function debtTotal(state) {
 }
 
 export function economyCausality(state) {
-  const home = state.household?.homeId || "family";
-  const commute = home === "family" ? 3 : home.includes("center") || home.includes("central") ? 1 : 2;
+  // The commute is the game's own zone-distance model (home zone vs job zone,
+  // minus a car), the same number getWeeklyLifeLoad and the commute_fatigue
+  // event already use. It used to be guessed from the home id instead: no home
+  // id contains "center"/"central", so that branch was dead, "shared" and
+  // "studio" scored identically (making the pricier flat strictly dominated),
+  // and the ordering ran backwards against the catalog's own zone field.
+  const raw = getCommuteLoad(state.household?.homeId || "family", state.career?.jobId ?? null);
+  const commute = state.wealth?.vehicle ? Math.max(0, raw - 1) : raw;
   const debt = debtTotal(state);
   const balance = Number(state.finances?.balance) || 0;
   const familyLoad = (state.parenthood?.children || []).filter((x) => x.alive !== false).length;
@@ -179,7 +194,13 @@ export function processLifeDepthWeek(state) {
     && !d.pendingEffects.some((x) => x.eventId === "life_depth_relationship_reckoning")
     && !recentlyResolved(d, "relationship:", state.time.absoluteWeek, 12))
     schedule(state, { id: `relationship:${state.time.absoluteWeek}`, eventId: "life_depth_relationship_reckoning", dueWeek: state.time.absoluteWeek + 2, actorId: state.social?.currentPartnerNpcId || "mehmet" });
-  if (state.education?.level !== "lise" && state.career?.performance >= 62 && !d.resolvedEffects.some((x) => x.startsWith("education-leverage")) && !d.pendingEffects.some((x) => x.eventId === "life_depth_education_leverage"))
+  // The education payoff is once per life, but resolvedEffects is a bounded
+  // ring buffer: in a long life the overwork echoes alone push past its 32
+  // entries, the marker rolls off and the gate silently reopens, repeating a
+  // one-time beat and its +8 performance. A durable flag (the same mechanism
+  // the weekly decisions use for onceFlag) is what actually spans a life.
+  if (state.education?.level !== "lise" && state.career?.performance >= 62 && !state.flags.lifeDepthEducationLeverage
+    && !d.resolvedEffects.some((x) => x.startsWith("education-leverage")) && !d.pendingEffects.some((x) => x.eventId === "life_depth_education_leverage"))
     schedule(state, { id: `education-leverage:${state.time.absoluteWeek}`, eventId: "life_depth_education_leverage", dueWeek: state.time.absoluteWeek + 4, actorId: "burak" });
   // schedule() sanitizes and replaces the bounded container; continue from
   // that canonical object rather than a stale pre-schedule reference.
@@ -187,6 +208,7 @@ export function processLifeDepthWeek(state) {
   for (const effect of d.pendingEffects) {
     if (effect.status !== "pending" || effect.dueWeek > state.time.absoluteWeek) continue;
     effect.status = "resolved"; d.resolvedEffects.push(effect.id); due.push(effect.eventId);
+    if (String(effect.id).startsWith("education-leverage")) state.flags.lifeDepthEducationLeverage = true;
     d.echoes = bounded(d.echoes.concat({ id: effect.id, week: state.time.absoluteWeek, text: `Geçmiş kararın geri döndü: ${effect.eventId}.` }), 12);
   }
   d.pendingEffects = d.pendingEffects.filter((x) => x.status === "pending");
@@ -220,7 +242,13 @@ export function applyLifeDepthResolution(state, definition, choiceId) {
   rememberArc(state, arcId, choiceId, `${definition.title}: ${definition.choices.find((x) => x.id === choiceId)?.label || choiceId}`);
   const actor = state.people?.find((x) => x.id === actorId);
   if (actor) {
-    actor.memories = bounded((actor.memories || []).concat({ id: `wave4:${definition.id}:${state.time.absoluteWeek}`, type: "life_arc", week: state.time.absoluteWeek, year: state.time.year, text: `${definition.title} konusunda ${choiceId} seçimini yaptı.` }), 50);
+    // Keyed by week, so a second resolution of the same chain in the same week
+    // would otherwise stack identical entries. rememberArc() already guards
+    // its own memory this way; the NPC ledger needs the same check.
+    const memoryId = `wave4:${definition.id}:${state.time.absoluteWeek}`;
+    actor.memories = (actor.memories || []).some((x) => x?.id === memoryId)
+      ? actor.memories
+      : bounded((actor.memories || []).concat({ id: memoryId, type: "life_arc", week: state.time.absoluteWeek, year: state.time.year, text: `${definition.title} konusunda ${choiceId} seçimini yaptı.` }), 50);
     actor.lifeState = { ...(actor.lifeState || {}), concern: definition.title };
   }
   if (definition.id === "life_depth_friend_return" && choiceId === "use-referral") { state.career.performance = cap(state.career.performance + 7); d.opportunities.push({ id: `referral:${state.time.absoluteWeek}`, arc: "career", label: "Mehmet'in iş bağlantısı", status: "used" }); }
