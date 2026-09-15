@@ -222,3 +222,15 @@ body {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+.phase-preparation .count-number { color: #d9a07a; }
+.phase-fracture .count-number { color: #f07b4f; }
+.phase-scarcity .count-number { color: #ee8a4a; }
+.phase-collapse .count-number { color: #ee6251; }
+.phase-finale .count-number { color: #ffd2b0; }
+.phase-note { border-left: 3px solid var(--accent); padding-left: 10px; }
+.prep-meters { margin: 12px 0; }
+.prep-row { display: grid; grid-template-columns: 72px 1fr 36px; gap: 8px; align-items: center; font-size: 0.78rem; }
+.crisis-live { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.crisis-live .stamp { border: 1px solid #8a6a2a; padding: 4px 8px; font-size: 0.72rem; letter-spacing: 0.04em; }
+.verdict-banner { box-shadow: inset 0 0 0 1px #f07b4f55; }

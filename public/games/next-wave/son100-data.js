@@ -1,3 +1,4 @@
+import { EXTRA_EVENTS, EXTRA_CALLBACKS } from "./son100-content.js";
 /** Son 100 Gün — 18 mechanically distinct terminal lives. */
 export const SCENARIOS = [
   {
@@ -441,6 +442,8 @@ export const EVENTS = [
   { id: "witness-shot", domain: "home", title: "Silah sesi", text: "Pencere titredi. İhbar bir tuş.", choices: ["report-crime", "hide"], window: 1, tags: ["crime"] },
   { id: "car-crash-night", domain: "health", title: "Gece kazası", text: "Cam tozu, benzin kokusu. Sen ayaktasın.", choices: ["doctor", "hide"], window: 1, tags: ["crime"] },
   { id: "extort-shop", domain: "money", title: "Dükkân payı", text: "Haftalık. Red, bela. Kabul, leke.", choices: ["crime", "report-crime"], window: 3, tags: ["crime", "bad"] },
+
+  ...EXTRA_EVENTS,
 ];
 export const ACTIONS = [
   { id: "work", label: "İş / mesai", energy: -18, money: 280, hope: -2, work: 6, family: -3 },
@@ -534,6 +537,8 @@ export const SON_CALLBACKS = [
   { id: "partner-leave", title: "Partner evden çıktı", hope: -6, rel: { partner: -18 }, soul: { betrayal: 2, love: -1 } },
   { id: "friday-echo", title: "Cuma cemaati sordu", hope: 2, soul: { faith: 2 } },
   { id: "child-school", title: "Öğretmen aradı", hope: 1, rel: { family: 3 }, soul: { legacy: 2 } },
+
+  ...EXTRA_CALLBACKS,
 ];
 
 export const SON_ENDINGS = [

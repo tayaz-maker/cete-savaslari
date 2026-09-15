@@ -206,6 +206,8 @@ export function ensureSonState(s) {
   s.flags.crimeCount = Number.isFinite(s.flags.crimeCount) ? s.flags.crimeCount : 0;
   s.flags.legalRisk = Number.isFinite(s.flags.legalRisk) ? s.flags.legalRisk : 0;
   s.flags.gambleDay = Number.isInteger(s.flags.gambleDay) ? s.flags.gambleDay : 0;
+  s.flags.sonArcs =
+    s.flags.sonArcs && typeof s.flags.sonArcs === "object" ? s.flags.sonArcs : {};
   s.openCases = Array.isArray(s.openCases) ? s.openCases : [];
   s.opportunities = Array.isArray(s.opportunities) ? s.opportunities : [];
   s.missed = Array.isArray(s.missed) ? s.missed : [];
@@ -539,6 +541,13 @@ export function applySonAction(s, actId) {
     s.resources.hope = clamp(s.resources.hope + 2);
     if (hit.soul) setSoul(s, hit.soul);
     if (hit.callback) queueCase(s, hit.callback);
+    const src = SON_EVENTS.find((event) => event.id === (hit.src || hit.id.split("_")[0]));
+    if (src) {
+      s.flags.sonArcs =
+        s.flags.sonArcs && typeof s.flags.sonArcs === "object" ? s.flags.sonArcs : {};
+      if (src.exclusive) s.flags.sonArcs[src.exclusive] = src.branch || src.id;
+      if (src.setArc) s.flags.sonArcs[src.setArc] = src.branch || src.id;
+    }
     pushHist(s, { type: "opportunity", id: hit.id, result: "caught" });
   }
   if (act.id === "pay" || act.id === "min") {
@@ -570,7 +579,9 @@ function seedOpportunity(s) {
   const pool = SON_EVENTS.filter((event) => {
     if (used.has(event.id)) return false;
     if (recent.has(event.id)) return false;
-    return sonEventEligibleForPhase(event, phase, s.remainingDays, legacyPhase);
+    if (!sonEventEligibleForPhase(event, phase, s.remainingDays, legacyPhase)) return false;
+    if (!sonContentEligible(s, event)) return false;
+    return true;
   });
   const candidates = pool.length ? pool : SON_EVENTS.filter((e) => !used.has(e.id));
   const next = candidates.length
@@ -594,6 +605,33 @@ function seedOpportunity(s) {
   });
   s.depth.eventDirector.recent.push(next.id);
   s.depth.eventDirector.recent = s.depth.eventDirector.recent.slice(-12);
+}
+
+export function sonContentEligible(s, event) {
+  const arcs = s.flags?.sonArcs || {};
+  if (
+    event.exclusive &&
+    arcs[event.exclusive] &&
+    arcs[event.exclusive] !== (event.branch || event.id)
+  )
+    return false;
+  if (event.requireArc) {
+    const got = arcs[event.requireArc];
+    if (event.requireValue == null) {
+      if (!got) return false;
+    } else if (got !== event.requireValue) return false;
+  }
+  if (event.requirePrep) {
+    const family = event.requirePrep.family || event.requirePrep;
+    const min = Number(event.requirePrep.min || event.requirePrepMin || 1);
+    if ((s.depth?.preparations?.[family] || 0) < min) return false;
+  }
+  if (event.requireMemory) {
+    const actor = (s.depth?.actors || []).find((item) => item.id === event.requireMemory);
+    if (!actor?.memory?.length) return false;
+    if (event.requireTrust && actor.trust < event.requireTrust) return false;
+  }
+  return true;
 }
 
 export function sonEventEligibleForPhase(event, phaseId, remainingDays, mappedPhase) {
@@ -843,6 +881,32 @@ export function sonVerdict(s) {
   return ranked[0]?.item || SON_ENDINGS.find((item) => item.id === "unfinished");
 }
 
+export function sonDossierTraces(s) {
+  const arcs = s.flags?.sonArcs || {};
+  const prep = s.depth?.preparations || {};
+  const actors = s.depth?.actors || [];
+  const traces = [];
+  const stayed = actors.filter((a) => a.trust >= 55).map((a) => a.id);
+  const left = actors.filter((a) => a.trust < 35).map((a) => a.id);
+  if (stayed.length) traces.push(stayed.join(", ") + " yanında durdu.");
+  if (left.length) traces.push(left.join(", ") + " uzaklaştı.");
+  const useful = Object.entries(prep)
+    .filter(([, v]) => v >= 3)
+    .map(([k]) => k);
+  if (useful.length) traces.push("Hazırlık tutan alanlar: " + useful.join(", ") + ".");
+  const missed = (s.depth?.resolved || []).filter((row) => row.outcome === "crisis");
+  if (missed.length) traces.push("Kaçırılan kriz: " + missed.map((row) => row.id).join(", ") + ".");
+  if (arcs["partner-door"] === "stay") traces.push("Partner kapıda kaldı.");
+  if (arcs["partner-door"] === "leave") traces.push("Partner bavulu aldı.");
+  if (arcs["sister-key"] === "keep") traces.push("Kız kardeşin anahtarı sende kaldı.");
+  if (arcs["sister-key"] === "give") traces.push("Kız kardeşe anahtarı verdin.");
+  if (arcs["boss-file"] === "speak") traces.push("İş dosyasını açtın.");
+  if (arcs["boss-file"] === "silence") traces.push("İş dosyasını kapalı tuttun.");
+  if (arcs["will-draft"]) traces.push("Vasiyet taslağı dosyada duruyor.");
+  if ((s.flags.donateCount || 0) >= 2) traces.push("Sadaka izi rapora işlendi.");
+  return traces.slice(0, 10);
+}
+
 export function finalizeSon(s) {
   ensureSonState(s);
   const verdict = sonVerdict(s);
@@ -883,6 +947,7 @@ export function finalizeSon(s) {
     turningPoints: s.history
       .filter((row) => ["crisis", "callback", "opportunity"].includes(row.type))
       .slice(-8),
+    traces: sonDossierTraces(s),
   };
   return s;
 }
