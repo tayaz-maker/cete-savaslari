@@ -133,6 +133,20 @@ body {
   padding: 12px;
   margin-bottom: 14px;
 }
+.apt-event {
+  border-left: 4px solid var(--accent);
+  margin: 12px 0 14px;
+  padding: 14px 16px;
+}
+.apt-event h2 {
+  margin: 4px 0 8px;
+  color: #e6dec4;
+  font-size: 1.15rem;
+}
+.apt-event .desk-actions button {
+  background: #1d2a24;
+  color: #e6dec4;
+}
 @media (max-width: 900px) {
   .apt-board {
     grid-template-columns: 1fr 1.5fr;

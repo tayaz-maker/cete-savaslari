@@ -583,6 +583,7 @@ html,body{font-size:14px}
 <div id="grain"></div>
 <div id="vig"></div>
 <script src="../shared/depth-framework.js"></script>
+<script src="content.js"></script>
 <script>
 (function () {
   "use strict";
@@ -1628,6 +1629,23 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
     var type = fired ? "violent-echo" : fled ? "mercy-echo" : choice === "sikistir" ? "fear-echo" : "quiet-echo";
     D.schedule(S.depth, { id: "job-echo-" + j.id, type: type, dueTurn: S.week + (fired ? 2 : 3), jobId: j.id, manIds: (j.assigned || []).slice(), streetId: j.streetId, choice: choice, cause: "H" + S.week + " iş emri" });
   }
+  function raconContentH() {
+    return {
+      D: window.TarikLabDepth,
+      pushInbox: pushInbox,
+      addRep: addRep,
+      cashChange: cashChange,
+      filePressure: filePressure,
+      manBy: manBy,
+      personBy: personBy,
+      nedenEkle: nedenEkle,
+      manName: manName,
+      relModEkle: relModEkle,
+      num: num,
+      clamp: clamp,
+      defter: defter
+    };
+  }
   function depthSettle() {
     var D = window.TarikLabDepth;
     D.settleDue(S.depth, S.week, function (effect) {
@@ -1642,6 +1660,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       } else if (effect.type === "fear-echo") {
         addRep("korku", 2); addRep("saygi", -2);
         pushInbox("Sıkıştırmanın yankısı geldi.", "Esnaf ödüyor; ama selamlar kısaldı.");
+      } else if (effect.type === "chain-echo" || effect.type === "chain") {
+        if (window.RaconContent && window.RaconContent.resolve) window.RaconContent.resolve(effect, S, raconContentH());
       } else {
         addRep("saygi", 2); S.flags.sessizIsSayisi = num(S.flags.sessizIsSayisi, 0) + 1;
         pushInbox("Sessiz iş itibar bıraktı.", "Kimse konuşmadı; ekip emrin ölçülü olduğunu hatırladı.");
@@ -3265,6 +3285,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       }
     }
     spawnSiparis();
+    if (window.RaconContent && window.RaconContent.tick) window.RaconContent.tick(S, raconContentH(), UI);
     writeBugun();
   }
   function writeBugun() {
@@ -4531,6 +4552,11 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           return '<button type="button" class="btn' + (t === "kahve" ? " primary" : "") +
             '" data-act="hazirlik" data-id="' + it.id + '" data-tip="' + t + '">' + HAZIRLIK[t].ad + "</button>";
         }).join("");
+      } else if (it.kind === "chain") {
+        acts = (it.choices || []).map(function (c) {
+          return '<button type="button" class="btn' + (c.id === "bekle" ? " ghost" : "") +
+            '" data-act="chain-choice" data-id="' + it.id + '" data-cid="' + c.id + '">' + esc(c.label) + "</button>";
+        }).join("") || '<button type="button" class="btn" data-act="paper-dosya" data-id="' + it.id + '">Kaldır</button>';
       } else if (randevu) {
         acts = '<div class="emirler">' + TARZ_UI.map(function (t) {
           return '<button type="button" class="btn emir' + (t === "pusu" ? " danger" : "") +
@@ -4571,6 +4597,8 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
           (kadro ? '<div class="chks">' + kadro + "</div>" : '<p class="minus">Hazır adam yok.</p>');
       } else if (it.uyandir) {
         ipucu = '<p class="dim">Ertelendi. Geri gelecek.</p>';
+      } else if (it.kind === "chain" && it.identityHint) {
+        ipucu = '<p class="dim">devam · ' + esc(it.family || "zincir") + (it.identityHint ? " · " + esc(it.identityHint) : "") + "</p>";
       }
       sheet = '<div class="card"><h3>Kâğıt</h3><p class="ttl">' + esc(it.title) + '</p><div class="hr"></div><p>' + esc(it.body) + "</p>" + ipucu + '<div class="acts">' + acts + "</div></div>";
     } else {
@@ -5188,6 +5216,14 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
       S.flags.personalUsed++; S.flags.personalKeys.push(code+":"+(code==="hayat"?payload.id:""));
     }
     if(code==="save"){if(writeSave()) feedback("Kayıt güncel · H"+S.week+" "+DAYS[S.day-1]);return;}
+    if(code==="chain-choice"){
+      var paper=inboxBy(payload.id);
+      if(paper&&window.RaconContent){
+        window.RaconContent.choose(paper, payload.cid, S, raconContentH());
+        persist();render();
+      }
+      return;
+    }
     if(code==="job-cancel"){
       var cancel=jobBy(payload.id);
       if(cancel&&cancel.phase!=="running"&&cancel.phase!=="done"){

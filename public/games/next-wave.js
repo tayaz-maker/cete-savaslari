@@ -28,6 +28,12 @@ import {
   PROPOSALS,
 } from "./next-wave/apartman-data.js";
 import {
+  tickApartmanChains,
+  applyApartmanEventChoice,
+  resolveApartmanChainEffect,
+  summarizeApartmanRun,
+} from "./next-wave/apartman-chains.js";
+import {
   SCENARIOS,
   MILESTONES,
   ACTIONS as A100,
@@ -73,13 +79,13 @@ const defs = {
       residents: RESIDENTS.slice(0, 14).map((r) => ({
         ...r,
         trust: r.satisfaction,
-        income: r.owner ? "orta" : "kırılgan",
-        household: r.owner ? "hane" : "kiracı hane",
-        interest: r.bloc === "eski" ? "mülk değeri" : r.bloc === "kiraci" ? "ödenebilir aidat" : "düzen",
-        personality: r.influence >= 65 ? "kanaat önderi" : r.pays ? "temkinli" : "itirazcı",
+        income: r.income || (r.owner ? "orta" : "kırılgan"),
+        household: r.household || (r.owner ? "hane" : "kiracı hane"),
+        interest: r.interest || (r.bloc === "eski" ? "mülk değeri" : r.bloc === "kiraci" ? "ödenebilir aidat" : "düzen"),
+        personality: r.personality || (r.influence >= 65 ? "kanaat önderi" : r.pays ? "temkinli" : "itirazcı"),
         memory: [],
         memories: [],
-        relations: {},
+        relations: { ...(r.ties || {}) },
         currentIssue: null,
       })),
       issues: ISSUES.map((i) => ({ ...i })),
@@ -178,7 +184,10 @@ const defs = {
 export function create(id) {
   const s = defs[id].initial();
   s.meta.seed = 12345;
-  if (id === "apartman") ensureApartmanState(s);
+  if (id === "apartman") {
+    ensureApartmanState(s);
+    tickApartmanChains(s);
+  }
   return s;
 }
 export function validate(s, id) {
@@ -306,6 +315,8 @@ function resolveApartmanEffect(s, effect) {
     if (issue) issue.severity = Math.min(5, (issue.severity || 1) + 1);
     s.politics.confidence = D.clamp(s.politics.confidence - 6);
     pushHist(s, { type: "callback", text: "Ertelenen mesele büyüdü; sakinler kararın kaynağını hatırlıyor.", cause: effect.cause });
+  } else if (effect.type === "chain-echo" || effect.type === "chain") {
+    resolveApartmanChainEffect(s, effect);
   }
 }
 
@@ -391,6 +402,10 @@ export function apartmanForecast(s, proposal) {
 
 function tickApartman(s) {
   ensureApartmanState(s);
+  if (s.activeEvent && !s.activeEvent.resolved) {
+    const ev = s.activeEvent;
+    applyApartmanEventChoice(s, `${ev.chainId}:${ev.nodeId}:bekle`);
+  }
   s.week += 1;
   s.flags.meeting = false;
   s.flags.prepared = [];
@@ -446,6 +461,7 @@ function tickApartman(s) {
     }
   }
   globalThis.TarikLabDepth.settleDue(s, s.week, (effect) => resolveApartmanEffect(s, effect));
+  tickApartmanChains(s);
   if (s.issues.filter((i) => i.status === "acik").length < 4) {
     const used = new Set(s.issues.map((i) => i.id));
     const next = ISSUE_TEMPLATES.find((t) => !used.has(t.id) && globalThis.TarikLabDepth.canShowEvent(s, t.id, s.week));
@@ -462,7 +478,7 @@ function tickApartman(s) {
   }
   if (s.politics.recoveryUntil && s.week > s.politics.recoveryUntil) {
     if (s.politics.confidence < 38) {
-      s.runSummary = { result: "Yönetim değişti", week: s.week, cause: "Güven kaybı toparlanma penceresinde giderilemedi", confidence: s.politics.confidence, phase: s.progression.phase, decisions: s.history.filter((x) => x.type === "meeting").slice(-8) };
+      s.runSummary = { result: "Yönetim değişti", week: s.week, cause: "Güven kaybı toparlanma penceresinde giderilemedi", confidence: s.politics.confidence, phase: s.progression.phase, decisions: s.history.filter((x) => x.type === "meeting").slice(-8), traces: summarizeApartmanRun(s) };
     } else {
       // The two-week recovery window closed with confidence back at or above
       // the floor: the window is spent. Left set, this flag stayed armed for
@@ -582,6 +598,9 @@ export function applyAction(id, s, action) {
       proposal,
       proposal.id === "raise-dues" ? "aidat-krizi" : "acil-onarim",
     );
+  } else if (id === "apartman" && action.startsWith("event-choice:")) {
+    applyApartmanEventChoice(s, action.slice("event-choice:".length));
+    updateApartmanPolitics(s);
   } else if (id === "son-100-gun" && action === "advance") {
     // Explicit "skip to next day": forfeits any unused action(s) for today.
     // This used to also sneak in one free "work" action before advancing, so

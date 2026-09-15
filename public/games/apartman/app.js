@@ -86,7 +86,7 @@ function draw(session) {
     // here too. Without it, the only exit from an ended run was "MENÜ", which
     // reloads the page into the same active slot and the same ended state -
     // a dead end with no way to load a different slot or start over.
-    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="card run-summary"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>${h(state.runSummary.result)}</h1><p>${h(state.runSummary.cause)}</p><div class="apt-metrics"><span class="pill">${state.week}. ${t("hafta", "week")}</span><span class="pill">${t("Güven", "Confidence")} ${confidence}/100</span><span class="pill">${h(state.runSummary.phase)}</span></div><h2>${t("Karar izi", "Decision trail")}</h2>${state.runSummary.decisions.map((row) => `<p>${h(row.proposal)} · ${row.accepted ? t("kabul", "passed") : t("ret", "rejected")} · ${row.yes}-${row.no}</p>`).join("")}<p class="muted">${t("Yeni bir yönetim için farklı bir kayıt yerini yükle.", "Load a different save slot to take on a new management.")}</p></section></main>`;
+    root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="card run-summary"><p class="eyebrow">${t("YÖNETİM DOSYASI", "MANAGEMENT FILE")}</p><h1>${h(state.runSummary.result)}</h1><p>${h(state.runSummary.cause)}</p><div class="apt-metrics"><span class="pill">${state.week}. ${t("hafta", "week")}</span><span class="pill">${t("Güven", "Confidence")} ${confidence}/100</span><span class="pill">${h(state.runSummary.phase)}</span></div><h2>${t("Karar izi", "Decision trail")}</h2>${state.runSummary.decisions.map((row) => `<p>${h(row.proposal)} · ${row.accepted ? t("kabul", "passed") : t("ret", "rejected")} · ${row.yes}-${row.no}</p>`).join("")}${(state.runSummary.traces || []).length ? `<h2>${t("Hane izi", "Household trail")}</h2>${state.runSummary.traces.map((row) => `<p>${h(row)}</p>`).join("")}` : ""}<p class="muted">${t("Yeni bir yönetim için farklı bir kayıt yerini yükle.", "Load a different save slot to take on a new management.")}</p></section></main>`;
     bindSavePanel(root, session);
     return;
   }
@@ -104,6 +104,11 @@ function draw(session) {
         ${focus ? `<div class="desk-actions"><button type="button" data-prepare="${h(focus.id)}" ${(state.flags.prepared || []).includes(focus.id) || (state.flags.prepared || []).length >= 2 ? "disabled" : ""}>${t("Dosyayı hazırla", "Prepare file")} · ${(state.flags.prepared || []).length}/2</button><span class="muted">${t("Toplantı gündemi", "Meeting agenda")}: ${h(loc(focus.title))}</span></div>` : ""}</section>
       <aside class="card notice-board"><p class="eyebrow">${t("BİNA SİYASETİ", "BUILDING POLITICS")}</p><p class="muted">${t("İttifak", "Alliances")}: ${(state.politics?.alliances || []).join(", ") || "—"} · ${t("Muhalefet", "Opposition")}: ${state.politics?.opposition?.length || 0}</p><div class="resident-list">${(residents.length ? residents : state.residents.slice(0, 5)).map((resident) => `<div class="resident"><strong>${h(resident.name)}</strong> · ${t("güven", "trust")} ${resident.trust}<br>${h(resident.personality)} · ${h(resident.interest)}${resident.memories?.length ? `<br>${t("Hatırlıyor", "Remembers")}: ${h(loc(resident.memories.at(-1).type))}` : ""}</div>`).join("")}</div></aside></section>
     ${state.lastMeeting ? `<section class="card vote-result"><strong>${t("Son oylama", "Last vote")}: ${state.lastMeeting.yes}-${state.lastMeeting.no}</strong> · ${state.lastMeeting.accepted ? t("Kabul", "Passed") : t("Ret", "Rejected")} · ${h(loc(PROPOSALS.find((p) => p.id === state.lastMeeting.proposal)?.label || state.lastMeeting.proposal))}</section>` : ""}
+    ${
+      state.activeEvent
+        ? `<section class="card apt-event" data-chain="${h(state.activeEvent.chainId)}"><p class="eyebrow">${t("DEVAM EDEN MESELE", "CONTINUING MATTER")} · ${h(state.activeEvent.family || "")}</p><h2>${h(loc(state.activeEvent.title))}</h2><p>${h(loc(state.activeEvent.body))}</p><div class="desk-actions">${(state.activeEvent.choices || []).map((choice) => `<button type="button" data-event-choice="${h(state.activeEvent.chainId)}:${h(state.activeEvent.nodeId)}:${h(choice.id)}">${h(loc(choice.label))}</button>`).join("")}</div></section>`
+        : ""
+    }
     ${
       state.ui?.ledgerOpen
         ? `<section class="card"><p class="eyebrow">${t("YÖNETİCİ DEFTERİ", "MANAGER LEDGER")}</p>${
@@ -150,6 +155,9 @@ function draw(session) {
     button.addEventListener("click", () => {
       if (session.act(`proposal:${button.dataset.proposal}`)) session.setUI("meetingOpen", false);
     }),
+  );
+  root.querySelectorAll("[data-event-choice]").forEach((button) =>
+    button.addEventListener("click", () => session.act(`event-choice:${button.dataset.eventChoice}`)),
   );
   root.querySelector("#advance").addEventListener("click", () => session.act("advance"));
   root
