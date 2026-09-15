@@ -11,7 +11,6 @@ import {
 } from "./kayip-content.js";
 
 const cap = (xs, n) => (Array.isArray(xs) ? xs.slice(-n) : []);
-const unique = (xs) => [...new Set(xs)];
 const hash = (seed, value) => {
   let x = (Number(seed) || 12345) >>> 0;
   for (const c of String(value)) x = Math.imul(x ^ c.charCodeAt(0), 16777619) >>> 0;
@@ -155,6 +154,10 @@ export function ensurePhoneState(s) {
     return [{ ...row, key }];
   });
   s.pinnedItems = cap(s.pinnedItems, 20).filter((id) => s.discoveredItems.includes(id));
+  // `clues` was the pre-graph copy of discoveredItems. Keeping both made a
+  // content-heavy slot pay for every evidence id twice; all current readers
+  // use discoveredItems, so retain the legacy field only as an empty shim.
+  s.clues = [];
   s.knownFacts = cap(s.knownFacts, FACTS.length);
   s.sideSecrets = cap(s.sideSecrets, SIDE_SECRETS.length);
   // setTheory() keeps exactly one answer per question. Without the same
@@ -173,7 +176,9 @@ export function ensurePhoneState(s) {
   s.corrobation = undefined;
   s.corroboration = cap(s.corroboration, 64);
   s.contradiction = cap(s.contradiction, 64);
-  s.timeline = cap(s.timeline, 80);
+  // Pressure is aggregate state and the timeline UI only needs item/order.
+  // Strip old redundant snapshots on load while preserving discovery order.
+  s.timeline = cap(s.timeline, 80).flatMap((row) => row?.item ? [{ item: row.item, order: row.order }] : []);
   s.history = cap(s.history, 80);
   // A save with no flags object loaded fine and then threw on the first
   // action, and an unknown ending id left every action refused while the UI
@@ -248,10 +253,10 @@ export function discoverEvidence(s, id) {
   if (s.flags.ending || s.discoveredItems.includes(id)) return false;
   const item = evidenceSpec(s, id); if (!item) return false;
   if (item.requires?.some((required) => !s.discoveredItems.includes(required))) return false;
-  s.discoveredItems.push(id); s.clues = unique((s.clues || []).concat(id));
+  s.discoveredItems.push(id);
   s.privacyPressure = Math.max(0, Math.min(100, s.privacyPressure + (item.pressure || 8)));
   s.ownerRisk = Math.max(0, Math.min(100, s.ownerRisk + (item.tags?.includes("privacy") ? 10 : 3)));
-  s.timeline.push({ item: id, pressure: s.privacyPressure, order: s.discoveredItems.length });
+  s.timeline.push({ item: id, order: s.discoveredItems.length });
   s.history.push({ type: "discover", item: id });
   updateDeductions(s); ensurePhoneState(s); return true;
 }
@@ -309,7 +314,12 @@ export function finishCase(s) {
     confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0,
     traces: reportTraces(s, ending),
   };
-  s.history.push({ type: "ending", ending, decision: s.decision }); ensurePhoneState(s); return true;
+  s.history.push({ type: "ending", ending, decision: s.decision });
+  // Once the deterministic report exists, discovery/link history is redundant
+  // with discoveredItems, evidenceLinks and the report itself. Keep decisions
+  // needed for audit without carrying a second full run transcript forever.
+  s.history = s.history.filter((row) => row.type === "theory" || row.type === "ending");
+  ensurePhoneState(s); return true;
 }
 
 export function legacyEnding(s) {

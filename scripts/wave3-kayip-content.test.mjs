@@ -217,6 +217,31 @@ test("save/load mid-investigation keeps overlay and exclusive", () => {
   assert.ok(loaded.knownFacts.includes("planned-departure"));
 });
 
+test("max-content graph and report stay below the 20 KB save ceiling", () => {
+  const state = createPhoneState(99173);
+  discover(state, DISCOVERABLES.map((x) => x.id));
+  const ids = state.discoveredItems;
+  for (let i = 0; i < ids.length && state.evidenceLinks.length < 64; i += 1) {
+    for (let j = i + 1; j < ids.length && state.evidenceLinks.length < 64; j += 1) {
+      applyAction("kayip-telefon", state, `link:${ids[i]}:${ids[j]}`);
+    }
+  }
+  ids.slice(0, 20).forEach((id) => applyAction("kayip-telefon", state, `pin:${id}`));
+  ["what:planned", "naz:confidant", "ali:lied"].forEach((answer) => applyAction("kayip-telefon", state, `theory:${answer}`));
+
+  const preEnding = JSON.stringify(state);
+  assert.ok(Buffer.byteLength(preEnding) < 20_000, `pre-ending save ${Buffer.byteLength(preEnding)}`);
+  closeCase(state, "expose");
+  const postEnding = JSON.stringify(state);
+  assert.ok(Buffer.byteLength(postEnding) < 20_000, `post-ending save ${Buffer.byteLength(postEnding)}`);
+  assert.equal(state.discoveredItems.length, DISCOVERABLES.length);
+  assert.equal(state.evidenceLinks.length, 64);
+  assert.equal(state.pinnedItems.length, 20);
+  assert.equal(state.hypotheses.length, 3);
+  assert.equal(state.caseReport.traces.length, 10);
+  assert.deepEqual(normalize("kayip-telefon", JSON.parse(postEnding)).caseReport, state.caseReport);
+});
+
 test("no delayed callbacks on the phone; delayed-once is N/A", () => {
   const state = createPhoneState(3);
   discover(state, DISCOVERABLES.map((x) => x.id));
