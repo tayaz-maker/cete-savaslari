@@ -2,6 +2,10 @@
 
 ## Wave 4 — Nedensel yaşam omurgası
 
+- Claude adversarial review entegrasyonunda yaşam haritası commute hesabı canonical konut/iş zone modeliyle eşitlendi, eğitim getirisi ömür boyu tek çalışacak kalıcı işaret aldı ve aynı hafta yinelenen aktör hafızası kapatıldı.
+- Eski TC SIM nakit açığı artık ₺-10.000 tabanından sonra en fazla ₺300.000 sınırlı temerrüt borcuna dönüşür. Pozitif nakit oluştuğunda aylık sınırlı geri ödeme yapılır; üst sınırda yaşam standardı ve abonelikler otomatik olarak mütevazı düzene iner.
+- Pasif ilişki aşınması rol tabanlarında durur. Aktif aile/sosyal bakım hâlâ zaman, enerji ve para kullanır fakat uzun vadede bütün stratejiler aynı sosyal dipte birleşmez.
+- Yabancı oyun payload'ları migration başlamadan TC SIM kimliği ve temel shape kontrolünden geçer; doğrudan `migrateState` çağrısı dahil exception atmadan kapalı reddedilir.
 - Mevcut ekonomi, kariyer, eğitim, ilişki, aile, konut, sosyal çevre, statü, beden ve kriz sistemleri on kalıcı yaşam arkında birleştirildi. Arklar tek event değil; momentum, evre, açık risk, fırsat ve sınırlı geçmiş taşıyan süreçlerdir.
 - Haftalık kararlar ark hafızasına yazılır. Üst üste mesai, geçmiş arkadaş yardımı, ilişki ihmali ve tamamlanan eğitimin kariyere dönüşü save-safe gecikmeli sonuçlar üretir; aynı sonuç ikinci kez çözülemez.
 - Konut/ulaşım, çocuk yükü, borç, eğitim ve nakit birlikte likidite, zaman baskısı ve güvenlik özeti üretir. Orta vadeli hedefler mevcut state'ten türetilir; ayrı görev spam'i veya ödül parası yaratmaz.

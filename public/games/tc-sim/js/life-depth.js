@@ -105,9 +105,10 @@ function recentlyResolved(depth, prefix, week, cooldown) {
 }
 
 function debtTotal(state) {
-  const wealthDebt = Number(state.wealth?.loans?.reduce?.((sum, loan) => sum + (loan.balance || 0), 0)) || 0;
+  const wealthDebt = Number(state.wealth?.debts?.reduce?.((sum, debt) => sum + (debt.principal || 0), 0)) || 0;
   const socialDebt = (state.openCases || []).filter((x) => x.status !== "resolved" && x.type === "personal-debt").reduce((sum, x) => sum + (x.payload?.amount || 0), 0);
-  return Math.max(0, Math.round(wealthDebt + socialDebt));
+  const arrears = Math.max(0, Number(state.finances?.arrears) || 0);
+  return Math.max(0, Math.round(wealthDebt + socialDebt + arrears));
 }
 
 export function economyCausality(state) {

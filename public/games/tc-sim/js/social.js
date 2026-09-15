@@ -335,9 +335,13 @@ export function applySocialMaintenance(state) {
     const gap = week - relationship.lastMeaningfulContactWeek;
     const stage = getRelationshipStage(state, person.id);
     const threshold = stage === "partner" ? 5 : stage === "close" || stage === "family" ? 8 : 12;
-    if (gap > threshold && gap % 4 === 0) {
+    // Tanışıklık doğal olarak soğur ama ömür boyu sıfıra aşınmaz. Bu taban,
+    // aktif bakımın kazancını korurken ilişki/family odaklı oyun ile herkesi
+    // görmezden gelen kariyer rotasının aynı sosyal dipte birleşmesini önler.
+    const floor = stage === "partner" ? 30 : person.roleId === "family" ? 38 : person.roleId === "friend" ? 28 : 20;
+    if (gap > threshold && gap % 4 === 0 && relationship.closeness > floor) {
       applyRelationshipDelta(state, person.id, {
-        closeness: stage === "partner" ? -2 : -1,
+        closeness: -Math.min(stage === "partner" ? 2 : 1, relationship.closeness - floor),
         trust: stage === "partner" ? -1 : 0,
         tension: stage === "partner" ? 1 : 0,
       });

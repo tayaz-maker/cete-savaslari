@@ -148,21 +148,31 @@ function migrateV5(raw) {
 export function migrateState(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     return { ok: false, error: "Kayıt nesne değil." };
+  const hasTcShape = (raw.meta === undefined || (raw.meta && typeof raw.meta === "object" && !Array.isArray(raw.meta)))
+    && raw.player && typeof raw.player === "object" && !Array.isArray(raw.player)
+    && raw.time && typeof raw.time === "object" && !Array.isArray(raw.time)
+    && raw.finances && typeof raw.finances === "object" && !Array.isArray(raw.finances);
+  if (!hasTcShape || (typeof raw.meta?.gameId === "string" && !raw.meta.gameId.startsWith("tc-")))
+    return { ok: false, error: "Bu kayıt TC SIM'e ait değil." };
   const version = raw.meta?.saveVersion ?? 0;
   if (!Number.isInteger(version) || version < 0 || version > SAVE_VERSION)
     return { ok: false, error: "Desteklenmeyen kayıt sürümü." };
-  let state = version < 2 ? mergeLegacy(raw) : raw;
-  if (state.meta.saveVersion < 3) state = migrateV2(state);
-  if (state.meta.saveVersion < 4) state = migrateV3(state);
-  if (state.meta.saveVersion < 5) state = migrateV4(state);
-  if (state.meta.saveVersion < 6) state = migrateV5(state);
-  state = normalizeCurrentEra(state);
-  // mergeLegacy() career nesnesini baştan kurduğu için deneyim haritası burada geri eklenir.
-  state = normalizeEducationCareer(state);
-  const validation = validateState(state);
-  return validation.ok
-    ? { ok: true, state, migrated: version !== SAVE_VERSION }
-    : { ok: false, error: validation.errors.join("; ") };
+  try {
+    let state = version < 2 ? mergeLegacy(raw) : raw;
+    if (state.meta.saveVersion < 3) state = migrateV2(state);
+    if (state.meta.saveVersion < 4) state = migrateV3(state);
+    if (state.meta.saveVersion < 5) state = migrateV4(state);
+    if (state.meta.saveVersion < 6) state = migrateV5(state);
+    state = normalizeCurrentEra(state);
+    // mergeLegacy() career nesnesini baştan kurduğu için deneyim haritası burada geri eklenir.
+    state = normalizeEducationCareer(state);
+    const validation = validateState(state);
+    return validation.ok
+      ? { ok: true, state, migrated: version !== SAVE_VERSION }
+      : { ok: false, error: validation.errors.join("; ") };
+  } catch {
+    return { ok: false, error: "Kayıt TC SIM biçiminde değil." };
+  }
 }
 
 export function deserializeState(text) {

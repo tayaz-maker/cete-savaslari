@@ -27,7 +27,7 @@ import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=10"
 import { activateNextEvent, enqueueEvent, processDueOpenCases } from "./events.js?v=10";
 import { attachLifeDossier, processLifeDepthWeek, recordLifeDecision } from "./life-depth.js?v=10";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=10";
-import { processWealthMonthEnd, processOwnedBenefits, netWorth } from "./wealth.js?v=10";
+import { processWealthMonthEnd, processOwnedBenefits, processCashShortfall, netWorth } from "./wealth.js?v=10";
 import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=10";
 import {
   getReputationContext,
@@ -376,6 +376,7 @@ function processMonthEnd(state) {
     state.education.tuitionOwedThisMonth = 0;
   }
   processWealthMonthEnd(state);
+  processCashShortfall(state);
   return `Ay sonu: ₺${summary.income.toLocaleString("tr-TR")} gelir, ₺${summary.expenses.toLocaleString("tr-TR")} gider işlendi.`;
 }
 
@@ -523,6 +524,9 @@ export function advanceWeek(state) {
       messages.push(`${previousYear} yılı tamamlandı; yaşın ${state.player.age} oldu.`);
     }
   }
+  // Olay veya haftalık karar ay kapanışını beklemeden tabanın altına indirdiyse
+  // aynı güvenli temerrüt dönüşümünü uygula. Ay sonunda ikinci çağrı no-op'tur.
+  processCashShortfall(state);
 
   state.weekly = { used: 0, selectedIds: [] };
   if (!workedOvertime) state.flags.overtimeStreak = 0;

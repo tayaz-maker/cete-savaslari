@@ -240,6 +240,8 @@ export function createNewGame(options = {}) {
       balance: profile.balance + economicBalance,
       otherMonthlyIncome: 0,
       otherMonthlyExpenses: 5000,
+      arrears: 0,
+      distressMonths: 0,
       ledger: [],
     },
     career: {
@@ -622,6 +624,12 @@ export function normalizeSocialState(state) {
 export function normalizeEducationCareer(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return state;
 
+  const finances = state.finances && typeof state.finances === "object" ? state.finances : {};
+  state.finances = {
+    ...finances,
+    arrears: Number.isFinite(finances.arrears) ? Math.max(0, Math.min(300000, Math.round(finances.arrears))) : 0,
+    distressMonths: Number.isInteger(finances.distressMonths) ? Math.max(0, Math.min(999, finances.distressMonths)) : 0,
+  };
   const career = state.career && typeof state.career === "object" ? state.career : {};
   const rawRetirement =
     career.retirement && typeof career.retirement === "object" ? career.retirement : {};
@@ -846,6 +854,11 @@ export function validateState(state) {
     !finite(state.finances.balance) ||
     !finite(state.finances.otherMonthlyIncome) ||
     !finite(state.finances.otherMonthlyExpenses) ||
+    !Number.isInteger(state.finances.arrears) ||
+    state.finances.arrears < 0 ||
+    state.finances.arrears > 300000 ||
+    !Number.isInteger(state.finances.distressMonths) ||
+    state.finances.distressMonths < 0 ||
     !Array.isArray(state.finances.ledger)
   )
     errors.push("Finans geçersiz");

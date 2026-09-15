@@ -12,6 +12,8 @@ export const WEALTH_LIMITS = {
   debts: 4,
   investments: 10,
 };
+export const CASH_FLOOR = -10000;
+export const CASH_ARREARS_CAP = 300000;
 export const SUBSCRIPTIONS = {
   streaming: { label: "Film ve dizi", monthly: 180 },
   music: { label: "Müzik", monthly: 90 },
@@ -362,6 +364,54 @@ export function normalizeWealth(state) {
     lastProcessedMonth: Number.isInteger(raw.lastProcessedMonth) ? raw.lastProcessedMonth : null,
   };
   return state.wealth;
+}
+
+/**
+ * Zorunlu aylık giderler nakdi sonsuza dek eksiye sürüklemez. Tabanın altındaki
+ * açık, mevcut finans/borç yüzeyinde sınırlı temerrüt borcuna dönüşür. Gelirle
+ * yeniden artıya çıkan oyuncu borcu kademeli öder; bu yüzden yardım bedava
+ * servet değildir fakat tek kötü ay da keyfi game-over üretmez.
+ */
+export function processCashShortfall(state) {
+  if (!state?.finances || state.lifetime?.death) return null;
+  const finances = state.finances;
+  finances.arrears = Number.isFinite(finances.arrears)
+    ? Math.max(0, Math.min(CASH_ARREARS_CAP, Math.round(finances.arrears)))
+    : 0;
+  finances.distressMonths = Number.isInteger(finances.distressMonths)
+    ? Math.max(0, Math.min(999, finances.distressMonths))
+    : 0;
+  if (finances.balance < CASH_FLOOR) {
+    const shortfall = Math.round(CASH_FLOOR - finances.balance);
+    const room = Math.max(0, CASH_ARREARS_CAP - finances.arrears);
+    const converted = Math.min(room, shortfall);
+    finances.arrears += converted;
+    finances.distressMonths = Math.min(999, finances.distressMonths + 1);
+    ledger(state, shortfall, "Nakit açığı temerrüt borcuna aktarıldı", "debt");
+    if (finances.arrears >= CASH_ARREARS_CAP) {
+      state.wealth.lifestyle = "modest";
+      state.wealth.subscriptions = [];
+      state.flags.cashDefaultPressure = true;
+    }
+    return { kind: "arrears", amount: converted, arrears: finances.arrears };
+  }
+  if (finances.arrears > 0 && finances.balance > 0) {
+    const payment = Math.min(
+      finances.arrears,
+      finances.balance,
+      Math.max(500, Math.min(3000, Math.round(finances.balance * 0.2))),
+    );
+    if (payment > 0) {
+      ledger(state, -payment, "Temerrüt borcu geri ödemesi", "debt");
+      finances.arrears -= payment;
+      if (finances.arrears === 0) {
+        finances.distressMonths = 0;
+        delete state.flags.cashDefaultPressure;
+      }
+      return { kind: "recovery", amount: payment, arrears: finances.arrears };
+    }
+  }
+  return null;
 }
 export function validateWealth(state) {
   const w = state.wealth;
@@ -771,7 +821,7 @@ export function netWorth(state) {
     property = w.properties.reduce((n, p) => n + p.currentValue, 0),
     vehicle = w.vehicle ? w.vehicle.currentValue : 0,
     durables = w.durables.reduce((n, d) => n + Math.round(d.price * DURABLES[d.id].resale), 0),
-    debt = w.debts.reduce((n, d) => n + d.principal, 0);
+    debt = w.debts.reduce((n, d) => n + d.principal, 0) + Math.max(0, Number(state.finances?.arrears) || 0);
   return {
     cash,
     investments,
