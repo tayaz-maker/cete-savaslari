@@ -1,7 +1,9 @@
 /** Kayıp Telefon — contacts, apps, threads, clues, endings. */
+import { EXTRA_DISCOVERABLES, withContactVoices } from "./kayip-content.js";
+
 export const APPS = ["messages", "contacts", "calls", "photos", "notes", "calendar", "files", "voice"];
 
-export const CONTACTS = [
+const CONTACT_CORE = [
   { id: "c_leyla", name: "Leyla", relation: "kız kardeş", tone: "kısa, endişeli" },
   { id: "c_emre", name: "Emre", relation: "iş", tone: "resmi-yamuk" },
   { id: "c_ali", name: "Ali", relation: "eski ev arkadaşı", tone: "kapalı" },
@@ -12,6 +14,8 @@ export const CONTACTS = [
   { id: "c_eczane", name: "Nöbetçi Eczane", relation: "servis", tone: "kısa" },
   { id: "c_patron", name: "Hakan Bey", relation: "üst", tone: "resmi" },
 ];
+
+export const CONTACTS = withContactVoices(CONTACT_CORE);
 
 export const THREADS = [
   { id: "t1", contactId: "c_leyla", app: "messages", messages: ["nerdesin ya", "annem sordu", "telefonun cekmiyo belki", "yemege gelmicen dimi"] },
@@ -24,7 +28,7 @@ export const THREADS = [
   { id: "t8", contactId: "c_eczane", app: "messages", messages: ["ilac hazır", "son 1 gün"] },
 ];
 
-export const DISCOVERABLES = [
+const DISCOVERABLE_CORE = [
   { id: "clue_0", app: "messages", title: "Leyla'nın son mesajı", text: "Yemek saatine gelmemiş. Aile arıyor.", tags: ["family"] },
   { id: "call_leyla", app: "calls", title: "Cevapsız: Leyla ×4", text: "Son 36 saatte dört arama, hiç açılmamış.", tags: ["family"], corroborates: ["clue_0"] },
   { id: "photo_cafe", app: "photos", title: "Foto: Kadıköy iskele, 23:14", text: "Tarih, takvimdeki 'Naz 21:00' ile uyuşmuyor.", tags: ["naz"], contradicts: ["cal_naz"] },
@@ -56,6 +60,8 @@ export const DISCOVERABLES = [
   { id: "deleted_ali", app: "messages", title: "Silinmiş: Ali 'cuma değil'", text: "Ses kaydıyla aynı cümle.", tags: ["ali"], corroborates: ["voice_2"] },
   { id: "lock_note", app: "notes", title: "Not: kilit deseni", text: "Ekran şifresi taslağı. Açmak ayrı ihlal.", tags: ["privacy"], pressure: 16, requires: ["note_pin"] },
 ];
+
+export const DISCOVERABLES = DISCOVERABLE_CORE.concat(EXTRA_DISCOVERABLES);
 
 export const ENDINGS = {
   minimal: { id: "minimal", title: "Kilitli iade", text: "Telefonu olduğu gibi bırakırsın. Bildiğin az, karıştığın yok." },
