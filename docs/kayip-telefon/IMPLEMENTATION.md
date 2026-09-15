@@ -14,3 +14,17 @@ This file records repository truth. The numbered sprint files are historical pla
 - Bounds: history/timeline 80, evidence links 64, pins 20; authored collections are finite.
 
 The lone password-style prerequisite (`lock_note` after `note_pin`) is optional privacy content. It is not part of a critical-fact path and cannot soft-lock the case.
+
+
+## Wave 3 content-max (digital footprint)
+
+Content-only expansion. Deduction math, five endings, intimate-file list, restrained 72-pressure solve, save keys and V2 schema are unchanged.
+
+- Extra catalog lives in `public/games/next-wave/kayip-content.js` and is concatenated onto the existing 30 discoverables.
+- Message density is a render overlay (`phoneThreads` + `MESSAGE_HEADS` / `THREAD_EXTRAS`). Extra bubbles are not copied into the save.
+- `caseLayout.messageVariant` now ranges 0–5 on new cases. Old saves keep their stored 0–2 value.
+- Mutually exclusive sibling clues persist in `caseLayout.exclusive` (derived from `caseSeed` for older saves).
+- Extra evidence paths were added to the five critical facts; original paths are untouched.
+- Side-secret thresholds stay at 2; extra evidence ids were appended.
+- Final `caseReport.traces` is an additive field inside the existing report object, not a new top-level save key.
+- Contact cards, photo/call metadata and report traces are presentation only.

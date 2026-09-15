@@ -34,6 +34,16 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-15 — Kayıp Telefon content-max
+- Web change: Content-only Wave 3 expansion of Kayıp Telefon. Deduction engine, 5 critical facts, theory/confidence math, 5 endings, intimate-file list, restrained 72-pressure solve, save keys `tariklab.nextwave.kayip-telefon.slotN` and V2 schema are unchanged.
+- Digital footprint: 80+ message pieces (thread overlays, not save-copied), 30+ notes/drafts, 20+ photo/media metadata items, calls/calendar/files/voice density, 9 distinct contact voices, 5 side-secret mini-threads with extra routes, exclusive siblings and seed-sensitive flavor text.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no (ending priority, privacyPressure, ownerRisk, INTIMATE list frozen).
+- UI/presentation: yes — found-phone chrome polish only (contact cards, photo meta, note drafts, report traces); no redesign, no iOS/WhatsApp clone.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone Kayıp Telefon should carry this catalog and overlay contract, not the website controller.
+- Commits: `grok/wave3-kayip-telefon-max-content` (not merged to main).
+
 ### 2026-09-15 — SON 100 GÜN + SON KÖY MANAGER content-max
 - Web change: Content-only Wave 2 expansion of Son 100 Gün and the Son Kasaba rename to **SON KÖY MANAGER**. Engines, save keys, 2-action/day, 5-phase math, crisis formula, 3-decision/month, 24-month campaign, 8 cohorts, 6 institution modifiers, 7 investor grant/control numbers and 7 ending conditions are unchanged.
 - Son 100 Gün: +80 authored events, 22 mini-arcs, 34 delayed callbacks, actor-memory and preparation-sensitive follow-ups, exclusive branches, dossier traces. Content flags in existing `flags.sonArcs`. Phase/forecast/preparation/crisis/dossier visual polish only.
