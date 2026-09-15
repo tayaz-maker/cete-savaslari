@@ -1667,6 +1667,7 @@ var ROL_PERSON = { berber: "berber", kapici: "kapıcı", kahveci: "kahveci" };
         pushInbox("Sessiz iş itibar bıraktı.", "Kimse konuşmadı; ekip emrin ölçülü olduğunu hatırladı.");
       }
       S.depth.endHistory.push({ week: S.week, type: effect.type, cause: effect.cause });
+      S.depth.endHistory = S.depth.endHistory.slice(-20);
     });
   }
   function blank(lakap) {

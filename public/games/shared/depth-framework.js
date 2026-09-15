@@ -39,6 +39,12 @@
     state.delayedEffects = state.delayedEffects.filter(function (effect) {
       return effect.status === "pending" || turn - finite(effect.resolvedTurn, turn) < 20;
     });
+    // Pending effects carry live story state and are never discarded. Resolved
+    // effects are only an audit tail; compact that tail during play as well as
+    // during migration so a long uninterrupted run cannot inflate its save.
+    var pending = state.delayedEffects.filter(function (effect) { return effect.status === "pending"; });
+    var resolved = state.delayedEffects.filter(function (effect) { return effect.status !== "pending"; });
+    state.delayedEffects = pending.concat(resolved.slice(-Math.max(0, 40 - pending.length)));
     return settled;
   }
 
