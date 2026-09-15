@@ -55,6 +55,10 @@ export const HELP_SECTIONS = [
         "BULGULAR panelinde ipuçlarının birbirini doğruladığını (✓) veya çeliştiğini (!) görürsün. Hikâyeyi oyun senin yerine kurmaz; çelişkileri kendin tartarsın.",
         "In the findings panel you can see where clues confirm each other (✓) or contradict each other (!). The game does not assemble the story for you; weighing the contradictions is your job.",
       ],
+      [
+        "Rehber kartları, mesaj sesleri ve fotoğraf saatleri aynı hayatın izleridir. Her kilit açılmaz; bazı mahrem dosyalar ana sır için gerekmez.",
+        "Contact cards, message voices and photo hours are traces of the same life. Not every lock opens; some private files are not required for the main secret.",
+      ],
     ],
   },
   {

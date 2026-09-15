@@ -117,6 +117,72 @@ body {
   margin-top: 5px;
   color: var(--muted);
 }
+.contact-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.contact-card {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #10202b;
+  text-align: left;
+}
+.contact-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.contact-card small,
+.contact-card em {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-style: normal;
+}
+.contact-card p {
+  margin: 6px 0 4px;
+  font-size: 0.8rem;
+  color: #dce8e9;
+}
+.photo-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.note-draft {
+  border-style: dashed;
+}
+.sys-bubble {
+  margin-left: auto;
+  margin-right: auto;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  font-size: 0.68rem;
+  text-align: center;
+  max-width: 70%;
+}
+.sys-bubble:nth-child(even) {
+  margin-left: auto;
+  margin-right: auto;
+  background: transparent;
+  border-radius: 8px;
+}
+.report-traces {
+  margin-top: 18px;
+  text-align: left;
+  padding: 12px;
+  background: #0d1721;
+  border: 1px solid var(--line);
+}
+.report-traces p {
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
 .evidence {
   padding: 16px;
   border-left: 1px solid var(--line);
