@@ -304,3 +304,35 @@ test("itemAllowed hides inactive exclusive sibling", () => {
   assert.equal(itemAllowed("photo_mert_atm", exclusive), false);
   assert.equal(itemAllowed("clue_0", exclusive), true);
 });
+
+test("contact voices carry bilingual relation pairs", () => {
+  for (const [id, voice] of Object.entries(CONTACT_VOICES)) {
+    assert.ok(Array.isArray(voice.relation) && voice.relation.length === 2, id);
+    assert.notEqual(voice.relation[0], voice.relation[1], id);
+  }
+  for (const contact of CONTACTS) {
+    assert.ok(Array.isArray(contact.relation) && contact.relation.length === 2, contact.id);
+  }
+});
+
+test("case report keeps actor traces, secret misleads and a hard cap of 10", () => {
+  const leyla = createPhoneState(12);
+  discover(leyla, ["clue_0", "call_leyla", "msg_leyla_seen", "photo_iban_blur", "photo_ticket", "cal_bus"]);
+  closeCase(leyla);
+  const ids = leyla.caseReport.traces.map((row) => row.id);
+  assert.ok(ids.includes("actor:leyla"), JSON.stringify(ids));
+  assert.ok(ids.includes("mislead:debt") || ids.includes("fact:planned-departure"));
+  assert.ok(ids.includes("ending:thorough") || ids.includes("ending:witness") || ids.includes("ending:family") || ids.includes("ending:minimal") || ids.includes("ending:reckless"));
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(ids.length <= 10);
+  for (const row of leyla.caseReport.traces) {
+    assert.ok(Array.isArray(row.text) && row.text.length === 2, row.id);
+  }
+
+  const naz = createPhoneState(8);
+  discover(naz, ["cal_naz", "photo_cafe"]);
+  closeCase(naz);
+  const nazIds = naz.caseReport.traces.map((row) => row.id);
+  assert.ok(nazIds.includes("actor:naz"));
+  assert.equal(nazIds.includes("actor:ali"), false);
+});
