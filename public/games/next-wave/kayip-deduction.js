@@ -11,6 +11,10 @@ const pair = (tr, en) => [tr, en];
 
 export const EVIDENCE_TYPES = ["message", "person", "photo", "location", "time", "note", "call", "calendar", "file", "payment", "media"];
 const APP_TYPE = { messages: "message", contacts: "person", calls: "call", photos: "photo", notes: "note", calendar: "calendar", files: "file", voice: "media" };
+// The ID scan, the password draft and the lock pattern are the three files the
+// witness/family endings are written around ("özel dosyaya girmedin",
+// "şifreye ve kimliğe dokunmadın"), so both ending paths test this one list.
+const INTIMATE = ["file_scan", "note_pass", "lock_note"];
 
 export const FACTS = [
   { id: "planned-departure", title: pair("Ayrılık planlıydı", "The departure was planned"), critical: true, paths: [["photo_ticket", "cal_bus"], ["photo_bag", "cal_bus"], ["photo_ticket", "photo_bag"]] },
@@ -98,11 +102,34 @@ export function ensurePhoneState(s) {
   s.caseSeed = (Number(s.caseSeed ?? s.meta.seed) || 12345) >>> 0;
   s.meta.seed = s.caseSeed;
   s.caseLayout = s.caseLayout?.apps && Array.isArray(s.caseLayout.activeSecrets) ? s.caseLayout : caseLayout(s.caseSeed);
-  s.evidenceLinks = cap(s.evidenceLinks, 64);
+  // The link graph is player-controlled, so a hand-edited or half-written save
+  // must not be able to seed the notebook with edges linkEvidence() would have
+  // refused: unknown/undiscovered endpoints, self-links, or the same pair
+  // twice (A|B and B|A). pinnedItems already gets this guarantee below.
+  const linkSeen = new Set();
+  s.evidenceLinks = cap(s.evidenceLinks, 64).flatMap((row) => {
+    if (!row || typeof row !== "object") return [];
+    const { a, b } = row;
+    if (a === b || !s.discoveredItems.includes(a) || !s.discoveredItems.includes(b)) return [];
+    const key = [a, b].sort().join("|");
+    if (linkSeen.has(key)) return [];
+    linkSeen.add(key);
+    return [{ ...row, key }];
+  });
   s.pinnedItems = cap(s.pinnedItems, 20).filter((id) => s.discoveredItems.includes(id));
   s.knownFacts = cap(s.knownFacts, FACTS.length);
   s.sideSecrets = cap(s.sideSecrets, SIDE_SECRETS.length);
-  s.hypotheses = cap(s.hypotheses, THEORIES.length).filter((x) => x && typeof x === "object");
+  // setTheory() keeps exactly one answer per question. Without the same
+  // guarantee on load, a save repeating one answer inflated finishCase()'s
+  // `correct` counter and could buy a better ending than the run earned.
+  const answered = new Set();
+  s.hypotheses = cap(s.hypotheses, THEORIES.length)
+    .filter((x) => x && typeof x === "object")
+    .filter((x) => {
+      if (answered.has(x.question)) return false;
+      answered.add(x.question);
+      return true;
+    });
   s.decision = DECISIONS.some((x) => x.id === s.decision) ? s.decision : "return";
   s.caseReport = s.caseReport && typeof s.caseReport === "object" ? s.caseReport : null;
   s.corrobation = undefined;
@@ -110,6 +137,11 @@ export function ensurePhoneState(s) {
   s.contradiction = cap(s.contradiction, 64);
   s.timeline = cap(s.timeline, 80);
   s.history = cap(s.history, 80);
+  // A save with no flags object loaded fine and then threw on the first
+  // action, and an unknown ending id left every action refused while the UI
+  // still rendered the playable phone - an unrecoverable soft-lock.
+  s.flags = s.flags && typeof s.flags === "object" ? s.flags : {};
+  s.flags.ending = Object.hasOwn(ENDINGS, s.flags.ending) ? s.flags.ending : null;
   s.ui = Object.assign({ app: "messages", screen: "Mesajlar", caseTab: "evidence", linkFrom: null }, s.ui || {});
   updateDeductions(s);
   return s;
@@ -183,19 +215,35 @@ export function finishCase(s) {
   const what = s.hypotheses.find((x) => x.question === "what");
   const correct = s.hypotheses.filter((x) => (x.question === "what" && x.option === "planned") || (x.question === "naz" && x.option === "confidant") || (x.question === "ali" && ["lied", "protected"].includes(x.option))).length;
   const wrong = s.hypotheses.filter((x) => x.status === "refuted" || (x.question === "what" && x.option === "abduction")).length;
+  // Witness and family are the restrained-reading endings, so they turn on
+  // whether the intimate files were opened plus a privacy ceiling. The old
+  // ceiling was < 70 with no file test, which made a complete solve
+  // impossible: the cheapest route to all five critical facts costs 72
+  // pressure, so the best possible deduction always fell through to
+  // "reckless" while a 3-fact run earned "witness". 80 clears that cheapest
+  // full solve (72) and still excludes a phone-wide sweep (100).
+  const intimate = s.discoveredItems.some((x) => INTIMATE.includes(x));
+  const restrained = !intimate && s.privacyPressure < 80;
   let ending;
   if (s.decision === "accuse-ali" && (!what || correct < 2)) ending = "reckless";
-  else if (s.decision === "warn-family" && s.knownFacts.includes("family-unaware") && s.knownFacts.includes("planned-departure") && wrong === 0 && s.privacyPressure < 70) ending = "family";
-  else if (what?.option === "planned" && s.knownFacts.length >= 3 && wrong === 0 && s.privacyPressure < 70) ending = "witness";
-  else if (!s.hypotheses.length && s.privacyPressure < 20) ending = "minimal";
-  else ending = s.privacyPressure < 60 && wrong === 0 ? "thorough" : "reckless";
+  else if (s.decision === "warn-family" && s.knownFacts.includes("family-unaware") && s.knownFacts.includes("planned-departure") && wrong === 0 && restrained) ending = "family";
+  else if (what?.option === "planned" && s.knownFacts.length >= 3 && wrong === 0 && restrained) ending = "witness";
+  // "reckless" is the privacy verdict ("çok derin indin"), so it needs actual
+  // intrusion. It used to also absorb every wrong theory, which told a player
+  // who opened nothing at all that they had leaked someone's life.
+  else if (intimate || s.privacyPressure >= 60) ending = "reckless";
+  // "minimal" is the you-learned-almost-nothing verdict. Keying it on having
+  // set no theory meant merely opening the theory panel locked it out, so a
+  // run with no discoveries was reported as "thorough" - "you saw enough".
+  else if (!s.knownFacts.length && s.privacyPressure < 20) ending = "minimal";
+  else ending = "thorough";
   s.flags.ending = ending;
   s.caseReport = { seed: s.caseSeed, decision: s.decision, ending, theories: s.hypotheses.map((x) => ({ ...x })), correct, wrong, criticalEvidence: FACTS.filter((x) => s.knownFacts.includes(x.id)).map((x) => x.id), missedFacts: FACTS.filter((x) => !s.knownFacts.includes(x.id)).map((x) => x.id), contradictions: s.contradiction.slice(), sideSecrets: s.sideSecrets.slice(), confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0 };
   s.history.push({ type: "ending", ending, decision: s.decision }); ensurePhoneState(s); return true;
 }
 
 export function legacyEnding(s) {
-  const pressure = s.privacyPressure, sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass", "lock_note"].includes(x));
+  const pressure = s.privacyPressure, sawId = s.discoveredItems.some((x) => INTIMATE.includes(x));
   const travel = s.discoveredItems.some((x) => ["photo_ticket", "photo_bag", "cal_bus"].includes(x));
   const family = s.discoveredItems.includes("call_leyla") || s.discoveredItems.includes("clue_0");
   if (s.corroboration.length >= 3 && pressure < 70 && !sawId) return "witness";
