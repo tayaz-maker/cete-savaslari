@@ -1,4 +1,14 @@
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./kayip-data.js";
+import {
+  EXTRA_PATHS,
+  EXTRA_SECRET_EVIDENCE,
+  EXTRA_MOVABLE,
+  EXCLUSIVE_PAIRS,
+  ITEM_VARIANTS,
+  overlayThreadMessages,
+  itemAllowed as contentItemAllowed,
+  reportTraces,
+} from "./kayip-content.js";
 
 const cap = (xs, n) => (Array.isArray(xs) ? xs.slice(-n) : []);
 const unique = (xs) => [...new Set(xs)];
@@ -50,6 +60,15 @@ export const SIDE_SECRETS = [
   { id: "account", title: pair("Sahte hesap", "False account"), evidence: ["file_chat", "contact_naz_note", "call_unknown"], threshold: 2 },
 ];
 
+for (const [id, paths] of Object.entries(EXTRA_PATHS)) {
+  const fact = FACTS.find((row) => row.id === id);
+  if (fact) fact.paths = fact.paths.concat(paths);
+}
+for (const [id, ids] of Object.entries(EXTRA_SECRET_EVIDENCE)) {
+  const secret = SIDE_SECRETS.find((row) => row.id === id);
+  if (secret) secret.evidence = secret.evidence.concat(ids);
+}
+
 export const DECISIONS = [
   { id: "return", title: pair("Sessizce iade et", "Return it quietly") },
   { id: "warn-family", title: pair("Aileyi uyar", "Warn the family") },
@@ -62,14 +81,25 @@ export function caseLayout(seed) {
   const movable = {
     bank_sms: ["messages", "files"], deleted_draft: ["messages", "notes"], file_map: ["files", "notes"],
     contact_naz_note: ["contacts", "notes"], call_unknown: ["calls", "messages"],
+    ...EXTRA_MOVABLE,
   };
   const apps = {};
   for (const item of DISCOVERABLES) {
     const choices = movable[item.id] || [item.app];
+    if (choices.length < 2) continue;
     apps[item.id] = choices[hash(seed, item.id) % choices.length];
   }
   const ranked = SIDE_SECRETS.slice().sort((a, b) => hash(seed, a.id) - hash(seed, b.id));
-  return { apps, messageVariant: hash(seed, "messages") % 3, activeSecrets: ranked.slice(0, 3 + (hash(seed, "secrets") % 3)).map((x) => x.id) };
+  const exclusive = {};
+  for (const [family, ids] of Object.entries(EXCLUSIVE_PAIRS)) {
+    exclusive[family] = ids[(hash(seed, `exclusive:${family}`) >>> 8) % ids.length];
+  }
+  return {
+    apps,
+    messageVariant: hash(seed, "messages") % 6,
+    activeSecrets: ranked.slice(0, 3 + (hash(seed, "secrets") % 3)).map((x) => x.id),
+    exclusive,
+  };
 }
 
 export function createPhoneState(seed = 12345) {
@@ -102,6 +132,9 @@ export function ensurePhoneState(s) {
   s.caseSeed = (Number(s.caseSeed ?? s.meta.seed) || 12345) >>> 0;
   s.meta.seed = s.caseSeed;
   s.caseLayout = s.caseLayout?.apps && Array.isArray(s.caseLayout.activeSecrets) ? s.caseLayout : caseLayout(s.caseSeed);
+  if (!s.caseLayout.exclusive || typeof s.caseLayout.exclusive !== "object") {
+    s.caseLayout.exclusive = caseLayout(s.caseSeed).exclusive;
+  }
   // Valid legacy saves already keep these in range, but a finite, partially
   // written value such as 999 previously rendered as "999/100" and forced the
   // wrong ending until another discovery happened to clamp it.
@@ -154,14 +187,36 @@ export function ensurePhoneState(s) {
 
 export function evidenceSpec(s, id) {
   const item = DISCOVERABLES.find((x) => x.id === id);
-  return item ? { ...item, app: s.caseLayout?.apps?.[id] || item.app, type: APP_TYPE[s.caseLayout?.apps?.[id] || item.app] || "media" } : null;
+  if (!item) return null;
+  const app = s.caseLayout?.apps?.[id] || item.app;
+  const spec = { ...item, app, type: APP_TYPE[app] || "media" };
+  const flavors = ITEM_VARIANTS[id];
+  if (flavors?.length) {
+    const pick = flavors[hash(s.caseSeed, `${id}:flavor`) % flavors.length];
+    if (pick.title) spec.title = pick.title;
+    if (pick.text) spec.text = pick.text;
+    if (pick.caption) spec.caption = pick.caption;
+  }
+  return spec;
 }
 
-export function availableEvidence(s, app) { return DISCOVERABLES.map((x) => evidenceSpec(s, x.id)).filter((x) => x.app === app); }
+export function itemAllowed(s, id) {
+  return contentItemAllowed(id, s.caseLayout?.exclusive);
+}
+
+export function availableEvidence(s, app) {
+  return DISCOVERABLES
+    .filter((x) => contentItemAllowed(x.id, s.caseLayout?.exclusive))
+    .map((x) => evidenceSpec(s, x.id))
+    .filter((x) => x.app === app);
+}
 export function evidenceNodes(s) { return s.discoveredItems.map((id) => evidenceSpec(s, id)).filter(Boolean); }
 export function phoneThreads(s) {
   const variant = s.caseLayout?.messageVariant || 0;
-  return (s.threads || []).map((thread, i) => ({ ...thread, messages: thread.messages.map((m, j) => (variant === 1 && i === 0 && j === 0 ? ["Dün de aradım. Müsait olunca dön.", "Called yesterday too. Call when free."] : variant === 2 && i === 1 && j === 0 ? ["Toplantı saati yine değişti.", "The meeting time changed again."] : m)) }));
+  return (s.threads || THREADS).map((thread) => ({
+    ...thread,
+    messages: overlayThreadMessages(thread, variant),
+  }));
 }
 
 function updateDeductions(s) {
@@ -243,7 +298,17 @@ export function finishCase(s) {
   else if (!s.knownFacts.length && s.privacyPressure < 20) ending = "minimal";
   else ending = "thorough";
   s.flags.ending = ending;
-  s.caseReport = { seed: s.caseSeed, decision: s.decision, ending, theories: s.hypotheses.map((x) => ({ ...x })), correct, wrong, criticalEvidence: FACTS.filter((x) => s.knownFacts.includes(x.id)).map((x) => x.id), missedFacts: FACTS.filter((x) => !s.knownFacts.includes(x.id)).map((x) => x.id), contradictions: s.contradiction.slice(), sideSecrets: s.sideSecrets.slice(), confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0 };
+  s.caseReport = {
+    seed: s.caseSeed, decision: s.decision, ending,
+    theories: s.hypotheses.map((x) => ({ ...x })),
+    correct, wrong,
+    criticalEvidence: FACTS.filter((x) => s.knownFacts.includes(x.id)).map((x) => x.id),
+    missedFacts: FACTS.filter((x) => !s.knownFacts.includes(x.id)).map((x) => x.id),
+    contradictions: s.contradiction.slice(),
+    sideSecrets: s.sideSecrets.slice(),
+    confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0,
+    traces: reportTraces(s, ending),
+  };
   s.history.push({ type: "ending", ending, decision: s.decision }); ensurePhoneState(s); return true;
 }
 
@@ -256,4 +321,4 @@ export function legacyEnding(s) {
   return pressure < 20 ? "minimal" : pressure < 60 ? "thorough" : "reckless";
 }
 
-export { APPS, CONTACTS, DISCOVERABLES, ENDINGS };
+export { APPS, CONTACTS, DISCOVERABLES, ENDINGS, INTIMATE, EXCLUSIVE_PAIRS };
