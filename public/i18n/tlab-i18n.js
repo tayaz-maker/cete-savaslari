@@ -367,8 +367,8 @@
       subtitle: "The last hundred days. Every choice weighs more.",
     },
     "son-kasaba": {
-      title: "Son Kasaba",
-      subtitle: "Everyone is leaving. You stay and try to keep the town alive.",
+      title: "SON KÖY MANAGER",
+      subtitle: "Everyone is leaving. You stay and try to keep the village standing.",
     },
     "tc-sim-devlet": {
       title: "TC SIM: DEVLET",
@@ -407,7 +407,7 @@
           '<a href="/oyna/kayip-telefon">Kayıp Telefon</a> · LIVE — Corroborate clues across eight apps and weigh the privacy cost of returning a lost phone.',
           '<a href="/oyna/son-100-gun">Son 100 Gün</a> · LIVE — The Extreme Last 100 Days format: manage limited time, obligations and the bonds that survive.',
           '<a href="/oyna/tc-sim-devlet">TC SIM: DEVLET</a> · LIVE — Configure a state, then manage policy, institutions, regions, treasury and reports month by month.',
-          '<a href="/oyna/son-kasaba">Son Kasaba</a> · LIVE — Shape a town’s future across 24 months of budgets, buildings, migration, groups and investors.',
+          '<a href="/oyna/son-koy-manager">SON KÖY MANAGER</a> · LIVE — Shape a town’s future across 24 months of budgets, buildings, migration, groups and investors.',
           '<a href="/oyna/veto-h">VETO-H!</a> · LIVE — An election and campaign duel with 300 original cards and individual illustrations, a seeded 40-card deck, a computer opponent and a pregame Card Archive.',
           '<a href="/oyna/gett-oh">GETT-OH!</a> · LIVE — A neighborhood and street-power duel with 300 original cards and individual illustrations: the same deterministic engine, a separate card pool and an Istanbul-night table.',
           '<a href="/ihtilal">İhtilâl</a> · COMING SOON — In development.',

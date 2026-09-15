@@ -1,15 +1,15 @@
-/** Beginner guide for Son Kasaba. */
+/** Beginner guide for SON KÖY MANAGER. */
 export const HELP_SECTIONS = [
   {
     h: ["Amaç", "The goal"],
     p: [
       [
-        "Herkes gidiyor; sen kalıp kasabayı yaşatmaya çalışıyorsun. 24 ay boyunca kasabayı yönetirsin.",
-        "Everyone is leaving; you stay and try to keep the town alive. You run the town for 24 months.",
+        "Herkes gidiyor; sen kalıp köyü ayakta tutmaya çalışıyorsun. 24 ay boyunca Anadolu köyünü yönetirsin.",
+        "Everyone is leaving; you stay and try to keep the village standing. You run the village for 24 months.",
       ],
       [
-        "Kasabayı kurtarmanın tek yolu yok. Sonuç yalnız zenginlik değildir: yedi farklı final nüfus, hizmetler, gençler, güven, bütçe, şirket kontrolü ve eşitsizlikten hesaplanır.",
-        "There is no single way to save the town. The outcome is not wealth alone: seven endings are calculated from population, services, young people, trust, budget, company control and inequality.",
+        "Köyü kurtarmanın tek yolu yok. Sonuç yalnız zenginlik değildir: yedi farklı final nüfus, hizmetler, gençler, güven, bütçe, şirket kontrolü ve eşitsizlikten hesaplanır.",
+        "There is no single way to save the village. The outcome is not wealth alone: seven endings are calculated from population, services, young people, trust, budget, company control and inequality.",
       ],
     ],
   },
@@ -39,8 +39,8 @@ export const HELP_SECTIONS = [
         "Closing a service does not earn money, it only reduces costs.",
       ],
       [
-        "İş, sağlık ve okul ailelerin kasabada kalmasını etkiler.",
-        "Jobs, health and schools decide whether families stay.",
+        "İş, sağlık ve okul ailelerin köyde kalmasını etkiler.",
+        "Jobs, health and schools decide whether families stay in the village.",
       ],
       [
         "Çıkar gruplarının sana güveni halk güvenine yansır. Yeterince güvenen iki grup ortak bakım koalisyonu kurup bina yıpranmasını yavaşlatabilir.",

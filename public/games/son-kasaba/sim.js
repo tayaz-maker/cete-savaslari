@@ -15,20 +15,20 @@ export const population = (s) => sum(s.cohorts.map((c) => c.count));
 export const youngPopulation = (s) =>
   sum(s.cohorts.filter((c) => ["young", "educated"].includes(c.id)).map((c) => c.count));
 export const TOWN_STAGES = [
-  { id: "emergency", label: ["Acil idare", "Emergency administration"], institutions: ["council"] },
+  { id: "emergency", label: ["Acil muhtarlık", "Emergency village office"], institutions: ["council"] },
   {
     id: "municipal",
-    label: ["İşleyen belediye", "Working municipality"],
+    label: ["İşleyen köy idaresi", "Working village municipality"],
     institutions: ["council", "service-board", "market-desk"],
   },
   {
     id: "planning",
-    label: ["Planlı kasaba", "Planned town"],
+    label: ["Planlı köy", "Planned village"],
     institutions: ["council", "service-board", "market-desk", "planning-office", "social-council"],
   },
   {
     id: "regional",
-    label: ["Bölgesel merkez", "Regional centre"],
+    label: ["Bölgesel köy merkezi", "Regional village centre"],
     institutions: [
       "council",
       "service-board",
@@ -225,7 +225,7 @@ export function createTown(options = {}) {
     chains: {},
     progression: { stage: "emergency", score: 0, institutions: ["council"], milestones: [] },
     ui: { screen: "center" },
-    flags: { teacherWarned: false, teacherLeft: false },
+    flags: { teacherWarned: false, teacherLeft: false, townArcs: {} },
   };
   if (options.context === "industry") {
     s.metrics.production += 12;
@@ -480,6 +480,9 @@ function ensureTownDepth(s) {
   s.progression.milestones = Array.isArray(s.progression.milestones)
     ? s.progression.milestones.slice(-4)
     : [];
+  s.flags = s.flags || {};
+  s.flags.townArcs =
+    s.flags.townArcs && typeof s.flags.townArcs === "object" ? s.flags.townArcs : {};
   updateTownProgression(s);
   return s;
 }
@@ -574,7 +577,32 @@ export function eventEligible(s, e) {
     tourism: m.tourism >= 20,
     late: s.month >= 20,
   };
-  return !!gates[e.gate];
+  if (!gates[e.gate]) return false;
+  const arcs = s.flags?.townArcs || {};
+  if (e.requireStage && s.progression?.stage !== e.requireStage) return false;
+  if (e.requireInstitution && !(s.progression?.institutions || []).includes(e.requireInstitution))
+    return false;
+  if (e.requireIdentity && s.identity !== e.requireIdentity) return false;
+  if (e.requireInvestor) {
+    const inv = s.investors.find((i) => i.id === e.requireInvestor);
+    if (inv?.status !== "accepted") return false;
+  }
+  if (e.requireNpc) {
+    const npc = s.npcs.find((n) => n.id === e.requireNpc);
+    if (!npc?.present) return false;
+  }
+  if (e.requireMemory) {
+    const npc = s.npcs.find((n) => n.id === e.requireMemory);
+    if (!npc?.memory?.length) return false;
+  }
+  if (e.requireFlag) {
+    const got = arcs[e.requireFlag];
+    if (e.requireValue == null) {
+      if (!got) return false;
+    } else if (got !== e.requireValue) return false;
+  }
+  if (e.exclusive && arcs[e.exclusive] && arcs[e.exclusive] !== (e.branch || e.id)) return false;
+  return true;
 }
 export function deriveIdentity(s) {
   const m = s.metrics;
@@ -739,7 +767,7 @@ export function actionInfo(s, command) {
   } else if (kind === "talk") {
     const n = s.npcs.find((n) => n.id === id),
       d = NPCS.find((n) => n.id === id);
-    if (!n || !n.present) no("Kişi kasabada değil", "Person is not in town");
+    if (!n || !n.present) no("Kişi köyde değil", "Person is not in the village");
     else {
       label = [`${d.name[0]} ile görüş`, `Meet ${d.name[1]}`];
       cost = 1000;
@@ -804,17 +832,22 @@ export function applyTownAction(s, command) {
       });
     remember(
       s,
-      d.gate === "school"
-        ? "young"
-        : d.gate === "water"
-          ? "farmers"
-          : d.gate === "health"
-            ? "elders"
-            : "trades",
+      d.rememberGroup ||
+        (d.gate === "school"
+          ? "young"
+          : d.gate === "water"
+            ? "farmers"
+            : d.gate === "health"
+              ? "elders"
+              : "trades"),
       d.title[0],
       d.title[1],
       c.id === "act" ? 5 : -4,
     );
+    s.flags.townArcs =
+      s.flags.townArcs && typeof s.flags.townArcs === "object" ? s.flags.townArcs : {};
+    if (d.setFlag) s.flags.townArcs[d.setFlag] = c.id === "act" ? d.branch || true : "declined";
+    if (d.exclusive && c.id === "act") s.flags.townArcs[d.exclusive] = d.branch || d.id;
   }
   if (a.kind === "investor") {
     const o = s.investors.find((o) => o.id === a.id),
@@ -1009,6 +1042,18 @@ export function endingFor(s) {
         `${s.investors.filter((x) => x.status === "accepted").length} yatırım imzalandı; ${s.npcs.filter((x) => !x.present).length} önemli kişi ayrıldı; yönetim katmanı ${stage[0]}.`,
         `${s.investors.filter((x) => x.status === "accepted").length} investments were signed; ${s.npcs.filter((x) => !x.present).length} key people left; governance stage ${stage[1]}.`,
       ],
+      [
+        `Kurumlar: ${(s.progression.institutions || []).join(", ") || "yok"}. Kimlik: ${s.identity}.`,
+        `Institutions: ${(s.progression.institutions || []).join(", ") || "none"}. Identity: ${s.identity}.`,
+      ],
+      [
+        `Göç defteri ${ (s.migrationLog || []).length } kayıt; net son ay ${(s.report && s.report.migration) || 0}.`,
+        `Migration log has ${(s.migrationLog || []).length} entries; last net ${(s.report && s.report.migration) || 0}.`,
+      ],
+      [
+        `Grup güveni: ${s.groups.map((g) => g.id + " " + Math.round(g.trust)).join(", ")}.`,
+        `Group trust: ${s.groups.map((g) => g.id + " " + Math.round(g.trust)).join(", ")}.`,
+      ],
     ],
   };
 }
@@ -1163,7 +1208,7 @@ export function advanceTown(s) {
     if (n.loyalty < 15 && n.present) {
       n.present = false;
       const d = NPCS.find((d) => d.id === n.id);
-      addHistory(s, `${d.name[0]} kasabadan ayrıldı.`, `${d.name[1]} left town.`, "migration");
+      addHistory(s, `${d.name[0]} köyden ayrıldı.`, `${d.name[1]} left the village.`, "migration");
     }
   }
   s.completedMonths++;
@@ -1206,8 +1251,8 @@ export function advanceTown(s) {
       s,
       "town-charter",
       "available",
-      "Kasaba şartı artık kurumsal olarak mümkün.",
-      "A town charter is now institutionally possible.",
+      "Köy şartı artık kurumsal olarak mümkün.",
+      "A village charter is now institutionally possible.",
     );
   }
   s.report = {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { LanguageToggle } from "@/components/portal/language-toggle";
-import { GAMES, isHtml5Slug } from "@/lib/games";
+import { GAMES, canonicalPlaySlug, isHtml5Slug } from "@/lib/games";
 import { CATALOG_EN, useLang } from "@/lib/i18n";
 
 const BY_SLUG = new Map(GAMES.map((g) => [g.slug, g]));
@@ -8,12 +8,13 @@ const BY_SLUG = new Map(GAMES.map((g) => [g.slug, g]));
 export const Route = createFileRoute("/oyna/$slug")({
   ssr: false,
   beforeLoad: ({ params }) => {
-    if (!isHtml5Slug(params.slug) || !BY_SLUG.has(params.slug)) {
+    const canonical = canonicalPlaySlug(params.slug);
+    if (!isHtml5Slug(canonical) || !BY_SLUG.has(canonical)) {
       throw notFound();
     }
   },
   head: ({ params }) => {
-    const g = BY_SLUG.get(params.slug);
+    const g = BY_SLUG.get(canonicalPlaySlug(params.slug));
     return {
       meta: [{ title: `${g?.title ?? "Oyun"} | TLab` }],
     };
@@ -23,7 +24,8 @@ export const Route = createFileRoute("/oyna/$slug")({
 
 function Html5Play() {
   const { slug } = Route.useParams();
-  const g = BY_SLUG.get(slug);
+  const canonical = canonicalPlaySlug(slug);
+  const g = BY_SLUG.get(canonical);
   const { lang, t } = useLang();
   const title = lang === "en" && g && CATALOG_EN[g.slug] ? CATALOG_EN[g.slug].title : (g?.title ?? "Oyun");
   return (
@@ -38,9 +40,9 @@ function Html5Play() {
         <LanguageToggle />
       </div>
       <iframe
-        key={slug}
+        key={canonical}
         title={title}
-        src={`/games/${slug}/index.html`}
+        src={`/games/${canonical}/index.html`}
         className="block min-h-0 w-full flex-1 border-0 bg-bg"
         allow="fullscreen; autoplay; gamepad"
       />

@@ -1,3 +1,4 @@
+import { EXTRA_EVENTS, NPC_BIBLES, GROUP_VOICES, INVESTOR_VOICES } from "./content.js";
 export const pair = (tr, en) => [tr, en];
 export const BUILDINGS = [
   ["hall", "Belediye", "Town hall", 60, 1800, 10000, "staff"],
@@ -89,7 +90,7 @@ export const GROUPS = [
     "Su, hava ve ortak alanlar",
     "Water, air and public space",
   ],
-].map(([id, tr, en, gtr, gen]) => ({ id, name: pair(tr, en), goal: pair(gtr, gen) }));
+].map(([id, tr, en, gtr, gen]) => ({ id, name: pair(tr, en), goal: pair(gtr, gen), ...(GROUP_VOICES[id] || {}) }));
 export const NPCS = [
   [
     "nermin",
@@ -105,7 +106,7 @@ export const NPCS = [
     "Eski Maden İşçisi Rıza",
     "Former miner Rıza",
     "workers",
-    "Kasabada yeniden iş görmek",
+    "Köyde yeniden iş görmek",
     "See jobs return",
     "levent",
   ],
@@ -177,7 +178,7 @@ export const NPCS = [
     "Emekli Aysel",
     "Retired resident Aysel",
     "elders",
-    "Doktora kasabada ulaşmak",
+    "Doktora köyde ulaşmak",
     "Reach a doctor locally",
     "elif",
   ],
@@ -205,16 +206,17 @@ export const NPCS = [
   group,
   goal: pair(gtr, gen),
   relation,
+  ...(NPC_BIBLES[id] || {}),
 }));
 export const IDENTITIES = {
-  production: pair("Üretim kasabası", "Production town"),
-  tourism: pair("Turizm kasabası", "Tourism town"),
-  retirement: pair("Emeklilik kasabası", "Retirement town"),
-  enterprise: pair("Genç girişimci kasabası", "Young enterprise town"),
-  company: pair("Şirket kasabası", "Company town"),
-  agriculture: pair("Tarım kasabası", "Farming town"),
-  culture: pair("Kültür kasabası", "Cultural town"),
-  crisis: pair("Krizden çıkamayan kasaba", "Town trapped in crisis"),
+  production: pair("Üretim köyü", "Production village"),
+  tourism: pair("Turizm köyü", "Tourism village"),
+  retirement: pair("Emeklilik köyü", "Retirement village"),
+  enterprise: pair("Genç girişimci köyü", "Young enterprise village"),
+  company: pair("Şirket köyü", "Company village"),
+  agriculture: pair("Tarım köyü", "Farming village"),
+  culture: pair("Kültür köyü", "Cultural village"),
+  crisis: pair("Krizden çıkamayan köy", "Village trapped in crisis"),
 };
 export const INVESTORS = [
   [
@@ -303,6 +305,7 @@ export const INVESTORS = [
   control,
   effects,
   building,
+  ...(INVESTOR_VOICES[id] || {}),
 }));
 // Each event has an actual predicate, distinct choice cost/effects and a
 // follow-up. Effects are data; only the simulation commits them.
@@ -467,7 +470,7 @@ export const EVENTS = [
     { reputation: -4 },
     2,
     { tourism: 7 },
-    "Programı izleyenler hafta sonu kasabaya geldi.",
+    "Programı izleyenler hafta sonu köye geldi.",
     "Viewers came to town for the weekend.",
   ),
   event(
@@ -666,7 +669,7 @@ export const EVENTS = [
     "market-stock",
     "Raflarda boşluk",
     "Empty shelves",
-    "Kamyon gecikince kasaba pahalı ve az seçenekle kalıyor.",
+    "Kamyon gecikince köy pahalı ve az seçenekle kalıyor.",
     "Late trucks leave the town with expensive, limited choices.",
     "supply",
     3,
@@ -840,8 +843,8 @@ export const EVENTS = [
   ),
   event(
     "heritage-tour",
-    "Kasaba yürüyüşü",
-    "A walk through town",
+    "Köy yürüyüşü",
+    "A walk through the village",
     "Fikret turistin otobüsten inip geri binmesinden bıktı.",
     "Fikret is tired of tourists getting off the bus only to get straight back on.",
     "tourism",
@@ -995,7 +998,7 @@ export const EVENTS = [
     { social: -3 },
     3,
     { jobs: 8 },
-    "İki mezun işini kasabadan yürütmeye başladı.",
+    "İki mezun işini köyden yürütmeye başladı.",
     "Two former students began running their work from town.",
   ),
   event(
@@ -1048,8 +1051,8 @@ export const EVENTS = [
   ),
   event(
     "town-charter",
-    "Kasabanın ortak sözü",
-    "The town's shared charter",
+    "Köyün ortak sözü",
+    "The village's shared charter",
     "Son bütçeden önce kim neyi koruyacak, yazıya dökülsün.",
     "Before the final budget, put in writing what each group will protect.",
     "late",
@@ -1062,13 +1065,14 @@ export const EVENTS = [
     "Ortak söz yeni yönetimin dosyasına girdi.",
     "The shared charter entered the next administration's file.",
   ),
+  ...EXTRA_EVENTS,
 ];
 export const ENDINGS = {
-  reborn: pair("Yeniden Doğan Kasaba", "Town Reborn"),
-  soulless: pair("Zengin Ama Ruhsuz", "Rich but Soulless"),
-  quiet: pair("Sessiz Kasaba", "The Quiet Town"),
-  ghost: pair("Hayalet Kasaba", "Ghost Town"),
-  sold: pair("Satılmış Kasaba", "The Sold Town"),
-  resistant: pair("Direnen Kasaba", "The Resilient Town"),
-  divided: pair("İkiye Bölünmüş Kasaba", "A Town Divided"),
+  reborn: pair("Yeniden Doğan Köy", "Village Reborn"),
+  soulless: pair("Zengin Ama Ruhsuz Köy", "Rich but Soulless Village"),
+  quiet: pair("Sessiz Köy", "The Quiet Village"),
+  ghost: pair("Hayalet Köy", "Ghost Village"),
+  sold: pair("Satılmış Köy", "The Sold Village"),
+  resistant: pair("Direnen Köy", "The Resilient Village"),
+  divided: pair("İkiye Bölünmüş Köy", "A Village Divided"),
 };

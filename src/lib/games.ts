@@ -26,8 +26,17 @@ export const HTML5_SLUGS = [
 
 export type Html5Slug = (typeof HTML5_SLUGS)[number];
 
+/** Display/route aliases. Save keys and public/games folders stay on the canonical slug. */
+export const PLAY_ALIASES: Record<string, string> = {
+  "son-koy-manager": "son-kasaba",
+};
+
+export function canonicalPlaySlug(slug: string): string {
+  return PLAY_ALIASES[slug] || slug;
+}
+
 export function isHtml5Slug(slug: string): slug is Html5Slug {
-  return (HTML5_SLUGS as readonly string[]).includes(slug);
+  return (HTML5_SLUGS as readonly string[]).includes(canonicalPlaySlug(slug) as Html5Slug);
 }
 
 export const GAMES: CatalogGame[] = [
@@ -133,14 +142,14 @@ export const GAMES: CatalogGame[] = [
     subtitle: "2002–05 çekirdeği. Devlet aklı, tek masada.",
     status: "live",
     href: "/oyna/tc-sim-devlet",
-    icon: "devlet",
+    icon: "tc-sim-devlet",
   },
   {
     slug: "son-kasaba",
-    title: "Son Kasaba",
-    subtitle: "Herkes gidiyor. Sen kalıp kasabayı yaşatmaya çalışıyorsun.",
+    title: "SON KÖY MANAGER",
+    subtitle: "Herkes gidiyor. Sen kalıp köyü ayakta tutmaya çalışıyorsun.",
     status: "live",
-    href: "/oyna/son-kasaba",
+    href: "/oyna/son-koy-manager",
     icon: "son-kasaba",
   },
   {

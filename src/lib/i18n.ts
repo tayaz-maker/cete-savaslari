@@ -80,7 +80,10 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
     title: "Son 100 Gün",
     subtitle: "The last hundred days. Every choice weighs more.",
   },
-  "son-kasaba": { title: "Son Kasaba", subtitle: "Everyone is leaving. You stay and try to keep the town alive." },
+  "son-kasaba": {
+    title: "SON KÖY MANAGER",
+    subtitle: "Everyone is leaving. You stay and try to keep the village standing.",
+  },
   "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
   "veto-h": { title: "VETO-H!", subtitle: "Election night. Build your campaign and answer your rival’s move." },
   "gett-oh": { title: "GETT-OH!", subtitle: "Istanbul at night. Field your crew and play your street power." },

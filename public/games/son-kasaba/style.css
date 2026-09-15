@@ -1,15 +1,21 @@
 :root {
   color-scheme: light;
-  --game-bg: #ece8dc;
-  --panel: #f8f5ec;
-  --button: #e5e4d9;
-  --line: #a5afa5;
-  --accent: #315e4e;
-  --muted: #4e5f57;
-  --danger: #903e32;
-  --ink: #182521;
+  --game-bg: #e4d5c1;
+  --panel: #f4ead8;
+  --button: #dccbb3;
+  --line: #8c7a62;
+  --accent: #6b3f2a;
+  --muted: #5c5346;
+  --danger: #8a3a28;
+  --ink: #2a2118;
+  --field: #6f7d4a;
+  --tile: #b85c38;
+  --sky: #c5d0c8;
   color: var(--ink);
-  background: var(--game-bg);
+  background:
+    linear-gradient(180deg, #d7ddd4 0 42px, transparent 42px),
+    radial-gradient(1200px 420px at 10% -10%, #c5d0c8 0%, transparent 55%),
+    var(--game-bg);
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 body {
@@ -425,4 +431,43 @@ details {
   #town-panel {
     scroll-margin-top: 10px;
   }
+}
+
+.town-masthead {
+  background:
+    linear-gradient(90deg, #6b3f2a 0 8px, transparent 8px),
+    repeating-linear-gradient(0deg, transparent, transparent 27px, #8c7a6222 28px);
+  padding-left: 18px;
+}
+.town-totals span {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 6px 10px;
+  min-width: 7.5rem;
+}
+.town-totals span:nth-child(1) { border-top: 3px solid var(--field); }
+.town-totals span:nth-child(2) { border-top: 3px solid var(--tile); }
+.town-totals span:nth-child(3) { border-top: 3px solid var(--danger); }
+.npc-voice {
+  font-family: Georgia, serif;
+  font-style: italic;
+  color: var(--muted);
+}
+.investor-file {
+  border-left: 4px solid var(--tile);
+}
+.town-nav .is-active {
+  background: var(--accent);
+}
+button.primary,
+#confirm-start,
+#town-advance {
+  background: var(--accent);
+  color: #f4ead8;
+}
+.final-file {
+  border: 2px solid var(--ink);
+  background:
+    linear-gradient(180deg, #efe4cf, var(--panel));
+  padding: 16px;
 }

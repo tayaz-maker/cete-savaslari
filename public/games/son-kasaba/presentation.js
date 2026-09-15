@@ -23,7 +23,7 @@ import { escapeHtml as h, helpPanel, language, text as t } from "../next-wave/sh
 export const tr = (p) => t(p[0], p[1]);
 export const number = (n) => Math.round(n).toLocaleString(language() === "en" ? "en-GB" : "tr-TR");
 export const NAV = [
-  ["center", "KASABA MERKEZİ", "TOWN CENTRE"],
+  ["center", "KÖY MERKEZİ", "VILLAGE CENTRE"],
   ["agenda", "GÜNDEM", "AGENDA"],
   ["budget", "BÜTÇE", "BUDGET"],
   ["services", "HİZMETLER", "SERVICES"],
@@ -65,7 +65,7 @@ const CHAIN_LABELS = {
   "road-supply": ["Yol ve stok", "Road and supply"],
   "school-families": ["Okul ve aileler", "School and families"],
   "investor-dependency": ["Yatırımcı bağımlılığı", "Investor dependency"],
-  "town-charter": ["Kasaba şartı", "Town charter"],
+  "town-charter": ["Köy şartı", "Village charter"],
 };
 const CHAIN_STAGES = {
   signal: ["sinyal", "signal"],
@@ -79,40 +79,40 @@ const CHAIN_STAGES = {
 };
 const INSTITUTIONS = {
   council: [
-    "Konsey",
-    "Council",
-    "Grup baskısını dengeler; aylık halk güvenine +1.",
-    "Balances group pressure; +1 public trust each month.",
+    "▣ Konsey",
+    "▣ Council",
+    "Muhtarlık defteri. Grup baskısını dengeler; aylık halk güvenine +1.",
+    "Village-office ledger. Balances group pressure; +1 public trust each month.",
   ],
   "service-board": [
-    "Hizmet kurulu",
-    "Service board",
-    "Sağlık, eğitim ve toplam hizmet göstergelerine +4.",
-    "+4 to health, education and overall services.",
+    "✚ Hizmet kurulu",
+    "✚ Service board",
+    "Ocak ve okul sırası. Sağlık, eğitim ve toplam hizmet göstergelerine +4.",
+    "Clinic and school queue. +4 to health, education and overall services.",
   ],
   "market-desk": [
-    "Pazar masası",
-    "Market desk",
-    "Yerel işletme gelirine %5.",
-    "+5% local business income.",
+    "▤ Pazar masası",
+    "▤ Market desk",
+    "Tezgâh defteri. Yerel işletme gelirine %5.",
+    "Stall ledger. +5% local business income.",
   ],
   "planning-office": [
-    "Planlama ofisi",
-    "Planning office",
-    "Bakım ve altyapı giderlerini %7 azaltır.",
-    "Reduces maintenance and infrastructure costs by 7%.",
+    "⌖ Planlama ofisi",
+    "⌖ Planning office",
+    "Saha krokisi. Bakım ve altyapı giderlerini %7 azaltır.",
+    "Field sketch. Reduces maintenance and infrastructure costs by 7%.",
   ],
   "social-council": [
-    "Sosyal konsey",
-    "Social council",
-    "Tüm hanelerin aylık göç baskısını azaltır.",
-    "Reduces monthly migration pressure for every cohort.",
+    "◎ Sosyal konsey",
+    "◎ Social council",
+    "Göç masası. Tüm hanelerin aylık göç baskısını azaltır.",
+    "Migration desk. Reduces monthly migration pressure for every cohort.",
   ],
   "town-charter": [
-    "Kasaba şartı",
-    "Town charter",
-    "Şirket kontrolünü ayda 1 azaltır; yerel kimliği korur.",
-    "Reduces company control by 1 monthly and protects local identity.",
+    "❦ Köy şartı",
+    "❦ Village charter",
+    "Mühürlü söz. Şirket kontrolünü ayda 1 azaltır; yerel kimliği korur.",
+    "Sealed word. Reduces company control by 1 monthly and protects local identity.",
   ],
 };
 const band = (v, inverse = false) => {
@@ -194,7 +194,7 @@ function report(s) {
   const r = s.report;
   if (!r)
     return `<p>${t("İlk ayı kapattığında gelir, gider, göç ve karar sonuçları burada görünecek.", "Close the first month to see income, costs, migration and consequences here.")}</p>`;
-  return `${s.ended ? `<article class="final-file"><p class="eyebrow">${t("24 AYLIK YÖNETİM DOSYASI", "24-MONTH ADMINISTRATION FILE")}</p><h2>${h(tr(ENDINGS[s.ending.id]))}</h2>${s.ending.reasons.map((r) => `<p>${h(tr(r))}</p>`).join("")}<p>${t("Kasaba hayatta kaldı mı, yoksa sadece adı mı kaldı?", "Did the town survive, or only its name?")}</p></article>` : ""}<h3>${t("Kapanan ay", "Closed month")} ${r.month}</h3><div class="town-grid"><article><h3>${t("Bütçe", "Budget")}</h3><p>${number(r.before.budget)} → ${number(r.after.budget)} TL</p><p>${t("Gelir", "Income")} ${number(r.finance.totalIncome)} TL · ${t("Gider", "Costs")} ${number(r.finance.totalCosts)} TL</p><p>${t("Borç", "Debt")}: ${number(r.before.debt)} → ${number(r.after.debt)} TL</p></article><article><h3>${t("Kim kaldı?", "Who stayed?")}</h3><p>${number(r.before.population)} → ${number(r.after.population)} ${t("kişi", "people")}</p>${r.cohorts.map((c) => `<div class="money-row"><span>${h(tr(COHORTS.find((x) => x.id === c.id).name))}</span><b>${c.delta > 0 ? "+" : ""}${c.delta}</b></div>`).join("")}</article></div><p>${t("Halk güveni", "Public trust")}: ${number(r.before.trust)} → ${number(r.after.trust)} · ${h(tr(IDENTITIES[r.after.identity]))}</p><p>${t("Bütçe farkı ay sonu nakdidir; önceki karar harcamaları karar tarihinde deftere işlenir. Gecikmiş ödemeler ayrıca sonuç akışında görünür.", "The budget change covers month-end cash; decision costs are recorded when made. Delayed payments appear separately in the consequence feed.")}</p>`;
+  return `${s.ended ? `<article class="final-file"><p class="eyebrow">${t("24 AYLIK KÖY YÖNETİM DOSYASI", "24-MONTH VILLAGE ADMINISTRATION FILE")}</p><h2>${h(tr(ENDINGS[s.ending.id]))}</h2>${s.ending.reasons.map((r) => `<p>${h(tr(r))}</p>`).join("")}<p>${t("Köy ayakta kaldı mı, yoksa sadece adı mı kaldı?", "Did the village stand, or only its name?")}</p></article>` : ""}<h3>${t("Kapanan ay", "Closed month")} ${r.month}</h3><div class="town-grid"><article><h3>${t("Bütçe", "Budget")}</h3><p>${number(r.before.budget)} → ${number(r.after.budget)} TL</p><p>${t("Gelir", "Income")} ${number(r.finance.totalIncome)} TL · ${t("Gider", "Costs")} ${number(r.finance.totalCosts)} TL</p><p>${t("Borç", "Debt")}: ${number(r.before.debt)} → ${number(r.after.debt)} TL</p></article><article><h3>${t("Kim kaldı?", "Who stayed?")}</h3><p>${number(r.before.population)} → ${number(r.after.population)} ${t("kişi", "people")}</p>${r.cohorts.map((c) => `<div class="money-row"><span>${h(tr(COHORTS.find((x) => x.id === c.id).name))}</span><b>${c.delta > 0 ? "+" : ""}${c.delta}</b></div>`).join("")}</article></div><p>${t("Halk güveni", "Public trust")}: ${number(r.before.trust)} → ${number(r.after.trust)} · ${h(tr(IDENTITIES[r.after.identity]))}</p><p>${t("Bütçe farkı ay sonu nakdidir; önceki karar harcamaları karar tarihinde deftere işlenir. Gecikmiş ödemeler ayrıca sonuç akışında görünür.", "The budget change covers month-end cash; decision costs are recorded when made. Delayed payments appear separately in the consequence feed.")}</p>`;
 }
 export function townPanel(s) {
   const screen = s.ui.screen,
@@ -222,7 +222,7 @@ export function townPanel(s) {
               "No immediate crisis; watch open agenda items and delayed files.",
             );
   if (screen === "center")
-    return `<section class="town-lead"><p class="eyebrow">${s.month <= 8 ? t("BOŞALAN KASABA", "THE EMPTYING TOWN") : s.month <= 16 ? t("SON FIRSATLAR", "LAST CHANCES") : t("KASABANIN YOLU", "THE TOWN'S PATH")}</p><h2>${t("Bu ay neyi ayakta tutacağız?", "What will we keep alive this month?")}</h2><p>${t("Üç kararın var. Yol, iş ve hizmetler insanların kalma kararını birlikte etkiler. Her talebi aynı ay çözemeyeceksin.", "You have three decisions. Roads, jobs and services jointly affect who stays. You cannot solve every request in one month.")}</p><div class="town-risk"><strong>${t("Yaklaşan baskı", "Approaching pressure")}</strong><p>${h(pressure)}</p><small>${t("Yönetim katmanı", "Governance layer")}: ${h(tr(stage.label))} · ${stage.institutions.length} ${t("kurum", "institutions")}</small></div></section><div class="town-grid metrics">${[
+    return `<section class="town-lead"><p class="eyebrow">${s.month <= 8 ? t("BOŞALAN KÖY", "THE EMPTYING VILLAGE") : s.month <= 16 ? t("SON FIRSATLAR", "LAST CHANCES") : t("KÖYÜN YOLU", "THE VILLAGE PATH")}</p><h2>${t("Bu ay köyde neyi ayakta tutacağız?", "What will we keep standing in the village this month?")}</h2><p>${t("Üç kararın var. Yol, iş ve hizmetler insanların kalma kararını birlikte etkiler. Her talebi aynı ay çözemeyeceksin.", "You have three decisions. Roads, jobs and services jointly affect who stays. You cannot solve every request in one month.")}</p><div class="town-risk"><strong>${t("Yaklaşan baskı", "Approaching pressure")}</strong><p>${h(pressure)}</p><small>${t("Yönetim katmanı", "Governance layer")}: ${h(tr(stage.label))} · ${stage.institutions.length} ${t("kurum", "institutions")}</small></div></section><div class="town-grid metrics">${[
       ["jobs", i.jobs],
       ["services", i.services],
       ["trust", m.trust],
@@ -242,7 +242,7 @@ export function townPanel(s) {
   if (screen === "services")
     return `<h2>${t("Açık tutmanın bedeli", "The cost of keeping things open")}</h2>${civic(s, ["road", "water", "energy", "cleanup"])}${buildingCards(s, ["hall", "pharmacy", "clinic", "school", "bus"])}`;
   if (screen === "business")
-    return `<h2>${t("Kasabanın çalışan kapıları", "The town's working doors")}</h2>${civic(s, ["support", "festival", "housing"])}${buildingCards(s, ["market", "fuel", "hotel", "workshop", "cafe", "factory", "farms", "heritage"])}`;
+    return `<h2>${t("Köyün çalışan kapıları", "The village's working doors")}</h2>${civic(s, ["support", "festival", "housing"])}${buildingCards(s, ["market", "fuel", "hotel", "workshop", "cafe", "factory", "farms", "heritage"])}`;
   if (screen === "population")
     return `<h2>${t("Herkes aynı sebeple gitmiyor", "People leave for different reasons")}</h2><p>${t("Son ay net göç", "Last month's net migration")}: ${s.report?.migration ?? 0} ${t("kişi", "people")} · ${t("Genç/eğitimli nüfus", "Young/educated population")}: ${youngPopulation(s)}</p><div class="town-grid">${COHORTS.map(
       (c) => {
@@ -255,17 +255,17 @@ export function townPanel(s) {
       },
     ).join(
       "",
-    )}</div><p>${t("Öğretmen", "Teacher")}: ${s.npcs.find((n) => n.id === "elif").present ? t("Elif kasabada", "Elif is in town") : t("Elif ayrıldı; okulu onarıp açmak geri dönüş yoludur.", "Elif left; repair and reopen the school to bring her back.")}</p>`;
+    )}</div><p>${t("Öğretmen", "Teacher")}: ${s.npcs.find((n) => n.id === "elif").present ? t("Elif köyde", "Elif is in the village") : t("Elif ayrıldı; okulu onarıp açmak geri dönüş yoludur.", "Elif left; repair and reopen the school to bring her back.")}</p>`;
   if (screen === "people")
     return `<div class="town-grid">${NPCS.map((d) => {
       const n = s.npcs.find((n) => n.id === d.id);
-      return `<article><h3>${h(tr(d.name))}</h3><p>${h(tr(d.goal))}</p><p>${t("Bağlantısı", "Connected to")}: ${h(tr(NPCS.find((p) => p.id === d.relation).name))}</p>${meter(t("Sana güveni", "Trust in you"), n.trust)}${meter(t("Kasabaya bağlılık", "Town loyalty"), n.loyalty)}<p>${n.present ? t("Kasabada", "In town") : t("Ayrıldı", "Left town")}</p><p>${n.memory.length ? h(tr(n.memory.at(-1).text)) : t("Henüz ortak karar anısı yok.", "No shared decision memory yet.")}</p>${button(s, `talk:${d.id}`)}</article>`;
+      return `<article><h3>${h(tr(d.name))}</h3><p>${h(tr(d.goal))}</p>${d.voice ? `<p class="npc-voice">${h(tr(d.voice))}</p>` : ""}<p>${t("Bağlantısı", "Connected to")}: ${h(tr(NPCS.find((p) => p.id === d.relation).name))}</p>${d.redLine ? `<p><small>${t("Kırmızı çizgi", "Red line")}: ${h(tr(d.redLine))}</small></p>` : ""}${d.family ? `<p><small>${h(tr(d.family))}</small></p>` : ""}${meter(t("Sana güveni", "Trust in you"), n.trust)}${meter(t("Köye bağlılık", "Village loyalty"), n.loyalty)}<p>${n.present ? t("Köyde", "In the village") : t("Ayrıldı", "Left the village")}</p><p>${n.memory.length ? h(tr(n.memory.at(-1).text)) : t("Henüz ortak karar anısı yok.", "No shared decision memory yet.")}</p>${button(s, `talk:${d.id}`)}</article>`;
     }).join("")}</div>`;
   if (screen === "groups")
     return `<p>${t("Her grubun önceliği farklı. Etki ağırlığı genel halk güvenine yansır. İki grubun güveni en az 35 ise üç aylık ortak bakım koalisyonu kurabilirsin. Koalisyon bina yıpranmasını ayda 1 azaltır.", "Each group has different priorities. Influence weights contribute to public trust. Two groups with trust of at least 35 can form a three-month maintenance coalition. A coalition reduces monthly building wear by 1.")}</p><div class="town-grid">${GROUPS.map(
       (d) => {
         const g = s.groups.find((g) => g.id === d.id);
-        return `<article><h3>${h(tr(d.name))}</h3><p>${h(tr(d.goal))}</p>${meter(t("Güven", "Trust"), g.trust)}<p>${t("Etki ağırlığı", "Influence")}: ${g.influence}</p></article>`;
+        return `<article><h3>${h(tr(d.name))}</h3><p>${h(tr(d.goal))}</p>${d.onMigration ? `<p><small>${t("Göç", "Migration")}: ${h(tr(d.onMigration))}</small></p>` : ""}${d.onStage ? `<p><small>${t("Yönetim", "Governance")}: ${h(tr(d.onStage))}</small></p>` : ""}${meter(t("Güven", "Trust"), g.trust)}<p>${t("Etki ağırlığı", "Influence")}: ${g.influence}</p></article>`;
       },
     ).join(
       "",
@@ -295,7 +295,7 @@ export function townPanel(s) {
         const o = s.investors.find((o) => o.id === d.id),
           terms = investorTerms(s, d.id),
           required = TOWN_STAGES.find((stage) => stage.id === terms.requiredStage);
-        return `<article class="investor-file"><p class="eyebrow">${t("TEKLİF DOSYASI", "OFFER FILE")} · ${t("En erken ay", "Earliest month")} ${d.month}</p><h3>${h(tr(d.name))}</h3><p>${t("Bu imzanın net şartı", "Terms for this signature")}: ${t("hibe", "grant")} ${number(terms.grant)} TL · ${t("iş", "jobs")} +${terms.jobs} · ${t("kontrol", "control")} +${terms.control}%</p><p>${t("Aylık hizmet/arazi yükü", "Monthly service/land obligation")}: ${number(terms.monthlyCommitment)} TL · ${t("güven bedeli", "trust cost")} −${terms.trustCost} · ${t("yerel kimlik bedeli", "local identity cost")} −${terms.identityCost}</p><p>${terms.conflict ? t("Mevcut yatırımla çıkar çatışması var.", "Conflicts with an existing investment.") : terms.aligned ? t("Kasaba kimliğiyle uyumlu.", "Aligned with the town identity.") : t("Kasaba kimliğiyle tam uyumlu değil.", "Not fully aligned with the town identity.")} · ${t("Gerekli katman", "Required layer")}: ${h(tr(required.label))}</p><p>${o.status === "unseen" ? t("Henüz masada değil; dönem ve en az 25 itibar gerekir.", "Not yet available; requires the period and reputation of at least 25.") : o.status === "accepted" ? t("İmzalandı", "Signed") : o.status === "rejected" ? t("Reddedildi", "Rejected") : o.negotiated ? t("Pazarlıklı teklif", "Negotiated offer") : t("Görüşmeye açık", "Open for discussion")}</p><div class="town-actions">${button(s, `investor:${d.id}:accept`, t("Kabul et", "Accept"))}${button(s, `investor:${d.id}:negotiate`, t("Pazarlık yap", "Negotiate"))}${button(s, `investor:${d.id}:reject`, t("Reddet", "Reject"))}</div></article>`;
+        return `<article class="investor-file"><p class="eyebrow">${t("TEKLİF DOSYASI", "OFFER FILE")} · ${t("En erken ay", "Earliest month")} ${d.month}</p><h3>${h(tr(d.name))}</h3>${d.voice ? `<p class="npc-voice">${h(tr(d.voice))}</p>` : ""}${d.pitch ? `<p>${h(tr(d.pitch))}</p>` : ""}${d.costNote ? `<p><small>${h(tr(d.costNote))}</small></p>` : ""}<p>${t("Bu imzanın net şartı", "Terms for this signature")}: ${t("hibe", "grant")} ${number(terms.grant)} TL · ${t("iş", "jobs")} +${terms.jobs} · ${t("kontrol", "control")} +${terms.control}%</p><p>${t("Aylık hizmet/arazi yükü", "Monthly service/land obligation")}: ${number(terms.monthlyCommitment)} TL · ${t("güven bedeli", "trust cost")} −${terms.trustCost} · ${t("yerel kimlik bedeli", "local identity cost")} −${terms.identityCost}</p><p>${terms.conflict ? t("Mevcut yatırımla çıkar çatışması var.", "Conflicts with an existing investment.") : terms.aligned ? t("Köy kimliğiyle uyumlu.", "Aligned with the village identity.") : t("Köy kimliğiyle tam uyumlu değil.", "Not fully aligned with the village identity.")} · ${t("Gerekli katman", "Required layer")}: ${h(tr(required.label))}</p><p>${o.status === "unseen" ? t("Henüz masada değil; dönem ve en az 25 itibar gerekir.", "Not yet available; requires the period and reputation of at least 25.") : o.status === "accepted" ? t("İmzalandı", "Signed") : o.status === "rejected" ? t("Reddedildi", "Rejected") : o.negotiated ? t("Pazarlıklı teklif", "Negotiated offer") : t("Görüşmeye açık", "Open for discussion")}</p><div class="town-actions">${button(s, `investor:${d.id}:accept`, t("Kabul et", "Accept"))}${button(s, `investor:${d.id}:negotiate`, t("Pazarlık yap", "Negotiate"))}${button(s, `investor:${d.id}:reject`, t("Reddet", "Reject"))}</div></article>`;
       },
     ).join("")}`;
   if (screen === "files")
@@ -315,7 +315,7 @@ export function townPanel(s) {
       )
       .join("")}`;
   if (screen === "report") return report(s);
-  return `<h2>${t("Kasaba defteri", "Town ledger")}</h2>${history(s, 100)}`;
+  return `<h2>${t("Köy defteri", "Village ledger")}</h2>${history(s, 100)}`;
 }
 export function history(s, n = 6) {
   return (

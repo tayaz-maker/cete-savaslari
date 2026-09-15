@@ -60,7 +60,14 @@ function GameCard({ game, featured = false }: { game: CatalogGame; featured?: bo
       </a>
     );
   return (
-    <Link to="/oyna/$slug" params={{ slug: game.slug }} aria-label={label} className={classes}>
+    <Link
+      to="/oyna/$slug"
+      params={{
+        slug: game.href?.startsWith("/oyna/") ? game.href.slice("/oyna/".length) : game.slug,
+      }}
+      aria-label={label}
+      className={classes}
+    >
       {content}
     </Link>
   );
