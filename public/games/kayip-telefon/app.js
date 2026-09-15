@@ -87,7 +87,7 @@ function setup(session) {
 }
 
 function contactCards() {
-  return `<div class="contact-list">${CONTACTS.map((person) => `<article class="contact-card"><h3>${h(person.name)}</h3><small>${h(person.relation || "")}${person.lastContact ? ` · ${h(p(person.lastContact))}` : ""}</small><p>${h(p(person.bio || person.tone || ""))}</p><em>${h(p(person.voice || ""))}</em></article>`).join("")}</div>`;
+  return `<div class="contact-list">${CONTACTS.map((person) => `<article class="contact-card"><h3>${h(person.name)}</h3><small>${h(p(person.relation || ""))}${person.lastContact ? ` · ${h(p(person.lastContact))}` : ""}</small><p>${h(p(person.bio || person.tone || ""))}</p><em>${h(p(person.voice || ""))}</em></article>`).join("")}</div>`;
 }
 
 function itemMeta(item) {

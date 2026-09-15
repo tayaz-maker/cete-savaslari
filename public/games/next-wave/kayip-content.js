@@ -13,46 +13,55 @@ const ev = (id, app, title, text, extra = {}) => ({
 
 export const CONTACT_VOICES = {
   c_leyla: {
+    relation: pair("kız kardeş", "younger sister"),
     bio: pair("Küçük kız kardeş. Aileye köprü. Cümleleri kısa, nokta yok.", "Younger sister. The family's bridge. Short lines, no periods."),
     lastContact: pair("dün 19:02", "yesterday 19:02"),
     voice: pair("küçük harf, endişeli, soru üstüne soru", "lowercase, worried, question after question"),
   },
   c_emre: {
+    relation: pair("iş", "work"),
     bio: pair("İş hattı. İmza ve saat konuşur. Türkçe klavye bozuk.", "Work line. Talks in signatures and hours. Broken Turkish keyboard."),
     lastContact: pair("bugün 14:02", "today 14:02"),
     voice: pair("iş-typo, eksik nokta, acele", "work-typos, missing dots, rushed"),
   },
   c_ali: {
+    relation: pair("eski ev arkadaşı", "old housemate"),
     bio: pair("Eski ev arkadaşı. Emir cümlesi. Emoji yok.", "Old housemate. Imperatives. No emoji."),
     lastContact: pair("cuma 22:41", "Friday 22:41"),
     voice: pair("kısa emir, kapalı, sil bunu", "short commands, closed, delete this"),
   },
   c_seda: {
+    relation: pair("eski ilişki", "former relationship"),
     bio: pair("Eski ilişki. Cümleleri tam. Soğuk nokta.", "Former relationship. Complete sentences. Cold periods."),
     lastContact: pair("12 gün önce", "12 days ago"),
     voice: pair("tam cümle, soğuk, emoji yok", "complete, cold, no emoji"),
   },
   c_mert: {
+    relation: pair("kuzen", "cousin"),
     bio: pair("Kuzen. Nakit ve 'abi'. Anneden saklanan şeyler.", "Cousin. Cash and 'abi'. Things kept from mum."),
     lastContact: pair("çarşamba 11:17", "Wednesday 11:17"),
     voice: pair("abi, nakit, lâubali", "abi, cash, casual"),
   },
   c_naz: {
+    relation: pair("yeni isim", "a new name"),
     bio: pair("Yeni isim. Rehber notu kısa. Fotoğraf istemiyor.", "A new name. Short contact note. Does not want photos."),
     lastContact: pair("dün 20:51", "yesterday 20:51"),
     voice: pair("dikkatli, tam cümle, emoji yok", "careful, complete, no emoji"),
   },
   c_bank: {
+    relation: pair("servis", "service"),
     bio: pair("Otomatik bildirim. Şablon. İnsan yok.", "Automated alert. Template. No human."),
     lastContact: pair("dün 09:11", "yesterday 09:11"),
     voice: pair("BANKA şablonu, büyük harf, alıcı yok", "BANK template, caps, no payee"),
   },
   c_eczane: {
+    relation: pair("servis", "service"),
     bio: pair("Nöbetçi hat. Stok ve saat. Soru sormaz.", "Night pharmacy line. Stock and hours. Asks nothing."),
     lastContact: pair("dün 23:40", "yesterday 23:40"),
     voice: pair("kısa servis, reçete, son gün", "short service, prescription, last day"),
   },
   c_patron: {
+    relation: pair("üst", "superior"),
     bio: pair("Üst. Toplantı saati kaymaz. Mail dışarı çıkmaz.", "Superior. Meeting time does not slide. Mail does not leave."),
     lastContact: pair("bugün 08:41", "today 08:41"),
     voice: pair("resmi, noktalı, sizli", "formal, punctuated, formal you"),
@@ -190,6 +199,10 @@ export const EXTRA_DISCOVERABLES = [
   ev("note_receipt_blur", "notes", pair("Not: 2400 kime", "Note: 2400 to whom"), pair("soru. cevap yok. IBAN satırı Naz'ı gösteriyor, ATM fotoğrafı başka yere bakıyor.", "a question. no answer. the IBAN line points at Naz, the ATM photo looks elsewhere."), { tags: ["money", "naz", "misdirect"] }),
   ev("note_pnr", "notes", pair("Not: PNR kenar", "Note: PNR margin"), pair("üç harf, dört rakam. bilet fotoğrafının kenarı. dönüş kodu yok.", "three letters, four digits. the ticket photo's margin. no return code."), { tags: ["travel", "draft"] }),
   ev("note_empty_plate", "notes", pair("Not: tabak duruyor", "Note: the plate is still there"), pair("Leyla'ya yazılmamış. 'söyleyeceğim' diye bir satır, üstü çizili.", "not written to Leyla. a line that said 'I'll tell her', struck through."), { tags: ["family", "draft"] }),
+  ev("note_leyla_okundu", "notes", pair("Taslak: okundu yazacağım", "Draft: I'll write that I saw it"), pair("'geliyorum' yarım. silinmiş. Leyla'nın görüldü tikinin altında duruyor.", "'I'm coming' half-written. deleted. it sits under Leyla's seen ticks."), { tags: ["family", "draft", "daily"] }),
+  ev("note_ali_no_q", "notes", pair("Not: ali — soru yok", "Note: ali — no question"), pair("cuma / cmt yan yana. soru işareti yok. mesajdaki emir burada da emir. şüphe başka kâğıtta.", "fri / sat side by side. no question mark. the order in the message is an order here too. the doubt lives on another slip."), { tags: ["ali"], contradicts: ["t3"] }),
+  ev("note_eczane_last", "notes", pair("Not: son gün hatırlat", "Note: last-day reminder"), pair("ilaç adı yok. 'anneme değil' küçük. kuyruk fotoğrafından ayrı bir unutma.", "no drug name. 'not to mum' in small letters. a separate reminder from the queue photo."), { tags: ["body", "daily"] }),
+  ev("note_home_coming", "notes", pair("Taslak: geliyorum", "Draft: I'm coming"), pair("aile masasına. gönderilmemiş. çanta fotoğrafıyla aynı gece. kalan gibi durabilir.", "to the family table. unsent. same night as the bag photo. can look like staying."), { tags: ["family", "draft", "daily"], contradicts: ["photo_bag"] }),
 
   ev("photo_otogar_board", "photos", pair("Foto: sefer panosu", "Photo: departure board"), pair("06:20 satırı işaretli. Dönüş saati kadraj dışında. Bilet fotoğrafıyla aynı gün.", "06:20 line marked. return time out of frame. same day as the ticket photo."), { tags: ["travel"], corroborates: ["photo_ticket"], when: pair("05:51", "05:51"), where: pair("Harem otogar", "Harem station") }),
   ev("photo_naz_table", "photos", pair("Foto: iki fincan, Moda", "Photo: two cups, Moda"), pair("İsim yok. Yüz yok. Saat 21:40. Takvim 21:00 demişti. Kırpılmış kare, gece karesi değil.", "No name. No face. 21:40. The calendar said 21:00. A cropped frame, not the late-night one."), { tags: ["naz"], exclusive: "nightphoto", branch: "table", corroborates: ["cal_naz"], when: pair("21:40", "21:40"), where: pair("Moda", "Moda") }),
@@ -211,6 +224,9 @@ export const EXTRA_DISCOVERABLES = [
   ev("photo_whiteboard", "photos", pair("Foto: ofis tahtası", "Photo: office board"), pair("'teslim 16:00' ve bir isim silinmiş. Emre'nin saati. Kaçan değil, sıkışan.", "'deadline 16:00' and a name erased. Emre's hour. not a flight — a squeeze."), { tags: ["work"], corroborates: ["cal_work"] }),
   ev("photo_plant", "photos", pair("Foto: pencere önü saksı", "Photo: pot at the window"), pair("sulama notu yok. ev hâlâ duruyor. kaçış stüdyo fotoğrafı değil.", "no watering note. the flat is still there. not a flight-studio shot."), { tags: ["daily"] }),
   ev("photo_receipt_tear", "photos", pair("Foto: yırtık fiş", "Photo: torn slip"), pair("2400'ün son iki hanesi. kime ait olduğu yırtıkta kalmış.", "the last two digits of 2400. who it belongs to stayed in the tear."), { tags: ["money", "misdirect"] }),
+  ev("photo_cafe_steam", "photos", pair("Foto: iki fincan, buhar", "Photo: two cups, steam"), pair("Moda. 21:12. Takvim 21:00 demişti. Yüz yok. İsim yok. Buhar, gece karesinden erken.", "Moda. 21:12. The calendar said 21:00. No face. No name. Steam, earlier than the night crop."), { tags: ["naz", "daily"], contradicts: ["cal_naz"], when: pair("21:12", "21:12"), where: pair("Moda", "Moda"), caption: pair("iki fincan. isim yok.", "two cups. no name.") }),
+  ev("photo_family_plate", "photos", pair("Foto: tabak yakın", "Photo: plate, close"), pair("aile masası. kenarda bir sandalye boş. Leyla'nın 'masa kuruldu'su ile aynı oda, başka kadraj.", "family table. one chair empty at the edge. same room as Leyla's 'the table is set', another crop."), { tags: ["family", "daily"], corroborates: ["msg_leyla_table"], caption: pair("tabak duruyor", "the plate remains") }),
+  ev("photo_cv_desk", "photos", pair("Foto: CV, masa", "Photo: CV on the desk"), pair("tarih geçen ay. ani kaçış gibi durabilir. iş başvurusu da olabilir. ofis tahtasından ayrı kare.", "dated last month. can look like a sudden flight. may just be a job application. a separate frame from the office board."), { tags: ["work", "misdirect", "daily"], caption: pair("tarih geçen ay", "dated last month") }),
 
   ev("call_naz_missed", "calls", pair("Cevapsız: Naz, 21:06", "Missed: Naz, 21:06"), pair("Bir çalma. Açılmamış. Takvim 21:00. Fotoğraf daha geç.", "One ring. not answered. calendar 21:00. the photo is later."), { tags: ["naz"], corroborates: ["cal_naz"], contradicts: ["photo_cafe"], when: pair("21:06", "21:06"), duration: pair("cevapsız", "missed") }),
   ev("call_mom_home", "calls", pair("Cevapsız: Ev, 19:40", "Missed: Home, 19:40"), pair("Rehberde 'Ev'. Leyla değil, ev hattı. Aile hâlâ arıyor, plan yok.", "Saved as 'Home'. not Leyla, the house line. family still calling, no plan."), { tags: ["family"], corroborates: ["call_leyla"], when: pair("19:40", "19:40"), duration: pair("cevapsız", "missed") }),
@@ -516,6 +532,56 @@ const SEED_NOTES = [
   pair("Otogar sabahı bu tohumda daha net.", "The station morning is clearer in this seed."),
 ];
 
+const ACTOR_TRACE = {
+  leyla: {
+    ids: ["clue_0", "call_leyla", "msg_leyla_seen", "msg_leyla_table", "note_draft_leyla", "call_mom_home", "photo_leyla_empty", "voice_leyla_kitchen", "call_leyla_morning", "note_empty_plate", "note_leyla_okundu", "photo_family_plate"],
+    text: pair("Leyla kısa yazıyor. Soru üstüne soru. Masa bekliyor, nokta yok.", "Leyla writes short. Question after question. The table waits, no period."),
+  },
+  ali: {
+    ids: ["note_pin", "voice_2", "deleted_ali", "msg_ali_delete", "cal_ali_lie", "note_ali_times", "contact_ali_note", "msg_ali_where", "photo_ali_door", "note_ali_no_q"],
+    text: pair("Ali emir cümlesi. Saat değişir, soru sorma der. Yalan tek belgede bitmiyor.", "Ali speaks in orders. The hour changes, he says don't ask. The lie does not end in one file."),
+  },
+  naz: {
+    ids: ["cal_naz", "photo_cafe", "contact_naz_note", "file_chat", "call_naz_missed", "photo_naz_table", "msg_naz_late", "msg_naz_noname", "photo_cafe_steam", "note_naz_time"],
+    text: pair("Naz isim yazdırmıyor. Saat kayıyor. Tek kare onu 'sırdaş' yapmıyor.", "Naz does not let a name be written. The hour slips. One frame does not make her a confidant."),
+  },
+  mert: {
+    ids: ["note_debt", "voice_3", "msg_mert_split", "call_mert", "photo_mert_atm", "msg_mert_annene", "voice_mert_abi"],
+    text: pair("Mert 'abi' diyor. Nakit ayrı satırda. Anneden saklanan şey buradan başlıyor.", "Mert says 'abi'. Cash sits on its own line. What is kept from mum starts here."),
+  },
+  seda: {
+    ids: ["deleted_draft", "photo_key", "voice_1", "note_seda_unsent", "call_seda_old", "photo_keyring", "msg_seda_read", "note_seda_key"],
+    text: pair("Seda tam cümle, soğuk nokta. Anahtar duruyor, özür gitmemiş.", "Seda writes complete sentences, cold periods. The key remains, the apology never left."),
+  },
+  hakan: {
+    ids: ["call_patron", "call_hakan_second", "msg_hakan_fwd", "note_whistle", "note_hakan_slot", "voice_hakan_hold"],
+    text: pair("Hakan Bey sizli konuşur. Toplantı kaymaz. Mail dışarı çıkmaz.", "Mr Hakan uses the formal you. The meeting does not slide. The mail does not leave."),
+  },
+};
+
+const SECRET_MISLEAD = {
+  debt: {
+    ids: ["photo_iban_blur", "note_receipt_blur", "msg_bank_fee", "photo_receipt_tear"],
+    text: pair("2.400 Naz'a gidiyor gibi duruyor. ATM ve dekont başka bir isme bakıyor.", "2,400 looks as if it goes to Naz. The ATM and the receipt look at another name."),
+  },
+  relationship: {
+    ids: ["photo_keyring"],
+    text: pair("İki anahtar hâlâ ortak bir kapı gibi. Ayrılık başka yerde yazılı.", "Two keys still look like a shared door. The breakup is written somewhere else."),
+  },
+  work: {
+    ids: ["file_resume", "photo_cv_desk"],
+    text: pair("Güncellenmiş CV ani kaçış gibi duruyor. İş başvurusu da olabilir.", "The updated CV looks like a sudden flight. It may just be a job application."),
+  },
+  health: {
+    ids: ["cal_deleted_lunch"],
+    text: pair("Silinmiş öğle aileyi kestiler gibi duruyor. Diş ve laboratuvar ayrı kapı.", "The deleted lunch looks like they cut the family. Dentist and lab are a different door."),
+  },
+  account: {
+    ids: ["note_alias", "msg_unknown_hi"],
+    text: pair("İkinci isim Naz'a yapışıyor. Rehberdeki kart başka bir hayat.", "The second name sticks to Naz. The card in contacts is another life."),
+  },
+};
+
 export function itemAllowed(id, exclusive) {
   if (!exclusive) return true;
   for (const [family, ids] of Object.entries(EXCLUSIVE_PAIRS)) {
@@ -526,37 +592,76 @@ export function itemAllowed(id, exclusive) {
 }
 
 export function reportTraces(s, ending) {
-  const traces = [];
-  const push = (id, text) => traces.push({ id, text });
-  if (!s.knownFacts.length && s.privacyPressure < 20) {
-    push("ending:minimal", ENDING_TRACE.minimal);
-    push("privacy-low", pair("Mahremiyet neredeyse dokunulmamış.", "Privacy was almost untouched."));
-    push(`decision:${s.decision}`, DECISION_TRACE[s.decision] || DECISION_TRACE.return);
-    return traces;
+  const body = [];
+  const tail = [];
+  const fill = [];
+  const push = (arr, id, text) => {
+    if (id && text) arr.push({ id, text });
+  };
+  const got = new Set(s.discoveredItems || []);
+  const known = s.knownFacts || [];
+  const secrets = s.sideSecrets || [];
+
+  if (!known.length && s.privacyPressure < 20) {
+    push(tail, "ending:minimal", ENDING_TRACE.minimal);
+    push(tail, "privacy-low", pair("Mahremiyet neredeyse dokunulmamış.", "Privacy was almost untouched."));
+    push(tail, `decision:${s.decision}`, DECISION_TRACE[s.decision] || DECISION_TRACE.return);
+    for (const [actor, row] of Object.entries(ACTOR_TRACE)) {
+      if (row.ids.some((id) => got.has(id))) push(body, `actor:${actor}`, row.text);
+    }
+  } else {
+    for (const fact of Object.keys(FACT_TRACE)) {
+      if (known.includes(fact)) push(body, `fact:${fact}`, FACT_TRACE[fact]);
+    }
+    const actorRows = [];
+    for (const [actor, row] of Object.entries(ACTOR_TRACE)) {
+      if (row.ids.some((id) => got.has(id))) actorRows.push({ id: `actor:${actor}`, text: row.text });
+    }
+    for (const row of actorRows.slice(0, 3)) body.push(row);
+    for (const secret of secrets.slice(0, 2)) {
+      if (SECRET_TRACE[secret]) push(body, `secret:${secret}`, SECRET_TRACE[secret]);
+    }
+    let misleads = 0;
+    for (const [secret, row] of Object.entries(SECRET_MISLEAD)) {
+      if (secrets.includes(secret)) continue;
+      if (!row.ids.some((id) => got.has(id))) continue;
+      if (misleads >= 2) break;
+      push(body, `mislead:${secret}`, row.text);
+      misleads += 1;
+    }
+    if ((s.contradiction || []).length) {
+      push(tail, "contradiction", pair("En az bir çift birbirini tutmuyor. Saatler kayıyor.", "At least one pair does not hold. The hours slip."));
+    }
+    if (s.privacyPressure >= 60) push(tail, "privacy-high", pair("Mahremiyet bedeli yüksek. İade artık temiz değil.", "The privacy cost is high. The return is no longer clean."));
+    else if (s.privacyPressure < 20) push(tail, "privacy-low", pair("Az bakıldı. Az taşındı.", "Little was looked at. Little was carried."));
+    else push(tail, "privacy-mid", pair("Bakıldı. Her kilit açılmadı.", "It was looked at. Not every lock was opened."));
+    if (ENDING_TRACE[ending]) push(tail, `ending:${ending}`, ENDING_TRACE[ending]);
+    push(tail, `decision:${s.decision}`, DECISION_TRACE[s.decision] || DECISION_TRACE.return);
+    const seedNote = SEED_NOTES[(Number(s.caseSeed) || 0) % SEED_NOTES.length];
+    push(tail, "seed-note", seedNote);
+    let missed = 0;
+    for (const fact of Object.keys(MISSED_TRACE)) {
+      if (known.includes(fact)) continue;
+      if (missed >= 2) break;
+      push(fill, `missed:${fact}`, MISSED_TRACE[fact]);
+      missed += 1;
+    }
   }
-  for (const fact of Object.keys(FACT_TRACE)) {
-    if (s.knownFacts.includes(fact)) push(`fact:${fact}`, FACT_TRACE[fact]);
-    else push(`missed:${fact}`, MISSED_TRACE[fact]);
-  }
-  for (const secret of s.sideSecrets || []) {
-    if (SECRET_TRACE[secret]) push(`secret:${secret}`, SECRET_TRACE[secret]);
-  }
-  if ((s.contradiction || []).length) {
-    push("contradiction", pair("En az bir çift birbirini tutmuyor. Saatler kayıyor.", "At least one pair does not hold. The hours slip."));
-  }
-  if (s.privacyPressure >= 60) push("privacy-high", pair("Mahremiyet bedeli yüksek. İade artık temiz değil.", "The privacy cost is high. The return is no longer clean."));
-  else if (s.privacyPressure < 20) push("privacy-low", pair("Az bakıldı. Az taşındı.", "Little was looked at. Little was carried."));
-  else push("privacy-mid", pair("Bakıldı. Her kilit açılmadı.", "It was looked at. Not every lock was opened."));
-  if (ENDING_TRACE[ending]) push(`ending:${ending}`, ENDING_TRACE[ending]);
-  push(`decision:${s.decision}`, DECISION_TRACE[s.decision] || DECISION_TRACE.return);
-  const seedNote = SEED_NOTES[(Number(s.caseSeed) || 0) % SEED_NOTES.length];
-  push("seed-note", seedNote);
+
   const seen = new Set();
-  return traces.filter((row) => {
-    if (seen.has(row.id)) return false;
+  const unique = (rows) => rows.filter((row) => {
+    if (!row?.id || seen.has(row.id)) return false;
     seen.add(row.id);
     return true;
-  }).slice(0, 12);
+  });
+  const tailU = unique(tail);
+  const bodyU = unique(body);
+  const fillU = unique(fill);
+  const cap = 10;
+  const room = Math.max(0, cap - tailU.length);
+  const head = bodyU.slice(0, room);
+  const leftover = Math.max(0, cap - head.length - tailU.length);
+  return head.concat(tailU, fillU.slice(0, leftover));
 }
 
 export function overlayThreadMessages(thread, variant) {

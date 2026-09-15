@@ -304,7 +304,7 @@ export function finishCase(s) {
     correct, wrong,
     criticalEvidence: FACTS.filter((x) => s.knownFacts.includes(x.id)).map((x) => x.id),
     missedFacts: FACTS.filter((x) => !s.knownFacts.includes(x.id)).map((x) => x.id),
-    contradictions: s.contradiction.slice(),
+    contradictions: cap(s.contradiction, 8),
     sideSecrets: s.sideSecrets.slice(),
     confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0,
     traces: reportTraces(s, ending),
