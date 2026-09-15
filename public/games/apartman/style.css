@@ -147,6 +147,10 @@ body {
   background: #1d2a24;
   color: #e6dec4;
 }
+.game-root .tlab-lang-switch button {
+  min-width: 40px;
+  min-height: 40px;
+}
 @media (max-width: 900px) {
   .apt-board {
     grid-template-columns: 1fr 1.5fr;
