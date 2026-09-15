@@ -1,4 +1,4 @@
-import { processLifetimeWeek } from "./lifetime.js?v=9";
+import { processLifetimeWeek } from "./lifetime.js?v=10";
 import {
   needsParentCare,
   canRequestParentPlanning,
@@ -7,8 +7,8 @@ import {
   parentingOvertimeBlocked,
   processParenthoodWeek,
   parenthoodYearSummary,
-} from "./parenthood.js?v=9";
-import { getHouseholdSummary } from "./household.js?v=9";
+} from "./parenthood.js?v=10";
+import { getHouseholdSummary } from "./household.js?v=10";
 import {
   WEEKS_PER_MONTH,
   MONTHS_PER_YEAR,
@@ -22,23 +22,24 @@ import {
   isCriticalHealth,
   transact,
   updateRelationship,
-} from "./state.js?v=9";
-import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=9";
-import { activateNextEvent, processDueOpenCases } from "./events.js?v=9";
-import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=9";
-import { processWealthMonthEnd, processOwnedBenefits, netWorth } from "./wealth.js?v=9";
-import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=9";
+} from "./state.js?v=10";
+import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=10";
+import { activateNextEvent, enqueueEvent, processDueOpenCases } from "./events.js?v=10";
+import { attachLifeDossier, processLifeDepthWeek, recordLifeDecision } from "./life-depth.js?v=10";
+import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=10";
+import { processWealthMonthEnd, processOwnedBenefits, netWorth } from "./wealth.js?v=10";
+import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=10";
 import {
   getReputationContext,
   processNpcMilestones,
   syncPeerMilestones,
   updatePerceivedIdentity,
-} from "./depth3-systems.js?v=9";
-import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=9";
-import { processNetworkWeek } from "./network.js?v=9";
-import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=9";
+} from "./depth3-systems.js?v=10";
+import { processLongTermBody, getBodyYearSummary, getHealthPriorityReflection } from "./body-systems.js?v=10";
+import { processNetworkWeek } from "./network.js?v=10";
+import { acknowledgeBodyWarning, manageBodyCondition } from "./body-systems.js?v=10";
 
-import { getPlayerVisibleOpenCases } from "./calendar.js?v=9";
+import { getPlayerVisibleOpenCases } from "./calendar.js?v=10";
 
 /** Ek mesai: ilk haftalar tam öder, aralıksız sürdükçe getirisi düşer ve yükü artar. */
 export const OVERTIME_BASE_PAY = 1250;
@@ -345,6 +346,7 @@ export function applyDecision(state, decisionId) {
   const check = canApplyDecision(state, decisionId);
   if (!check.ok) return check;
   check.decision.apply(state);
+  recordLifeDecision(state, decisionId);
   state.flags.depth2Enabled = true;
   state.flags.depth3Enabled = true;
   state.weekly.used += 1;
@@ -529,8 +531,10 @@ export function advanceWeek(state) {
   const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
   adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
   processOwnedBenefits(state);
+  for (const eventId of processLifeDepthWeek(state)) enqueueEvent(state, eventId);
   processLifetimeWeek(state);
   if (state.lifetime?.death) {
+    attachLifeDossier(state);
     assertValidState(state);
     return { ok: true, messages: ["Yaşam tamamlandı. Yaşam raporu hazır."] };
   }

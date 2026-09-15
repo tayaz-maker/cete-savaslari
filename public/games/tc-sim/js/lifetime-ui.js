@@ -1,7 +1,7 @@
-import { eligibleSuccessors } from "./lifetime.js?v=9";
-import { getHomeById, getJobById } from "./catalog.js?v=9";
-import { getEducationLevelLabel } from "./education.js?v=9";
-import { BACKGROUND_OPTIONS } from "./state.js?v=9";
+import { eligibleSuccessors } from "./lifetime.js?v=10";
+import { getHomeById, getJobById } from "./catalog.js?v=10";
+import { getEducationLevelLabel } from "./education.js?v=10";
+import { BACKGROUND_OPTIONS } from "./state.js?v=10";
 const escape = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -31,6 +31,7 @@ export function renderLifeReport(report) {
     <h3>Servet ve tereke</h3><p>Yaşam standardı: ${escape({ modest: "Mütevazı", comfortable: "Rahat", comfort: "Konforlu", high: "Yüksek" }[report.wealth?.lifestyle] || "Mütevazı")}.</p>
     <p>Nakit ${money(report.estate.cash)}${Number.isFinite(report.estate.investments) ? ` · yatırımlar ${money(report.estate.investments)} · gayrimenkul ${money(report.estate.property)} · araç/eşya ${money((report.estate.vehicle || 0) + (report.estate.durables || 0))}` : ""} · kayıtlı yükümlülükler ${money(report.estate.obligations)} · dağıtılabilir ${money(report.estate.net)}.</p>
     <p>TC SIM'in basitleştirilmiş paylaşımıdır; hukuk hesabı değildir. Negatif bakiye çocuklara borç olarak yüklenmez.</p>
+    ${report.lifeDossier ? `<h3>HAYAT DOSYASI</h3><p><strong>${escape({ balanced: "Dengeli hayat", "successful-but-alone": "Başarılı ama yalnız", "simple-with-strong-bonds": "Sade ve güçlü bağlar", "financially-secure": "Maddi güvenlik", "wealthy-but-burned-out": "Varlıklı ama tükenmiş", "burned-out": "Tükenmiş hayat", "debt-burdened": "Borç yüküyle kapanan hayat" }[report.lifeDossier.outcome] || report.lifeDossier.outcome)}</strong> · ${escape(report.lifeDossier.phase)}</p><p>Kariyer ${escape(report.lifeDossier.career.stage)} · aile ${escape(report.lifeDossier.family.stage)} · ilişki ${escape(report.lifeDossier.relationships.stage)} · sağlık ${escape(report.lifeDossier.health.stage)}.</p>${report.lifeDossier.traces.map((trace) => `<p>${escape(trace.text)}</p>`).join("")}` : ""}
     ${report.estate.shares.map((s) => `<p>${escape(s.name)}: ${money(s.amount)}</p>`).join("")}
   </article>`;
 }

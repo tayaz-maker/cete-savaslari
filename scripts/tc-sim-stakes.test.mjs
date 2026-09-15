@@ -254,8 +254,8 @@ test("denge değişiklikleri kayıt sürümünü ve round-trip'i bozmaz", () => 
   assert.equal(saveGame(storage, state).ok, true);
   const loaded = loadGame(storage);
   assert.equal(loaded.ok, true);
-  assert.equal(SAVE_VERSION, 5);
-  assert.equal(loaded.state.meta.saveVersion, 5);
+  assert.equal(SAVE_VERSION, 6);
+  assert.equal(loaded.state.meta.saveVersion, 6);
   assert.equal(loaded.state.flags.overtimeStreak, state.flags.overtimeStreak);
   assert.equal(validateState(loaded.state).ok, true);
 });

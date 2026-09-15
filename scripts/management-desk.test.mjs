@@ -18,16 +18,17 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // v2 başlangıç state'ini bilinçli olarak değiştirdi; TC SIM ve DEVLET kaynakları
 // bu turda hâlâ donmuş durumda. 2026-09-15 Wave 3 yalnız aynı orkestratördeki
 // Kayıp Telefon state/action yönlendirmesini V2 deduction modülüne taşıdı;
-// TC SIM ve DEVLET davranışı değişmedi.
-test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
+// TC SIM ve DEVLET davranışı değişmedi. 2026-09-15 Wave 4, yalnız TC SIM'e
+// sürümlü life-depth state'i, nedensel arklar ve Hayat Dosyası ekledi.
+test("frozen baseline: all 36 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
     .map(f => `public/games/tc-sim/js/${f}`)
     .concat(["public/games/next-wave.js", "public/games/next-wave/devlet-data.js", "public/games/next-wave/devlet-sim.js", "public/games/next-wave/shared/runtime.js", "public/games/tc-sim-devlet/presentation.js"]).sort();
-  assert.equal(files.length, 35);
+  assert.equal(files.length, 36);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "a474a520057218409c02f781d0392f4aa6fff14b9e3cc2e71ea608a303973452");
+  assert.equal(hash.digest("hex"), "a3b2b6d0b8db40625a647238848ec601ee2336bf7cae74c0d4e12c3798866c68");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

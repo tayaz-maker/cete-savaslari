@@ -12,13 +12,13 @@
  * bozması (mevcut olay yalnız karşı taraf arayınca tetikleniyordu),
  * işyerinde temsil, ve başka şehir teklifi.
  */
-import { addMemory, addNpcMemory, adjustHealth, transact } from "./state.js?v=9";
+import { addMemory, addNpcMemory, adjustHealth, transact } from "./state.js?v=10";
 import {
   applyRelationshipDelta,
   markMeaningfulContact,
   scheduleSocialFollowup,
-} from "./social.js?v=9";
-import { materializeCast } from "./network.js?v=9";
+} from "./social.js?v=10";
+import { materializeCast } from "./network.js?v=10";
 
 export const SIBLING_ID = "kardes";
 

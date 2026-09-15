@@ -303,7 +303,7 @@ test("LIFE.14 gizli sonuç TAKVİM ve haftalık özete sızmaz", () => {
   assert.equal(/social-followup/.test(blob), false);
 });
 
-test("LIFE.15 NPC hafızası sınırda kalır, save v5 bozulmaz", () => {
+test("LIFE.15 NPC hafızası sınırda kalır, save v6 bozulmaz", () => {
   const state = fresh();
   play(state, "life_mehmet_needed_you", "say_it");
   for (let i = 0; i < 70; i += 1) addNpcMemory(state, "mehmet", `fazla ${i}`, "needed_you_called_out");
@@ -311,8 +311,8 @@ test("LIFE.15 NPC hafızası sınırda kalır, save v5 bozulmaz", () => {
   const storage = new MemoryStorage();
   assert.equal(saveGame(storage, state).ok, true);
   const loaded = loadGame(storage).state;
-  assert.equal(SAVE_VERSION, 5);
-  assert.equal(loaded.meta.saveVersion, 5);
+  assert.equal(SAVE_VERSION, 6);
+  assert.equal(loaded.meta.saveVersion, 6);
   assert.equal(loaded.flags.toldMehmetHeVanished, true);
   assert.equal(validateState(loaded).ok, true);
 });

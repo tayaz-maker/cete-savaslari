@@ -1,7 +1,7 @@
-import { addMemory, addNpcMemory, transact } from "./state.js?v=9";
-import { applyRelationshipDelta, scheduleSocialFollowup } from "./social.js?v=9";
-import { canRequestReferral, recordReferral, introducePeople } from "./network.js?v=9";
-import { createFavor } from "./depth3-systems.js?v=9";
+import { addMemory, addNpcMemory, transact } from "./state.js?v=10";
+import { applyRelationshipDelta, scheduleSocialFollowup } from "./social.js?v=10";
+import { canRequestReferral, recordReferral, introducePeople } from "./network.js?v=10";
+import { createFavor } from "./depth3-systems.js?v=10";
 
 const weekOk = (state, key, every = 10) =>
   state.time.absoluteWeek >= 12 && (!state.flags[key] || state.time.absoluteWeek - state.flags[key] >= every);

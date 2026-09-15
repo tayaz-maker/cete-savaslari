@@ -8,7 +8,7 @@ test("V1 profile context remains stable without adding save fields", () => {
   assert.equal(getStartingProfileId(createNewGame({ profile: "ambitious" })), "ambitious");
   assert.equal(getStartingProfileId(createNewGame({ profile: "social" })), "social");
   assert.equal(getStartingProfileId(createNewGame()), "balanced");
-  assert.equal(createNewGame().meta.saveVersion, 5);
+  assert.equal(createNewGame().meta.saveVersion, 6);
 });
 
 test("V1 year file stores a compact life snapshot at year close", () => {

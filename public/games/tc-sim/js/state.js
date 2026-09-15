@@ -1,24 +1,25 @@
-import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=9";
-import { neutralWealth, normalizeWealth, validateWealth } from "./wealth.js?v=9";
-import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=9";
+import { normalizeLifetime, validateLifetime } from "./lifetime.js?v=10";
+import { neutralWealth, normalizeWealth, validateWealth } from "./wealth.js?v=10";
+import { neutralParenthood, normalizeParenthood, validateParenthood } from "./parenthood.js?v=10";
 import {
   normalizeHousehold,
   HOUSEHOLD_HISTORY_LIMIT,
   neutralUnion,
   FAMILY_INTENTS,
-} from "./household.js?v=9";
-import { ensureBodyState } from "./body-systems.js?v=9";
-import { getHomeById, getJobById } from "./catalog.js?v=9";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
-import { isEducationLevel, isValidActiveEducation } from "./education.js?v=9";
+} from "./household.js?v=10";
+import { ensureBodyState } from "./body-systems.js?v=10";
+import { getHomeById, getJobById } from "./catalog.js?v=10";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=10";
+import { isEducationLevel, isValidActiveEducation } from "./education.js?v=10";
 import {
   applyFamilyStartFlags,
   resolveFamilyType,
   resolveNetworkMode,
   selectNetworkPeople,
-} from "./network.js?v=9";
+} from "./network.js?v=10";
+import { ensureLifeDepthState, neutralLifeDepth, validateLifeDepthState } from "./life-depth.js?v=10";
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const WEEKS_PER_MONTH = 4;
 export const MONTHS_PER_YEAR = 12;
 /** Haftalık karar hakkının üst sınırı. Doğrulama bu sabiti kullanır. */
@@ -293,6 +294,7 @@ export function createNewGame(options = {}) {
       status: militaryApplicable ? "pending" : "not_applicable",
       dueWeek: militaryApplicable ? 96 : null,
     },
+    lifeDepth: neutralLifeDepth({ player: { age: 18 } }),
   };
   state.flags.networkMode = networkMode;
   applyFamilyStartFlags(state, familyType);
@@ -805,6 +807,7 @@ export function normalizeEducationCareer(state) {
   normalizeParenthood(state);
   normalizeWealth(state);
   normalizeLifetime(state);
+  ensureLifeDepthState(state);
   return state;
 }
 
@@ -816,6 +819,7 @@ export function validateState(state) {
   if (state.meta?.saveVersion !== SAVE_VERSION) errors.push("Save sürümü geçersiz");
   if (!validateLifetime(state)) errors.push("Yaşam ve kuşak kaydı geçersiz");
   if (!validateWealth(state)) errors.push("Servet kaydı geçersiz");
+  if (!validateLifeDepthState(state)) errors.push("Yaşam arkları geçersiz");
   if (
     !state.player ||
     typeof state.player.name !== "string" ||

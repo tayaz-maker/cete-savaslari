@@ -191,7 +191,7 @@ test("REAL.12 milestone bilinmeden Selin kutusu açılmaz", () => {
   assert.equal(getEventDefinition("weak_selin_favor").condition(state), true);
 });
 
-test("REAL.13 gizli sonuç TAKVİM'e sızmaz, save v5 bozulmaz", () => {
+test("REAL.13 gizli sonuç TAKVİM'e sızmaz, save v6 bozulmaz", () => {
   const state = fresh();
   play(state, "rl_chn15_overtime", "work");
   assert.equal(getKnownOpenCases(state).length, 0);
@@ -199,8 +199,8 @@ test("REAL.13 gizli sonuç TAKVİM'e sızmaz, save v5 bozulmaz", () => {
   assert.equal(saveGame(storage, state).ok, true);
   const loaded = loadGame(storage);
   assert.equal(loaded.ok, true);
-  assert.equal(SAVE_VERSION, 5);
-  assert.equal(loaded.state.meta.saveVersion, 5);
+  assert.equal(SAVE_VERSION, 6);
+  assert.equal(loaded.state.meta.saveVersion, 6);
   assert.equal(loaded.state.flags.chn15ChoseWork, true);
   assert.equal(loaded.state.openCases.find((item) => item.eventId === "rl_chn15_comment").status, "pending");
   assert.equal(validateState(loaded.state).ok, true);

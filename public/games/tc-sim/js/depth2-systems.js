@@ -7,9 +7,9 @@ import {
   appendCapped,
   recordComparisonMilestone,
   transact,
-} from "./state.js?v=9";
-import { applyRelationshipDelta } from "./social.js?v=9";
-import { CAREER_RISK_PERFORMANCE, clampMoneyReliefAmount, endEmployment, getMoneyReliefAmount, promoteCareer, retireCareer } from "./life.js?v=9";
+} from "./state.js?v=10";
+import { applyRelationshipDelta } from "./social.js?v=10";
+import { CAREER_RISK_PERFORMANCE, clampMoneyReliefAmount, endEmployment, getMoneyReliefAmount, promoteCareer, retireCareer } from "./life.js?v=10";
 
 const MAX_DEPTH2_CASES = 24;
 

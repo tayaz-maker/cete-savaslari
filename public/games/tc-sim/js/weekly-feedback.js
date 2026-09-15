@@ -1,4 +1,4 @@
-import { getKnownOpenCases } from "./calendar.js?v=9";
+import { getKnownOpenCases } from "./calendar.js?v=10";
 
 /**
  * Haftalık geri bildirimin salt veri katmanı. Ekrana ne yazılacağına

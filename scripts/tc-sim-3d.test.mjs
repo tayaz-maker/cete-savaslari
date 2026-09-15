@@ -198,15 +198,15 @@ test("3D.13 yetişkin bayrakları yalnız elif bağlamında set edilir, çocuk s
   assert.equal(state.children, undefined);
 });
 
-test("3D.14 save v5 değişmeden kalır; bekleyen borç ve bayrak save/load'da korunur", () => {
+test("3D.14 save v6 değişmeden kalır; bekleyen borç ve bayrak save/load'da korunur", () => {
   const state = fresh();
   createPersonalDebt(state, "mehmet", 2500, 4, "lent_2500");
   state.flags.promisedMehmetRef = true;
   const storage = new MemoryStorage();
   saveGame(storage, state);
   const loaded = loadGame(storage).state;
-  assert.equal(SAVE_VERSION, 5);
-  assert.equal(loaded.meta.saveVersion, 5);
+  assert.equal(SAVE_VERSION, 6);
+  assert.equal(loaded.meta.saveVersion, 6);
   const debt = loaded.openCases.find((c) => c.type === "personal-debt");
   assert.equal(debt.payload.amount, 2500);
   assert.equal(debt.status, "pending");

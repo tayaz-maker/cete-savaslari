@@ -1,6 +1,6 @@
-import { SAVE_VERSION, createNewGame, normalizeEducationCareer, validateState } from "./state.js?v=9";
-import { getHomeById, getJobById } from "./life.js?v=9";
-import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
+import { SAVE_VERSION, createNewGame, normalizeEducationCareer, validateState } from "./state.js?v=10";
+import { getHomeById, getJobById } from "./life.js?v=10";
+import { PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=10";
 
 export const SAVE_KEY = "tc-sim-save";
 export const BACKUP_KEY = "tc-sim-save-backup";
@@ -138,6 +138,10 @@ function migrateV3(raw) {
 }
 
 function migrateV4(raw) {
+  return { ...raw, meta: { ...(raw.meta || {}), saveVersion: 5 } };
+}
+
+function migrateV5(raw) {
   return { ...raw, meta: { ...(raw.meta || {}), saveVersion: SAVE_VERSION } };
 }
 
@@ -151,6 +155,7 @@ export function migrateState(raw) {
   if (state.meta.saveVersion < 3) state = migrateV2(state);
   if (state.meta.saveVersion < 4) state = migrateV3(state);
   if (state.meta.saveVersion < 5) state = migrateV4(state);
+  if (state.meta.saveVersion < 6) state = migrateV5(state);
   state = normalizeCurrentEra(state);
   // mergeLegacy() career nesnesini baştan kurduğu için deneyim haritası burada geri eklenir.
   state = normalizeEducationCareer(state);

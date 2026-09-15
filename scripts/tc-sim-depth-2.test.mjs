@@ -104,7 +104,7 @@ test("old save normalization supplies depth2 state without changing version", ()
   storage.setItem("tc-sim-save", JSON.stringify(old));
   const loaded = loadGame(storage);
   assert.equal(loaded.ok, true);
-  assert.equal(loaded.state.meta.saveVersion, 5);
+  assert.equal(loaded.state.meta.saveVersion, 6);
   assert.equal(validateState(loaded.state).ok, true);
 });
 

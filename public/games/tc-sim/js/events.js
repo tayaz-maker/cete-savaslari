@@ -1,6 +1,6 @@
-import { LIFETIME_EVENTS, resolveAdultChoice } from "./lifetime.js?v=9";
-import { PARENTING_EVENTS, resolveParentChoice, processParenthoodCases } from "./parenthood.js?v=9";
-import { HOUSEHOLD_EVENTS, resolveHouseholdChoice, processHouseholdCases, canDiscussHousehold, householdChoiceAvailability } from "./household.js?v=9";
+import { LIFETIME_EVENTS, resolveAdultChoice } from "./lifetime.js?v=10";
+import { PARENTING_EVENTS, resolveParentChoice, processParenthoodCases } from "./parenthood.js?v=10";
+import { HOUSEHOLD_EVENTS, resolveHouseholdChoice, processHouseholdCases, canDiscussHousehold, householdChoiceAvailability } from "./household.js?v=10";
 import {
   addEventHistory,
   addCareerHistory,
@@ -10,9 +10,9 @@ import {
   getStartingProfileId,
   transact,
   updateRelationship,
-} from "./state.js?v=9";
-import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js?v=9";
-import { getPathById, isEligibleForJob } from "./education.js?v=9";
+} from "./state.js?v=10";
+import { completePendingJob, getCommuteLoad, getJobById, getMonthlyHousingCost } from "./life.js?v=10";
+import { getPathById, isEligibleForJob } from "./education.js?v=10";
 import {
   applyRelationshipDelta,
   becomePartner,
@@ -29,17 +29,18 @@ import {
   resolveSocialObligation,
   scheduleSocialFollowup,
   setRomanticInterest,
-} from "./social.js?v=9";
-import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=9";
-import { REALISM_EVENTS, applyRealismResolution } from "./realism-events.js?v=9";
-import { DEPTH_EVENTS, applyDepthResolution, expireDepthCases } from "./depth-events.js?v=9";
-import { DEPTH2_EVENTS } from "./depth2-events.js?v=9";
-import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secrets, transferSecret } from "./depth2-systems.js?v=9";
-import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=9";
-import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=9";
-import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=9";
-import { EXPANSION_EVENTS, EXPANSION_CALLBACK_EVENTS, applyExpansionResolution } from "./expansion-events.js?v=9";
-import { LIFE_ECHO_EVENTS, LIFE_ECHO_CALLBACK_EVENTS, applyLifeEchoResolution, ensureLifeEchoState } from "./life-echo-events.js?v=9";
+} from "./social.js?v=10";
+import { ADULT_LIFE_EVENTS, applyAdultLifeResolution } from "./adult-life-events.js?v=10";
+import { REALISM_EVENTS, applyRealismResolution } from "./realism-events.js?v=10";
+import { DEPTH_EVENTS, applyDepthResolution, expireDepthCases } from "./depth-events.js?v=10";
+import { DEPTH2_EVENTS } from "./depth2-events.js?v=10";
+import { applyDepth2Resolution, createSecret, expireDepth2Cases, seedDepth2Secrets, transferSecret } from "./depth2-systems.js?v=10";
+import { DEPTH3_EVENTS, applyDepth3Resolution } from "./depth3-events.js?v=10";
+import { BODY_EVENTS, applyBodyResolution } from "./body-events.js?v=10";
+import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } from "./depth3-systems.js?v=10";
+import { EXPANSION_EVENTS, EXPANSION_CALLBACK_EVENTS, applyExpansionResolution } from "./expansion-events.js?v=10";
+import { LIFE_ECHO_EVENTS, LIFE_ECHO_CALLBACK_EVENTS, applyLifeEchoResolution, ensureLifeEchoState } from "./life-echo-events.js?v=10";
+import { LIFE_DEPTH_EVENTS, applyLifeDepthResolution } from "./life-depth.js?v=10";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -112,6 +113,7 @@ export function getChoiceEffectSummary(choice) {
     if (Number.isFinite(Number(value)) && Number(value) !== 0) summary.push(effectDelta("İlişki", value));
   }
   if (effects.debt?.amount) summary.push(`₺${formatEffectAmount(effects.debt.amount)} borç oluşur`);
+  if (choice?.risk) return `${summary.slice(0, 3).join(" · ")}${summary.length ? " · " : ""}Risk: ${choice.risk}`;
   if (summary.length) return summary.slice(0, 4).join(" · ");
   if (effects.flags || effects.npcMemory || effects.memory) return "Bağlam değişir";
   return "Sonucu belirsiz";
@@ -1425,6 +1427,7 @@ export const EVENT_DEFINITIONS = [
   ...EXPANSION_CALLBACK_EVENTS.map((event) => ({ ...event, expansion: true })),
   ...LIFE_ECHO_EVENTS,
   ...LIFE_ECHO_CALLBACK_EVENTS,
+  ...LIFE_DEPTH_EVENTS,
 ];
 
 export function getEventDefinition(eventId) {
@@ -1670,6 +1673,7 @@ export function resolveEvent(state, choiceId) {
   applyBodyResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyExpansionResolution(state, definition, choiceId);
   applyLifeEchoResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
+  applyLifeDepthResolution(state, definition, choiceId);
   if (definition.social3D) state.flags.lastSocial3DWeek = state.time.absoluteWeek;
   state.flags.lastEventResolvedWeek = state.time.absoluteWeek;
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);

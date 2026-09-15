@@ -38,7 +38,11 @@ Hedef, TarikLab içinde düzgün çalışan, mantıklı, tekrar oynanabilir ve y
 
 Sayılar kesin kota değil, kapsam sınırıdır.
 
-## Şimdilik yapılmayacaklar
+## Tarihsel ilk prototip sınırları
+
+> Aşağıdaki liste ilk prototip planıdır. Güncel runtime tam yaşam, ölüm, çocuk,
+> kuşak, servet ve Wave 4 yaşam arklarını içerir; uygulanmış durum için
+> `TC_SIM_CHANGELOG.md` esas alınır.
 
 - 0–17 yaş, tam 18–80 hayat, ölüm, çocuk ve kuşak sistemi
 - İstanbul dışı şehirler veya bütün Türkiye simülasyonu

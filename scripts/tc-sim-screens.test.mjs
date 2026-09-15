@@ -79,15 +79,15 @@ test("çözülen bir yükümlülük TAKVİM listesinden düşer", () => {
   assert.deepEqual(getKnownOpenCases(state), []);
 });
 
-test("yeni state SAVE_VERSION değişmeden doğrulanır ve save/load bozulmaz", () => {
+test("yeni state SAVE_VERSION v6 olarak doğrulanır ve save/load bozulmaz", () => {
   const state = fresh();
-  assert.equal(SAVE_VERSION, 5);
-  assert.equal(state.meta.saveVersion, 5);
+  assert.equal(SAVE_VERSION, 6);
+  assert.equal(state.meta.saveVersion, 6);
   assert.equal(validateState(state).ok, true);
   const storage = new MemoryStorage();
   assert.equal(saveGame(storage, state).ok, true);
   const loaded = loadGame(storage);
   assert.equal(loaded.ok, true);
-  assert.equal(loaded.state.meta.saveVersion, 5);
+  assert.equal(loaded.state.meta.saveVersion, 6);
   assert.equal(validateState(loaded.state).ok, true);
 });

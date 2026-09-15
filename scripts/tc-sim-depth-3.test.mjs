@@ -8,7 +8,7 @@ import { loadGame, saveGame } from "../public/games/tc-sim/js/save.js";
 import { moveHome } from "../public/games/tc-sim/js/life.js";
 class MemoryStorage { constructor() { this.data = new Map(); } getItem(k) { return this.data.get(k) ?? null; } setItem(k, v) { this.data.set(k, String(v)); } }
 
-test("depth3 roster and state normalize without changing save version", () => {
+test("depth3 roster and state normalize with the current save version", () => {
   const state = createNewGame();
   // "kardes": Hayat aktarımıyla modellenen kardeş. Aile tiplerinin householdSize
   // ve siblingDuty değerleri zaten bir kardeşi varsayıyordu.
@@ -17,7 +17,7 @@ test("depth3 roster and state normalize without changing save version", () => {
   const storage = new MemoryStorage();
   assert.equal(saveGame(storage, state).ok, true);
   const loaded = loadGame(storage);
-  assert.equal(loaded.state.meta.saveVersion, 5);
+  assert.equal(loaded.state.meta.saveVersion, 6);
   assert.equal(validateState(loaded.state).ok, true);
 });
 
@@ -151,12 +151,12 @@ test("family perception flow has one canonical explicit chain registration", () 
   assert.equal(Object.values(DEPTH3_CHAIN_REGISTRY).filter((chain) => chain.eventId === "perception_reality_gap").length, 1);
 });
 
-test("active housing chain identity survives save/load without schema change", () => {
+test("active housing chain identity survives save/load through the current schema", () => {
   const state = createNewGame();
   state.openCases.push({ id: "legacy-gap", type: "depth3-followup", eventId: "perception_reality_gap", status: "pending", createdWeek: 1, dueWeek: 3 });
   const storage = new MemoryStorage();
   saveGame(storage, state);
   const loaded = loadGame(storage).state;
   assert.equal(getDepth3ChainByEvent(loaded.openCases[0].eventId).id, "CHN-19");
-  assert.equal(loaded.meta.saveVersion, 5);
+  assert.equal(loaded.meta.saveVersion, 6);
 });

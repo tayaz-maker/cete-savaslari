@@ -5,12 +5,12 @@ import { join } from "node:path";
 
 const root = new URL("../", import.meta.url).pathname;
 const game = join(root, "public/games/tc-sim");
-const token = "?v=9";
+const token = "?v=10";
 
 test("production TC SIM loads one coherent, current module graph", () => {
   const html = readFileSync(join(game, "index.html"), "utf8");
-  assert.ok(html.includes("styles.css?v=9"));
-  assert.ok(html.includes("js/app.js?v=9"));
+  assert.ok(html.includes("styles.css?v=10"));
+  assert.ok(html.includes("js/app.js?v=10"));
 
   for (const name of readdirSync(join(game, "js")).filter((file) => file.endsWith(".js"))) {
     const source = readFileSync(join(game, "js", name), "utf8");

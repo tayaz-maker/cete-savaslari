@@ -1,13 +1,13 @@
 import { compactNavigation } from "../../shared/compact-navigation.js";
-import { arrangeLifeDesk } from "./desk.js?v=9";
-import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=9";
+import { arrangeLifeDesk } from "./desk.js?v=10";
+import { adultChildSummary, adultEventContext, continueGeneration } from "./lifetime.js?v=10";
 import {
   LIFESTYLE_TIERS, SUBSCRIPTIONS, DURABLES, VEHICLES, INVESTMENTS, MARKET,
   getWealthActionAvailability, applyWealthAction, netWorth, marketEffectText, durableBenefit, investmentPL, economyText,
-} from "./wealth.js?v=9";
-import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=9";
-import { parenthoodSummary } from "./parenthood.js?v=9";
-import { getHouseholdSummary } from "./household.js?v=9";
+} from "./wealth.js?v=10";
+import { renderLifetimeTerminal, renderLineage } from "./lifetime-ui.js?v=10";
+import { parenthoodSummary } from "./parenthood.js?v=10";
+import { getHouseholdSummary } from "./household.js?v=10";
 import {
   WEEKS_PER_MONTH,
   BACKGROUND_OPTIONS,
@@ -17,23 +17,23 @@ import {
   getWeeklyActivityLimit,
   isCriticalHealth,
   setYearlyPriorities,
-} from "./state.js?v=9";
-import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=9";
-import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=9";
+} from "./state.js?v=10";
+import { getKnownOpenCases, getPlayerVisibleOpenCases } from "./calendar.js?v=10";
+import { snapshotWeekState, summarizeWeek } from "./weekly-feedback.js?v=10";
 import {
   getChoiceEffectSummary,
   getEventDefinition,
   getEventChoiceAvailability,
   resolveEvent,
-} from "./events.js?v=9";
-import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=9";
-import { getBodyEventContext } from "./body-events.js?v=9";
+} from "./events.js?v=10";
+import { advanceWeek, applyDecision, canApplyDecision, getAvailableDecisions } from "./time.js?v=10";
+import { getBodyEventContext } from "./body-events.js?v=10";
 import {
   getBodyRiskSummary,
   getKnownBodyConditions,
   getBodyCareContext,
-} from "./body-systems.js?v=9";
-import { clearSaves, loadGame, saveGame, listSlots, loadSlot, setActiveSlot, getActiveSlot } from "./save.js?v=9";
+} from "./body-systems.js?v=10";
+import { clearSaves, loadGame, saveGame, listSlots, loadSlot, setActiveSlot, getActiveSlot } from "./save.js?v=10";
 import {
   HOMES,
   JOBS,
@@ -53,7 +53,7 @@ import {
   quitJob,
   stopEducation,
   PRIVACY_CONTEXT,
-} from "./life.js?v=9";
+} from "./life.js?v=10";
 import {
   EDUCATION_PATHS,
   JOB_FAMILY_LABELS,
@@ -66,9 +66,9 @@ import {
   getIntensityLabel,
   getPathDurationWeeks,
   isEligibleForJob,
-} from "./education.js?v=9";
-import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=9";
-import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=9";
+} from "./education.js?v=10";
+import { ERAS, PRESENT_DAY_ERA_ID, getEraById } from "./eras.js?v=10";
+import { NAVIGATION_ITEMS, getNavigationTarget } from "./navigation.js?v=10";
 import {
   RELATIONSHIP_STAGES,
   SOCIAL_ROLE_LABELS,
@@ -79,10 +79,11 @@ import {
   getPersonalDebt,
   getRelationship,
   getRelationshipStage,
-} from "./social.js?v=9";
-import { getRelationshipContext } from "./depth2-systems.js?v=9";
-import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=9";
-import { renderHelpModal } from "./help.js?v=9";
+} from "./social.js?v=10";
+import { getRelationshipContext } from "./depth2-systems.js?v=10";
+import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=10";
+import { renderHelpModal } from "./help.js?v=10";
+import { LIFE_ARC_LABELS, economyCausality, refreshLifeArcs } from "./life-depth.js?v=10";
 
 const app = document.querySelector("#app");
 
@@ -534,6 +535,8 @@ function bodyRiskText() {
 }
 
 function renderDashboard() {
+  const depth = refreshLifeArcs(state);
+  const causalEconomy = economyCausality(state);
   const remaining = Math.max(0, getWeeklyActivityLimit(state) - state.weekly.used);
   const activeCases = getPlayerVisibleOpenCases(state);
   const job = getJobById(state.career.jobId);
@@ -551,6 +554,12 @@ function renderDashboard() {
       <article class="metric-panel"><p>FİNANS</p><strong>${money(state.finances.balance)}</strong><span>Aylık ${money(monthly.income)} gelir · ${money(monthly.expenses)} gider</span><small>Ay sonu tahmini: ${money(projectedBalance)}</small></article>
       <article class="body-panel"><p>BEDEN</p><div class="body-row"><span>Enerji</span><i><b style="width:${state.health.energy}%"></b></i><strong>${state.health.energy}</strong></div><div class="body-row stress"><span>Stres</span><i><b style="width:${state.health.stress}%"></b></i><strong>${state.health.stress}</strong></div><div class="body-row"><span>Sağlık</span><i><b style="width:${state.health.health}%"></b></i><strong>${state.health.health}</strong></div><small class="body-note">${escapeText(bodyRiskText())}</small></article>
       <article class="metric-panel"><p>SOSYAL</p><strong>${partner ? escapeText(partner.name) : "Sevgili yok"}</strong><span>${socialCases.length} açık sosyal mesele</span><small>${escapeText(RELATIONSHIP_STAGES[getRelationshipStage(state, "mehmet")])}: Mehmet</small></article>
+    </section>
+    <section class="panel life-depth-panel"><div class="panel-head"><div><p class="eyebrow">YAŞAM HARİTASI</p><h2>${depth.phase === "opening" ? "Kuruluş dönemi" : depth.phase === "midgame" ? "Yön ve yük dönemi" : "Miras dönemi"}</h2></div><span>${depth.goals.length} hedef</span></div>
+      <div class="overview-grid">${Object.values(depth.arcs).filter((arc) => arc.stage !== "start" || arc.unresolvedIssue).slice(0, 6).map((arc) => `<article class="metric-panel"><p>${escapeText(LIFE_ARC_LABELS[arc.id][0].toUpperCase())}</p><strong>${escapeText({ development: "Gelişiyor", tension: "Gerilim", crisis: "Kriz", turning: "Kırılma", outcome: "Sonuç", start: "Başlangıç" }[arc.stage])}</strong><small>${escapeText(arc.unresolvedIssue || arc.opportunities[0] || "Süreç açık")}</small></article>`).join("")}</div>
+      <div class="detail-summary"><div><span>Nakit güvenliği</span><strong>${Math.round(causalEconomy.safety)}/100</strong></div><div><span>Zaman baskısı</span><strong>${Math.round(causalEconomy.timePressure)}/100</strong></div><div><span>Borç</span><strong>${money(causalEconomy.debt)}</strong></div></div>
+      <div class="history">${depth.goals.map((goal) => `<p class="open-case"><b>${escapeText(goal.label)}</b><span>${Math.round(goal.progress)}%</span></p>`).join("") || `<p class="empty">Şu anda ayrı bir orta vadeli hedef yok.</p>`}</div>
+      ${depth.echoes.length ? `<p class="context-note">Son yankı: ${escapeText(depth.echoes.at(-1).text)}</p>` : ""}
     </section>
     <div class="dashboard-grid">
       <section class="panel week-panel"><div class="panel-head"><div><p class="eyebrow">BU HAFTA</p><h2>Önceliklerin</h2></div><span>${remaining} hak kaldı</span></div><p class="decision-context">Temel kararlar her hafta açık. Diğer seçenekler hayat durumuna göre değişir.</p><div class="decisions">${getAvailableDecisions(

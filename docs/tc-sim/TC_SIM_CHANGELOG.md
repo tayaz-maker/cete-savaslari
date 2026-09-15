@@ -1,5 +1,15 @@
 # TC SIM — Değişiklik Kaydı
 
+## Wave 4 — Nedensel yaşam omurgası
+
+- Mevcut ekonomi, kariyer, eğitim, ilişki, aile, konut, sosyal çevre, statü, beden ve kriz sistemleri on kalıcı yaşam arkında birleştirildi. Arklar tek event değil; momentum, evre, açık risk, fırsat ve sınırlı geçmiş taşıyan süreçlerdir.
+- Haftalık kararlar ark hafızasına yazılır. Üst üste mesai, geçmiş arkadaş yardımı, ilişki ihmali ve tamamlanan eğitimin kariyere dönüşü save-safe gecikmeli sonuçlar üretir; aynı sonuç ikinci kez çözülemez.
+- Konut/ulaşım, çocuk yükü, borç, eğitim ve nakit birlikte likidite, zaman baskısı ve güvenlik özeti üretir. Orta vadeli hedefler mevcut state'ten türetilir; ayrı görev spam'i veya ödül parası yaratmaz.
+- Dashboard'a yaşam evresi, aktif arklar, yaklaşan riskler, ekonomi nedenselliği, hedefler ve geçmiş karar yankısı eklendi. Kritik seçimlerde kısa mali/kariyer/ilişki risk önizlemesi gösterilir.
+- Yaşam sonundaki mevcut kuşak raporuna deterministik **HAYAT DOSYASI** eklenir: outcome profili, ark sonuçları, ekonomi, ilişkiler, aile, sağlık, aktör sonuçları, başarı/pişmanlık ve en fazla on nedensel iz.
+- Save sürümü **6** oldu. v5 ve daha eski kayıtlar mevcut hayat verileri korunarak nötr arc state'i alır; migration idempotent ve deterministiktir.
+- Yeni teknik omurga `life-depth.js` içindedir. İçerik sayısı özellikle sınırlı tutuldu; maximum-content ve karakter sesi genişlemesi sonraki Grok turuna bırakıldı.
+
 ## Ebeveynliğe geçiş
 
 - Mevcut çocuk niyeti, açık deneme/bekleme kararı, gebelik haberi, hazırlık ve doğum birbirine bağlandı. Evlilik kendiliğinden gebelik üretmez; temel görüş ayrılığı parayla silinmez.

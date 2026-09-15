@@ -157,7 +157,7 @@ test("3C.22 aynı anda ikinci partner mümkün değildir", () => {
 test("3C.23 v4 save Aylin/Mehmet ve eski puanları koruyarak v5'e taşınır", () => {
   const raw = fresh(); raw.meta.saveVersion = 4; raw.relationships.mehmet = 81; raw.people[2].memories.push({ week: 2, year: 2027, text: "eski" }); delete raw.social;
   for (const person of raw.people) { delete person.social; delete person.roleId; delete person.tags; delete person.available; }
-  const result = migrateState(raw); assert.equal(result.ok, true); assert.equal(result.state.meta.saveVersion, 5); assert.equal(result.state.relationships.mehmet, 81); assert.equal(result.state.people[2].memories[0].text, "eski");
+  const result = migrateState(raw); assert.equal(result.ok, true); assert.equal(result.state.meta.saveVersion, 6); assert.equal(result.state.relationships.mehmet, 81); assert.equal(result.state.people[2].memories[0].text, "eski");
 });
 
 test("3C.24 bozuk ilişki alanları güvenli biçimde normalize edilir", () => {
