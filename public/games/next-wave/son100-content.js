@@ -167,4 +167,3 @@ export function coverage() {
     finalTraces: 8,
   };
 }
-

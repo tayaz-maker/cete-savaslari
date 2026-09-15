@@ -150,6 +150,29 @@ test("SON 100 GÜN: extra events stay phase-reachable and extra callbacks are un
   for (const id of callbackIds) assert.ok(EXTRA_CALLBACKS.some((row) => row.id === id), id);
 });
 
+test("SON 100 GÜN: stall fallback never reopens an exclusive sibling", () => {
+  const s = create("son-100-gun");
+  applyAction("son-100-gun", s, "scenario:financial-recovery");
+  s.day = 3;
+  s.remainingDays = 98;
+  s.flags.sonArcs = { "sister-key": "give" };
+  s.opportunities = SON_EVENTS.filter((event) => event.id !== "prep-sister-keep").map(
+    (event, index) => ({
+      id: `${event.id}_used_${index}`,
+      src: event.id,
+      status: "done",
+      expiresOn: 999,
+      choices: [],
+    }),
+  );
+  applyAction("son-100-gun", s, "advance");
+  assert.equal(s.opportunities.some((row) => row.status === "open"), false);
+  assert.equal(
+    s.opportunities.some((row) => row.status === "open" && row.src === "prep-sister-keep"),
+    false,
+  );
+});
+
 test("SON 100 GÜN: 20 content-rich runs diverge, stay bounded, leave dossier traces", () => {
   const endings = new Set();
   const seen = new Set();
@@ -208,6 +231,7 @@ test("SON 100 GÜN: dossier traces key off arcs, prep and actors", () => {
   assert.ok(traces.some((line) => /vasiyet/i.test(line)));
   assert.ok(traces.length >= 4);
   assert.ok(traces.length <= 10);
+  assert.ok(traces.every((line) => Array.isArray(line) && line[0] && line[1] && line[0] !== line[1]));
 });
 
 test("SON KÖY MANAGER: well-war and workshop chains, exclusive lock, delayed once, save/load", () => {
@@ -328,6 +352,32 @@ test("SON KÖY MANAGER: 20 campaigns stay bounded with extra content and varied 
   }
   assert.ok(endings.size >= 2, `endings ${[...endings]}`);
   assert.ok(endingFor(createTown()).reasons.length >= 8);
+});
+
+test("SON KÖY MANAGER: deterministic scheduling prevents expansion-event starvation", () => {
+  const extraIds = new Set(TOWN_EXTRA.map((event) => event.id));
+  let original = 0;
+  let extra = 0;
+  let campaignsWithExtra = 0;
+  for (let run = 0; run < 24; run++) {
+    const s = createTown({ context: ["balanced", "industry", "rural"][run % 3] });
+    let seenThisCampaign = 0;
+    for (let month = 0; month < 24; month++) {
+      if (month === 0) applyTownAction(s, "talk:nermin");
+      for (const event of s.events.filter((row) => row.status === "open").slice(0, 1)) {
+        if (extraIds.has(event.id)) {
+          extra++;
+          seenThisCampaign++;
+        } else original++;
+        applyTownAction(s, `event:${event.id}:${run % 3 ? "act" : "decline"}`);
+      }
+      advanceTown(s);
+    }
+    if (seenThisCampaign) campaignsWithExtra++;
+  }
+  assert.ok(extra > 0, `original ${original}, extra ${extra}`);
+  assert.ok(campaignsWithExtra >= 12, `campaigns with extra ${campaignsWithExtra}/24`);
+  assert.ok(extra / Math.max(1, original + extra) >= 0.02, `extra share ${extra}/${original + extra}`);
 });
 
 test("SON KÖY MANAGER rename: canonical route, old alias, save key frozen", () => {

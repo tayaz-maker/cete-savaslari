@@ -583,10 +583,19 @@ function seedOpportunity(s) {
     if (!sonContentEligible(s, event)) return false;
     return true;
   });
-  const candidates = pool.length ? pool : SON_EVENTS.filter((e) => !used.has(e.id));
+  // Stall prevention may relax the short recent-event window, but it must never
+  // bypass phase, chain, preparation or exclusive-branch eligibility.
+  const candidates = pool.length
+    ? pool
+    : SON_EVENTS.filter(
+        (event) =>
+          !used.has(event.id) &&
+          sonEventEligibleForPhase(event, phase, s.remainingDays, legacyPhase) &&
+          sonContentEligible(s, event),
+      );
   const next = candidates.length
     ? candidates[Math.floor((deterministicRoll(s, phase) / 100) * candidates.length)]
-    : SON_EVENTS[s.day % SON_EVENTS.length];
+    : null;
   if (!next) return;
   const openCount = s.opportunities.filter((o) => o.status === "open").length;
   if (openCount >= 2) return;
@@ -888,22 +897,32 @@ export function sonDossierTraces(s) {
   const traces = [];
   const stayed = actors.filter((a) => a.trust >= 55).map((a) => a.id);
   const left = actors.filter((a) => a.trust < 35).map((a) => a.id);
-  if (stayed.length) traces.push(stayed.join(", ") + " yanında durdu.");
-  if (left.length) traces.push(left.join(", ") + " uzaklaştı.");
+  if (stayed.length)
+    traces.push([stayed.join(", ") + " yanında durdu.", stayed.join(", ") + " stayed by your side."]);
+  if (left.length)
+    traces.push([left.join(", ") + " uzaklaştı.", left.join(", ") + " drifted away."]);
   const useful = Object.entries(prep)
     .filter(([, v]) => v >= 3)
     .map(([k]) => k);
-  if (useful.length) traces.push("Hazırlık tutan alanlar: " + useful.join(", ") + ".");
+  if (useful.length)
+    traces.push([
+      "Hazırlık tutan alanlar: " + useful.join(", ") + ".",
+      "Preparations that held: " + useful.join(", ") + ".",
+    ]);
   const missed = (s.depth?.resolved || []).filter((row) => row.outcome === "crisis");
-  if (missed.length) traces.push("Kaçırılan kriz: " + missed.map((row) => row.id).join(", ") + ".");
-  if (arcs["partner-door"] === "stay") traces.push("Partner kapıda kaldı.");
-  if (arcs["partner-door"] === "leave") traces.push("Partner bavulu aldı.");
-  if (arcs["sister-key"] === "keep") traces.push("Kız kardeşin anahtarı sende kaldı.");
-  if (arcs["sister-key"] === "give") traces.push("Kız kardeşe anahtarı verdin.");
-  if (arcs["boss-file"] === "speak") traces.push("İş dosyasını açtın.");
-  if (arcs["boss-file"] === "silence") traces.push("İş dosyasını kapalı tuttun.");
-  if (arcs["will-draft"]) traces.push("Vasiyet taslağı dosyada duruyor.");
-  if ((s.flags.donateCount || 0) >= 2) traces.push("Sadaka izi rapora işlendi.");
+  if (missed.length) {
+    const ids = missed.map((row) => row.id).join(", ");
+    traces.push(["Kaçırılan kriz: " + ids + ".", "Crisis missed: " + ids + "."]);
+  }
+  if (arcs["partner-door"] === "stay") traces.push(["Partner kapıda kaldı.", "Your partner stayed at the door."]);
+  if (arcs["partner-door"] === "leave") traces.push(["Partner bavulu aldı.", "Your partner took the suitcase."]);
+  if (arcs["sister-key"] === "keep") traces.push(["Kız kardeşin anahtarı sende kaldı.", "You kept your sister's key."]);
+  if (arcs["sister-key"] === "give") traces.push(["Kız kardeşe anahtarı verdin.", "You gave your sister the key."]);
+  if (arcs["boss-file"] === "speak") traces.push(["İş dosyasını açtın.", "You opened the workplace file."]);
+  if (arcs["boss-file"] === "silence") traces.push(["İş dosyasını kapalı tuttun.", "You kept the workplace file closed."]);
+  if (arcs["will-draft"])
+    traces.push(["Vasiyet taslağı dosyada duruyor.", "The draft of your will remains in the file."]);
+  if ((s.flags.donateCount || 0) >= 2) traces.push(["Sadaka izi rapora işlendi.", "Your donations entered the record."]);
   return traces.slice(0, 10);
 }
 

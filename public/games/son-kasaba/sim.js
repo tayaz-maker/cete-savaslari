@@ -629,7 +629,14 @@ export function refreshTown(s) {
   if (s.progression) updateTownProgression(s);
   if (s.ended) return;
   const free = Math.max(0, 2 - s.events.filter((e) => e.status === "open").length);
-  for (const e of EVENTS.filter((e) => eventEligible(s, e)).slice(0, free)) {
+  // Keep the established core cadence, but reserve a periodic deterministic
+  // slot for eligible Wave 2 stories so authored array order cannot starve them.
+  const eligibleEvents = EVENTS.filter((e) => eventEligible(s, e));
+  if (s.flags?.followsTownAgenda && s.month % 6 === 0) {
+    const extraIndex = eligibleEvents.findIndex((event) => event.wave2Extra);
+    if (extraIndex > 0) eligibleEvents.unshift(eligibleEvents.splice(extraIndex, 1)[0]);
+  }
+  for (const e of eligibleEvents.slice(0, free)) {
     s.events.push({ id: e.id, status: "open", opened: s.month, expires: s.month + e.expires });
     s.seenEvents.push(e.id);
   }
@@ -928,6 +935,7 @@ export function applyTownAction(s, command) {
     const peer = s.npcs.find((p) => p.id === d.relation);
     if (peer?.present) peer.trust = clamp(peer.trust + 1);
     effect(s, { trust: 1 });
+    s.flags.followsTownAgenda = true;
   }
   if (a.kind === "coalition") {
     s.coalitions = s.coalitions.filter((c) => c.until >= s.month);

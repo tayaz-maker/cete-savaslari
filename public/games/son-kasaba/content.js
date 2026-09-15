@@ -11,6 +11,7 @@ const event = (id, tr, en, textTr, textEn, gate, month, cost, effects, wait, del
     { id: "decline", label: pair("Talebi reddet", "Decline the request"), cost: 0, effects: wait },
   ],
   expires: 3,
+  wave2Extra: true,
   ...extra,
 });
 
@@ -176,4 +177,3 @@ export function coverage() {
     groups: Object.keys(GROUP_VOICES).length,
   };
 }
-
