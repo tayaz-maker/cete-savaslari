@@ -296,6 +296,15 @@ details {
   border-bottom: 1px solid var(--line);
   padding-bottom: 10px;
 }
+.town-risk {
+  border-left: 4px solid var(--danger);
+  background: var(--panel);
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
+.town-risk p {
+  margin: 4px 0;
+}
 .town-root footer {
   padding: 20px 0;
   color: var(--muted);

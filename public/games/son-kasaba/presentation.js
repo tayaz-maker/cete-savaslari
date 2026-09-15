@@ -10,7 +10,14 @@ import {
   ENDINGS,
   ROLE_TEXT,
 } from "./data.js";
-import { youngPopulation, indicators, economy, actionInfo, CIVIC_ACTIONS } from "./sim.js";
+import {
+  youngPopulation,
+  indicators,
+  economy,
+  actionInfo,
+  CIVIC_ACTIONS,
+  TOWN_STAGES,
+} from "./sim.js";
 import { escapeHtml as h, helpPanel, language, text as t } from "../next-wave/shared/runtime.js";
 export const tr = (p) => t(p[0], p[1]);
 export const number = (n) => Math.round(n).toLocaleString(language() === "en" ? "en-GB" : "tr-TR");
@@ -52,6 +59,22 @@ export const LABELS = {
   agriculture: ["Tarım", "Agriculture"],
   tourism: ["Turizm", "Tourism"],
   enterprise: ["Girişim", "Enterprise"],
+};
+const CHAIN_LABELS = {
+  "road-supply": ["Yol ve stok", "Road and supply"],
+  "school-families": ["Okul ve aileler", "School and families"],
+  "investor-dependency": ["Yatırımcı bağımlılığı", "Investor dependency"],
+  "town-charter": ["Kasaba şartı", "Town charter"],
+};
+const CHAIN_STAGES = {
+  signal: ["sinyal", "signal"],
+  risk: ["risk", "risk"],
+  crisis: ["kriz", "crisis"],
+  stable: ["dengede", "stable"],
+  "teacher-left": ["öğretmen ayrıldı", "teacher left"],
+  dependency: ["bağımlılık", "dependency"],
+  bargained: ["pazarlıklı", "bargained"],
+  available: ["erişilebilir", "available"],
 };
 const band = (v, inverse = false) => {
   const n = inverse ? 100 - v : v;
@@ -137,8 +160,29 @@ export function townPanel(s) {
   const screen = s.ui.screen,
     i = indicators(s),
     m = s.metrics;
+  const stage = TOWN_STAGES.find((x) => x.id === s.progression.stage);
+  const pressure =
+    m.road < 35 || m.supply < 45
+      ? t(
+          "Ulaşım → stok → fiyat zinciri kritik.",
+          "The transport → supply → price chain is critical.",
+        )
+      : i.school < 40
+        ? t(
+            "Okul hizmeti aile göçünü tetikleyebilir.",
+            "School services may trigger family migration.",
+          )
+        : s.debt > 120000
+          ? t(
+              "Borç faizi hizmet bütçesini sıkıştırıyor.",
+              "Debt interest is squeezing the service budget.",
+            )
+          : t(
+              "Ani kriz yok; açık gündem ve gecikmiş dosyaları izle.",
+              "No immediate crisis; watch open agenda items and delayed files.",
+            );
   if (screen === "center")
-    return `<section class="town-lead"><p class="eyebrow">${s.month <= 8 ? t("BOŞALAN KASABA", "THE EMPTYING TOWN") : s.month <= 16 ? t("SON FIRSATLAR", "LAST CHANCES") : t("KASABANIN YOLU", "THE TOWN'S PATH")}</p><h2>${t("Bu ay neyi ayakta tutacağız?", "What will we keep alive this month?")}</h2><p>${t("Üç kararın var. Yol, iş ve hizmetler insanların kalma kararını birlikte etkiler. Her talebi aynı ay çözemeyeceksin.", "You have three decisions. Roads, jobs and services jointly affect who stays. You cannot solve every request in one month.")}</p></section><div class="town-grid metrics">${[
+    return `<section class="town-lead"><p class="eyebrow">${s.month <= 8 ? t("BOŞALAN KASABA", "THE EMPTYING TOWN") : s.month <= 16 ? t("SON FIRSATLAR", "LAST CHANCES") : t("KASABANIN YOLU", "THE TOWN'S PATH")}</p><h2>${t("Bu ay neyi ayakta tutacağız?", "What will we keep alive this month?")}</h2><p>${t("Üç kararın var. Yol, iş ve hizmetler insanların kalma kararını birlikte etkiler. Her talebi aynı ay çözemeyeceksin.", "You have three decisions. Roads, jobs and services jointly affect who stays. You cannot solve every request in one month.")}</p><div class="town-risk"><strong>${t("Yaklaşan baskı", "Approaching pressure")}</strong><p>${h(pressure)}</p><small>${t("Yönetim katmanı", "Governance layer")}: ${h(tr(stage.label))} · ${stage.institutions.length} ${t("kurum", "institutions")}</small></div></section><div class="town-grid metrics">${[
       ["jobs", i.jobs],
       ["services", i.services],
       ["trust", m.trust],
@@ -214,7 +258,14 @@ export function townPanel(s) {
       },
     ).join("")}`;
   if (screen === "files")
-    return `<h2>${t("Bugün kapanmayan işler", "Files that do not close today")}</h2><p>${t("Gecikmiş sonuçlar kayıtla birlikte taşınır; ay başında bir kez uygulanır.", "Delayed outcomes persist in your save and apply once at the start of their month.")}</p>${s.pending.map((p) => `<article><h3>${h(tr(EVENTS.find((e) => e.id === p.source)?.title || INVESTORS.find((i) => i.id === p.source)?.name || ["Takip dosyası", "Follow-up file"]))}</h3><p>${t("Beklenen ay", "Expected month")}: ${p.due}</p></article>`).join("") || `<p>${t("Bekleyen dosya yok.", "No pending files.")}</p>`}${s.openCases
+    return `<h2>${t("Bugün kapanmayan işler", "Files that do not close today")}</h2><p>${t("Gecikmiş sonuçlar kayıtla birlikte taşınır; ay başında bir kez uygulanır.", "Delayed outcomes persist in your save and apply once at the start of their month.")}</p><h3>${t("Sistem zincirleri", "System chains")}</h3>${
+      Object.values(s.chains || {})
+        .map(
+          (c) =>
+            `<p><strong>${h(tr(CHAIN_LABELS[c.id] || [c.id, c.id]))}</strong> · ${h(tr(CHAIN_STAGES[c.stage] || [c.stage, c.stage]))} · ${t("ay", "month")} ${c.month}</p>`,
+        )
+        .join("") || `<p>${t("Henüz zincir sinyali yok.", "No chain signal yet.")}</p>`
+    }${s.pending.map((p) => `<article><h3>${h(tr(EVENTS.find((e) => e.id === p.source)?.title || INVESTORS.find((i) => i.id === p.source)?.name || ["Takip dosyası", "Follow-up file"]))}</h3><p>${t("Beklenen ay", "Expected month")}: ${p.due}</p></article>`).join("") || `<p>${t("Bekleyen dosya yok.", "No pending files.")}</p>`}${s.openCases
       .slice(-8)
       .reverse()
       .map(

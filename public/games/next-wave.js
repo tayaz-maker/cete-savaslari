@@ -39,7 +39,7 @@ import {
   ACTIONS as A100,
   EVENTS as SON_EVENTS,
 } from "./next-wave/son100-data.js";
-import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState } from "./next-wave/son100-sim.js";
+import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState, validateSonState } from "./next-wave/son100-sim.js";
 import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
 import { PERIODS, POLICIES_2002, POLICIES } from "./next-wave/devlet-data.js";
 import {
@@ -109,7 +109,7 @@ const defs = {
     initial: () => {
       const sc = scenarioOf("financial-recovery");
       return ensureSonState({
-        meta: { version: 1, id: "son-100-gun" },
+        meta: { version: 2, id: "son-100-gun", seed: 73129 },
         day: 1,
         remainingDays: 100,
         actionsRemaining: 2,
@@ -202,7 +202,11 @@ export function validate(s, id) {
 export function normalize(id, raw) {
   if (!validate(raw, id)) return raw ? null : create(id);
   if (id === "apartman") ensureApartmanState(raw);
-  if (id === "son-100-gun") ensureSonState(raw);
+  if (id === "son-100-gun") {
+    if (!validateSonState(raw)) return null;
+    ensureSonState(raw);
+    if (!validateSonState(raw)) return null;
+  }
   return raw;
 }
 

@@ -1,4 +1,4 @@
-# Son Kasaba — V1 contract
+# Son Kasaba — Wave 2 / V2 contract
 
 Source: the user's **TARIKLAB_ASTRA_HAYAT_CETE_REFOUNDATION_PLUS_SON_KASABA_MASTER** and its complete Appendix A. The master strengthens the original minimum to seven endings; this implementation uses a 24-month campaign.
 
@@ -29,7 +29,7 @@ An action validates its subject, current month, capacity and cash before applyin
 - A closed building keeps 15% preservation costs and produces no direct service or income.
 - Population is the sum of eight separate cohorts; nobody is counted twice. Per-cohort monthly net migration is bounded to −5% departures / +1.5% arrivals before integer rounding.
 
-Identity derives from company control, service viability, population age mix and sector strengths. There is no separate ideology score or single winning score.
+Identity derives from company control, service viability, population age mix and sector strengths. It now gives a small, bounded pull to matching population cohorts and sector income, while migration remains driven primarily by services, work, prices and transport. Four saved governance stages unlock six institutional layers as services, trust, reputation, population and time support them. Road/supply, school/family, investor dependency and town-charter chain state is visible and save-safe.
 
 ## Endings
 
@@ -39,7 +39,7 @@ Each report records the actual contributing population, services, trust, control
 
 ## Save and localization
 
-Namespace: `tariklab.nextwave.son-kasaba.slot1` through `slot3`; backups are scoped under the same slot. State version 1 is the first public format; malformed, partial, nonfinite and foreign-game saves are rejected. A corrupt slot can recover its own previous valid snapshot. Failed load preserves the active game. Storage failures leave play in memory with an explicit retry message.
+Namespace: `tariklab.nextwave.son-kasaba.slot1` through `slot3`; backups are scoped under the same slot. State version 2 migrates the first public version in place and adds bounded progression, chain, identity-history, migration-log and resolved-effect ledgers. Migration is idempotent. Malformed, partial, nonfinite and foreign-game saves are rejected. A corrupt slot can recover its own previous valid snapshot. Failed load preserves the active game. Storage failures leave play in memory with an explicit retry message.
 
 TR/EN prose is stored as pairs; changing language does not advance the clock, spend decisions or change outcomes. No dynamic translation service is used.
 

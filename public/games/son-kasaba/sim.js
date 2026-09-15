@@ -14,6 +14,31 @@ const mean = (a) => sum(a) / Math.max(1, a.length);
 export const population = (s) => sum(s.cohorts.map((c) => c.count));
 export const youngPopulation = (s) =>
   sum(s.cohorts.filter((c) => ["young", "educated"].includes(c.id)).map((c) => c.count));
+export const TOWN_STAGES = [
+  { id: "emergency", label: ["Acil idare", "Emergency administration"], institutions: ["council"] },
+  {
+    id: "municipal",
+    label: ["İşleyen belediye", "Working municipality"],
+    institutions: ["council", "service-board", "market-desk"],
+  },
+  {
+    id: "planning",
+    label: ["Planlı kasaba", "Planned town"],
+    institutions: ["council", "service-board", "market-desk", "planning-office", "social-council"],
+  },
+  {
+    id: "regional",
+    label: ["Bölgesel merkez", "Regional centre"],
+    institutions: [
+      "council",
+      "service-board",
+      "market-desk",
+      "planning-office",
+      "social-council",
+      "town-charter",
+    ],
+  },
+];
 export const effective = (s, id) => {
   const b = s.buildings.find((b) => b.id === id);
   return b?.open ? b.condition : 0;
@@ -60,7 +85,7 @@ function remember(s, group, tr, en, delta = 2) {
 }
 export function createTown(options = {}) {
   const s = {
-    meta: { id: "son-kasaba", version: 1, seed: 12345 },
+    meta: { id: "son-kasaba", version: 2, seed: 12345 },
     name:
       typeof options.name === "string" ? options.name.trim().slice(0, 30) || "Çınarlı" : "Çınarlı",
     month: 1,
@@ -123,6 +148,11 @@ export function createTown(options = {}) {
     coalitions: [],
     report: null,
     identity: "crisis",
+    identityHistory: [],
+    migrationLog: [],
+    resolvedEffects: [],
+    chains: {},
+    progression: { stage: "emergency", score: 0, institutions: ["council"], milestones: [] },
     ui: { screen: "center" },
     flags: { teacherWarned: false, teacherLeft: false },
   };
@@ -143,7 +173,7 @@ export function validateTown(s) {
   if (
     !s ||
     s.meta?.id !== "son-kasaba" ||
-    s.meta.version !== 1 ||
+    ![1, 2].includes(s.meta.version) ||
     !Number.isInteger(s.month) ||
     s.month < 1 ||
     s.month > 24 ||
@@ -172,6 +202,24 @@ export function validateTown(s) {
     s.debt > 1e9
   )
     return false;
+  if (s.meta.version === 2) {
+    if (
+      !s.progression ||
+      !TOWN_STAGES.some((x) => x.id === s.progression.stage) ||
+      !Number.isFinite(s.progression.score) ||
+      !Array.isArray(s.progression.institutions) ||
+      !Array.isArray(s.progression.milestones) ||
+      !s.chains ||
+      typeof s.chains !== "object" ||
+      !Array.isArray(s.identityHistory) ||
+      s.identityHistory.length > 24 ||
+      !Array.isArray(s.migrationLog) ||
+      s.migrationLog.length > 48 ||
+      !Array.isArray(s.resolvedEffects) ||
+      s.resolvedEffects.length > 80
+    )
+      return false;
+  }
   for (const [key, defs] of [
     ["buildings", BUILDINGS],
     ["cohorts", COHORTS],
@@ -340,10 +388,75 @@ export function normalizeTown(_id, raw) {
   // Version 1 is the first public format. Missing core collections must not be
   // silently replaced with a fresh town or a reset action allowance.
   try {
+    if (!validateTown(raw)) return null;
+    if (raw.meta.version === 1) ensureTownDepth(raw);
     return validateTown(raw) ? raw : null;
   } catch {
     return null;
   }
+}
+
+function ensureTownDepth(s) {
+  s.meta.version = 2;
+  s.identityHistory = Array.isArray(s.identityHistory) ? s.identityHistory.slice(-24) : [];
+  s.migrationLog = Array.isArray(s.migrationLog) ? s.migrationLog.slice(-48) : [];
+  s.resolvedEffects = Array.isArray(s.resolvedEffects) ? s.resolvedEffects.slice(-80) : [];
+  s.chains = s.chains && typeof s.chains === "object" ? s.chains : {};
+  s.progression =
+    s.progression && typeof s.progression === "object"
+      ? s.progression
+      : { stage: "emergency", score: 0, institutions: ["council"], milestones: [] };
+  s.progression.milestones = Array.isArray(s.progression.milestones)
+    ? s.progression.milestones.slice(-4)
+    : [];
+  updateTownProgression(s);
+  return s;
+}
+
+function updateChain(s, id, stage, tr, en) {
+  const chain = s.chains[id] || { id, stage: "signal", month: s.month, history: [] };
+  if (chain.stage !== stage) {
+    chain.stage = stage;
+    chain.month = s.month;
+    chain.history.push({ month: s.month, stage });
+    chain.history = chain.history.slice(-6);
+    addHistory(s, tr, en, "chain");
+  }
+  s.chains[id] = chain;
+}
+
+export function updateTownProgression(s) {
+  const i = indicators(s);
+  const score = clamp(
+    (i.services + s.metrics.trust + s.metrics.reputation + Math.min(100, population(s) / 9)) / 4,
+  );
+  const index =
+    score >= 72 && s.month >= 18
+      ? 3
+      : score >= 58 && s.month >= 10
+        ? 2
+        : score >= 42 && s.month >= 4
+          ? 1
+          : 0;
+  const next = TOWN_STAGES[index];
+  s.progression = s.progression || { milestones: [] };
+  if (
+    s.progression.stage &&
+    s.progression.stage !== next.id &&
+    !s.progression.milestones.some((x) => x.stage === next.id)
+  ) {
+    s.progression.milestones.push({ stage: next.id, month: s.month });
+    s.progression.milestones = s.progression.milestones.slice(-4);
+    addHistory(
+      s,
+      `${next.label[0]} katmanı açıldı.`,
+      `${next.label[1]} layer unlocked.`,
+      "institution",
+    );
+  }
+  s.progression.stage = next.id;
+  s.progression.score = Math.round(score);
+  s.progression.institutions = next.institutions.slice();
 }
 function effect(s, changes) {
   for (const [key, delta] of Object.entries(changes)) {
@@ -408,7 +521,13 @@ export function deriveIdentity(s) {
   return ranked[0][1] >= 40 ? ranked[0][0] : "crisis";
 }
 export function refreshTown(s) {
+  const beforeIdentity = s.identity;
   s.identity = deriveIdentity(s);
+  if (Array.isArray(s.identityHistory) && beforeIdentity !== s.identity) {
+    s.identityHistory.push({ month: s.month, from: beforeIdentity, to: s.identity });
+    s.identityHistory = s.identityHistory.slice(-24);
+  }
+  if (s.progression) updateTownProgression(s);
   if (s.ended) return;
   const free = Math.max(0, 2 - s.events.filter((e) => e.status === "open").length);
   for (const e of EVENTS.filter((e) => eventEligible(s, e)).slice(0, free)) {
@@ -712,6 +831,8 @@ export function economy(s) {
   const taxRelief = s.investors.filter(
     (o) => o.status === "accepted" && s.month - o.acceptedMonth < 6,
   ).length;
+  const identityIncome =
+    { production: 1.08, tourism: 1.07, enterprise: 1.06, agriculture: 1.07 }[s.identity] || 1;
   const income = {
     local: Math.round(p * 8 * (0.6 + m.trust / 200)),
     business: Math.round(
@@ -721,14 +842,20 @@ export function economy(s) {
     ),
     tourism: Math.round((m.tourism * effective(s, "hotel") * effective(s, "heritage")) / 170),
     production: Math.round(
-      m.production *
+      identityIncome *
+        m.production *
         (effective(s, "factory") + effective(s, "workshop")) *
         0.7 *
         (m.energy / 100) *
         (m.road / 100),
     ),
     agriculture: Math.round(
-      m.agriculture * effective(s, "farms") * 0.9 * (m.water / 100) * (1 - m.pollution / 150),
+      identityIncome *
+        m.agriculture *
+        effective(s, "farms") *
+        0.9 *
+        (m.water / 100) *
+        (1 - m.pollution / 150),
     ),
     support: 9000,
     donations: Math.round(Math.max(0, m.localIdentity - 55) * Math.max(0, m.trust - 40) * 2),
@@ -766,6 +893,7 @@ export function endingFor(s) {
   else if (p >= 850 && y >= 130 && m.trust >= 55 && services >= 50) id = "reborn";
   else if (m.localIdentity >= 50 && m.trust >= 40) id = "resistant";
   else id = "quiet";
+  const stage = TOWN_STAGES.find((x) => x.id === s.progression.stage).label;
   return {
     id,
     reasons: [
@@ -781,6 +909,10 @@ export function endingFor(s) {
       [
         `Yerel kimlik ${Math.round(m.localIdentity)}/100; bütçe ${Math.round(s.budget)} TL; borç ${Math.round(s.debt)} TL.`,
         `Local identity ${Math.round(m.localIdentity)}/100; budget ${Math.round(s.budget)} TL; debt ${Math.round(s.debt)} TL.`,
+      ],
+      [
+        `${s.investors.filter((x) => x.status === "accepted").length} yatırım imzalandı; ${s.npcs.filter((x) => !x.present).length} önemli kişi ayrıldı; yönetim katmanı ${stage[0]}.`,
+        `${s.investors.filter((x) => x.status === "accepted").length} investments were signed; ${s.npcs.filter((x) => !x.present).length} key people left; governance stage ${stage[1]}.`,
       ],
     ],
   };
@@ -812,6 +944,17 @@ export function advanceTown(s) {
       "Transport failed → stocks fell → prices rose.",
       "chain",
     );
+  updateChain(
+    s,
+    "road-supply",
+    blocked ? "crisis" : m.supply >= 60 ? "stable" : "risk",
+    blocked
+      ? "Yol-stok zinciri kriz aşamasına geçti."
+      : "Yol-stok zinciri yeniden izlenebilir düzeye geldi.",
+    blocked
+      ? "The road-supply chain entered crisis."
+      : "The road-supply chain returned to a manageable state.",
+  );
   const i = indicators(s),
     pressure = {
       jobs: (55 - i.jobs) / 18,
@@ -829,10 +972,32 @@ export function advanceTown(s) {
     const weighted =
       sum(Object.entries(d.weights).map(([k, w]) => pressure[k] * w)) /
       sum(Object.values(d.weights));
-    const rate = clamp(weighted + (m.prices - 100) / 35 + (50 - i.transport) / 40, -1.5, 5);
+    const pulls = {
+      production: ["workers", "families"],
+      tourism: ["young", "educated"],
+      enterprise: ["young", "newcomers"],
+      agriculture: ["farmers", "families"],
+      culture: ["educated", "young"],
+      retirement: ["retired"],
+    };
+    const identityPull = (pulls[s.identity] || []).includes(c.id) ? 0.35 : 0;
+    const rate = clamp(
+      weighted + (m.prices - 100) / 35 + (50 - i.transport) / 40 - identityPull,
+      -1.5,
+      5,
+    );
     const delta = -Math.round((c.count * rate) / 100);
     c.lastDelta = Math.max(-c.count, delta) || 0;
     c.count = Math.max(0, c.count + c.lastDelta);
+    if (c.lastDelta) {
+      s.migrationLog.push({
+        month: s.month,
+        cohort: c.id,
+        delta: c.lastDelta,
+        identity: s.identity,
+      });
+      s.migrationLog = s.migrationLog.slice(-48);
+    }
   }
   const pupils =
     s.cohorts.find((c) => c.id === "families").count * 0.3 +
@@ -851,6 +1016,21 @@ export function advanceTown(s) {
       "Öğrenci ve hizmet kaybı → Elif ayrıldı → ailelerin okul seçeneği daraldı.",
       "Loss of pupils and services → Elif left → families lost a school option.",
       "chain",
+    );
+    updateChain(
+      s,
+      "school-families",
+      "teacher-left",
+      "Okul-aile zincirinde öğretmen ayrılığı kayda geçti.",
+      "Teacher departure was recorded in the school-family chain.",
+    );
+  } else if (!s.flags.teacherLeft && effective(s, "school") >= 50) {
+    updateChain(
+      s,
+      "school-families",
+      "stable",
+      "Okul-aile zinciri dengede.",
+      "The school-family chain is stable.",
     );
   }
   effect(s, {
@@ -888,9 +1068,12 @@ export function advanceTown(s) {
   // The next month's delayed outcomes are applied exactly once before its agenda.
   const next = Math.min(24, s.month + 1);
   for (const p of s.pending.filter((p) => p.due <= next)) {
+    if (s.resolvedEffects.includes(p.id)) continue;
     effect(s, p.effects);
     addHistory(s, p.text[0], p.text[1], "callback");
     s.openCases.push({ id: p.id, closed: next, text: p.text });
+    s.resolvedEffects.push(p.id);
+    s.resolvedEffects = s.resolvedEffects.slice(-80);
   }
   s.pending = s.pending.filter((p) => p.due > next);
   s.openCases = s.openCases.slice(-40);
@@ -906,6 +1089,25 @@ export function advanceTown(s) {
     );
   }
   s.identity = deriveIdentity(s);
+  updateTownProgression(s);
+  if (s.investors.some((x) => x.status === "accepted")) {
+    updateChain(
+      s,
+      "investor-dependency",
+      m.company >= 45 ? "dependency" : "bargained",
+      "Yatırımcı bağımlılığı dosyası güncellendi.",
+      "The investor-dependency file was updated.",
+    );
+  }
+  if (s.progression.institutions.includes("town-charter")) {
+    updateChain(
+      s,
+      "town-charter",
+      "available",
+      "Kasaba şartı artık kurumsal olarak mümkün.",
+      "A town charter is now institutionally possible.",
+    );
+  }
   s.report = {
     month: s.month,
     before,
@@ -919,6 +1121,9 @@ export function advanceTown(s) {
     finance,
     migration: population(s) - before.population,
     cohorts: s.cohorts.map((c) => ({ id: c.id, delta: c.lastDelta })),
+    stage: s.progression.stage,
+    institutions: s.progression.institutions.slice(),
+    activeChains: Object.values(s.chains).map((c) => ({ id: c.id, stage: c.stage })),
   };
   addHistory(
     s,

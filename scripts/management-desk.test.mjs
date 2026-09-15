@@ -14,7 +14,9 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // runtime'a yapılandırılmış yardım bölümleri (helpSections/helpPanel) eklendi ve
 // DEVLET'in tek paragraflık yardımı bu bölümlere taşındı. 2026-09-14'te onaylı
 // ilk depth dalgası yalnız next-wave.js içindeki Apartman state/simülasyonunu
-// değiştirdi; TC SIM ve DEVLET kaynakları bu turda hâlâ donmuş durumda.
+// değiştirdi. 2026-09-15 Wave 2, aynı dosyadaki Son 100 Gün save doğrulaması ve
+// v2 başlangıç state'ini bilinçli olarak değiştirdi; TC SIM ve DEVLET kaynakları
+// bu turda hâlâ donmuş durumda.
 test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -23,7 +25,7 @@ test("frozen baseline: all 35 content, simulation, persistence and projection so
   assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "251d0419334537ba58d82743e9f7c9a0ff57774225d1d1550105e3056962d260");
+  assert.equal(hash.digest("hex"), "764bf094b684057e1e62ed6de9289c7b8a5b8aef57170fc30005e95b48c33a74");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

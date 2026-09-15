@@ -1,18 +1,146 @@
-import { SCENARIOS, MILESTONES, ACTIONS as A100, EVENTS as SON_EVENTS, SON_CALLBACKS, SON_ENDINGS } from "./son100-data.js";
+import {
+  SCENARIOS,
+  MILESTONES,
+  ACTIONS as A100,
+  EVENTS as SON_EVENTS,
+  SON_CALLBACKS,
+  SON_ENDINGS,
+} from "./son100-data.js";
 
 export const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n));
 
 const SUICIDE = /suicid|intihar|self[-_]?harm|kendine\s*zarar/i;
 
+export const SON_PHASES = [
+  {
+    id: "preparation",
+    min: 81,
+    label: ["Hazırlık", "Preparation"],
+    note: [
+      "Teşhis kesin. Para, beden ve insan bağları için tampon kurma zamanı.",
+      "The diagnosis is certain. Build buffers for money, health and people.",
+    ],
+    pressure: 2,
+    families: ["health", "money", "family"],
+  },
+  {
+    id: "fracture",
+    min: 61,
+    label: ["İlk kırılmalar", "First fractures"],
+    note: [
+      "İlk sinyaller sonuç üretmeye başlıyor; hazırlıkların artık gerçek bir karşılığı var.",
+      "The first signals are becoming consequences; preparation now has a real payoff.",
+    ],
+    pressure: 3,
+    families: ["work", "legal", "family"],
+  },
+  {
+    id: "scarcity",
+    min: 41,
+    label: ["Kaynak krizi", "Resource crisis"],
+    note: [
+      "Nakit, enerji ve zaman aynı anda daralıyor. Her koruma başka bir alanı açıkta bırakır.",
+      "Cash, energy and time are tightening together. Protecting one area exposes another.",
+    ],
+    pressure: 4,
+    families: ["money", "health", "work"],
+  },
+  {
+    id: "collapse",
+    min: 21,
+    label: ["Sistemik çöküş", "Systemic collapse"],
+    note: [
+      "İlişkiler, hukuk ve beden birbirini tetikliyor. Eski dosyalar geri dönüyor.",
+      "Relationships, law and health now trigger one another. Old files return.",
+    ],
+    pressure: 5,
+    families: ["family", "legal", "health"],
+  },
+  {
+    id: "finale",
+    min: 1,
+    label: ["Son hesap", "Final reckoning"],
+    note: [
+      "Yeni hayat kurmak değil; neyi, kimi ve hangi sözü koruduğun belirleyici.",
+      "This is no longer about building a new life, but what, whom and which promise you protect.",
+    ],
+    pressure: 6,
+    families: ["legacy", "family", "faith"],
+  },
+];
+
 export function sonPhase(s) {
   const left = s.remainingDays ?? 100;
-  if (left <= 0) return { id: "death", label: "Gün 0", note: "Artık karar yok. Hüküm kayıtta duruyor." };
-  if (left <= 3) return { id: "end", label: "Son", note: "Filler yok. Açık dosya ve asıl insanlar kaldı." };
-  if (left <= 14) return { id: "reckoning", label: "Hesaplaşma", note: "Vasiyet, helallik, sır, korku. Ertelediğin şey kapıda." };
-  if (left <= 40) return { id: "consequence", label: "Sonuçlar", note: "Eski kararların faturası. Para, ilişki, hukuk, pişmanlık." };
-  if (left <= 70) return { id: "turn", label: "Yön değişimi", note: "İş, aşk, gece, iman, intikam, kaçış. Yol burada kırılır." };
-  return { id: "shock", label: "İnkâr / şok", note: "Yüz gün. Doktorun cümlesi duruyor. Kredi ekstresi de duruyor." };
+  if (left <= 0)
+    return {
+      id: "death",
+      label: ["Gün 0", "Day 0"],
+      note: [
+        "Artık karar yok. Hüküm kayıtta duruyor.",
+        "There are no decisions left. The verdict is in the file.",
+      ],
+      pressure: 0,
+      families: [],
+    };
+  return SON_PHASES.find((phase) => left >= phase.min) || SON_PHASES.at(-1);
 }
+
+const CRISIS_CHAINS = [
+  {
+    id: "diagnosis",
+    phase: "preparation",
+    family: "health",
+    due: 92,
+    title: ["Tetkik sonucu", "Test result"],
+    risk: 42,
+  },
+  {
+    id: "income-break",
+    phase: "fracture",
+    family: "money",
+    due: 73,
+    title: ["Gelir kırılması", "Income fracture"],
+    risk: 50,
+  },
+  {
+    id: "care-shortage",
+    phase: "scarcity",
+    family: "people",
+    due: 53,
+    title: ["Bakım açığı", "Care shortage"],
+    risk: 58,
+  },
+  {
+    id: "legal-return",
+    phase: "collapse",
+    family: "legal",
+    due: 33,
+    title: ["Eski dosya", "Old case"],
+    risk: 64,
+  },
+  {
+    id: "last-promise",
+    phase: "finale",
+    family: "legacy",
+    due: 13,
+    title: ["Son söz", "Final promise"],
+    risk: 70,
+  },
+];
+
+const PREP_ACTIONS = {
+  health: new Set(["rest", "doctor", "travel"]),
+  money: new Set(["work", "pay", "min"]),
+  people: new Set(["family", "visit-friend", "call-ex", "forgive"]),
+  legal: new Set(["report-crime", "confess", "write-will"]),
+  legacy: new Set(["legacy", "write-will", "donate", "protect"]),
+};
+
+const deterministicRoll = (s, key) => {
+  let n = (s.meta?.seed || 73129) ^ ((s.day || 1) * 2654435761);
+  for (const ch of key) n = Math.imul(n ^ ch.charCodeAt(0), 16777619);
+  return ((n >>> 0) % 1000) / 10;
+};
 
 export function emptySoul() {
   return {
@@ -43,7 +171,8 @@ export function sonSoul(s) {
 function setSoul(s, patch) {
   const soul = sonSoul(s);
   for (const [key, value] of Object.entries(patch)) {
-    if (typeof soul[key] === "number" && Number.isFinite(value)) soul[key] = clamp(soul[key] + value, 0, 100);
+    if (typeof soul[key] === "number" && Number.isFinite(value))
+      soul[key] = clamp(soul[key] + value, 0, 100);
   }
   s.flags.soul = soul;
 }
@@ -67,6 +196,7 @@ function usedToday(s, id) {
 
 export function ensureSonState(s) {
   if (!s || typeof s !== "object") return s;
+  s.meta = { ...(s.meta || {}), id: "son-100-gun", version: 2, seed: s.meta?.seed || 73129 };
   s.flags = s.flags || {};
   s.flags.soul = { ...emptySoul(), ...(s.flags.soul || {}) };
   s.flags.milestones = Array.isArray(s.flags.milestones) ? s.flags.milestones : [];
@@ -90,7 +220,143 @@ export function ensureSonState(s) {
   } else if (!s.relationships.some((item) => item.id === "partner")) {
     s.relationships.push({ id: "partner", value: 40 });
   }
+  const oldDepth = s.depth && typeof s.depth === "object" ? s.depth : {};
+  s.depth = {
+    version: 2,
+    preparations: {
+      health: 0,
+      money: 0,
+      people: 0,
+      legal: 0,
+      legacy: 0,
+      ...(oldDepth.preparations || {}),
+    },
+    actors: Array.isArray(oldDepth.actors)
+      ? oldDepth.actors
+      : s.relationships.map((r) => ({ id: r.id, trust: r.value, memory: [] })),
+    chains: oldDepth.chains && typeof oldDepth.chains === "object" ? oldDepth.chains : {},
+    phaseTrace: Array.isArray(oldDepth.phaseTrace) ? oldDepth.phaseTrace : [],
+    resolved: Array.isArray(oldDepth.resolved) ? oldDepth.resolved : [],
+    eventDirector:
+      oldDepth.eventDirector && typeof oldDepth.eventDirector === "object"
+        ? oldDepth.eventDirector
+        : { recent: [] },
+  };
+  for (const actor of s.depth.actors) {
+    actor.memory = Array.isArray(actor.memory) ? actor.memory.slice(-6) : [];
+    actor.trust = Number.isFinite(actor.trust) ? clamp(actor.trust) : 50;
+  }
+  s.depth.phaseTrace = s.depth.phaseTrace.slice(-5);
+  s.depth.resolved = s.depth.resolved.slice(-20);
+  s.depth.eventDirector.recent = Array.isArray(s.depth.eventDirector.recent)
+    ? s.depth.eventDirector.recent.slice(-12)
+    : [];
+  const phase = sonPhase(s);
+  if (phase.id !== "death" && !s.depth.phaseTrace.some((row) => row.id === phase.id)) {
+    s.depth.phaseTrace.push({ id: phase.id, day: s.day, left: s.remainingDays });
+  }
   return s;
+}
+
+export function validateSonState(s) {
+  if (
+    !s ||
+    s.meta?.id !== "son-100-gun" ||
+    ![1, 2].includes(s.meta?.version) ||
+    !Number.isInteger(s.day) ||
+    s.day < 1 ||
+    s.day > 101 ||
+    !Number.isInteger(s.remainingDays) ||
+    s.remainingDays < 0 ||
+    s.remainingDays > 100 ||
+    !Number.isInteger(s.actionsRemaining) ||
+    s.actionsRemaining < 0 ||
+    s.actionsRemaining > 2 ||
+    !s.resources ||
+    ![s.resources.money, s.resources.energy, s.resources.hope].every(Number.isFinite) ||
+    !Array.isArray(s.relationships) ||
+    !Array.isArray(s.obligations) ||
+    !Array.isArray(s.opportunities) ||
+    !Array.isArray(s.openCases) ||
+    !Array.isArray(s.history) ||
+    !s.flags ||
+    !s.ui
+  )
+    return false;
+  if (s.meta.version === 2) {
+    if (
+      !s.depth ||
+      !s.depth.preparations ||
+      !Array.isArray(s.depth.actors) ||
+      !Array.isArray(s.depth.phaseTrace) ||
+      !Array.isArray(s.depth.resolved) ||
+      s.depth.actors.some((x) => !Array.isArray(x.memory) || x.memory.length > 6) ||
+      s.depth.phaseTrace.length > 5 ||
+      s.depth.resolved.length > 20
+    )
+      return false;
+  }
+  return true;
+}
+
+function rememberActor(s, id, action, delta) {
+  const actor = s.depth.actors.find((item) => item.id === id);
+  if (!actor) return;
+  actor.trust = clamp(actor.trust + delta);
+  actor.memory.push({ day: s.day, action, delta });
+  actor.memory = actor.memory.slice(-6);
+}
+
+export function sonForecast(s) {
+  ensureSonState(s);
+  const next = CRISIS_CHAINS.find((chain) => !s.depth.chains[chain.id]);
+  const active =
+    CRISIS_CHAINS.map((chain) => ({ ...chain, state: s.depth.chains[chain.id] }))
+      .filter((chain) => chain.state?.stage === "signal")
+      .sort((a, b) => b.due - a.due)[0] || next;
+  if (!active) return null;
+  const prep = s.depth.preparations[active.family] || 0;
+  const legal = active.family === "legal" ? s.flags.legalRisk || 0 : 0;
+  const chance = clamp(active.risk + sonPhase(s).pressure * 2 + legal * 2 - prep * 7, 8, 92);
+  return {
+    id: active.id,
+    title: active.title,
+    family: active.family,
+    due: active.due,
+    days: Math.max(0, (s.remainingDays ?? 100) - active.due),
+    preparation: prep,
+    chance,
+    band:
+      chance >= 70
+        ? ["çok yüksek", "very high"]
+        : chance >= 50
+          ? ["yüksek", "high"]
+          : chance >= 30
+            ? ["orta", "medium"]
+            : ["düşük", "low"],
+  };
+}
+
+export function sonActionForecast(s, actionId) {
+  ensureSonState(s);
+  const family = Object.keys(PREP_ACTIONS).find((key) => PREP_ACTIONS[key].has(actionId));
+  if (!family) return null;
+  const labels = {
+    health: ["sağlık", "health"],
+    money: ["nakit", "cash"],
+    people: ["insanlar", "people"],
+    legal: ["hukuk", "legal"],
+    legacy: ["miras", "legacy"],
+  };
+  return {
+    family,
+    label: labels[family],
+    gain: 1,
+    tradeoff:
+      actionId === "work"
+        ? ["enerji ve ilişki baskısı", "energy and relationship pressure"]
+        : ["başka bir hazırlık alanından vazgeçersin", "you forgo preparation in another area"],
+  };
 }
 
 export function availableSonActions(s) {
@@ -105,12 +371,12 @@ export function availableSonActions(s) {
   for (const window of windows) for (const choice of window.choices || []) ids.add(choice);
   if (energy < 35) ids.add("rest");
   if (money < 400) ids.add("work");
-  if (phase === "shock") {
+  if (phase === "preparation") {
     ids.add("doctor");
     ids.add("hide");
     ids.add("work");
   }
-  if (phase === "turn" || phase === "consequence") {
+  if (["fracture", "scarcity", "collapse"].includes(phase)) {
     ids.add("quit");
     ids.add("party");
     ids.add("drink");
@@ -119,14 +385,14 @@ export function availableSonActions(s) {
     ids.add("sex");
     ids.add("pray");
   }
-  if (soul.anger >= 12 || phase === "turn") ids.add("revenge");
-  if (soul.faith >= 8 || phase === "reckoning" || phase === "end") ids.add("pray");
+  if (soul.anger >= 12 || phase === "fracture") ids.add("revenge");
+  if (soul.faith >= 8 || phase === "collapse" || phase === "finale") ids.add("pray");
   if (left <= 40) ids.add("write-will");
   if (left <= 30) ids.add("forgive");
   if (left <= 20) ids.add("confess");
   if (money > 800) ids.add("donate");
-  if (phase === "turn" && money > 300) ids.add("gamble");
-  if (phase === "turn" && soul.hedonism >= 8) {
+  if (phase === "fracture" && money > 300) ids.add("gamble");
+  if (phase === "fracture" && soul.hedonism >= 8) {
     ids.add("drugs");
     ids.add("escort");
   }
@@ -142,7 +408,9 @@ export function availableSonActions(s) {
       A100.some((action) => action.id === id),
     );
   }
-  const list = [...ids].filter((id) => A100.some((action) => action.id === id) && !SUICIDE.test(id));
+  const list = [...ids].filter(
+    (id) => A100.some((action) => action.id === id) && !SUICIDE.test(id),
+  );
   return list.slice(0, 10);
 }
 
@@ -195,7 +463,8 @@ export function applySonAction(s, actId) {
   const weight = late && ["pray", "donate", "forgive", "confess"].includes(act.id) ? 1 : 2;
   const soulPatch = act.soul || {};
   const scaled = {};
-  for (const [key, value] of Object.entries(soulPatch)) scaled[key] = value > 0 ? Math.max(1, Math.round(value * (weight / 2))) : value;
+  for (const [key, value] of Object.entries(soulPatch))
+    scaled[key] = value > 0 ? Math.max(1, Math.round(value * (weight / 2))) : value;
   if (Object.keys(scaled).length) setSoul(s, scaled);
 
   if (act.id === "donate") {
@@ -213,17 +482,29 @@ export function applySonAction(s, actId) {
     s.flags.crimeCount += 1;
     s.flags.legalRisk = (s.flags.legalRisk || 0) + 4;
     setSoul(s, { crime: 3, harm: 2, courage: 1 });
-    if (s.flags.crimeCount === 2) queueCase(s, { id: "police-file", title: "İfade çağrısı", delay: 9, kind: "legal" });
+    if (s.flags.crimeCount === 2)
+      queueCase(s, { id: "police-file", title: "İfade çağrısı", delay: 9, kind: "legal" });
   }
   if (act.id === "sex" || act.id === "escort") {
-    setSoul(s, { hedonism: 3, love: act.id === "sex" ? 1 : 0, betrayal: act.id === "escort" ? 1 : 0 });
-    if (act.id === "escort") queueCase(s, { id: "partner-learns", title: "Partner bir şey sezdi", delay: 16, kind: "affair" });
+    setSoul(s, {
+      hedonism: 3,
+      love: act.id === "sex" ? 1 : 0,
+      betrayal: act.id === "escort" ? 1 : 0,
+    });
+    if (act.id === "escort")
+      queueCase(s, {
+        id: "partner-learns",
+        title: "Partner bir şey sezdi",
+        delay: 16,
+        kind: "affair",
+      });
   }
   if (act.id === "revenge") {
     setSoul(s, { anger: 3, harm: 3, courage: 2 });
     queueCase(s, { id: "revenge-back", title: "Karşı hamle", delay: 11, kind: "revenge" });
   }
-  if (act.id === "help-stranger" || act.id === "protect") setSoul(s, { mercy: 3, courage: 2, legacy: 1 });
+  if (act.id === "help-stranger" || act.id === "protect")
+    setSoul(s, { mercy: 3, courage: 2, legacy: 1 });
   if (act.id === "write-will" || act.id === "legacy") setSoul(s, { legacy: 4, acceptance: 2 });
   if (act.id === "forgive") setSoul(s, { forgiveness: 4, anger: -3, conscience: 2 });
   if (act.id === "confess") setSoul(s, { conscience: 3, repent: 3, courage: 2 });
@@ -232,6 +513,15 @@ export function applySonAction(s, actId) {
     rel(s, "work", -8);
     setSoul(s, { courage: 2, selfish: 1 });
   }
+
+  for (const [family, actions] of Object.entries(PREP_ACTIONS)) {
+    if (!actions.has(act.id)) continue;
+    s.depth.preparations[family] = clamp(s.depth.preparations[family] + 1, 0, 8);
+  }
+  if (act.family) rememberActor(s, "family", act.id, Math.sign(act.family));
+  if (act.friend) rememberActor(s, "friend", act.id, Math.sign(act.friend));
+  if (act.work) rememberActor(s, "work", act.id, Math.sign(act.work));
+  if (act.partner) rememberActor(s, "partner", act.id, Math.sign(act.partner));
 
   const hit = (s.opportunities || []).find(
     (o) => o.status === "open" && (o.choices || []).includes(act.id),
@@ -261,14 +551,23 @@ function seedOpportunity(s) {
   s.opportunities = s.opportunities || [];
   const used = new Set(s.opportunities.map((o) => o.src || o.id));
   const phase = sonPhase(s).id;
+  const legacyPhase = {
+    preparation: "shock",
+    fracture: "turn",
+    scarcity: "turn",
+    collapse: "consequence",
+    finale: "reckoning",
+  }[phase];
+  const recent = new Set(s.depth.eventDirector.recent.slice(-6));
   const pool = SON_EVENTS.filter((event) => {
     if (used.has(event.id)) return false;
-    if (event.phase && event.phase !== phase && event.phase !== "any") return false;
-    if ((s.remainingDays ?? 100) > 14 && event.final) return false;
-    if ((s.remainingDays ?? 100) <= 14 && event.final === false) return false;
-    return true;
+    if (recent.has(event.id)) return false;
+    return sonEventEligibleForPhase(event, phase, s.remainingDays, legacyPhase);
   });
-  const next = pool[0] || SON_EVENTS.find((e) => !used.has(e.id)) || SON_EVENTS[s.day % SON_EVENTS.length];
+  const candidates = pool.length ? pool : SON_EVENTS.filter((e) => !used.has(e.id));
+  const next = candidates.length
+    ? candidates[Math.floor((deterministicRoll(s, phase) / 100) * candidates.length)]
+    : SON_EVENTS[s.day % SON_EVENTS.length];
   if (!next) return;
   const openCount = s.opportunities.filter((o) => o.status === "open").length;
   if (openCount >= 2) return;
@@ -285,6 +584,30 @@ function seedOpportunity(s) {
     callback: next.callback,
     status: "open",
   });
+  s.depth.eventDirector.recent.push(next.id);
+  s.depth.eventDirector.recent = s.depth.eventDirector.recent.slice(-12);
+}
+
+export function sonEventEligibleForPhase(event, phaseId, remainingDays, mappedPhase) {
+  const legacyPhase =
+    mappedPhase ||
+    {
+      preparation: "shock",
+      fracture: "turn",
+      scarcity: "turn",
+      collapse: "consequence",
+      finale: "reckoning",
+    }[phaseId];
+  if (
+    event.phase &&
+    event.phase !== phaseId &&
+    event.phase !== legacyPhase &&
+    event.phase !== "any"
+  )
+    return false;
+  if (remainingDays > 14 && event.final) return false;
+  if (remainingDays <= 14 && event.final === false) return false;
+  return true;
 }
 
 function resolveCases(s) {
@@ -302,13 +625,66 @@ function resolveCases(s) {
   }
 }
 
+function updateCrisisChains(s) {
+  const phase = sonPhase(s).id;
+  for (const chain of CRISIS_CHAINS) {
+    let state = s.depth.chains[chain.id];
+    if (!state && chain.phase === phase) {
+      state = s.depth.chains[chain.id] = {
+        stage: "signal",
+        signalled: s.day,
+        due: chain.due,
+        family: chain.family,
+      };
+      pushHist(s, { type: "signal", id: chain.id, title: chain.title, due: chain.due });
+    }
+    if (!state || state.stage !== "signal" || s.remainingDays > state.due) continue;
+    const prep = s.depth.preparations[chain.family] || 0;
+    const legal = chain.family === "legal" ? s.flags.legalRisk || 0 : 0;
+    const risk = clamp(chain.risk + sonPhase(s).pressure * 2 + legal * 2 - prep * 7, 8, 92);
+    const hit = deterministicRoll(s, chain.id) < risk;
+    state.stage = "resolved";
+    state.resolvedDay = s.day;
+    state.risk = risk;
+    state.outcome = hit ? "crisis" : "prepared";
+    if (hit) {
+      const effects = {
+        health: { energy: -14, hope: -5, money: -180 },
+        money: { energy: -5, hope: -7, money: -520 },
+        people: { energy: -6, hope: -9, money: -120 },
+        legal: { energy: -7, hope: -8, money: -360 },
+        legacy: { energy: -4, hope: -10, money: 0 },
+      }[chain.family];
+      s.resources.energy = clamp(s.resources.energy + effects.energy);
+      s.resources.hope = clamp(s.resources.hope + effects.hope);
+      s.resources.money += effects.money;
+      if (chain.family === "people") rel(s, "family", -9);
+      if (chain.family === "legal") s.flags.legalRisk = Math.max(0, s.flags.legalRisk - 2);
+    } else {
+      s.resources.hope = clamp(s.resources.hope + 4);
+      setSoul(s, { acceptance: 2, courage: 1 });
+    }
+    s.depth.resolved.push({
+      id: chain.id,
+      title: chain.title,
+      day: s.day,
+      family: chain.family,
+      risk,
+      outcome: state.outcome,
+      preparation: prep,
+    });
+    s.depth.resolved = s.depth.resolved.slice(-20);
+    pushHist(s, { type: "crisis", id: chain.id, title: chain.title, result: state.outcome, risk });
+  }
+}
+
 export function sonAdvanceDay(s) {
   ensureSonState(s);
   if (s.flags.finalReport) return s;
   s.day += 1;
   s.remainingDays = Math.max(0, s.remainingDays - 1);
   s.actionsRemaining = s.remainingDays === 0 ? 0 : 2;
-  s.resources.energy = clamp(s.resources.energy - (s.remainingDays <= 14 ? 6 : 4));
+  s.resources.energy = clamp(s.resources.energy - sonPhase(s).pressure);
   if (s.remainingDays <= 14) setSoul(s, { fear: 1, acceptance: s.flags.soul.faith >= 12 ? 1 : 0 });
   for (const o of s.obligations) {
     if (o.status === "open") {
@@ -335,6 +711,7 @@ export function sonAdvanceDay(s) {
     }
   }
   resolveCases(s);
+  updateCrisisChains(s);
   if (s.obligations.filter((o) => o.status === "open").length < 2 && s.remainingDays > 8) {
     s.obligations.push({
       id: "wave_" + s.day,
@@ -354,6 +731,13 @@ export function sonAdvanceDay(s) {
     }
   }
   if (s.remainingDays === 0) finalizeSon(s);
+  s.opportunities = s.opportunities
+    .filter((item) => item.status === "open" || item.expiresOn >= s.day - 24)
+    .slice(-40);
+  s.missed = s.missed.slice(-40);
+  s.openCases = s.openCases
+    .filter((item) => item.status === "open" || item.due >= s.day - 20)
+    .slice(-40);
   pushHist(s, { type: "day", day: s.day });
   return s;
 }
@@ -362,10 +746,13 @@ export function sonDeathScene(s) {
   const family = s.relationships?.find((item) => item.id === "family")?.value ?? 50;
   const partner = s.relationships?.find((item) => item.id === "partner")?.value ?? 40;
   const energy = s.resources?.energy ?? 50;
-  if (energy < 25) return "Hastane odası. Monitör düz çizgiye yaklaşırken koridor hâlâ ayakkabı sesi.";
-  if (family >= 62 && partner >= 55) return "Ev. Aile ve partner aynı odada. Kimse film müziği açmıyor; ellerin duruyor.";
+  if (energy < 25)
+    return "Hastane odası. Monitör düz çizgiye yaklaşırken koridor hâlâ ayakkabı sesi.";
+  if (family >= 62 && partner >= 55)
+    return "Ev. Aile ve partner aynı odada. Kimse film müziği açmıyor; ellerin duruyor.";
   if (family >= 58) return "Ev. Annan ya da evladın kapı eşiğinde. Cümle yok, nefes var.";
-  if (partner >= 58) return "Evin odası. Partnerin omzuna ağırlık veriyorsun. Dışarıda normal bir akşam.";
+  if (partner >= 58)
+    return "Evin odası. Partnerin omzuna ağırlık veriyorsun. Dışarıda normal bir akşam.";
   if (energy < 40) return "Hospice koridoru. Çay soğumuş. Ölüm resmi bir form kadar sakin.";
   return "Yalnız oda. Telefon masada. Kimse aramadı, sen de kimseyi aramadın.";
 }
@@ -420,14 +807,30 @@ export function sonVerdict(s) {
     sc.family < 48;
   if (heaven) return SON_ENDINGS.find((item) => item.id === "heaven");
   if (hell) return SON_ENDINGS.find((item) => item.id === "hell");
-  const ranked = SON_ENDINGS.filter((item) => item.id !== "heaven" && item.id !== "hell").map((item) => {
-    let score = 0;
-    for (const [key, need] of Object.entries(item.need || {})) {
-      const value = sc[key] ?? 0;
-      score += need >= 0 ? (value >= need ? 3 : value - need) : value <= Math.abs(need) ? 3 : -2;
-    }
-    return { item, score };
-  });
+  const specific =
+    (sc.legacy >= 14 && sc.family >= 58 && "child-future") ||
+    (sc.faith >= 16 && sc.repent >= 8 && "found-faith") ||
+    (countActs(s, "forgive") >= 3 && sc.forgiveness >= 10 && "forgave-self") ||
+    (countActs(s, "confess") >= 3 && sc.conscience >= 45 && "stopped-lying") ||
+    (sc.harm >= 12 && sc.anger >= 16 && "eaten-revenge") ||
+    (sc.family >= 62 && sc.love >= 10 && "loved-room") ||
+    (sc.family >= 60 && sc.legacy >= 8 && "left-family") ||
+    (sc.money < 0 && (s.missed || []).length >= 2 && "left-debt") ||
+    (sc.family < 40 && "no-one-called") ||
+    (sc.acceptance >= 22 && sc.family >= 55 && "peace") ||
+    (sc.hedonism >= 28 && "burned-out") ||
+    (sc.unresolved >= 6 && "unfinished");
+  if (specific) return SON_ENDINGS.find((item) => item.id === specific);
+  const ranked = SON_ENDINGS.filter((item) => item.id !== "heaven" && item.id !== "hell").map(
+    (item) => {
+      let score = 0;
+      for (const [key, need] of Object.entries(item.need || {})) {
+        const value = sc[key] ?? 0;
+        score += need >= 0 ? (value >= need ? 3 : value - need) : value <= Math.abs(need) ? 3 : -2;
+      }
+      return { item, score };
+    },
+  );
   ranked.sort((a, b) => b.score - a.score);
   return ranked[0]?.item || SON_ENDINGS.find((item) => item.id === "unfinished");
 }
@@ -457,8 +860,21 @@ export function finalizeSon(s) {
     verdictText: verdict.text,
     helped: sc.mercy >= 6 ? ["Birine gerçekten yardım ettin."] : [],
     harmed: sc.harm >= 8 ? ["Birine bilinçli zarar verdin."] : [],
-    unresolved: (s.openCases || []).filter((item) => item.status === "open").map((item) => item.title),
+    unresolved: (s.openCases || [])
+      .filter((item) => item.status === "open")
+      .map((item) => item.title),
     scene: sonDeathScene(s),
+    phases: s.depth.phaseTrace.map((row) => ({ ...row })),
+    preparations: { ...s.depth.preparations },
+    crises: s.depth.resolved.map((row) => ({ ...row })),
+    actors: s.depth.actors.map((actor) => ({
+      id: actor.id,
+      trust: actor.trust,
+      memories: actor.memory.slice(-3),
+    })),
+    turningPoints: s.history
+      .filter((row) => ["crisis", "callback", "opportunity"].includes(row.type))
+      .slice(-8),
   };
   return s;
 }
@@ -469,7 +885,8 @@ export function applySonScenario(s, scenarioId) {
   s.scenarioId = sc.id;
   s.resources = { ...sc.resources };
   s.relationships = Object.entries(sc.relations || {}).map(([id, value]) => ({ id, value }));
-  if (!s.relationships.some((item) => item.id === "partner")) s.relationships.push({ id: "partner", value: sc.partner || 40 });
+  if (!s.relationships.some((item) => item.id === "partner"))
+    s.relationships.push({ id: "partner", value: sc.partner || 40 });
   s.obligations = (sc.obligations || []).map((o) => ({ ...o, status: "open" }));
   s.missed = [];
   s.openCases = [];
@@ -486,7 +903,16 @@ export function applySonScenario(s, scenarioId) {
     hook: sc.hook || sc.goal,
     burden: sc.burden || sc.obligations?.[0]?.title,
   };
-  const opener = SON_EVENTS.find((event) => event.scenario === sc.id) || SON_EVENTS[1] || SON_EVENTS[0];
+  s.meta = {
+    ...(s.meta || {}),
+    id: "son-100-gun",
+    version: 2,
+    seed: 73129 + SCENARIOS.indexOf(sc) * 977,
+  };
+  s.depth = null;
+  ensureSonState(s);
+  const opener =
+    SON_EVENTS.find((event) => event.scenario === sc.id) || SON_EVENTS[1] || SON_EVENTS[0];
   s.opportunities = opener
     ? [
         {
@@ -501,5 +927,6 @@ export function applySonScenario(s, scenarioId) {
         },
       ]
     : [];
+  updateCrisisChains(s);
   return s;
 }

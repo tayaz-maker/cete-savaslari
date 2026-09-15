@@ -1,6 +1,13 @@
 import { SCENARIOS, SON_ACTIONS } from "../next-wave.js";
 import { HELP_SECTIONS } from "./help.js";
-import { availableSonActions, sonPhase, sonSoul, sonDeathScene } from "../next-wave/son100-sim.js";
+import {
+  availableSonActions,
+  sonActionForecast,
+  sonDeathScene,
+  sonForecast,
+  sonPhase,
+  sonSoul,
+} from "../next-wave/son100-sim.js";
 import {
   bindFrontMenu,
   bindSavePanel,
@@ -16,6 +23,13 @@ import {
 const root = document.body;
 const actionById = new Map(SON_ACTIONS.map((action) => [action.id, action]));
 const signed = (n) => `${n > 0 ? "+" : ""}${n || 0}`;
+const personLabel = (id) =>
+  ({
+    family: t("aile", "family"),
+    friend: t("arkadaş", "friend"),
+    work: t("iş çevresi", "work circle"),
+    partner: t("partner", "partner"),
+  })[id] || id;
 let view = "menu";
 let selectedScenario = null;
 
@@ -112,13 +126,14 @@ function draw(session) {
     root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="count-head"><div class="count-number">0</div><div><p class="eyebrow">${t("ÖLÜM VE HÜKÜM", "DEATH AND VERDICT")}</p><h1>${h(loc(report.verdictTitle || t("Yüz gün bitti", "The hundred days are over")))}</h1></div></section>
       <section class="card verdict-banner"><p class="verdict-kicker">${h(loc(report.verdictKicker || ""))}</p><p class="verdict-line">${h(loc(report.verdictLine || ""))}</p><p>${h(loc(report.verdictText || ""))}</p><p class="muted">${h(loc(scene))}</p></section>
       <section class="card"><div class="stat-list"><div>${t("Nakit / borç", "Cash / debt")}<strong>₺${state.resources.money}</strong></div><div>${t("Enerji", "Energy")}<strong>${state.resources.energy}</strong></div><div>${t("Umut", "Hope")}<strong>${state.resources.hope}</strong></div><div>${t("Merhamet", "Mercy")}<strong>${report.mercy || 0}</strong></div><div>${t("Zarar", "Harm")}<strong>${report.harm || 0}</strong></div><div>${t("İman", "Faith")}<strong>${report.faith || 0}</strong></div><div>${t("Kaçan yüküm", "Missed obligations")}<strong>${(state.missed || []).length}</strong></div></div></section>
-      <section class="card"><h3>${t("Arkanda kalan", "What remains")}</h3><ul class="report-list">${(report.helped || []).map((row) => `<li>${h(loc(row))}</li>`).join("")}${(report.harmed || []).map((row) => `<li>${h(loc(row))}</li>`).join("") || `<li>${t("Kimseye özel bir iz bırakmadın.", "You left no particular mark on anyone.")}</li>`}</ul><p>${t("Açık dosya", "Open files")}: ${(report.unresolved || []).map((row) => h(loc(row))).join(" · ") || t("yok", "none")}</p></section>
+      <section class="card"><h3>${t("Arkanda kalan", "What remains")}</h3><ul class="report-list">${(report.helped || []).map((row) => `<li>${h(loc(row))}</li>`).join("")}${(report.harmed || []).map((row) => `<li>${h(loc(row))}</li>`).join("") || `<li>${t("Kimseye özel bir iz bırakmadın.", "You left no particular mark on anyone.")}</li>`}</ul><p>${t("Açık dosya", "Open files")}: ${(report.unresolved || []).map((row) => h(loc(row))).join(" · ") || t("yok", "none")}</p><h3>${t("Kriz dosyası", "Crisis dossier")}</h3><ul class="report-list">${(report.crises || []).map((row) => `<li>${h(loc(row.title || row.id))} · ${row.outcome === "prepared" ? t("hazırlık tuttu", "preparation held") : t("kriz vurdu", "crisis hit")} · ${t("öngörülen risk", "forecast risk")} %${row.risk}</li>`).join("") || `<li>${t("Kapanmış kriz zinciri yok.", "No completed crisis chain.")}</li>`}</ul><h3>${t("İnsan hafızası", "People memory")}</h3><p>${(report.actors || []).map((actor) => `${h(personLabel(actor.id))} ${actor.trust}`).join(" · ")}</p></section>
       <details class="help"><summary>${t("Nasıl oynanır", "How to play")}</summary><p>${t("Final rapor terminaldir; yeni gün veya üçüncü aksiyon üretmez. Hüküm kayıttan hesaplanır, yenilenmez.", "The final report is terminal; it cannot create another day or third action. The verdict is computed from the save and does not reroll.")}</p></details></main>`;
     bindSavePanel(root, session);
     return;
   }
 
   const phase = sonPhase(state);
+  const forecast = sonForecast(state);
   const soul = sonSoul(state);
   const openWindows = (state.opportunities || []).filter((item) => item.status === "open");
   const openCases = (state.openCases || []).filter((item) => item.status === "open");
@@ -141,6 +156,7 @@ function draw(session) {
     ).join("")}</div></aside>
       <section class="card today-panel"><p class="eyebrow">${t("BUGÜN", "TODAY")}</p>
       <p class="phase-note">${h(loc(phase.note))}</p>
+      ${forecast ? `<div class="risk-forecast"><p class="eyebrow">${t("YAKLAŞAN RİSK", "UPCOMING RISK")}</p><strong>${h(loc(forecast.title))}</strong><p>${t("Yaklaşık", "About")} ${forecast.days} ${t("gün · risk", "days · risk")} ${h(loc(forecast.band))} (%${forecast.chance}) · ${t("hazırlık", "preparation")} ${forecast.preparation}/8</p></div>` : ""}
       ${openWindows.map((window) => `<div class="window"><strong>${h(loc(window.title))}</strong><br><small>${t("Son gün", "Last day")} ${window.expiresOn} · ${h(loc(window.text || t("kaçarsa sonuç doğar", "missing it has a consequence")))}</small></div>`).join("")}
       ${openCases.map((item) => `<div class="window case"><strong>${h(loc(item.title))}</strong><br><small>${t("Geri dönüş", "Callback")} · ${t("gün", "day")} ${item.due}</small></div>`).join("")}
       ${!openWindows.length && !openCases.length ? `<p class="muted">${t("Bugün açık pencere yok; iki hakkını nasıl yakacağın hâlâ bir karar.", "No open window today; how you spend two rights is still a decision.")}</p>` : ""}
@@ -148,7 +164,8 @@ function draw(session) {
         .map((id) => {
           const action = actionById.get(id);
           if (!action) return "";
-          return `<button type="button" class="action-card" data-action="${h(id)}" ${locked ? "disabled" : ""}><strong>${h(loc(action.label))}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}</small></button>`;
+          const preview = sonActionForecast(state, id);
+          return `<button type="button" class="action-card" data-action="${h(id)}" ${locked ? "disabled" : ""}><strong>${h(loc(action.label))}</strong><small>1 ${t("aksiyon", "action")} · ₺${signed(action.money)} · ${t("enerji", "energy")} ${signed(action.energy)} · ${t("umut", "hope")} ${signed(action.hope)}${preview ? ` · ${t("hazırlık", "prep")} ${h(loc(preview.label))} +${preview.gain}` : ""}</small></button>`;
         })
         .join(
           "",
