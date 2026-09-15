@@ -26,5 +26,5 @@ Content-only expansion. Deduction math, five endings, intimate-file list, restra
 - Mutually exclusive sibling clues persist in `caseLayout.exclusive` (derived from `caseSeed` for older saves).
 - Extra evidence paths were added to the five critical facts; original paths are untouched.
 - Side-secret thresholds stay at 2; extra evidence ids were appended.
-- Final `caseReport.traces` is an additive field inside the existing report object, not a new top-level save key.
-- Contact cards, photo/call metadata and report traces are presentation only.
+- Final `caseReport.traces` is an additive field inside the existing report object, not a new top-level save key. Traces include actor voices, opened side-secrets, fair misleads, missed facts and a seed note, capped at 10 unique rows. Ending/decision/privacy always survive the cap.
+- Contact cards, photo/call metadata and report traces are presentation only. Contact `relation` is pair-aware.

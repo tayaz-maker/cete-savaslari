@@ -34,6 +34,15 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-15 — Kayıp Telefon content-max (trace + footprint buffer)
+- Web change: Catalog buffer on the Wave 3 Kayıp Telefon content-max (extra notes/photos/contradiction pieces) plus bilingual contact `relation` pairs and actor/mislead rows in the existing `caseReport.traces` cap.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no.
+- UI/presentation: yes — contact relation now pair-renders; report traces prioritize ending/decision/privacy.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone Kayıp Telefon should carry the buffered catalog and trace contract.
+- Commits: `grok/wave3-kayip-telefon-max-content` (not merged to main).
+
 ### 2026-09-15 — Kayıp Telefon content-max
 - Web change: Content-only Wave 3 expansion of Kayıp Telefon. Deduction engine, 5 critical facts, theory/confidence math, 5 endings, intimate-file list, restrained 72-pressure solve, save keys `tariklab.nextwave.kayip-telefon.slotN` and V2 schema are unchanged.
 - Digital footprint: 80+ message pieces (thread overlays, not save-copied), 30+ notes/drafts, 20+ photo/media metadata items, calls/calendar/files/voice density, 9 distinct contact voices, 5 side-secret mini-threads with extra routes, exclusive siblings and seed-sensitive flavor text.
