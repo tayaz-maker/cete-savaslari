@@ -1,5 +1,7 @@
 # Kayıp Telefon — Reuse Architecture
 
+> Historical planning matrix. Current repository truth is in `IMPLEMENTATION.md`; the shipped game uses the shared three-slot host with a custom phone UI.
+
 ## Reuse map
 
 | Existing TarikLab system | Reuse directly | Adapt | Do not reuse | Reason |

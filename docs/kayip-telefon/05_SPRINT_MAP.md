@@ -1,5 +1,7 @@
 # Kayıp Telefon — Sprint Map
 
+> Historical sprint plan, not a completion ledger. See `IMPLEMENTATION.md` for current repository truth.
+
 | Sprint | Goal | Scope |
 |---|---|---|
 | Sprint 0 | Technical skeleton | Route, state shape, save key (single-case or slot, decided up front), phone-OS chrome shell (lock/home/app-grid, no real app content), gate-check + privacy-accumulation core, deterministic seed helper, basic migration, basic tests |

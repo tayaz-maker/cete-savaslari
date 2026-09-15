@@ -1,5 +1,7 @@
 # Kayıp Telefon — Product Identity
 
+> Historical design input. Current repository truth is in `IMPLEMENTATION.md`.
+
 ## Player fantasy
 A phone is found. The player explores it. A private life unfolds through the information on the device.
 

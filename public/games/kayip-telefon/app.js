@@ -1,4 +1,8 @@
-import { APPS, CONTACTS, DISCOVERABLES, ENDINGS } from "../next-wave.js";
+import {
+  APPS, CONTACTS, DISCOVERABLES, ENDINGS, availableEvidence, phoneThreads,
+  PHONE_FACTS, PHONE_THEORIES, PHONE_SIDE_SECRETS, PHONE_DECISIONS,
+  createPhoneState, newCaseSeed,
+} from "../next-wave.js";
 import { HELP_SECTIONS } from "./help.js";
 import { THREADS } from "../next-wave/kayip-data.js";
 import {
@@ -25,6 +29,7 @@ const appCopy = {
   voice: ["Ses Kayıtları", "Voice", "◉"],
 };
 let view = "menu";
+const p = (value) => Array.isArray(value) ? t(value[0], value[1]) : loc(value);
 function clueLabel(id) {
   const item = DISCOVERABLES.find((row) => row.id === id);
   if (item) return loc(item.title);
@@ -80,11 +85,14 @@ function draw(session) {
   }
   const ending = state.flags.ending && ENDINGS[state.flags.ending];
   const active = state.ui?.app || "messages";
-  const items = DISCOVERABLES.filter((item) => item.app === active);
-  const threads = state.threads || [];
+  const items = availableEvidence(state, active);
+  const threads = phoneThreads(state);
+  const tab = state.ui?.caseTab || "evidence";
+  const statusCopy = { weak: ["zayıf", "weak"], supported: ["destekleniyor", "supported"], strong: ["güçlü", "strong"], conflicted: ["çelişkili", "conflicted"], refuted: ["çürütüldü", "refuted"] };
+  const report = state.caseReport;
   root.innerHTML = `<main class="game-root"><header class="topbar global-chrome"><a href="/">${t("← Oyunlar", "← Games")}</a><span class="topbar__title">KAYIP TELEFON</span><div class="topbar__tools"><span data-lang-host></span>${savePanel(session)}</div></header><section class="phone-wrap"><div class="phone"><div class="phone-status"><span>21:14</span><span>${t("SAHİBİ BİLİNMİYOR", "OWNER UNKNOWN")}</span><span class="privacy">${t("MAHREMİYET", "PRIVACY")} ${state.privacyPressure}/100</span></div>${
     ending
-      ? `<section class="ending"><div><p class="eyebrow">${t("TELEFON İADE EDİLDİ", "PHONE RETURNED")}</p><h1>${h(loc(ending.title))}</h1><p>${h(loc(ending.text))}</p><p>${t("Keşif", "Discoveries")} ${state.discoveredItems.length} · ${t("mahremiyet baskısı", "privacy pressure")} ${state.privacyPressure}</p></div></section>`
+      ? `<section class="ending"><div class="case-report"><p class="eyebrow">${t("VAKA RAPORU", "CASE REPORT")} · #${state.caseSeed}</p><h1>${h(loc(ending.title))}</h1><p>${h(loc(ending.text))}</p><p>${t("Keşif", "Discoveries")} ${state.discoveredItems.length} · ${t("mahremiyet", "privacy")} ${state.privacyPressure} · ${t("güven", "confidence")} ${report?.confidence || 0}%</p><div class="report-grid"><div><strong>${t("Teoriler", "Theories")}</strong>${(report?.theories || []).map((x) => `<p>${h(p(PHONE_THEORIES.find((q) => q.id === x.question)?.options.find((o) => o.id === x.option)?.title))} · ${h(t(...statusCopy[x.status]))}</p>`).join("") || `<p>${t("Teori kurulmadı.", "No theory was formed.")}</p>`}</div><div><strong>${t("Kritik çıkarımlar", "Critical deductions")}</strong><p>${(report?.criticalEvidence || []).map((id) => h(p(PHONE_FACTS.find((x) => x.id === id)?.title))).join(" · ") || t("Yok", "None")}</p><strong>${t("Kaçırılanlar", "Missed")}</strong><p>${(report?.missedFacts || []).map((id) => h(p(PHONE_FACTS.find((x) => x.id === id)?.title))).join(" · ") || t("Yok", "None")}</p></div><div><strong>${t("Yan sırlar", "Side secrets")}</strong><p>${(report?.sideSecrets || []).map((id) => h(p(PHONE_SIDE_SECRETS.find((x) => x.id === id)?.title))).join(" · ") || t("Yok", "None")}</p><strong>${t("Karar", "Decision")}</strong><p>${h(p(PHONE_DECISIONS.find((x) => x.id === report?.decision)?.title))}</p></div></div></div></section>`
       : `<div class="phone-grid"><nav class="app-dock" aria-label="${t("Telefon uygulamaları", "Phone apps")}">${APPS.map(
           (app) => {
             const copy = appCopy[app];
@@ -114,27 +122,21 @@ function draw(session) {
             })
             .join("") ||
           `<p class="muted">${t("Bu uygulamada yeni öğe yok.", "No new item in this app.")}</p>`
-        }</div></section><aside class="evidence"><p class="eyebrow">${t("BULGULAR", "EVIDENCE")}</p><p>${t("Doğrulanan", "Corroborated")} ${state.corroboration.length} · ${t("Çelişki", "Contradictions")} ${state.contradiction.length}</p><div class="evidence-list">${state.corroboration
-          .slice(-4)
-          .map(
-            (row) =>
-              `<div class="evidence-row">✓ ${h(clueLabel(row.item))} ↔ ${h(clueLabel(row.with))}</div>`,
-          )
-          .join("")}${state.contradiction
-          .slice(-4)
-          .map(
-            (row) =>
-              `<div class="evidence-row contra">! ${h(clueLabel(row.item))} ≠ ${h(clueLabel(row.with))}</div>`,
-          )
-          .join(
-            "",
-          )}${!state.corroboration.length && !state.contradiction.length ? `<p class="muted">${t("Öğeleri okuyup ilişkileri kendin kur.", "Read items and build the links yourself.")}</p>` : ""}</div></aside></div><div class="return-bar"><span>${t("Telefonu her an iade edebilirsin; bu dosyayı kapatır.", "You may return the phone at any time; this closes the case.")}</span><button type="button" id="return">${t("TELEFONU İADE ET", "RETURN PHONE")}</button></div>`
+        }</div></section><aside class="evidence"><p class="eyebrow">${t("VAKA DEFTERİ", "CASE NOTEBOOK")}</p><div class="case-tabs"><button data-case-tab="evidence" class="${tab === "evidence" ? "is-active" : ""}">${t("KANIT", "EVIDENCE")}</button><button data-case-tab="theory" class="${tab === "theory" ? "is-active" : ""}">${t("TEORİ", "THEORY")}</button><button data-case-tab="timeline" class="${tab === "timeline" ? "is-active" : ""}">${t("ZAMAN", "TIMELINE")}</button></div>${tab === "evidence" ? `<p>${t("Bağ", "Links")} ${state.evidenceLinks.length} · ${t("Çelişki", "Contradictions")} ${state.contradiction.length}</p><div class="evidence-list">${state.discoveredItems.map((id) => `<div class="evidence-row"><span>${h(clueLabel(id))}</span><div><button data-pin="${h(id)}">${state.pinnedItems.includes(id) ? "★" : "☆"}</button><button data-link="${h(id)}" class="${state.ui.linkFrom === id ? "is-active" : ""}">${state.ui.linkFrom ? t("BAĞLA", "LINK") : t("SEÇ", "SELECT")}</button></div></div>`).join("") || `<p class="muted">${t("Bir öğeyi inceleyerek başla.", "Inspect an item to begin.")}</p>`}</div>` : tab === "theory" ? `<div class="theory-list">${PHONE_THEORIES.map((q) => `<section><strong>${h(p(q.title))}</strong>${q.options.map((o) => { const selected = state.hypotheses.find((x) => x.question === q.id && x.option === o.id); return `<button data-theory="${q.id}:${o.id}" class="${selected ? "is-active" : ""}">${h(p(o.title))}${selected ? `<small>${h(t(...statusCopy[selected.status]))} · ${selected.confidence}%</small>` : ""}</button>`; }).join("")}</section>`).join("")}</div>` : `<div class="timeline-list">${state.timeline.slice().reverse().map((row) => `<div class="evidence-row"><small>#${row.order || "–"}</small> ${h(clueLabel(row.item))}</div>`).join("") || `<p class="muted">${t("Henüz zaman çizelgesi yok.", "The timeline is empty.")}</p>`}</div>`}</aside></div><div class="return-bar"><label>${t("Son karar", "Final decision")} <select id="decision">${PHONE_DECISIONS.map((x) => `<option value="${x.id}" ${state.decision === x.id ? "selected" : ""}>${h(p(x.title))}</option>`).join("")}</select></label><button type="button" id="return">${t("DOSYAYI KAPAT / İADE ET", "CLOSE CASE / RETURN")}</button></div>`
   }</div></section><p class="notice">${h(session.notice)}</p>${helpPanel(HELP_SECTIONS)}</main>`;
   root
     .querySelectorAll("[data-app]")
     .forEach((button) =>
       button.addEventListener("click", () => session.setUI("app", button.dataset.app)),
     );
+  root.querySelectorAll("[data-case-tab]").forEach((button) => button.addEventListener("click", () => session.setUI("caseTab", button.dataset.caseTab)));
+  root.querySelectorAll("[data-pin]").forEach((button) => button.addEventListener("click", () => session.act(`pin:${button.dataset.pin}`)));
+  root.querySelectorAll("[data-link]").forEach((button) => button.addEventListener("click", () => {
+    const from = session.state.ui.linkFrom, id = button.dataset.link;
+    if (!from) session.setUI("linkFrom", id); else session.act(`link:${from}:${id}`);
+  }));
+  root.querySelectorAll("[data-theory]").forEach((button) => button.addEventListener("click", () => session.act(`theory:${button.dataset.theory}`)));
+  root.querySelector("#decision")?.addEventListener("change", (event) => session.act(`decision:${event.target.value}`));
   root
     .querySelectorAll("[data-item]")
     .forEach((button) =>
@@ -154,4 +156,4 @@ function draw(session) {
   bindSavePanel(root, session);
 }
 
-bootGame("kayip-telefon", draw);
+bootGame("kayip-telefon", draw, { create: () => createPhoneState(newCaseSeed()), safe: true });

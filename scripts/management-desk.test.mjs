@@ -16,7 +16,9 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // ilk depth dalgası yalnız next-wave.js içindeki Apartman state/simülasyonunu
 // değiştirdi. 2026-09-15 Wave 2, aynı dosyadaki Son 100 Gün save doğrulaması ve
 // v2 başlangıç state'ini bilinçli olarak değiştirdi; TC SIM ve DEVLET kaynakları
-// bu turda hâlâ donmuş durumda.
+// bu turda hâlâ donmuş durumda. 2026-09-15 Wave 3 yalnız aynı orkestratördeki
+// Kayıp Telefon state/action yönlendirmesini V2 deduction modülüne taşıdı;
+// TC SIM ve DEVLET davranışı değişmedi.
 test("frozen baseline: all 35 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -25,7 +27,7 @@ test("frozen baseline: all 35 content, simulation, persistence and projection so
   assert.equal(files.length, 35);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "764bf094b684057e1e62ed6de9289c7b8a5b8aef57170fc30005e95b48c33a74");
+  assert.equal(hash.digest("hex"), "db36810ae4f0268842727c5a6ea5ff7712e3b9331421127bb3e20e1a0d2e79dd");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

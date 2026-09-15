@@ -126,6 +126,19 @@ body {
   display: grid;
   gap: 8px;
 }
+.case-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0; }
+.case-tabs button { padding: 7px 3px; font-size: .68rem; }
+.case-tabs button.is-active, .theory-list button.is-active, [data-link].is-active { border-color: var(--accent); color: var(--accent); }
+.evidence-row { display: flex; justify-content: space-between; gap: 7px; align-items: center; overflow-wrap: anywhere; }
+.evidence-row button { min-width: 38px; padding: 5px; margin-left: 3px; }
+.theory-list { display: grid; gap: 14px; }
+.theory-list section { display: grid; gap: 5px; }
+.theory-list button { text-align: left; padding: 8px; }
+.theory-list small { display: block; color: var(--muted); margin-top: 3px; }
+.return-bar select { margin-left: 8px; max-width: 210px; }
+.case-report { width: min(900px, 100%); }
+.report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: left; margin-top: 20px; }
+.report-grid > div { padding: 12px; background: #0d1721; border: 1px solid var(--line); overflow-wrap: anywhere; }
 .evidence-row {
   border-left: 3px solid var(--accent);
   padding: 8px;
@@ -234,8 +247,13 @@ body {
     position: sticky;
     bottom: 0;
     flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
     padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
+  .return-bar select { min-height: 44px; max-width: 100%; width: 100%; margin: 6px 0 0; }
+  .return-bar button { min-height: 48px; }
+  .report-grid { grid-template-columns: 1fr; }
   .phone-status {
     grid-template-columns: auto 1fr;
   }

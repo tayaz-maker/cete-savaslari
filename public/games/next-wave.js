@@ -40,7 +40,26 @@ import {
   EVENTS as SON_EVENTS,
 } from "./next-wave/son100-data.js";
 import { applySonAction, sonAdvanceDay, applySonScenario, ensureSonState, validateSonState } from "./next-wave/son100-sim.js";
-import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
+import { APPS, CONTACTS, DISCOVERABLES, ENDINGS } from "./next-wave/kayip-data.js";
+import {
+  createPhoneState,
+  ensurePhoneState,
+  validatePhoneState,
+  discoverEvidence,
+  linkEvidence,
+  togglePin,
+  setTheory,
+  setDecision,
+  finishCase,
+  newCaseSeed,
+  availableEvidence,
+  evidenceNodes,
+  phoneThreads,
+  FACTS as PHONE_FACTS,
+  THEORIES as PHONE_THEORIES,
+  SIDE_SECRETS as PHONE_SIDE_SECRETS,
+  DECISIONS as PHONE_DECISIONS,
+} from "./next-wave/kayip-deduction.js";
 import { PERIODS, POLICIES_2002, POLICIES } from "./next-wave/devlet-data.js";
 import {
   hydrateDevlet,
@@ -149,29 +168,7 @@ const defs = {
       "Dosyalar",
       "Ses Kayıtları",
     ],
-    initial: () => ({
-      meta: { version: 1, id: "kayip-telefon" },
-      caseId: "lost-phone-01",
-      unlockedApps: ["messages", "contacts"],
-      discoveredItems: [],
-      contacts: CONTACTS.map((c) => ({ id: c.id, name: c.name })),
-      threads: THREADS.map((t) => ({
-        id: t.id,
-        contactId: t.contactId,
-        messages: t.messages.slice(),
-      })),
-      clues: [],
-      hypotheses: [],
-      privacyPressure: 0,
-      ownerRisk: 0,
-      corroboration: [],
-      contradiction: [],
-      openCases: [],
-      timeline: [],
-      history: [],
-      flags: { ending: null },
-      ui: { app: "messages", screen: "Mesajlar" },
-    }),
+    initial: () => createPhoneState(12345),
   },
   "tc-sim-devlet": {
     title: "TC SIM: DEVLET",
@@ -206,6 +203,10 @@ export function normalize(id, raw) {
     if (!validateSonState(raw)) return null;
     ensureSonState(raw);
     if (!validateSonState(raw)) return null;
+  }
+  if (id === "kayip-telefon") {
+    if (!validatePhoneState(raw)) return null;
+    if (!ensurePhoneState(raw) || !validatePhoneState(raw)) return null;
   }
   return raw;
 }
@@ -533,35 +534,6 @@ function unlockPhoneApps(s) {
     s.unlockedApps.push("voice");
 }
 
-function phoneDiscover(s, item) {
-  if (s.flags.ending) return;
-  if (s.discoveredItems.includes(item)) return;
-  const spec = DISCOVERABLES.find((d) => d.id === item);
-  if (spec?.requires && spec.requires.some((r) => !s.discoveredItems.includes(r))) return;
-  s.discoveredItems.push(item);
-  s.clues.push(item);
-  const extra = spec?.pressure || 8;
-  s.privacyPressure = clamp(s.privacyPressure + extra);
-  s.ownerRisk = clamp(s.ownerRisk + (spec?.tags?.includes("privacy") ? 10 : 3));
-  if (spec?.corroborates) s.corroboration.push({ item, with: spec.corroborates });
-  if (spec?.contradicts) s.contradiction.push({ item, with: spec.contradicts });
-  s.timeline.push({ item, pressure: s.privacyPressure });
-  unlockPhoneApps(s);
-  pushHist(s, { type: "discover", item });
-}
-
-function phoneEnding(s) {
-  const pressure = s.privacyPressure;
-  const sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass", "lock_note"].includes(x));
-  const travel = s.discoveredItems.some((x) =>
-    ["photo_ticket", "photo_bag", "cal_bus"].includes(x),
-  );
-  const family = s.discoveredItems.includes("call_leyla") || s.discoveredItems.includes("clue_0");
-  if (s.corroboration.length >= 3 && pressure < 70 && !sawId) return "witness";
-  if (family && travel && !sawId && pressure < 55) return "family";
-  return pressure < 20 ? "minimal" : pressure < 60 ? "thorough" : "reckless";
-}
-
 function devletPolicy(s, policyId) {
   return devletPolicyApply(s, policyId);
 }
@@ -621,12 +593,19 @@ export function applyAction(id, s, action) {
   } else if (id === "son-100-gun" && action.startsWith("scenario:")) {
     applySonScenario(s, action.slice(9));
   } else if (id === "kayip-telefon" && action.startsWith("discover:")) {
-    phoneDiscover(s, action.slice(9));
+    if (discoverEvidence(s, action.slice(9))) unlockPhoneApps(s);
+  } else if (id === "kayip-telefon" && action.startsWith("link:")) {
+    const [a, b] = action.slice(5).split(":");
+    linkEvidence(s, a, b);
+  } else if (id === "kayip-telefon" && action.startsWith("pin:")) {
+    togglePin(s, action.slice(4));
+  } else if (id === "kayip-telefon" && action.startsWith("theory:")) {
+    const [question, option] = action.slice(7).split(":");
+    setTheory(s, question, option);
+  } else if (id === "kayip-telefon" && action.startsWith("decision:")) {
+    setDecision(s, action.slice(9));
   } else if (id === "kayip-telefon" && action === "return") {
-    if (!s.flags.ending) {
-      s.flags.ending = phoneEnding(s);
-      pushHist(s, { type: "ending", ending: s.flags.ending });
-    }
+    finishCase(s);
   } else if (id === "tc-sim-devlet" && action === "policy") {
     devletPolicy(s, "imf-sba");
   } else if (id === "tc-sim-devlet" && action.startsWith("policy:")) {
@@ -684,5 +663,14 @@ export {
   RESIDENTS,
   SON_EVENTS,
   PROPOSALS,
+  createPhoneState,
+  newCaseSeed,
+  availableEvidence,
+  evidenceNodes,
+  phoneThreads,
+  PHONE_FACTS,
+  PHONE_THEORIES,
+  PHONE_SIDE_SECRETS,
+  PHONE_DECISIONS,
 };
 export { A100 as SON_ACTIONS };

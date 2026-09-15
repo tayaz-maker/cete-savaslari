@@ -1,5 +1,7 @@
 # Kayıp Telefon — State, Discovery Model, Privacy Model, Event Contract
 
+> Historical V1 proposal. The implemented V2 state and actual save keys are documented in `IMPLEMENTATION.md`.
+
 ## Core loop
 1. Player opens an app on the phone (Mesajlar, Aramalar, Fotoğraflar, etc.).
 2. Player inspects an item; inspecting may reveal a new contact, date, file reference, or clue.

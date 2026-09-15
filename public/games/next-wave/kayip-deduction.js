@@ -1,0 +1,206 @@
+import { APPS, CONTACTS, THREADS, DISCOVERABLES, ENDINGS } from "./kayip-data.js";
+
+const cap = (xs, n) => (Array.isArray(xs) ? xs.slice(-n) : []);
+const unique = (xs) => [...new Set(xs)];
+const hash = (seed, value) => {
+  let x = (Number(seed) || 12345) >>> 0;
+  for (const c of String(value)) x = Math.imul(x ^ c.charCodeAt(0), 16777619) >>> 0;
+  return x >>> 0;
+};
+const pair = (tr, en) => [tr, en];
+
+export const EVIDENCE_TYPES = ["message", "person", "photo", "location", "time", "note", "call", "calendar", "file", "payment", "media"];
+const APP_TYPE = { messages: "message", contacts: "person", calls: "call", photos: "photo", notes: "note", calendar: "calendar", files: "file", voice: "media" };
+
+export const FACTS = [
+  { id: "planned-departure", title: pair("Ayrılık planlıydı", "The departure was planned"), critical: true, paths: [["photo_ticket", "cal_bus"], ["photo_bag", "cal_bus"], ["photo_ticket", "photo_bag"]] },
+  { id: "naz-meeting", title: pair("Naz ile gizli bir görüşme vardı", "There was a private meeting with Naz"), critical: true, paths: [["cal_naz", "photo_cafe"], ["file_map", "photo_cafe"], ["contact_naz_note", "file_chat"]] },
+  { id: "work-pressure", title: pair("İş baskısı kaçışı hızlandırdı", "Work pressure accelerated the escape"), critical: true, paths: [["file_pdf", "cal_work"], ["call_emre", "cal_work"], ["file_pdf", "call_patron"]] },
+  { id: "family-unaware", title: pair("Aile planı bilmiyordu", "The family did not know the plan"), critical: true, paths: [["clue_0", "photo_bag"], ["call_leyla", "photo_ticket"]] },
+  { id: "ali-timeline-lie", title: pair("Ali zaman çizelgesi konusunda dürüst değildi", "Ali was not honest about the timeline"), critical: true, paths: [["voice_2", "deleted_ali"], ["note_pin", "voice_2"], ["deleted_ali", "note_pin"]] },
+];
+
+export const THEORIES = [
+  { id: "what", title: pair("Ne oldu?", "What happened?"), options: [
+    { id: "planned", title: pair("Planlı biçimde ayrıldı", "They left deliberately"), supports: ["planned-departure", "work-pressure"], contradicts: [] },
+    { id: "abduction", title: pair("Zorla götürüldü", "They were taken by force"), supports: [], contradicts: ["planned-departure"] },
+    { id: "impulse", title: pair("Ani bir kaçıştı", "It was an impulsive escape"), supports: ["work-pressure"], contradicts: ["planned-departure"] },
+  ] },
+  { id: "naz", title: pair("Naz'ın rolü ne?", "What was Naz's role?"), options: [
+    { id: "confidant", title: pair("Planı bilen sırdaş", "A confidant who knew the plan"), supports: ["naz-meeting", "planned-departure"], contradicts: [] },
+    { id: "affair", title: pair("Gizli ilişki", "A secret affair"), supports: ["naz-meeting"], contradicts: [] },
+    { id: "unrelated", title: pair("Olayla ilgisiz", "Unrelated to the case"), supports: [], contradicts: ["naz-meeting"] },
+  ] },
+  { id: "ali", title: pair("Ali doğruyu söylüyor mu?", "Is Ali telling the truth?"), options: [
+    { id: "lied", title: pair("Zaman konusunda yalan söyledi", "He lied about the timing"), supports: ["ali-timeline-lie"], contradicts: [] },
+    { id: "protected", title: pair("Sahibini korumak için eksik anlattı", "He omitted details to protect the owner"), supports: ["ali-timeline-lie", "planned-departure"], contradicts: [] },
+    { id: "truthful", title: pair("Anlatımı doğru", "His account is accurate"), supports: [], contradicts: ["ali-timeline-lie"] },
+  ] },
+];
+
+export const SIDE_SECRETS = [
+  { id: "debt", title: pair("Gizli borç", "Hidden debt"), evidence: ["note_debt", "bank_sms", "note_iban", "voice_3"], threshold: 2 },
+  { id: "relationship", title: pair("Saklanan ilişki", "Hidden relationship"), evidence: ["deleted_draft", "photo_key", "voice_1"], threshold: 2 },
+  { id: "work", title: pair("İş sırrı", "Work secret"), evidence: ["file_pdf", "cal_work", "call_patron"], threshold: 2 },
+  { id: "health", title: pair("Sağlık meselesi", "Health issue"), evidence: ["cal_clinic", "photo_eczane", "file_scan"], threshold: 2 },
+  { id: "account", title: pair("Sahte hesap", "False account"), evidence: ["file_chat", "contact_naz_note", "call_unknown"], threshold: 2 },
+];
+
+export const DECISIONS = [
+  { id: "return", title: pair("Sessizce iade et", "Return it quietly") },
+  { id: "warn-family", title: pair("Aileyi uyar", "Warn the family") },
+  { id: "accuse-ali", title: pair("Ali'yi suçla", "Accuse Ali") },
+  { id: "expose", title: pair("Bulduklarını açıkla", "Expose what you found") },
+  { id: "protect", title: pair("Gerçeği sakla", "Protect the truth") },
+];
+
+export function caseLayout(seed) {
+  const movable = {
+    bank_sms: ["messages", "files"], deleted_draft: ["messages", "notes"], file_map: ["files", "notes"],
+    contact_naz_note: ["contacts", "notes"], call_unknown: ["calls", "messages"],
+  };
+  const apps = {};
+  for (const item of DISCOVERABLES) {
+    const choices = movable[item.id] || [item.app];
+    apps[item.id] = choices[hash(seed, item.id) % choices.length];
+  }
+  const ranked = SIDE_SECRETS.slice().sort((a, b) => hash(seed, a.id) - hash(seed, b.id));
+  return { apps, messageVariant: hash(seed, "messages") % 3, activeSecrets: ranked.slice(0, 3 + (hash(seed, "secrets") % 3)).map((x) => x.id) };
+}
+
+export function createPhoneState(seed = 12345) {
+  const caseSeed = (Number(seed) || 12345) >>> 0;
+  return ensurePhoneState({
+    meta: { version: 2, id: "kayip-telefon", seed: caseSeed }, caseId: "lost-phone-01", caseSeed,
+    unlockedApps: ["messages", "contacts"], discoveredItems: [], contacts: CONTACTS.map(({ id, name }) => ({ id, name })),
+    threads: THREADS.map((x) => ({ id: x.id, contactId: x.contactId, messages: x.messages.slice() })), clues: [], hypotheses: [],
+    privacyPressure: 0, ownerRisk: 0, corroboration: [], contradiction: [], openCases: [], timeline: [], history: [],
+    evidenceLinks: [], pinnedItems: [], knownFacts: [], sideSecrets: [], decision: "return", caseReport: null,
+    flags: { ending: null }, ui: { app: "messages", screen: "Mesajlar", caseTab: "evidence", linkFrom: null },
+  });
+}
+
+export function newCaseSeed() {
+  if (globalThis.crypto?.getRandomValues) return globalThis.crypto.getRandomValues(new Uint32Array(1))[0] || 1;
+  return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0 || 1;
+}
+
+export function validatePhoneState(s) {
+  return !!s && s.meta?.id === "kayip-telefon" && [1, 2].includes(s.meta.version) &&
+    Array.isArray(s.history) && Array.isArray(s.openCases) && Array.isArray(s.discoveredItems) &&
+    Array.isArray(s.unlockedApps) && Number.isFinite(s.privacyPressure) && Number.isFinite(s.ownerRisk) &&
+    s.discoveredItems.every((id) => DISCOVERABLES.some((x) => x.id === id));
+}
+
+export function ensurePhoneState(s) {
+  if (!validatePhoneState(s)) return null;
+  s.meta.version = 2;
+  s.caseSeed = (Number(s.caseSeed ?? s.meta.seed) || 12345) >>> 0;
+  s.meta.seed = s.caseSeed;
+  s.caseLayout = s.caseLayout?.apps && Array.isArray(s.caseLayout.activeSecrets) ? s.caseLayout : caseLayout(s.caseSeed);
+  s.evidenceLinks = cap(s.evidenceLinks, 64);
+  s.pinnedItems = cap(s.pinnedItems, 20).filter((id) => s.discoveredItems.includes(id));
+  s.knownFacts = cap(s.knownFacts, FACTS.length);
+  s.sideSecrets = cap(s.sideSecrets, SIDE_SECRETS.length);
+  s.hypotheses = cap(s.hypotheses, THEORIES.length).filter((x) => x && typeof x === "object");
+  s.decision = DECISIONS.some((x) => x.id === s.decision) ? s.decision : "return";
+  s.caseReport = s.caseReport && typeof s.caseReport === "object" ? s.caseReport : null;
+  s.corrobation = undefined;
+  s.corroboration = cap(s.corroboration, 64);
+  s.contradiction = cap(s.contradiction, 64);
+  s.timeline = cap(s.timeline, 80);
+  s.history = cap(s.history, 80);
+  s.ui = Object.assign({ app: "messages", screen: "Mesajlar", caseTab: "evidence", linkFrom: null }, s.ui || {});
+  updateDeductions(s);
+  return s;
+}
+
+export function evidenceSpec(s, id) {
+  const item = DISCOVERABLES.find((x) => x.id === id);
+  return item ? { ...item, app: s.caseLayout?.apps?.[id] || item.app, type: APP_TYPE[s.caseLayout?.apps?.[id] || item.app] || "media" } : null;
+}
+
+export function availableEvidence(s, app) { return DISCOVERABLES.map((x) => evidenceSpec(s, x.id)).filter((x) => x.app === app); }
+export function evidenceNodes(s) { return s.discoveredItems.map((id) => evidenceSpec(s, id)).filter(Boolean); }
+export function phoneThreads(s) {
+  const variant = s.caseLayout?.messageVariant || 0;
+  return (s.threads || []).map((thread, i) => ({ ...thread, messages: thread.messages.map((m, j) => (variant === 1 && i === 0 && j === 0 ? ["Dün de aradım. Müsait olunca dön.", "Called yesterday too. Call when free."] : variant === 2 && i === 1 && j === 0 ? ["Toplantı saati yine değişti.", "The meeting time changed again."] : m)) }));
+}
+
+function updateDeductions(s) {
+  const got = new Set(s.discoveredItems);
+  const visible = new Set([...got, ...(s.threads || []).map((x) => x.id)]);
+  const relations = (kind) => DISCOVERABLES.flatMap((item) => {
+    if (!got.has(item.id)) return [];
+    const targets = Array.isArray(item[kind]) ? item[kind] : item[kind] ? [item[kind]] : [];
+    return targets.filter((target) => visible.has(target)).map((target) => ({ item: item.id, with: target }));
+  });
+  s.corroboration = relations("corroborates");
+  s.contradiction = relations("contradicts");
+  s.knownFacts = FACTS.filter((fact) => fact.paths.some((path) => path.every((id) => got.has(id)))).map((x) => x.id);
+  s.sideSecrets = SIDE_SECRETS.filter((secret) => s.caseLayout.activeSecrets.includes(secret.id) && secret.evidence.filter((id) => got.has(id)).length >= secret.threshold).map((x) => x.id);
+  s.hypotheses = s.hypotheses.map((hyp) => theorySummary(s, hyp.question, hyp.option)).filter(Boolean);
+}
+
+export function theorySummary(s, questionId, optionId) {
+  const question = THEORIES.find((x) => x.id === questionId), option = question?.options.find((x) => x.id === optionId);
+  if (!option) return null;
+  const support = option.supports.filter((x) => s.knownFacts.includes(x)).length;
+  const conflict = option.contradicts.filter((x) => s.knownFacts.includes(x)).length;
+  const confidence = Math.max(5, Math.min(100, 15 + support * 38 - conflict * 35));
+  const status = conflict && support ? "conflicted" : conflict ? "refuted" : support >= 2 ? "strong" : support ? "supported" : "weak";
+  return { question: questionId, option: optionId, confidence, status };
+}
+
+export function discoverEvidence(s, id) {
+  if (s.flags.ending || s.discoveredItems.includes(id)) return false;
+  const item = evidenceSpec(s, id); if (!item) return false;
+  if (item.requires?.some((required) => !s.discoveredItems.includes(required))) return false;
+  s.discoveredItems.push(id); s.clues = unique((s.clues || []).concat(id));
+  s.privacyPressure = Math.max(0, Math.min(100, s.privacyPressure + (item.pressure || 8)));
+  s.ownerRisk = Math.max(0, Math.min(100, s.ownerRisk + (item.tags?.includes("privacy") ? 10 : 3)));
+  s.timeline.push({ item: id, pressure: s.privacyPressure, order: s.discoveredItems.length });
+  s.history.push({ type: "discover", item: id });
+  updateDeductions(s); ensurePhoneState(s); return true;
+}
+
+export function linkEvidence(s, a, b) {
+  if (s.flags.ending || a === b || !s.discoveredItems.includes(a) || !s.discoveredItems.includes(b)) return false;
+  const key = [a, b].sort().join("|");
+  if (s.evidenceLinks.some((x) => x.key === key)) return false;
+  const related = (x, target) => [x.corroborates, x.contradicts].flat().filter(Boolean).includes(target);
+  const authored = DISCOVERABLES.some((x) => x.id === a && related(x, b)) || DISCOVERABLES.some((x) => x.id === b && related(x, a)) || FACTS.some((f) => f.paths.some((p) => p.includes(a) && p.includes(b)));
+  s.evidenceLinks.push({ key, a, b, relation: authored ? "relevant" : "context" });
+  s.history.push({ type: "link", a, b }); s.ui.linkFrom = null; ensurePhoneState(s); return true;
+}
+
+export function togglePin(s, id) { if (!s.discoveredItems.includes(id) || s.flags.ending) return false; s.pinnedItems = s.pinnedItems.includes(id) ? s.pinnedItems.filter((x) => x !== id) : cap(s.pinnedItems.concat(id), 20); return true; }
+export function setTheory(s, question, option) { if (s.flags.ending || !THEORIES.find((q) => q.id === question)?.options.some((x) => x.id === option)) return false; s.hypotheses = s.hypotheses.filter((x) => x.question !== question).concat(theorySummary(s, question, option)); s.history.push({ type: "theory", question, option }); ensurePhoneState(s); return true; }
+export function setDecision(s, decision) { if (s.flags.ending || !DECISIONS.some((x) => x.id === decision)) return false; s.decision = decision; return true; }
+
+export function finishCase(s) {
+  if (s.flags.ending) return false;
+  const what = s.hypotheses.find((x) => x.question === "what");
+  const correct = s.hypotheses.filter((x) => (x.question === "what" && x.option === "planned") || (x.question === "naz" && x.option === "confidant") || (x.question === "ali" && ["lied", "protected"].includes(x.option))).length;
+  const wrong = s.hypotheses.filter((x) => x.status === "refuted" || (x.question === "what" && x.option === "abduction")).length;
+  let ending;
+  if (s.decision === "accuse-ali" && (!what || correct < 2)) ending = "reckless";
+  else if (s.decision === "warn-family" && s.knownFacts.includes("family-unaware") && s.knownFacts.includes("planned-departure") && wrong === 0 && s.privacyPressure < 70) ending = "family";
+  else if (what?.option === "planned" && s.knownFacts.length >= 3 && wrong === 0 && s.privacyPressure < 70) ending = "witness";
+  else if (!s.hypotheses.length && s.privacyPressure < 20) ending = "minimal";
+  else ending = s.privacyPressure < 60 && wrong === 0 ? "thorough" : "reckless";
+  s.flags.ending = ending;
+  s.caseReport = { seed: s.caseSeed, decision: s.decision, ending, theories: s.hypotheses.map((x) => ({ ...x })), correct, wrong, criticalEvidence: FACTS.filter((x) => s.knownFacts.includes(x.id)).map((x) => x.id), missedFacts: FACTS.filter((x) => !s.knownFacts.includes(x.id)).map((x) => x.id), contradictions: s.contradiction.slice(), sideSecrets: s.sideSecrets.slice(), confidence: s.hypotheses.length ? Math.round(s.hypotheses.reduce((a, x) => a + x.confidence, 0) / s.hypotheses.length) : 0 };
+  s.history.push({ type: "ending", ending, decision: s.decision }); ensurePhoneState(s); return true;
+}
+
+export function legacyEnding(s) {
+  const pressure = s.privacyPressure, sawId = s.discoveredItems.some((x) => ["file_scan", "note_pass", "lock_note"].includes(x));
+  const travel = s.discoveredItems.some((x) => ["photo_ticket", "photo_bag", "cal_bus"].includes(x));
+  const family = s.discoveredItems.includes("call_leyla") || s.discoveredItems.includes("clue_0");
+  if (s.corroboration.length >= 3 && pressure < 70 && !sawId) return "witness";
+  if (family && travel && !sawId && pressure < 55) return "family";
+  return pressure < 20 ? "minimal" : pressure < 60 ? "thorough" : "reckless";
+}
+
+export { APPS, CONTACTS, DISCOVERABLES, ENDINGS };
