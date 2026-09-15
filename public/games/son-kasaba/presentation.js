@@ -17,6 +17,7 @@ import {
   actionInfo,
   CIVIC_ACTIONS,
   TOWN_STAGES,
+  investorTerms,
 } from "./sim.js";
 import { escapeHtml as h, helpPanel, language, text as t } from "../next-wave/shared/runtime.js";
 export const tr = (p) => t(p[0], p[1]);
@@ -75,6 +76,44 @@ const CHAIN_STAGES = {
   dependency: ["bağımlılık", "dependency"],
   bargained: ["pazarlıklı", "bargained"],
   available: ["erişilebilir", "available"],
+};
+const INSTITUTIONS = {
+  council: [
+    "Konsey",
+    "Council",
+    "Grup baskısını dengeler; aylık halk güvenine +1.",
+    "Balances group pressure; +1 public trust each month.",
+  ],
+  "service-board": [
+    "Hizmet kurulu",
+    "Service board",
+    "Sağlık, eğitim ve toplam hizmet göstergelerine +4.",
+    "+4 to health, education and overall services.",
+  ],
+  "market-desk": [
+    "Pazar masası",
+    "Market desk",
+    "Yerel işletme gelirine %5.",
+    "+5% local business income.",
+  ],
+  "planning-office": [
+    "Planlama ofisi",
+    "Planning office",
+    "Bakım ve altyapı giderlerini %7 azaltır.",
+    "Reduces maintenance and infrastructure costs by 7%.",
+  ],
+  "social-council": [
+    "Sosyal konsey",
+    "Social council",
+    "Tüm hanelerin aylık göç baskısını azaltır.",
+    "Reduces monthly migration pressure for every cohort.",
+  ],
+  "town-charter": [
+    "Kasaba şartı",
+    "Town charter",
+    "Şirket kontrolünü ayda 1 azaltır; yerel kimliği korur.",
+    "Reduces company control by 1 monthly and protects local identity.",
+  ],
 };
 const band = (v, inverse = false) => {
   const n = inverse ? 100 - v : v;
@@ -149,6 +188,7 @@ const COSTS = {
   interest: ["Borç faizi", "Debt interest"],
   health: ["Sağlık", "Healthcare"],
   education: ["Eğitim", "Education"],
+  commitments: ["Yatırımcı yükümlülükleri", "Investor commitments"],
 };
 function report(s) {
   const r = s.report;
@@ -250,15 +290,16 @@ export function townPanel(s) {
       )
       .join("")}`;
   if (screen === "investors")
-    return `<h2>${t("Gelen paranın bir sahibi var", "The money has an owner")}</h2><p>${t("Levent’in konsorsiyumu bu teklifleri getirir. Kabul kalıcı arazi/ekonomi kontrolü verir, altı ay vergi indirimi açar ve üç ay sonra kira/dağılım etkisi doğurur. 5.000 TL'lik pazarlık hibeyi %20 azaltır; kontrol ve zararları %35 düşürür. Pazarlık aynı ay kabul edilemez.", "Levent’s consortium brings these offers. Accepting grants lasting land/economic control, six months of tax relief and rent/distribution effects after three months. Negotiating costs 5,000 TL and reduces the grant by 20%, control and harms by 35%. You cannot accept in the same month as negotiation.")}</p>${INVESTORS.map(
+    return `<h2>${t("Gelen paranın bir sahibi var", "The money has an owner")}</h2><p>${t("Her yeni imzada hibe ve iş getirisi azalır; hizmet/arazi yükü, güven bedeli ve şirket kontrolü büyür. Bazı yatırımlar birbiriyle çatışır. Pazarlık aynı ay kabul edilemez.", "Each additional signature yields fewer grants and jobs while service/land obligations, trust costs and company control grow. Some investments conflict. You cannot accept in the same month as negotiation.")}</p>${INVESTORS.map(
       (d) => {
         const o = s.investors.find((o) => o.id === d.id),
-          f = o.negotiated ? 0.65 : 1;
-        return `<article class="investor-file"><p class="eyebrow">${t("TEKLİF DOSYASI", "OFFER FILE")} · ${t("En erken ay", "Earliest month")} ${d.month}</p><h3>${h(tr(d.name))}</h3><p>${t("Hibe", "Grant")}: ${number(d.grant * (o.negotiated ? 0.8 : 1))} TL · ${t("İş endeksi", "Jobs index")} +${d.jobs} · ${t("Kontrol", "Control")} +${Math.round(d.control * f)}%</p><p>${h(effects(Object.fromEntries(Object.entries(d.effects).map(([k, v]) => [k, v < 0 || ["pollution", "inequality", "rent"].includes(k) ? Math.round(v * f) : v]))))}</p><p>${o.status === "unseen" ? t("Henüz masada değil; dönem ve en az 25 itibar gerekir.", "Not yet available; requires the period and reputation of at least 25.") : o.status === "accepted" ? t("İmzalandı", "Signed") : o.status === "rejected" ? t("Reddedildi", "Rejected") : o.negotiated ? t("Pazarlıklı teklif", "Negotiated offer") : t("Görüşmeye açık", "Open for discussion")}</p><div class="town-actions">${button(s, `investor:${d.id}:accept`, t("Kabul et", "Accept"))}${button(s, `investor:${d.id}:negotiate`, t("Pazarlık yap", "Negotiate"))}${button(s, `investor:${d.id}:reject`, t("Reddet", "Reject"))}</div></article>`;
+          terms = investorTerms(s, d.id),
+          required = TOWN_STAGES.find((stage) => stage.id === terms.requiredStage);
+        return `<article class="investor-file"><p class="eyebrow">${t("TEKLİF DOSYASI", "OFFER FILE")} · ${t("En erken ay", "Earliest month")} ${d.month}</p><h3>${h(tr(d.name))}</h3><p>${t("Bu imzanın net şartı", "Terms for this signature")}: ${t("hibe", "grant")} ${number(terms.grant)} TL · ${t("iş", "jobs")} +${terms.jobs} · ${t("kontrol", "control")} +${terms.control}%</p><p>${t("Aylık hizmet/arazi yükü", "Monthly service/land obligation")}: ${number(terms.monthlyCommitment)} TL · ${t("güven bedeli", "trust cost")} −${terms.trustCost} · ${t("yerel kimlik bedeli", "local identity cost")} −${terms.identityCost}</p><p>${terms.conflict ? t("Mevcut yatırımla çıkar çatışması var.", "Conflicts with an existing investment.") : terms.aligned ? t("Kasaba kimliğiyle uyumlu.", "Aligned with the town identity.") : t("Kasaba kimliğiyle tam uyumlu değil.", "Not fully aligned with the town identity.")} · ${t("Gerekli katman", "Required layer")}: ${h(tr(required.label))}</p><p>${o.status === "unseen" ? t("Henüz masada değil; dönem ve en az 25 itibar gerekir.", "Not yet available; requires the period and reputation of at least 25.") : o.status === "accepted" ? t("İmzalandı", "Signed") : o.status === "rejected" ? t("Reddedildi", "Rejected") : o.negotiated ? t("Pazarlıklı teklif", "Negotiated offer") : t("Görüşmeye açık", "Open for discussion")}</p><div class="town-actions">${button(s, `investor:${d.id}:accept`, t("Kabul et", "Accept"))}${button(s, `investor:${d.id}:negotiate`, t("Pazarlık yap", "Negotiate"))}${button(s, `investor:${d.id}:reject`, t("Reddet", "Reject"))}</div></article>`;
       },
     ).join("")}`;
   if (screen === "files")
-    return `<h2>${t("Bugün kapanmayan işler", "Files that do not close today")}</h2><p>${t("Gecikmiş sonuçlar kayıtla birlikte taşınır; ay başında bir kez uygulanır.", "Delayed outcomes persist in your save and apply once at the start of their month.")}</p><h3>${t("Sistem zincirleri", "System chains")}</h3>${
+    return `<h2>${t("Yönetim katmanı ve kurumlar", "Governance layer and institutions")}</h2><p>${h(tr(stage.label))} · ${t("ilerleme puanı", "progress score")} ${s.progression.score}/100</p><div class="town-grid">${stage.institutions.map((id) => `<article><h3>${h(t(INSTITUTIONS[id][0], INSTITUTIONS[id][1]))}</h3><p>${h(t(INSTITUTIONS[id][2], INSTITUTIONS[id][3]))}</p></article>`).join("")}</div><h2>${t("Bugün kapanmayan işler", "Files that do not close today")}</h2><p>${t("Gecikmiş sonuçlar kayıtla birlikte taşınır; ay başında bir kez uygulanır.", "Delayed outcomes persist in your save and apply once at the start of their month.")}</p><h3>${t("Sistem zincirleri", "System chains")}</h3>${
       Object.values(s.chains || {})
         .map(
           (c) =>

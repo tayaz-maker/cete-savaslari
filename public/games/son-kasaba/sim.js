@@ -39,22 +39,93 @@ export const TOWN_STAGES = [
     ],
   },
 ];
+const STAGE_INDEX = Object.fromEntries(TOWN_STAGES.map((stage, index) => [stage.id, index]));
+const INVESTOR_STAGE = {
+  hotel: "municipal",
+  factory: "municipal",
+  solar: "planning",
+  logistics: "planning",
+  hospital: "planning",
+  mine: "planning",
+  agriculture: "planning",
+};
+const INVESTOR_IDENTITY = {
+  hotel: "tourism",
+  factory: "production",
+  solar: "agriculture",
+  logistics: "enterprise",
+  hospital: "retirement",
+  mine: "production",
+  agriculture: "agriculture",
+};
+const INVESTOR_CONFLICTS = [
+  ["hotel", "factory"],
+  ["solar", "mine"],
+  ["mine", "agriculture"],
+];
+
+export function townModifiers(s) {
+  const institutions = new Set(s.progression?.institutions || ["council"]);
+  return {
+    councilTrust: institutions.has("council") ? 1 : 0,
+    serviceBonus: institutions.has("service-board") ? 4 : 0,
+    marketIncome: institutions.has("market-desk") ? 1.05 : 1,
+    upkeepFactor: institutions.has("planning-office") ? 0.93 : 1,
+    migrationRelief: institutions.has("social-council") ? 0.18 : 0,
+    companyResistance: institutions.has("town-charter") ? 1 : 0,
+  };
+}
+
+export function investorTerms(s, id) {
+  const offer = s.investors.find((item) => item.id === id);
+  const definition = INVESTORS.find((item) => item.id === id);
+  if (!offer || !definition) return null;
+  const accepted = s.investors.filter((item) => item.status === "accepted");
+  const count = accepted.length;
+  const negotiated = offer.negotiated;
+  const conflict = INVESTOR_CONFLICTS.some(
+    (pair) =>
+      pair.includes(id) &&
+      pair.some((other) => other !== id && accepted.some((x) => x.id === other)),
+  );
+  const aligned = ["crisis", "company", INVESTOR_IDENTITY[id]].includes(s.identity);
+  const grantFactor = Math.max(0.55, 1 - count * 0.1) * (negotiated ? 0.8 : 1);
+  const benefitFactor = Math.max(0.6, 1 - count * 0.08);
+  const controlFactor = negotiated ? 0.65 : 1;
+  return {
+    requiredStage: INVESTOR_STAGE[id],
+    eligible: STAGE_INDEX[s.progression?.stage || "emergency"] >= STAGE_INDEX[INVESTOR_STAGE[id]],
+    grant: Math.round(definition.grant * grantFactor),
+    jobs: Math.max(1, Math.round(definition.jobs * benefitFactor)),
+    control: Math.round(
+      definition.control * controlFactor + Math.max(0, count - 1) * 2 + (conflict ? 4 : 0),
+    ),
+    trustCost: Math.min(8, Math.max(0, count - 1) + (conflict ? 3 : 0) + (aligned ? 0 : 2)),
+    identityCost: Math.min(8, Math.max(0, count - 2) + (aligned ? 0 : 2)),
+    monthlyCommitment: 900 + count * 300 + (conflict ? 600 : 0),
+    conflict,
+    aligned,
+    benefitFactor,
+  };
+}
 export const effective = (s, id) => {
   const b = s.buildings.find((b) => b.id === id);
   return b?.open ? b.condition : 0;
 };
 export function indicators(s) {
-  const m = s.metrics;
+  const m = s.metrics,
+    modifiers = townModifiers(s);
   return {
     jobs: clamp(
       m.jobs + (effective(s, "factory") + effective(s, "workshop")) / 10 - m.pollution / 10,
     ),
     health: clamp(
       mean([effective(s, "clinic"), effective(s, "pharmacy"), m.health, m.supply]) -
-        m.pollution / 10,
+        m.pollution / 10 +
+        modifiers.serviceBonus,
     ),
     school: s.npcs.find((n) => n.id === "elif")?.present
-      ? clamp(mean([effective(s, "school"), m.school]))
+      ? clamp(mean([effective(s, "school"), m.school]) + modifiers.serviceBonus)
       : 0,
     transport: clamp(mean([effective(s, "fuel"), effective(s, "bus"), m.road])),
     social: clamp(mean([effective(s, "cafe"), m.social])),
@@ -66,7 +137,7 @@ export function indicators(s) {
         m.water,
         m.energy,
         m.services,
-      ]),
+      ]) + modifiers.serviceBonus,
     ),
   };
 }
@@ -655,6 +726,11 @@ export function actionInfo(s, command) {
       no("Teklif açık değil", "Offer not open");
     else {
       label = d.name;
+      const terms = investorTerms(s, id);
+      if (choice === "accept" && !terms.eligible) {
+        const stage = TOWN_STAGES.find((item) => item.id === terms.requiredStage);
+        no(`${stage.label[0]} katmanı gerekli`, `${stage.label[1]} layer required`);
+      }
       if (choice === "negotiate") {
         cost = 5000;
         if (o.negotiated) no("Pazarlık tamamlandı", "Negotiation already complete");
@@ -759,17 +835,22 @@ export function applyTownAction(s, command) {
       remember(s, "investors", "Teklif reddedildi.", "Offer rejected.", -6);
     }
     if (a.choice === "accept") {
+      const terms = investorTerms(s, o.id);
       o.status = "accepted";
       o.acceptedMonth = s.month;
       const f = o.negotiated ? 0.65 : 1;
       effect(s, {
-        budget: Math.round(d.grant * (o.negotiated ? 0.8 : 1)),
-        jobs: d.jobs,
-        company: Math.round(d.control * f),
+        budget: terms.grant,
+        jobs: terms.jobs,
+        company: terms.control,
+        trust: -terms.trustCost,
+        localIdentity: -terms.identityCost,
         ...Object.fromEntries(
           Object.entries(d.effects).map(([k, v]) => [
             k,
-            v < 0 || ["pollution", "inequality", "rent"].includes(k) ? Math.round(v * f) : v,
+            v < 0 || ["pollution", "inequality", "rent"].includes(k)
+              ? Math.round(v * f)
+              : Math.round(v * terms.benefitFactor),
           ]),
         ),
       });
@@ -783,6 +864,12 @@ export function applyTownAction(s, command) {
         effects: { rent: o.negotiated ? 2 : 6, inequality: o.negotiated ? 2 : 7 },
         text: [`${d.name[0]} çevresinde kiralar arttı.`, `Rents rose around the ${d.name[1]}.`],
       });
+      addHistory(
+        s,
+        `Sözleşme aylık ${terms.monthlyCommitment.toLocaleString("tr-TR")} TL hizmet ve arazi yükümlülüğü getirdi${terms.conflict ? "; mevcut yatırımla çıkar çatışması doğdu" : ""}.`,
+        `The contract added a monthly service and land commitment of ${terms.monthlyCommitment.toLocaleString("en-GB")} TL${terms.conflict ? "; it conflicts with an existing investment" : ""}.`,
+        "investor",
+      );
       remember(s, "workers", "Yeni yatırım iş açtı.", "New investment opened jobs.", 8);
       remember(
         s,
@@ -827,7 +914,8 @@ export function applyTownAction(s, command) {
 export function economy(s) {
   const m = s.metrics,
     i = indicators(s),
-    p = population(s);
+    p = population(s),
+    modifiers = townModifiers(s);
   const taxRelief = s.investors.filter(
     (o) => o.status === "accepted" && s.month - o.acceptedMonth < 6,
   ).length;
@@ -838,7 +926,8 @@ export function economy(s) {
     business: Math.round(
       (effective(s, "market") + effective(s, "fuel") + effective(s, "cafe")) *
         24 *
-        (1 - taxRelief * 0.07),
+        (1 - taxRelief * 0.07) *
+        modifiers.marketIncome,
     ),
     tourism: Math.round((m.tourism * effective(s, "hotel") * effective(s, "heritage")) / 170),
     production: Math.round(
@@ -862,14 +951,20 @@ export function economy(s) {
   };
   const costs = {
     staff: 3500,
-    maintenance: sum(
-      s.buildings.map((b) => BUILDINGS.find((d) => d.id === b.id).upkeep * (b.open ? 1 : 0.15)),
+    maintenance: Math.round(
+      modifiers.upkeepFactor *
+        sum(
+          s.buildings.map((b) => BUILDINGS.find((d) => d.id === b.id).upkeep * (b.open ? 1 : 0.15)),
+        ),
     ),
-    infrastructure: Math.round(1500 + (100 - m.road) * 15),
+    infrastructure: Math.round((1500 + (100 - m.road) * 15) * modifiers.upkeepFactor),
     energy: Math.round(1800 + (100 - m.energy) * 12),
     interest: Math.ceil(s.debt * 0.012),
     health: Math.round(i.health * 18),
     education: Math.round(i.school * 16),
+    commitments: s.investors
+      .filter((offer) => offer.status === "accepted")
+      .reduce((total, offer, index) => total + 900 + index * 300, 0),
   };
   return {
     income,
@@ -926,7 +1021,8 @@ export function advanceTown(s) {
     trust: s.metrics.trust,
     identity: s.identity,
   };
-  const finance = economy(s);
+  const finance = economy(s),
+    modifiers = townModifiers(s);
   effect(s, { budget: finance.totalIncome - finance.totalCosts });
   const m = s.metrics;
   for (const b of s.buildings)
@@ -982,7 +1078,11 @@ export function advanceTown(s) {
     };
     const identityPull = (pulls[s.identity] || []).includes(c.id) ? 0.35 : 0;
     const rate = clamp(
-      weighted + (m.prices - 100) / 35 + (50 - i.transport) / 40 - identityPull,
+      weighted +
+        (m.prices - 100) / 35 +
+        (50 - i.transport) / 40 -
+        identityPull -
+        modifiers.migrationRelief,
       -1.5,
       5,
     );
@@ -1034,8 +1134,10 @@ export function advanceTown(s) {
     );
   }
   effect(s, {
-    trust: i.services < 35 ? -4 : 1,
+    trust: (i.services < 35 ? -4 : 1) + modifiers.councilTrust,
     reputation: population(s) >= before.population ? 1 : -1,
+    company: -modifiers.companyResistance,
+    localIdentity: modifiers.companyResistance ? 1 : 0,
   });
   for (const g of s.groups) {
     const desire = {

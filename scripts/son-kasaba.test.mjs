@@ -183,6 +183,12 @@ test("investor accept, negotiate and reject have irreversible trade-offs and no 
     const s = createTown();
     s.month = 10;
     s.completedMonths = 9;
+    for (const key of ["trust", "reputation", "services", "water", "energy", "health", "school"])
+      s.metrics[key] = 80;
+    for (const building of s.buildings) {
+      building.open = true;
+      building.condition = 80;
+    }
     refreshTown(s);
     const before = s.budget;
     assert.equal(applyTownAction(s, `investor:mine:${choice}`), true);

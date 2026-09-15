@@ -19,8 +19,13 @@ import {
   updateTownProgression,
   validateTown,
   population,
+  indicators,
+  economy,
+  townModifiers,
+  investorTerms,
+  actionInfo,
 } from "../public/games/son-kasaba/sim.js";
-import { EVENTS as TOWN_EVENTS } from "../public/games/son-kasaba/data.js";
+import { EVENTS as TOWN_EVENTS, INVESTORS } from "../public/games/son-kasaba/data.js";
 
 const copy = (value) => JSON.parse(JSON.stringify(value));
 
@@ -288,11 +293,216 @@ test("Son 100 Gün: phase/forecast bilingual text is rendered with text(), not p
   // final report's crisis dossier). The fix added a local pair() helper that
   // calls text(tr, en) for arrays instead. This test guards the four call
   // sites directly against a regression back to bare loc(...).
-  const source = readFileSync(new URL("../public/games/son-100-gun/app.js", import.meta.url), "utf8");
-  for (const broken of ["loc(phase.label)", "loc(phase.note)", "loc(forecast.title)", "loc(forecast.band)"]) {
-    assert.ok(!source.includes(broken), `${broken} must not appear - use pair(...) for [tr, en] fields`);
+  const source = readFileSync(
+    new URL("../public/games/son-100-gun/app.js", import.meta.url),
+    "utf8",
+  );
+  for (const broken of [
+    "loc(phase.label)",
+    "loc(phase.note)",
+    "loc(forecast.title)",
+    "loc(forecast.band)",
+  ]) {
+    assert.ok(
+      !source.includes(broken),
+      `${broken} must not appear - use pair(...) for [tr, en] fields`,
+    );
   }
-  for (const fixed of ["pair(phase.label)", "pair(phase.note)", "pair(forecast.title)", "pair(forecast.band)"]) {
+  for (const fixed of [
+    "pair(phase.label)",
+    "pair(phase.note)",
+    "pair(forecast.title)",
+    "pair(forecast.band)",
+  ]) {
     assert.ok(source.includes(fixed), `expected ${fixed} in app.js`);
   }
+});
+
+test("Son 100 Gün: every action label has a real English phrase", async () => {
+  await import("../public/i18n/tlab-i18n.js");
+  globalThis.tlabI18n.setLang("en");
+  for (const action of SON_ACTIONS)
+    assert.notEqual(globalThis.tlabI18n.phrase(action.label), action.label, action.id);
+  globalThis.tlabI18n.setLang("tr");
+});
+
+test("Son Kasaba: every governance stage unlocks bounded, mechanical institution effects", () => {
+  const s = createTown();
+  const baseIndicators = indicators(s);
+  const baseEconomy = economy(s);
+  assert.deepEqual(townModifiers(s), {
+    councilTrust: 1,
+    serviceBonus: 0,
+    marketIncome: 1,
+    upkeepFactor: 1,
+    migrationRelief: 0,
+    companyResistance: 0,
+  });
+
+  s.progression = {
+    stage: "municipal",
+    score: 50,
+    institutions: ["council", "service-board", "market-desk"],
+    milestones: [],
+  };
+  assert.equal(Math.round(indicators(s).health - baseIndicators.health), 4);
+  assert.ok(economy(s).income.business > baseEconomy.income.business);
+  assert.equal(investorTerms(s, "hotel").eligible, true);
+  assert.equal(investorTerms(s, "solar").eligible, false);
+
+  s.progression = {
+    stage: "planning",
+    score: 65,
+    institutions: ["council", "service-board", "market-desk", "planning-office", "social-council"],
+    milestones: [],
+  };
+  const planning = economy(s);
+  assert.ok(planning.costs.maintenance < baseEconomy.costs.maintenance);
+  assert.equal(townModifiers(s).migrationRelief, 0.18);
+  assert.equal(investorTerms(s, "mine").eligible, true);
+
+  s.progression = {
+    stage: "regional",
+    score: 80,
+    institutions: [
+      "council",
+      "service-board",
+      "market-desk",
+      "planning-office",
+      "social-council",
+      "town-charter",
+    ],
+    milestones: [],
+  };
+  assert.equal(townModifiers(s).companyResistance, 1);
+  assert.ok(Object.values(townModifiers(s)).every((value) => Number.isFinite(value)));
+});
+
+const TOWN_POLICIES = [
+  "accept-all",
+  "reject-all",
+  "selective",
+  "identity-aligned",
+  "cash-first",
+  "trust-first",
+  "service-first",
+  "adaptive",
+];
+
+function investorChoice(policy, s, offer, context) {
+  if (policy === "accept-all") return "accept";
+  if (policy === "reject-all") return "reject";
+  if (policy === "selective")
+    return ["solar", "hospital", "agriculture"].includes(offer.id) ? "accept" : "reject";
+  if (policy === "identity-aligned") {
+    const aligned = {
+      balanced: ["hotel", "hospital"],
+      industry: ["factory", "logistics"],
+      rural: ["solar", "agriculture"],
+    }[context];
+    return aligned.includes(offer.id) ? "accept" : "reject";
+  }
+  if (policy === "cash-first") return s.budget < 80000 ? "accept" : "negotiate";
+  if (policy === "trust-first") return s.metrics.trust < 55 ? "reject" : "negotiate";
+  if (policy === "service-first")
+    return ["hospital", "solar"].includes(offer.id) ? "accept" : "reject";
+  return s.metrics.company < 35 && s.metrics.trust > 42 ? "accept" : "reject";
+}
+
+function runTownPolicy(policy, run) {
+  const context = ["balanced", "industry", "rural"][run % 3];
+  const s = createTown({ context });
+  const civic = {
+    "accept-all": ["civic:road", "civic:water", "civic:energy"],
+    "reject-all": ["civic:road", "civic:water", "repair:school"],
+    selective: ["civic:support", "civic:road", "repair:clinic"],
+    "identity-aligned": ["civic:support", "civic:festival", "civic:water"],
+    "cash-first": ["civic:repay", "civic:support", "civic:road"],
+    "trust-first": ["civic:festival", "civic:housing", "coalition:young:elders"],
+    "service-first": ["repair:school", "repair:clinic", "civic:water"],
+    adaptive: ["civic:road", "civic:water", "civic:support"],
+  }[policy];
+  while (!s.ended) {
+    for (const offer of s.investors.filter((item) => item.status === "offered")) {
+      const choice = investorChoice(policy, s, offer, context);
+      const command = `investor:${offer.id}:${choice}`;
+      if (!actionInfo(s, command).reason) applyTownAction(s, command);
+    }
+    for (const command of civic)
+      if (s.used.length < 3 && !actionInfo(s, command).reason) applyTownAction(s, command);
+    for (const event of s.events.filter((item) => item.status === "open")) {
+      const command = `event:${event.id}:${run % 4 === 0 ? "decline" : "act"}`;
+      if (s.used.length < 3 && !actionInfo(s, command).reason) applyTownAction(s, command);
+    }
+    advanceTown(s);
+    assert.ok(validateTown(s));
+  }
+  return {
+    ending: s.ending.id,
+    population: population(s),
+    budget: s.budget,
+    debt: s.debt,
+    trust: s.metrics.trust,
+    company: s.metrics.company,
+    investors: s.investors.filter((item) => item.status === "accepted").length,
+    stage: s.progression.stage,
+    saveSize: JSON.stringify(s).length,
+  };
+}
+
+test("Son Kasaba: 8-policy investor matrix keeps accept-all viable without making it dominant", () => {
+  const matrix = Object.fromEntries(
+    TOWN_POLICIES.map((policy) => [
+      policy,
+      Array.from({ length: 6 }, (_, run) => runTownPolicy(policy, run)),
+    ]),
+  );
+  const average = (policy, key) =>
+    matrix[policy].reduce((total, row) => total + row[key], 0) / matrix[policy].length;
+  assert.ok(matrix["accept-all"].every((row) => row.population >= 350));
+  assert.ok(matrix["accept-all"].every((row) => row.investors === INVESTORS.length));
+  assert.ok(matrix["accept-all"].every((row) => row.ending === "sold"));
+  assert.ok(matrix["reject-all"].every((row) => row.investors === 0 && row.ending !== "ghost"));
+  assert.ok(average("selective", "population") >= average("accept-all", "population"));
+  assert.ok(average("selective", "debt") < average("accept-all", "debt"));
+  assert.ok(average("selective", "company") < average("accept-all", "company"));
+  assert.ok(
+    Object.values(matrix)
+      .flat()
+      .every((row) => row.saveSize < 100000),
+  );
+  assert.ok(
+    new Set(
+      Object.values(matrix)
+        .flat()
+        .map((row) => row.ending),
+    ).size >= 4,
+  );
+});
+
+test("Son Kasaba: investor commitments and institution state survive save/load without duplicate consequences", () => {
+  const s = createTown();
+  s.month = 10;
+  s.completedMonths = 9;
+  for (const key of ["trust", "reputation", "services", "water", "energy", "health", "school"])
+    s.metrics[key] = 80;
+  for (const building of s.buildings) {
+    building.open = true;
+    building.condition = 80;
+  }
+  updateTownProgression(s);
+  const offer = s.investors.find((item) => item.id === "hotel");
+  offer.status = "offered";
+  assert.equal(applyTownAction(s, "investor:hotel:accept"), true);
+  const restored = normalizeTown("son-kasaba", copy(s));
+  assert.deepEqual(restored.progression, s.progression);
+  assert.equal(restored.investors.find((item) => item.id === "hotel").acceptedMonth, 10);
+  while (restored.month < 13) advanceTown(restored);
+  const resolved = restored.resolvedEffects.filter((id) => id === "investor-hotel");
+  assert.equal(resolved.length, 1);
+  assert.equal(restored.openCases.filter((item) => item.id === "investor-hotel").length, 1);
+  assert.equal(
+    normalizeTown("son-kasaba", { ...copy(restored), meta: { ...restored.meta, id: "apartman" } }),
+    null,
+  );
 });

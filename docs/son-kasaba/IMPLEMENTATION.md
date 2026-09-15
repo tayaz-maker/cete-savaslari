@@ -23,13 +23,13 @@ An action validates its subject, current month, capacity and cash before applyin
 - Bad roads or unavailable fuel reduce supply; supply disruption increases prices; prices and transport feed each cohort's migration pressure.
 - School closure or pupil decline makes Elif leave; education service becomes zero and family migration worsens. Repairing/reopening the school provides a return route.
 - Healthcare depends on clinic, pharmacy, medicine stocks and pollution. Retirees weight it more strongly than workers.
-- Investors pay one grant in exchange for persistent control and sector changes. Their six-month tax concession lowers business revenue; later rents and inequality enter through saved follow-up files.
+- Investors pay one diminishing grant in exchange for persistent control, monthly service/land commitments and sector changes. Later signatures yield fewer jobs, add local-trust pressure, and conflicting portfolios add further control pressure. Their six-month tax concession lowers business revenue; later rents and inequality enter through saved follow-up files.
 - Every group has a different priority. Influence weights contribute to public trust. A temporary coalition reduces building wear and expires after three months.
 - Unpaid municipal costs become debt. Debt interest is 1.2% monthly. Emergency borrowing has a 10% principal premium and a 200,000 TL eligibility ceiling.
 - A closed building keeps 15% preservation costs and produces no direct service or income.
 - Population is the sum of eight separate cohorts; nobody is counted twice. Per-cohort monthly net migration is bounded to −5% departures / +1.5% arrivals before integer rounding.
 
-Identity derives from company control, service viability, population age mix and sector strengths. It now gives a small, bounded pull to matching population cohorts and sector income, while migration remains driven primarily by services, work, prices and transport. Four saved governance stages unlock six institutional layers as services, trust, reputation, population and time support them. Road/supply, school/family, investor dependency and town-charter chain state is visible and save-safe.
+Identity derives from company control, service viability, population age mix and sector strengths. It now gives a small, bounded pull to matching population cohorts and sector income, while migration remains driven primarily by services, work, prices and transport. Four saved governance stages unlock six mechanical institutional layers as services, trust, reputation, population and time support them: council smooths public trust, the service board improves service outcomes, the market desk improves local revenue, planning lowers maintenance pressure, the social council reduces migration pressure, and the charter resists company control. Investor eligibility expands from municipal to planning stages. Road/supply, school/family, investor dependency and town-charter chain state is visible and save-safe.
 
 ## Endings
 
@@ -41,7 +41,7 @@ Each report records the actual contributing population, services, trust, control
 
 Namespace: `tariklab.nextwave.son-kasaba.slot1` through `slot3`; backups are scoped under the same slot. State version 2 migrates the first public version in place and adds bounded progression, chain, identity-history, migration-log and resolved-effect ledgers. Migration is idempotent. Malformed, partial, nonfinite and foreign-game saves are rejected. A corrupt slot can recover its own previous valid snapshot. Failed load preserves the active game. Storage failures leave play in memory with an explicit retry message.
 
-TR/EN prose is stored as pairs; changing language does not advance the clock, spend decisions or change outcomes. No dynamic translation service is used.
+TR/EN prose is stored as pairs; changing language does not advance the clock, spend decisions or change outcomes. Son 100 Gün action labels are covered by the static phrase dictionary, while structured `[tr, en]` values render through the pair-aware helper. No dynamic translation service is used.
 
 ## Verification
 
