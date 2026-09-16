@@ -117,8 +117,15 @@ function stageOf(state, chainId) {
   return Number(bag(state).chains[chainId]) || 0;
 }
 
+// "Is this actor in the player's life right now", the same test social.js,
+// state.js and the life-echo events already apply. Existence alone is not
+// enough: the roster slot survives death (continueGeneration keeps "baba" and
+// marks it deceased as the previous player) and survives an absent parent
+// (network.js sets available=false), so an id check alone let content address
+// people who are dead or gone while every other subsystem refused to.
 function personOk(state, id) {
-  return Boolean((state.people || []).some((row) => row.id === id));
+  const person = (state.people || []).find((row) => row.id === id);
+  return Boolean(person) && person.deceased !== true && person.available !== false;
 }
 
 function hasChild(state) {
@@ -2235,11 +2242,20 @@ export function decorateLifeDossier(state) {
   const content = DOSSIER_TRACE_TEMPLATES.filter((row) => {
     try { return row.test(state); } catch { return false; }
   }).map((row) => ({ id: row.id, text: row.text }));
+  // The dossier keeps ten traces and buildLifeDossier already hands over ten
+  // (the arcHistory tail plus echoes), so appending the authored life-traces
+  // last meant they were always the ones cut: across 160 natural death dossiers
+  // not one of the twelve templates survived, and the slots went to the final
+  // weeks' routine decisions instead. Reserve part of the budget for the
+  // authored traces and let the generic rows fill the rest. Outcome math and
+  // contentNotes are untouched.
+  const RESERVED_CONTENT_TRACES = 5;
   const traces = unique([
     { id: "lc-flavor-outcome", text: flavor[0] },
     { id: "lc-flavor-seed", text: extra[0] },
+    ...content.slice(0, RESERVED_CONTENT_TRACES),
     ...(dossier.traces || []),
-    ...content,
+    ...content.slice(RESERVED_CONTENT_TRACES),
   ]).slice(0, 10);
   dossier.traces = traces;
   dossier.flavor = flavor[0];

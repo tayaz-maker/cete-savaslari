@@ -22,6 +22,8 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // sürümlü life-depth state'i, nedensel arklar ve Hayat Dosyası ekledi.
 // 2026-09-16 Wave 4 content-max, life-content.js kataloğunu ve events/time
 // kancalarını ekledi; engine math, save v6 ve DEVLET kaynakları donmuş kaldı.
+// 2026-09-16 Wave 4 kapanış denetimi life-content.js içinde iki hedefli düzeltme
+// yaptı: ölü/ayrılmış aktör kapısı ve Hayat Dosyası iz önceliği.
 test("frozen baseline: all 37 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -30,7 +32,7 @@ test("frozen baseline: all 37 content, simulation, persistence and projection so
   assert.equal(files.length, 37);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "ab88d8d3c039843fec5a957ca73c4cd5ad6d59813d18e5f8a57bce1e313a7523");
+  assert.equal(hash.digest("hex"), "d9a0529f8afe079dbebcbe63218502d9e3ccf2498c058d42a0ea591cd282bb1a");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);
