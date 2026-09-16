@@ -82,7 +82,26 @@ function bag(state) {
   raw.chains = raw.chains && typeof raw.chains === "object" ? raw.chains : {};
   raw.exclusive = raw.exclusive && typeof raw.exclusive === "object" ? raw.exclusive : {};
   raw.once = raw.once && typeof raw.once === "object" ? raw.once : {};
-  raw.waiting = Array.isArray(raw.waiting) ? raw.waiting : [];
+  const waiting = Array.isArray(raw.waiting) ? raw.waiting : [];
+  const seenWaiting = new Set();
+  raw.waiting = waiting
+    .filter((row) => {
+      if (!row || typeof row !== "object") return false;
+      if (typeof row.id !== "string" || !row.id.startsWith("lc:")) return false;
+      if (typeof row.eventId !== "string" || !row.eventId.startsWith("lc_")) return false;
+      if (!Number.isFinite(Number(row.dueWeek))) return false;
+      if (seenWaiting.has(row.id) || seenWaiting.has(`event:${row.eventId}`)) return false;
+      if (raw.once[`resolved:${row.id}`]) return false;
+      seenWaiting.add(row.id);
+      seenWaiting.add(`event:${row.eventId}`);
+      row.dueWeek = Math.max(0, Math.trunc(Number(row.dueWeek)));
+      row.actorId = typeof row.actorId === "string" ? row.actorId : null;
+      return true;
+    })
+    .sort((a, b) => a.dueWeek - b.dueWeek || a.id.localeCompare(b.id))
+    .slice(0, 12);
+  raw.arcCounts = raw.arcCounts && typeof raw.arcCounts === "object" ? raw.arcCounts : {};
+  raw.arcLastWeek = raw.arcLastWeek && typeof raw.arcLastWeek === "object" ? raw.arcLastWeek : {};
   return raw;
 }
 
@@ -1028,7 +1047,7 @@ const CHAINS = [
     ],
   },
   {
-    id: "kart-taksit", arc: "finance", tags: ["finance", "economy", "cross"],
+    id: "kart-taksit", arc: "finance", tags: ["finance", "economy"],
     nodes: [
       {
         id: "lc_card_sms", stage: 1, organic: true, minWeek: 10, needArrears: false,
@@ -1498,7 +1517,7 @@ const MORE_CHAINS = [
     ],
   },
   {
-    id: "nufus-kuyruk", arc: "crisis", tags: ["crisis", "phase-open", "cross"],
+    id: "nufus-kuyruk", arc: "crisis", tags: ["crisis", "phase-open"],
     nodes: [
       {
         id: "lc_id_queue", stage: 1, organic: true, minWeek: 8, maxAge: 28, maxWeek: 80,
@@ -2030,6 +2049,7 @@ export const LIFE_CONTENT_EVENTS = LIFE_CONTENT_CHAIN_EVENTS.concat(LIFE_CONTENT
 
 function scheduleContent(state, spec) {
   if (!spec?.eventId || !spec?.key) return false;
+  if (!LIFE_CONTENT_EVENTS.some((row) => row.id === spec.eventId)) return false;
   const id = `lc:${spec.key}`;
   const store = bag(state);
   if (store.once[id] || store.waiting.some((row) => row.id === id || row.eventId === spec.eventId)) return false;
@@ -2083,7 +2103,11 @@ export function applyLifeContentResolution(state, definition, choiceId) {
     }), 6));
   }
   store.once[`seen:${definition.id}`] = state.time.absoluteWeek;
-  if (definition.organic) store.lastWeek = state.time.absoluteWeek;
+  if (definition.organic) {
+    store.lastWeek = state.time.absoluteWeek;
+    store.arcCounts[definition.arc] = (Number(store.arcCounts[definition.arc]) || 0) + 1;
+    store.arcLastWeek[definition.arc] = state.time.absoluteWeek;
+  }
   return true;
 }
 
@@ -2124,25 +2148,46 @@ export function processLifeContentWeek(state) {
 export function pickLifeContentOrganic(state) {
   const store = bag(state);
   const week = state.time.absoluteWeek;
-  if (Number.isInteger(store.lastWeek) && week - store.lastWeek < 2) return null;
+  if (Number.isInteger(store.lastWeek) && week - store.lastWeek < 6) return null;
   if (state.events?.active || (state.events?.queue || []).length) return null;
-  const next = LIFE_CONTENT_EVENTS.find(
+  const eligible = LIFE_CONTENT_EVENTS.filter(
     (row) =>
       row.organic &&
       !state.events.seen.includes(row.id) &&
       typeof row.organicCheck === "function" &&
       row.organicCheck(state),
   );
+  if (!eligible.length) return null;
+  const next = eligible.sort((a, b) => {
+    const count = (Number(store.arcCounts[a.arc]) || 0) - (Number(store.arcCounts[b.arc]) || 0);
+    if (count) return count;
+    const age = (Number(store.arcLastWeek[a.arc]) || -1) - (Number(store.arcLastWeek[b.arc]) || -1);
+    if (age) return age;
+    return hash(state.meta?.seed || 1, `${week}:${a.id}`) - hash(state.meta?.seed || 1, `${week}:${b.id}`);
+  })[0];
   return next?.id || null;
 }
 
+export function shouldOfferLifeContent(state) {
+  const store = bag(state);
+  const week = Number(state.time?.absoluteWeek) || 0;
+  if (week < 6) return false;
+  return !Number.isInteger(store.lastWeek) || week - store.lastWeek >= 6;
+}
+
 export function takeDueLifeContent(state) {
+  if (state.lifetime?.death) return null;
   if (state.events?.active || (state.events?.queue || []).length) return null;
   const store = bag(state);
-  const due = store.waiting.find((row) => Number(row.dueWeek) <= state.time.absoluteWeek);
-  if (!due) return null;
-  store.waiting = store.waiting.filter((row) => row.id !== due.id);
-  return due.eventId;
+  while (true) {
+    const due = store.waiting.find((row) => Number(row.dueWeek) <= state.time.absoluteWeek);
+    if (!due) return null;
+    store.waiting = store.waiting.filter((row) => row.id !== due.id);
+    store.once[`resolved:${due.id}`] = state.time.absoluteWeek;
+    if (due.actorId && !personOk(state, due.actorId)) continue;
+    if (!LIFE_CONTENT_EVENTS.some((row) => row.id === due.eventId)) continue;
+    return due.eventId;
+  }
 }
 
 const OUTCOME_FLAVOR = {

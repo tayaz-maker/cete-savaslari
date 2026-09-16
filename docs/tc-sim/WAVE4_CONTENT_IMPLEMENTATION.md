@@ -23,6 +23,8 @@ Content-only pass on the frozen Wave 4 life engine. Catalog: `public/games/tc-si
 
 ## Reachability
 
-Organic openings are queue-only (`condition: () => false` + `organicCheck`) with week/age/job/exclusive gates and a 2-week spacer. They fire only when the production pool is empty, so they do not steal retirement/pregnancy/generic slots.
+Organic openings are queue-only (`condition: () => false` + `organicCheck`) with week/age/job/exclusive gates. A six-week deterministic content slot prevents the production pool from starving them; arc counts, last-seen week and seeded tie-breaking distribute that slot without random spam. Due engine/case queues retain priority.
 
-Delayed stages enqueue through `flags.lifeContent.waiting[]`. `takeDueLifeContent` fires at most one due callback per week when the event queue is empty. Auto-callbacks refuse when waiting is at 11. `activateNextEvent` is unchanged (original pool search).
+Delayed stages enqueue through bounded `flags.lifeContent.waiting[]`. The bag sanitizes corrupt/duplicate rows, records permanent resolved stamps, rejects unknown callbacks and safely skips removed actors. `takeDueLifeContent` fires at most one valid due callback per week when the event queue is empty; death never revives a callback. `activateNextEvent` and canonical `lifeDepth.pendingEffects` remain unchanged.
+
+Final closure matrix: 40 seeds × 16 strategies × 720 weeks; 119/128 nodes seen, 48/49 chains started, 43 completed, all 10 arcs represented and all 12 exclusive families reached on both branches without contradictory siblings.

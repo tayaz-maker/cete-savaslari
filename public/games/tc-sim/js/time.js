@@ -26,7 +26,7 @@ import {
 import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=10";
 import { activateNextEvent, enqueueEvent, processDueOpenCases, hasEligiblePoolEvent } from "./events.js?v=10";
 import { attachLifeDossier, processLifeDepthWeek, recordLifeDecision } from "./life-depth.js?v=10";
-import { decorateLifeDossier, processLifeContentWeek, pickLifeContentOrganic, takeDueLifeContent } from "./life-content.js?v=10";
+import { decorateLifeDossier, processLifeContentWeek, pickLifeContentOrganic, shouldOfferLifeContent, takeDueLifeContent } from "./life-content.js?v=10";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=10";
 import { processWealthMonthEnd, processOwnedBenefits, processCashShortfall, netWorth } from "./wealth.js?v=10";
 import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=10";
@@ -555,7 +555,7 @@ export function advanceWeek(state) {
   let contentId = null;
   if (!state.events.queue.length && !state.events.active) {
     contentId = takeDueLifeContent(state);
-    if (!contentId && !hasEligiblePoolEvent(state)) contentId = pickLifeContentOrganic(state);
+    if (!contentId && (shouldOfferLifeContent(state) || !hasEligiblePoolEvent(state))) contentId = pickLifeContentOrganic(state);
   }
   if (contentId) enqueueEvent(state, contentId);
   activateNextEvent(state);

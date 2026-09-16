@@ -2,6 +2,7 @@ import {
   getRelationship,
   getRelationshipStage,
 } from "./social.js?v=10";
+import { addNpcMemory } from "./state.js?v=10";
 
 const friendish = (state, id) =>
   ["friend", "close", "partner"].includes(getRelationshipStage(state, id));
@@ -1038,15 +1039,7 @@ export const ADULT_LIFE_EVENTS = [
 export function applyAdultLifeResolution(state, definition, choiceId) {
   const week = state.time.absoluteWeek;
   if (definition.id === "life_anne_elif_dinner" && choiceId === "bring") {
-    const anne = state.people.find((p) => p.id === "anne");
-    if (anne)
-      anne.memories.push({
-        id: `npc-anne-${week}-dinner`,
-        type: "met_elif_dinner",
-        week,
-        year: state.time.year,
-        text: "Kızı eve yemeğe getirdi.",
-      });
+    addNpcMemory(state, "anne", "Kızı eve yemeğe getirdi.", "met_elif_dinner");
   }
 
   if (definition.id === "life_chn11_saturday_ask" && choiceId === "work") {

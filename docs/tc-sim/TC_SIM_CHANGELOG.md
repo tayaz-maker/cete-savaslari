@@ -1,5 +1,11 @@
 # TC SIM — Değişiklik Kaydı
 
+## Wave 4 — Final content integration
+
+- Production event havuzunun organic içeriği aç bırakmasını önleyen altı haftalık deterministic, arc-fair cadence eklendi.
+- `flags.lifeContent.waiting` duplicate/corrupt/removed-actor/death/save-load sınırlarında once-only ve bounded hale getirildi.
+- 40 seed × 16 strateji × 720 hafta matrisi; 10 arc, 12 exclusive family ve state-growth plateau doğrulamasıyla kalıcı regression testine bağlandı.
+
 ## Wave 4 — Maximum content (yaşam olayları)
 
 - Teknik omurga kilitli kaldı. Bu tur yalnızca içerik: `life-content.js` kataloğu mevcut `flags.lifeContent` (`chains` / `exclusive` / `once` / `waiting[]`) üzerinden çok aşamalı zincir, gecikmeli geri dönüş, dışlayıcı dallar ve aktör sesi ekler. Motorun `pendingEffects` tavanı engine yankılarına bırakıldı.

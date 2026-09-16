@@ -1700,7 +1700,10 @@ export function resolveEvent(state, choiceId) {
     week: state.time.absoluteWeek,
   });
   state.events.active = null;
-  activateNextEvent(state);
+  // Content cadence gets one bounded slot. Resolving it must not immediately
+  // open a second production-pool event in the same week; explicitly queued
+  // chain/case work still keeps its normal priority.
+  if (!definition.lifeContent || state.events.queue.length) activateNextEvent(state);
   return { ok: true, message: choice.effects.memory || `${definition.title}: ${choice.label}` };
 }
 
