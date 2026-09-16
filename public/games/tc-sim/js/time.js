@@ -24,8 +24,9 @@ import {
   updateRelationship,
 } from "./state.js?v=10";
 import { applyRelationshipDelta, markMeaningfulContact } from "./social.js?v=10";
-import { activateNextEvent, enqueueEvent, processDueOpenCases } from "./events.js?v=10";
+import { activateNextEvent, enqueueEvent, processDueOpenCases, hasEligiblePoolEvent } from "./events.js?v=10";
 import { attachLifeDossier, processLifeDepthWeek, recordLifeDecision } from "./life-depth.js?v=10";
+import { decorateLifeDossier, processLifeContentWeek, pickLifeContentOrganic, takeDueLifeContent } from "./life-content.js?v=10";
 import { applyWeeklyLifeLoad, getMonthlySummary } from "./life.js?v=10";
 import { processWealthMonthEnd, processOwnedBenefits, processCashShortfall, netWorth } from "./wealth.js?v=10";
 import { advanceComparisonCircle, expireMilitaryObligation } from "./depth2-systems.js?v=10";
@@ -535,10 +536,12 @@ export function advanceWeek(state) {
   const highStressHealth = state.health.stress >= 80 ? (state.player.age >= 55 ? -3 : -2) : 0;
   adjustHealth(state, { energy: ageRecovery, stress: -2, health: highStressHealth });
   processOwnedBenefits(state);
+  processLifeContentWeek(state);
   for (const eventId of processLifeDepthWeek(state)) enqueueEvent(state, eventId);
   processLifetimeWeek(state);
   if (state.lifetime?.death) {
     attachLifeDossier(state);
+    decorateLifeDossier(state);
     assertValidState(state);
     return { ok: true, messages: ["Yaşam tamamlandı. Yaşam raporu hazır."] };
   }
@@ -549,6 +552,12 @@ export function advanceWeek(state) {
   syncPeerMilestones(state);
   expireMilitaryObligation(state);
   updatePerceivedIdentity(state);
+  let contentId = null;
+  if (!state.events.queue.length && !state.events.active) {
+    contentId = takeDueLifeContent(state);
+    if (!contentId && !hasEligiblePoolEvent(state)) contentId = pickLifeContentOrganic(state);
+  }
+  if (contentId) enqueueEvent(state, contentId);
   activateNextEvent(state);
   assertValidState(state);
   return { ok: true, messages: messages.length ? messages : ["Yeni hafta başladı."] };

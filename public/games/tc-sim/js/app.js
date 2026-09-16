@@ -84,6 +84,7 @@ import { getRelationshipContext } from "./depth2-systems.js?v=10";
 import { getReputationContext, getSocialDistanceContext } from "./depth3-systems.js?v=10";
 import { renderHelpModal } from "./help.js?v=10";
 import { LIFE_ARC_LABELS, economyCausality, refreshLifeArcs } from "./life-depth.js?v=10";
+import { actorVoiceLine } from "./life-content.js?v=10";
 
 const app = document.querySelector("#app");
 
@@ -332,11 +333,12 @@ function startScreen(loadResult) {
 }
 
 function renderPeople() {
+  const en = window.tlabI18n?.getLang?.() === "en";
   return state.people
-    .map(
-      (person) =>
-        `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${escapeText(personStageLabel(person.id))} · ${person.memories.length} hatıra</small></p><div class="relation-wrap"><i><span style="width:${Number.isFinite(state.relationships[person.id]) ? state.relationships[person.id] : 44}%"></span></i><b class="relation">${Number.isFinite(state.relationships[person.id]) ? state.relationships[person.id] : 44}</b></div></div>`,
-    )
+    .map((person) => {
+      const voice = actorVoiceLine(person.id, en);
+      return `<div class="person"><p><strong>${escapeText(person.name)}</strong><small>${escapeText(person.relationType)} · ${escapeText(personStageLabel(person.id))} · ${person.memories.length} hatıra</small>${voice ? `<em>${escapeText(voice)}</em>` : ""}</p><div class="relation-wrap"><i><span style="width:${Number.isFinite(state.relationships[person.id]) ? state.relationships[person.id] : 44}%"></span></i><b class="relation">${Number.isFinite(state.relationships[person.id]) ? state.relationships[person.id] : 44}</b></div></div>`;
+    })
     .join("");
 }
 
@@ -371,9 +373,11 @@ function renderPeopleScreen() {
   const milestone = selected.lifeMilestones
     ?.filter((item) => selected.knownMilestones?.includes(item.id))
     .at(-1);
+  const voice = actorVoiceLine(selected.id, window.tlabI18n?.getLang?.() === "en");
+  const voiceNote = voice ? `<p class="context-note person-voice">${escapeText(voice)}</p>` : "";
   return `<div class="workspace-head"><div><p class="eyebrow">KİŞİLER</p><h1>Sosyal çevre</h1></div>${renderWeekControl()}</div>
     <div class="social-layout"><section class="panel people-directory"><div class="panel-head"><div><p class="eyebrow">ÇEVRE</p><h2>Önemli kişiler</h2></div><span>${state.people.length}</span></div>${state.people.map((person) => `<button class="person-select ${person.id === selected.id ? "is-current" : ""}" data-person="${person.id}"><span><strong>${escapeText(person.name)}</strong><small>${escapeText(SOCIAL_ROLE_LABELS[person.roleId])}</small></span><b>${escapeText(personStageLabel(person.id))}</b></button>`).join("")}</section>
-    <section class="panel person-detail"><div class="panel-head"><div><p class="eyebrow">KİŞİ DOSYASI</p><h2>${escapeText(selected.name)}</h2></div><span>${escapeText(stage)}</span></div><p class="context-note">${escapeText(SOCIAL_ROLE_LABELS[selected.roleId])} · Son anlamlı temas ${weeksSinceContact(selected)} hafta önce${openCase ? ` · ${Math.max(0, openCase.dueWeek - state.time.absoluteWeek)} hafta içinde açık söz` : ""}</p><p class="context-note">${escapeText(getSocialDistanceContext(state, selected.id))}</p>${selected.id === state.social.currentPartnerNpcId ? renderHouseholdContext() : ""}${milestone ? `<p class="context-note">Bilinen gelişme: ${escapeText(milestone.text)}</p>` : ""}${getRelationshipContext(
+    <section class="panel person-detail"><div class="panel-head"><div><p class="eyebrow">KİŞİ DOSYASI</p><h2>${escapeText(selected.name)}</h2></div><span>${escapeText(stage)}</span></div><p class="context-note">${escapeText(SOCIAL_ROLE_LABELS[selected.roleId])} · Son anlamlı temas ${weeksSinceContact(selected)} hafta önce${openCase ? ` · ${Math.max(0, openCase.dueWeek - state.time.absoluteWeek)} hafta içinde açık söz` : ""}</p>${voiceNote}<p class="context-note">${escapeText(getSocialDistanceContext(state, selected.id))}</p>${selected.id === state.social.currentPartnerNpcId ? renderHouseholdContext() : ""}${milestone ? `<p class="context-note">Bilinen gelişme: ${escapeText(milestone.text)}</p>` : ""}${getRelationshipContext(
       state,
       selected.id,
     )

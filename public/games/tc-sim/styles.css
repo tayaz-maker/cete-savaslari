@@ -511,6 +511,14 @@ select:focus-visible {
   color: var(--muted);
   font-size: 0.73rem;
 }
+.person em,
+.person-voice {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+}
 .relation-wrap {
   display: flex;
   align-items: center;

@@ -26,7 +26,7 @@ export const HELP_SECTIONS = [
   },
   {
     title: "Risk ve sonuçlar",
-    body: "İhmal edilen sağlık karar hakkını düşürür ve iş performansını etkiler; ihmal edilen ilişkiler zamanla soğur. Kararların bazı sonuçları hemen değil, haftalar sonra bir olay olarak geri döner.",
+    body: "İhmal edilen sağlık karar hakkını düşürür ve iş performansını etkiler; ihmal edilen ilişkiler zamanla soğur. Kararların bazı sonuçları hemen değil, haftalar sonra bir olay, bir mesaj veya bir kira kâğıdı olarak geri döner. Kariyer, eğitim, ilişki, aile, borç, konut, çevre, statü, sağlık ve kriz aynı hayatta birbirine bağlanır — rastgele kart değil, biriktirdiğin hayat.",
   },
   {
     title: "Kayıt",

@@ -520,7 +520,7 @@
     },
     {
       title: "Risk and fallout",
-      body: "Neglected health cuts your decision count and work; neglected relationships cool. Some consequences return weeks later as events, not immediately.",
+      body: "Neglected health cuts your decision count and work; neglected relationships cool. Some consequences return weeks later as events, a message or a rent notice, not immediately. Career, school, love, family, debt, housing, circle, status, health and crisis bind in one life — not a random card, the life you stacked.",
     },
     {
       title: "Saves",

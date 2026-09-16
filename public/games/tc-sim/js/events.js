@@ -41,6 +41,7 @@ import { ensureDepth3State, processDepth3OpenCases, updatePerceivedIdentity } fr
 import { EXPANSION_EVENTS, EXPANSION_CALLBACK_EVENTS, applyExpansionResolution } from "./expansion-events.js?v=10";
 import { LIFE_ECHO_EVENTS, LIFE_ECHO_CALLBACK_EVENTS, applyLifeEchoResolution, ensureLifeEchoState } from "./life-echo-events.js?v=10";
 import { LIFE_DEPTH_EVENTS, applyLifeDepthResolution } from "./life-depth.js?v=10";
+import { LIFE_CONTENT_EVENTS, applyLifeContentResolution } from "./life-content.js?v=10";
 
 const canTakeJob = (state, jobId) =>
   state.career.jobId !== jobId &&
@@ -1428,6 +1429,7 @@ export const EVENT_DEFINITIONS = [
   ...LIFE_ECHO_EVENTS,
   ...LIFE_ECHO_CALLBACK_EVENTS,
   ...LIFE_DEPTH_EVENTS,
+  ...LIFE_CONTENT_EVENTS,
 ];
 
 export function getEventDefinition(eventId) {
@@ -1489,6 +1491,13 @@ export function activateNextEvent(state) {
   }
   state.events.active = state.events.queue.shift() || null;
   return state.events.active;
+}
+
+export function hasEligiblePoolEvent(state) {
+  return Boolean(
+    EVENT_DEFINITIONS.find((candidate) => candidate.lifeEcho && isEligible(state, candidate)) ||
+      EVENT_DEFINITIONS.find((candidate) => isEligible(state, candidate)),
+  );
 }
 
 export function getEventChoiceAvailability(state, choiceId) {
@@ -1674,6 +1683,7 @@ export function resolveEvent(state, choiceId) {
   applyExpansionResolution(state, definition, choiceId);
   applyLifeEchoResolution(state, definition, choiceId, active.sourceCaseId ? state.openCases.find((item) => item.id === active.sourceCaseId) : null);
   applyLifeDepthResolution(state, definition, choiceId);
+  applyLifeContentResolution(state, definition, choiceId);
   if (definition.social3D) state.flags.lastSocial3DWeek = state.time.absoluteWeek;
   state.flags.lastEventResolvedWeek = state.time.absoluteWeek;
   if (!state.events.seen.includes(definition.id)) state.events.seen.push(definition.id);
