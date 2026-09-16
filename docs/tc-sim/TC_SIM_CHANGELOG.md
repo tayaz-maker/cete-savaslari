@@ -1,5 +1,12 @@
 # TC SIM — Değişiklik Kaydı
 
+## Wave 4 — Maximum content (yaşam olayları)
+
+- Teknik omurga kilitli kaldı. Bu tur yalnızca içerik: `life-content.js` kataloğu mevcut `flags.lifeContent` (`chains` / `exclusive` / `once` / `waiting[]`) üzerinden çok aşamalı zincir, gecikmeli geri dönüş, dışlayıcı dallar ve aktör sesi ekler. Motorun `pendingEffects` tavanı engine yankılarına bırakıldı.
+- 128 olay düğümü, 49 zincir, 12 dışlayıcı aile, 18 otomatik gecikmeli geri çağırım, 7 NPC sesi. Organik açılışlar iki haftalık siper ve sıkı koşulla gelir; gecikmeli halkalar kuyruk-only'dir.
+- Hayat Dosyası outcome matematiği değişmez. Ölümde additive flavor / iz eklenir (en fazla 10 iz, mevcut outcome id'leri durur).
+- Kayıt hâlâ v6. Yeni top-level alan yok.
+
 ## Wave 4 — Nedensel yaşam omurgası
 
 - Claude adversarial review entegrasyonunda yaşam haritası commute hesabı canonical konut/iş zone modeliyle eşitlendi, eğitim getirisi ömür boyu tek çalışacak kalıcı işaret aldı ve aynı hafta yinelenen aktör hafızası kapatıldı.

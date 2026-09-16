@@ -34,6 +34,16 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-17 — TC SIM content-max (life events, voices, delayed chains)
+- Web change: Content-only Wave 4 expansion of TC SIM. Frozen engine stays: 10 life arcs, commute/arrears/CASH_FLOOR, actor memory core, 4 delayed engine events, education-leverage once-per-life, goals/opportunities, Life Dossier outcome math, save v6 keys `tlab-tc-sim-slot-1..3`.
+- Catalog in `public/games/tc-sim/js/life-content.js`: 128 authored nodes, 49 multi-stage chains, 12 exclusive families, 18 auto delayed callbacks, 7 actor voices, 12 dossier trace templates. Persist via existing `flags.lifeContent` (`chains` / `exclusive` / `once` / `waiting[]`). Content delayed callbacks do not occupy `lifeDepth.pendingEffects`.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no (arc math, arrears conversion, commute zones, dossier outcomes unchanged).
+- UI/presentation: yes — people list/detail voice lines and help “Risk ve sonuçlar” copy only; no new screens.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone TC SIM should carry this catalog and voice overlay, not the website controller.
+- Commits: `grok/wave4-tc-sim-max-content` (not merged to main).
+
 ### 2026-09-15 — Kayıp Telefon content-max (trace + footprint buffer)
 - Web change: Catalog buffer on the Wave 3 Kayıp Telefon content-max (extra notes/photos/contradiction pieces) plus bilingual contact `relation` pairs and actor/mislead rows in the existing `caseReport.traces` cap.
 - Content: yes. Artwork: no. Audio: no.
