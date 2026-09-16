@@ -125,6 +125,28 @@ test("exclusive state and memory follow-ups survive repeated migration", () => {
   assert.equal(loaded.people.find((row) => row.id === "mehmet").memories.filter((row) => row.type === "lc_helped_mehmet_money").length, 1);
 });
 
+test("phase gates and cross-arc labels describe real mechanical conditions", () => {
+  const early = createNewGame({ seed: 4407 });
+  early.time.absoluteWeek = 20;
+  early.player.age = 20;
+  early.career.jobId = "office";
+  const lateSchool = LIFE_CONTENT_EVENTS.find((row) => row.id === "lc_late_school");
+  const idQueue = LIFE_CONTENT_EVENTS.find((row) => row.id === "lc_id_queue");
+  assert.equal(lateSchool.organicCheck(early), false);
+  assert.equal(idQueue.organicCheck(early), true);
+  const late = copy(early);
+  late.time.absoluteWeek = 900;
+  late.player.age = 36;
+  assert.equal(lateSchool.organicCheck(late), true);
+  assert.equal(idQueue.organicCheck(late), false);
+
+  const arcTags = new Set(["career", "education", "relationship", "family", "finance", "housing", "social", "status", "health", "crisis"]);
+  for (const event of LIFE_CONTENT_EVENTS.filter((row) => row.tags.includes("cross"))) {
+    const touched = new Set([event.arc, ...event.tags.filter((tag) => arcTags.has(tag))]);
+    assert.ok(touched.size >= 2, `${event.id} is metadata-only cross-arc`);
+  }
+});
+
 test("40 seeds x 16 strategies x 720 weeks closes natural content reachability", { timeout: 600_000 }, () => {
   const seedCount = Number(process.env.WAVE4_MATRIX_SEEDS) || 40;
   const strategies = [
@@ -219,6 +241,10 @@ test("40 seeds x 16 strategies x 720 weeks closes natural content reachability",
   }
 
   const siblingCoverage = Object.values(exclusiveSeen).filter((branches) => branches.size === 2).length;
+  const memorySeen = [...seen].filter((id) => {
+    const event = LIFE_CONTENT_EVENTS.find((row) => row.id === id);
+    return event && (event.tags.includes("memory") || event.choices.some((choice) => choice.npcMemory));
+  }).length;
   const summary = {
     authored: LIFE_CONTENT_EVENTS.length, eligible: eligible.size, seen: seen.size,
     chainStarts: started.size, chainCompletes: completed.size, arcs: [...arcs].sort(), phases: [...metrics.contentPhases].sort(),
@@ -227,7 +253,7 @@ test("40 seeds x 16 strategies x 720 weeks closes natural content reachability",
     exclusiveFamiliesBoth: siblingCoverage,
     missingExclusive: Object.entries(exclusiveSeen).filter(([, branches]) => branches.size !== 2).map(([family, branches]) => [family, [...branches]]),
     organicRatio: metrics.contentOccurrences / Math.max(1, metrics.occurrences),
-    maxWaiting, maxOnce, maxMemory, maxSizeEarly, maxSizeLate, partnerRuns, cohabitingRuns, marriedRuns, plannedRuns, childRuns, familyPlans,
+    memorySeen, maxWaiting, maxOnce, maxMemory, maxSizeEarly, maxSizeLate, partnerRuns, cohabitingRuns, marriedRuns, plannedRuns, childRuns, familyPlans,
   };
   console.log(`WAVE4_FINAL_MATRIX ${JSON.stringify(summary)}`);
   assert.equal(arcs.size, 10, JSON.stringify(summary));
@@ -236,6 +262,7 @@ test("40 seeds x 16 strategies x 720 weeks closes natural content reachability",
   assert.ok(completed.size >= 36, JSON.stringify(summary));
   assert.equal(siblingCoverage, 12, JSON.stringify(summary));
   assert.ok(metrics.contentOccurrences / Math.max(1, metrics.occurrences) >= 0.05, JSON.stringify(summary));
+  assert.ok(memorySeen >= 40, JSON.stringify(summary));
   assert.ok(maxWaiting <= 12 && maxMemory <= 50, JSON.stringify(summary));
   assert.ok(maxSizeLate < 300_000, JSON.stringify(summary));
   assert.ok(maxSizeLate < maxSizeEarly * 1.35, JSON.stringify(summary));
