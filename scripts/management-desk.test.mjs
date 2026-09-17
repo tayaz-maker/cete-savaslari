@@ -28,6 +28,8 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // callback'lerine due-time revalidation ekledi; frozen ekonomi ve yaşam matematiği değişmedi.
 // 2026-09-17 late-life mini patch yalnız life-content.js kataloğuna 65+ authored
 // düğüm, zincir, gecikmeli geri dönüş ve dosya izi ekledi; motor matematiği değişmedi.
+// Wave 5 yalnız TC SIM: DEVLET'in ayrı causal foundation katmanını ve mevcut
+// DEVLET kernel entegrasyonunu değiştirir; TC SIM yaşam matematiğine dokunmaz.
 test("frozen baseline: all 37 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -36,7 +38,7 @@ test("frozen baseline: all 37 content, simulation, persistence and projection so
   assert.equal(files.length, 37);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "aaf0e9ebfa3b6b7a0093dd02ddb12304c4e002783f219e92a69de01995f3003d");
+  assert.equal(hash.digest("hex"), "779767a02927fd226d2a30e3f90a9773f80ddb57a1c3b87c4b5e6ecea5dbd4ed");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

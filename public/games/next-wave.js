@@ -69,6 +69,7 @@ import {
   tickDevletN,
   applyDoctrine,
   finiteState,
+  ensureDevletDepth,
   DOCTRINES,
   ALT_PRESETS,
   GUNUMUZ_BASELINE,
@@ -208,6 +209,9 @@ export function normalize(id, raw) {
   if (id === "kayip-telefon") {
     if (!validatePhoneState(raw)) return null;
     if (!ensurePhoneState(raw) || !validatePhoneState(raw)) return null;
+  }
+  if (id === "tc-sim-devlet") {
+    if (!ensureDevletDepth(raw)) return null;
   }
   return raw;
 }

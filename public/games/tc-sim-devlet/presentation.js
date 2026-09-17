@@ -2,7 +2,7 @@
 // inflation stored in yearDigest. Presentation thresholds do not affect simulation.
 import { POLICIES, EVENTS, PERIODS } from "../next-wave/devlet-data.js";
 import { HELP_SECTIONS } from "./help.js";
-import { implementationRate } from "../next-wave/devlet-sim.js";
+import { implementationRate, previewPolicy } from "../next-wave/devlet-sim.js";
 import { escapeHtml as h, helpPanel, loc, text as t } from "../next-wave/shared/runtime.js";
 
 const names = {
@@ -110,6 +110,9 @@ export function visibleSnapshot(s) {
     files: (s.files || []).map((f) => ({ ...f })),
     pending: (s.flags.pendingPolicies || []).map((p) => ({ id: p.id, rate: p.rate })),
     events: (s.events || []).map((e) => e.id),
+    macro: { ...(s.devletDepth?.macro || {}) },
+    depthConfidence: { ...(s.devletDepth?.confidence || {}) },
+    traces: (s.devletDepth?.traces || []).map((row) => ({ ...row })),
   };
 }
 export function reportCards(s) {
@@ -142,15 +145,9 @@ export function decisionCards(s, pool = policies(s)) {
     .map((p) => {
       const selected = (s.flags.decisionIds || []).includes(p.id),
         remaining = s.flags.decisionsRemaining ?? 2;
-      const inst = s.institutions.find((i) => i.id === p.inst),
-        rate = Math.max(
-          0,
-          Math.min(
-            100,
-            ((inst?.capacity ?? 50) / Math.max(30, p.capacityNeed)) * 70 - s.entropy * 0.1,
-          ),
-        );
-      return `<button type="button" class="decision ${selected ? "is-picked" : ""}" data-policy="${h(p.id)}" ${selected || remaining <= 0 || s.flags.campaignEnd ? "disabled" : ""}><strong>${h(loc(p.name))}</strong><span>${h(loc(p.intent))}</span><small>${t("Sorumlu kurum", "Responsible institution")}: ${h(loc(inst?.name || t("Merkez idare", "Central administration")))} · ${t("Beklenen uygulama", "Expected delivery")}: ${band(rate)} (%${Math.round(rate)}) · ${t("Hazine maliyeti", "Treasury cost")}: ${p.cost} ${t("endeks puanı", "index points")}</small><b>${selected ? t("Seçildi — ay sonunda uygulanacak", "Selected — delivery at month end") : remaining <= 0 ? t("Bu ay iki karar kullanıldı", "Both decisions used this month") : t("Bu ayın kararına ekle", "Choose for this month")}</b></button>`;
+      const inst = s.institutions.find((i) => i.id === p.inst), preview = previewPolicy(s, p), rate = preview.rate;
+      const groups = preview.affectedGroups.map(([id, delta]) => `${id} ${delta > 0 ? "+" : ""}${delta}`).join(" · ");
+      return `<button type="button" class="decision ${selected ? "is-picked" : ""}" data-policy="${h(p.id)}" ${selected || remaining <= 0 || s.flags.campaignEnd ? "disabled" : ""}><strong>${h(loc(p.name))}</strong><span>${h(loc(p.intent))}</span><small>${t("Sorumlu kurum", "Responsible institution")}: ${h(loc(inst?.name || t("Merkez idare", "Central administration")))} · ${t("Beklenen uygulama", "Expected delivery")}: ${band(rate)} (%${Math.round(rate)}) · ${t("Hazine maliyeti", "Treasury cost")}: ${p.cost} ${t("endeks puanı", "index points")}</small><small>${t("Kısa", "Short")}: ${t("enflasyon", "inflation")} ${preview.horizons.short.inflation >= 0 ? "+" : ""}${preview.horizons.short.inflation} · ${t("Orta büyüme", "Medium growth")} ${preview.horizons.medium.growth >= 0 ? "+" : ""}${preview.horizons.medium.growth.toFixed(1)} · ${t("Uzun büyüme", "Long growth")} ${preview.horizons.long.growth >= 0 ? "+" : ""}${preview.horizons.long.growth.toFixed(1)}</small><small>${t("Etkilenen gruplar", "Affected groups")}: ${h(groups)}${preview.context.length ? ` · ${h(preview.context.join("; "))}` : ""}</small><b>${selected ? t("Seçildi — etkiler zaman içinde çözülecek", "Selected — effects resolve over time") : preview.cooldown > 0 ? t(`Tekrar serbest; ${preview.cooldown} tur azalan getiri ve yorgunluk riski`, `Repeat allowed; ${preview.cooldown} turns of diminishing returns and fatigue risk`) : remaining <= 0 ? t("Bu ay iki karar kullanıldı", "Both decisions used this month") : t("Bu ayın kararına ekle", "Choose for this month")}</b></button>`;
     })
     .join("")}</div>`;
 }
@@ -240,7 +237,7 @@ export function screenHtml(
   if (screen === "economy")
     return wrap(
       t("Raporlanan ekonomi", "Reported economy"),
-      reportCards(s) +
+      reportCards(s) + `<div class="data-grid"><article class="report-card"><h3>${t("Reel büyüme", "Real growth")}</h3><strong>%${number(s.devletDepth?.macro?.realGrowth)}</strong><p>${t("Bütçe dengesi", "Budget balance")}: ${number(s.devletDepth?.macro?.budgetBalance)}</p></article><article class="report-card"><h3>${t("Borç / finansman", "Debt / financing")}</h3><strong>${number(s.devletDepth?.macro?.publicDebt)}/140</strong><p>${t("Faiz", "Interest")}: %${number(s.devletDepth?.macro?.interestRate)} · ${t("Rezerv", "Reserves")}: ${number(s.devletDepth?.macro?.reserves)}</p></article><article class="report-card"><h3>${t("Satın alma gücü", "Purchasing power")}</h3><strong>${number(s.devletDepth?.macro?.purchasingPower)}/100</strong><p>${t("Hane güveni", "Household confidence")}: ${number(s.devletDepth?.confidence?.household)}</p></article><article class="report-card"><h3>${t("Yatırım", "Investment")}</h3><strong>${number(s.devletDepth?.macro?.investment)}/100</strong><p>${t("İş dünyası güveni", "Business confidence")}: ${number(s.devletDepth?.confidence?.business)}</p></article></div><h3>${t("Neden değişti?", "Why did it change?")}</h3>${(s.devletDepth?.traces || []).slice(-4).reverse().map(row => `<p><b>${h(row.source)}</b>: ${h((row.factors || []).join(" · "))}</p>`).join("") || `<p>${t("Henüz nedensellik izi yok.", "No causal trace yet.")}</p>`}` +
         `<h3>${t("Ertelenmiş politika yükü", "Deferred policy burden")}</h3><p>${t("0–100 endeks; yüksek değer birikmiş ihtiyacın büyüklüğünü gösterir.", "0–100 index; higher means greater accumulated needs.")}</p><div class="data-grid">${Object.entries(
           s.policyDebt,
         )
@@ -270,12 +267,12 @@ export function screenHtml(
       hottest = s.regions.slice().sort((a, b) => b.heat - a.heat)[0];
     return wrap(
       t("Bölgesel durum", "Regional situation"),
-      `<p>${t("Dikkat", "Attention")}: ${h(loc(lowest.name))} — ${t("en düşük uygulama hazırlığı", "lowest delivery readiness")}; ${h(loc(hottest.name))} — ${t("en yüksek toplumsal gerilim", "highest social tension")}.</p>${detail(t("Bu göstergeler nasıl okunur?", "How should these indicators be read?"), t("Uygulama hazırlığı ve toplumsal gerilim 0–100 endekslerdir. İlki yüksekse hazırlık güçlü, ikincisi yüksekse baskı fazladır. Mevcut motor bu bölgesel başlangıç göstergelerini her ay güncellemez; o ayki gerçek uygulama sonucu olarak okunmamalıdır.", "Readiness and social tension are 0–100 indices. Higher readiness is stronger; higher tension means more pressure. The current engine does not update these regional starting indicators every month; they are not this month's delivered outcomes."))}<div class="data-grid">${s.regions
+      `<p>${t("Dikkat", "Attention")}: ${h(loc(lowest.name))} — ${t("en düşük uygulama hazırlığı", "lowest delivery readiness")}; ${h(loc(hottest.name))} — ${t("en yüksek toplumsal gerilim", "highest social tension")}.</p><div class="data-grid">${s.regions
         .slice()
         .sort((a, b) => a.impl - b.impl)
         .map(
           (r) =>
-            `<article class="report-card"><h3>${h(loc(r.name))}</h3><p>${t("Politika uygulama hazırlığı", "Policy delivery readiness")}</p>${meter(r.impl)}<p>${t("Toplumsal gerilim", "Social tension")}</p>${meter(r.heat, "tension")}</article>`,
+            `<article class="report-card"><h3>${h(loc(r.name))}</h3><p>${t("Aktivite", "Activity")}: ${number(r.activity)} · ${t("İşsizlik", "Unemployment")}: %${number(r.unemployment)}</p><p>${t("Hizmet", "Services")}: ${number(r.services)} · ${t("Altyapı", "Infrastructure")}: ${number(r.infrastructure)}</p><p>${t("Memnuniyet", "Satisfaction")}: ${number(r.satisfaction)} · ${t("Göç çekimi", "Migration pull")}: ${number(r.migration)}</p>${meter(r.heat, "tension")}</article>`,
         )
         .join("")}</div>`,
     );
@@ -288,7 +285,7 @@ export function screenHtml(
           const last = s.implementationLog
             .filter((row) => policyOf(row.policy)?.inst === i.id)
             .at(-1);
-          return `<article class="report-card"><h3>${h(loc(i.name))}</h3><p>${t("Kapasite", "Capacity")}</p>${meter(i.capacity)}<p>${t("Özerklik", "Autonomy")}</p>${meter(i.autonomy ?? 0)}<small>${t("Son ilgili karar", "Last relevant decision")}: ${last ? `${h(policyName(last.policy))} · %${Math.round(last.rate)}` : t("Henüz yok", "None yet")}</small></article>`;
+          return `<article class="report-card"><h3>${h(loc(i.name))}</h3><p>${t("Kapasite", "Capacity")}</p>${meter(i.capacity)}<p>${t("Profesyonellik", "Professionalism")}: ${number(i.professionalism)} · ${t("Güven", "Trust")}: ${number(i.trust)}</p><p>${t("Özerklik", "Autonomy")}: ${number(i.autonomy)} · ${t("Bütçe", "Budget")}: ${number(i.budget)} · ${t("Yorgunluk", "Fatigue")}: ${number(i.fatigue)}</p><small>${t("Son ilgili karar", "Last relevant decision")}: ${last ? `${h(policyName(last.policy))} · %${Math.round(last.rate)}` : t("Henüz yok", "None yet")}</small></article>`;
         })
         .join(
           "",
@@ -297,12 +294,12 @@ export function screenHtml(
   if (screen === "society")
     return wrap(
       t("Toplum", "Society"),
-      `<p>${t("Memnuniyet ve devlete güven 0–100 göstergeleridir; yüksek değer daha olumludur. Güncel toplam gerilim ayrıca izlenir.", "Satisfaction and trust in the state are 0–100 indicators; higher is more positive. Overall tension is tracked separately.")}</p><p>${t("Toplumsal gerilim", "Social tension")}: ${band(s.heat, "tension")} · ${number(s.heat)}/100</p><div class="data-grid">${s.cohorts
+      `<p>${t("Memnuniyet; reel gelir, iş, hizmet, güven ve grup çıkarından türetilir.", "Satisfaction derives from real income, jobs, services, trust and group interests.")}</p><p>${t("Toplumsal gerilim", "Social tension")}: ${band(s.heat, "tension")} · ${number(s.heat)}/100</p><div class="data-grid">${(s.devletDepth?.groups || [])
         .slice()
-        .sort((a, b) => a.mood - b.mood)
+        .sort((a, b) => a.satisfaction - b.satisfaction)
         .map(
           (c) =>
-            `<article class="report-card"><h3>${h(loc(c.name))}</h3><p>${t("Memnuniyet", "Satisfaction")}</p>${meter(c.mood)}<p>${t("Devlete güven", "Trust in the state")}</p>${meter(c.trust)}${c.pressure ? `<p>${h(loc(c.pressure))}</p>` : ""}</article>`,
+            `<article class="report-card"><h3>${h(loc(c.name))}</h3><p>${t("Memnuniyet", "Satisfaction")}</p>${meter(c.satisfaction)}<p>${t("Beklenti", "Expectation")}: ${number(c.expectation)} · ${t("Baskı", "Pressure")}: ${number(c.pressure)} · ${t("Mobilizasyon", "Mobilization")}: ${number(c.mobilization)}</p></article>`,
         )
         .join("")}</div>`,
     );

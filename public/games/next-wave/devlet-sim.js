@@ -18,8 +18,14 @@ import {
   GRAND_HOOKS,
   GUNUMUZ_BASELINE,
 } from "./devlet-data.js";
+import {
+  ensureDevletDepth,
+  schedulePolicyDepth,
+  tickDevletDepth,
+} from "./devlet-depth.js";
 
 export { DOCTRINES, ALT_PRESETS, DNA_AXES, GRAND_HOOKS, GUNUMUZ_BASELINE, PERIOD_BANDS };
+export { ensureDevletDepth, previewPolicy } from "./devlet-depth.js";
 
 export const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n));
 
@@ -74,8 +80,8 @@ export function hydrateDevlet(eraId, opts = {}) {
     for (const [k, v] of Object.entries(alt.dna)) dna[k] = clamp(v);
   }
   const economy = { ...era.economy, ...(alt?.economy || {}) };
-  return {
-    meta: { version: 1, id: "tc-sim-devlet" },
+  const state = {
+    meta: { version: 2, id: "tc-sim-devlet", seed: Number.isInteger(opts.seed) ? opts.seed : 12345 },
     time: { year: start.year, month: start.month, turn: 1 },
     scenario: {
       id: campaign ? "1923-2030" : era.id === "2002" ? "2002-2005" : era.id,
@@ -161,6 +167,7 @@ export function hydrateDevlet(eraId, opts = {}) {
     history: [],
     ui: { screen: "Durum", flavor: era.flavor },
   };
+  return ensureDevletDepth(state);
 }
 
 function pushBounded(arr, row, cap) {
@@ -181,6 +188,7 @@ function applyDnaDelta(s, delta) {
 }
 
 export function applyPolicy(s, policyId) {
+  ensureDevletDepth(s);
   const stamp = s.time.year + "-" + s.time.month;
   if (s.flags.decisionMonth !== stamp) {
     s.flags.decisionMonth = stamp;
@@ -224,6 +232,7 @@ export function applyPolicy(s, policyId) {
   pushBounded(s.path, { turn: s.time.turn, policy: p.id, era: s.eraId }, 36);
   pushBounded(s.butterflies, { turn: s.time.turn, from: p.id, text: p.intent }, 24);
   pushBounded(s.history, { type: "policy", turn: s.time.turn, policy: p.id }, 80);
+  schedulePolicyDepth(s, p);
   return s;
 }
 
@@ -282,6 +291,7 @@ function maybeTransition(s) {
 }
 
 export function tickDevlet(s) {
+  ensureDevletDepth(s);
   // A finished run is terminal. Without this the 2002–2005 slice (and every
   // other era horizon) kept ticking forever — 600 advances put the "2002-2005"
   // scenario in 2052 — and the campaign-end report could never settle.
@@ -446,6 +456,7 @@ export function tickDevlet(s) {
   s.flags.decisionMonth = s.time.year + "-" + s.time.month;
   s.flags.decisionsRemaining = 2;
   s.flags.decisionIds = [];
+  tickDevletDepth(s);
   maybeTransition(s);
   const endYear = s.grand?.endYear || 2005;
   if (s.time.year > endYear || (s.time.year === endYear && s.time.month >= 12)) {
