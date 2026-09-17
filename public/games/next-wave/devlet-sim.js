@@ -369,14 +369,29 @@ export function tickDevlet(s) {
   s.known.inflation = { confidence: settle(s.known.inflation?.confidence, 0.2, 0.02) };
   s.known.treasury = { confidence: settle(s.known.treasury?.confidence, 0.2, 0.015) };
   s.known.unemployment = { confidence: settle(s.known.unemployment?.confidence, 0.15, 0.01) };
-  const recentPolicies = (s.devletDepth?.policy?.history || []).filter((row) => row.turn >= s.time.turn - 1);
+  const policyHistory = s.devletDepth?.policy?.history || [];
+  const recentPolicies = policyHistory.filter((row) => row.turn >= s.time.turn - 1);
+  const stabilizationWindow = policyHistory.filter((row) => row.turn > s.time.turn - 12);
   const reversals = recentPolicies.filter((row) => row.reversal).length;
   const poor = recentPolicies.filter((row) => row.rate < 35).length;
   const overload = recentPolicies.length > 1 ? recentPolicies.length - 1 : 0;
   const churn = recentPolicies.filter((row) => /^cadre-/.test(row.id)).length;
   const inactivityPressure = recentPolicies.length === 0 && ((s.heat || 0) > 55 || (s.actual.inflation || 0) > 18 || (s.actual.unemployment || 0) > 14) ? .015 : 0;
-  const competentRelief = recentPolicies.length && poor === 0 && overload === 0 && reversals === 0 ? .05 : 0;
-  s.entropy = clamp((s.entropy || 40) + inactivityPressure + overload * .04 + reversals * .07 + poor * .04 + churn * .025 - competentRelief - rate * .012);
+  const competentRelief = recentPolicies.length && poor === 0 && overload === 0 && reversals === 0 ? .04 : 0;
+  const windowRate = stabilizationWindow.reduce((sum, row) => sum + Math.max(0, row.rate || 0), 0) / Math.max(1, stabilizationWindow.length);
+  const coherentCadence = stabilizationWindow.length >= 1 && stabilizationWindow.length <= 4 &&
+    !stabilizationWindow.some((row) => row.reversal) && windowRate >= 35;
+  const depth = s.devletDepth;
+  const institutionalBase = depth ? (depth.confidence.institutional + depth.cadres.reduce((sum, c) => sum + c.competence + c.professionalism, 0) / Math.max(1, depth.cadres.length * 2)) / 2 : 0;
+  // Stabilisation is a recovery channel, not a permanent efficiency bonus:
+  // it fades once entropy is back in the governable band. This prevents the
+  // repair route from becoming an all-axis dominant meta at low entropy.
+  const recoveryNeed = clamp(((s.entropy || 40) - 50) / 35, 0, 1);
+  const structuralRecovery = coherentCadence
+    ? (.045 + windowRate * .00045 + institutionalBase * .00035) * recoveryNeed
+    : 0;
+  const institutionRepair = coherentCadence && stabilizationWindow.some((row) => ["institutions", "education"].includes(row.domain)) ? .018 * recoveryNeed : 0;
+  s.entropy = clamp((s.entropy || 40) + inactivityPressure + overload * .04 + reversals * .07 + poor * .04 + churn * .025 - competentRelief - structuralRecovery - institutionRepair);
   s.heat = clamp(
     (s.heat || 40) +
       ((s.actual.unemployment || 10) - 8) * 0.05 +

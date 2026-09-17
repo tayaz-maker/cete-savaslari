@@ -217,7 +217,14 @@ export function normalize(id, raw) {
     // loaded cleanly: most values were laundered into plausible numbers over the
     // next few turns, and a non-finite taxBurden — which nothing ever writes —
     // stayed poisoned for the rest of the campaign.
-    if (!ensureDevletDepth(raw) || !validateDevletDepth(raw)) return null;
+    // Reject poisoned nested numbers before hydration can coerce them to a
+    // strategic extreme (cap(NaN) is zero). Missing legacy fields may still be
+    // hydrated, but a value explicitly present as NaN/Infinity is never a
+    // migration signal.
+    const finitePayload = (value) => typeof value === "number"
+      ? Number.isFinite(value)
+      : !value || typeof value !== "object" || Object.values(value).every(finitePayload);
+    if (!finitePayload(raw) || !ensureDevletDepth(raw) || !validateDevletDepth(raw)) return null;
   }
   return raw;
 }

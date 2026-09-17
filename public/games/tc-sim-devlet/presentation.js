@@ -213,7 +213,7 @@ export function screenHtml(
             ? a.inflation - b.inflation
             : a.capacityNeed - b.capacityNeed,
       );
-    return `<details class="loop-guide" open><summary>${t("Bu ay nasıl oynanır?", "How to play this month")}</summary><p>${t("Gündemi oku → iki karar seç → ayı ilerlet → uygulama ve raporları incele.", "Read the agenda → choose two decisions → advance the month → review delivery and reports.")}</p></details>${feedbackHtml(s, feedback)}${reportCards(s)}${wrap(
+    return `<details class="loop-guide" open><summary>${t("Bu ay nasıl oynanır?", "How to play this month")}</summary><p>${t("Gündemi oku → kapasiten uygunsa en fazla iki karar seç (beklemek de bir tercihtir) → ayı ilerlet → uygulama ve raporları incele.", "Read the agenda → choose up to two decisions when capacity allows (waiting is also a choice) → advance the month → review delivery and reports.")}</p></details>${feedbackHtml(s, feedback)}${reportCards(s)}${wrap(
       t("Bu ay ne oluyor?", "What is happening this month?"),
       `<ul>${(issues.length ? issues : [t("Acil baskı yok; uzun vadeli kurum ve hizmet ihtiyaçlarını değerlendir.", "No urgent pressure; consider long-term institutional and service needs.")]).map((x) => `<li>${x}</li>`).join("")}</ul>${s.events
         .slice(-2)

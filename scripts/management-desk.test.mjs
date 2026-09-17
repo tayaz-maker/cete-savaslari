@@ -30,6 +30,8 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // düğüm, zincir, gecikmeli geri dönüş ve dosya izi ekledi; motor matematiği değişmedi.
 // Wave 5 yalnız TC SIM: DEVLET'in ayrı causal foundation katmanını ve mevcut
 // DEVLET kernel entegrasyonunu değiştirir; TC SIM yaşam matematiğine dokunmaz.
+// Wave 5 final core entegrasyonu DEVLET'te entropy recovery, weighted crisis
+// selection ve karar kapasitesi açıklamasını bilinçli olarak güncelledi.
 test("frozen baseline: all 37 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -38,7 +40,7 @@ test("frozen baseline: all 37 content, simulation, persistence and projection so
   assert.equal(files.length, 37);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "d5a4a7f6cc4847f57b95e33381330c5b753efd5946dcb3034678a195d05524c2");
+  assert.equal(hash.digest("hex"), "db42c0d7756df76a0912f123a43997e444701ab97f49e16969434cd418170b63");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

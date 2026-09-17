@@ -197,8 +197,22 @@ function implementationFor(state, p, meta) {
   const institutional = inst ? inst.capacity * .28 + inst.professionalism * .2 + inst.budget * .12 + inst.leadership * .1 + inst.alignment * .1 - inst.fatigue * .16 - Math.max(0, inst.autonomy - 70) * .08 : 42;
   const social = d.groups.reduce((a, g) => a + g.satisfaction, 0) / d.groups.length;
   const repeat = d.policy.counts[p.id] || 0;
-  const cadreFit = cadre ? cadre.competence * .05 + cadre.management * .045 + cadre.professionalism * .045 + cadre.expertise * .07 + cadre.reliability * .045 + cadre.crisisResilience * .02 - cadre.networkRisk * .045 : 8;
+  const affinity = cadre ? cadreDomainAffinity(cadre.role, meta.domain) : .5;
+  const cadreFit = cadre ? cadre.competence * .05 + cadre.management * .045 + cadre.professionalism * .045 + cadre.expertise * (.035 + affinity * .035) + cadre.reliability * .045 + cadre.crisisResilience * .02 - cadre.networkRisk * .045 : 8;
   return cap(institutional + cadreFit + d.confidence.institutional * .12 + social * .08 - state.entropy * .08 - meta.implementationDemand * .16 - repeat * 5, 8, 96);
+}
+
+function cadreDomainAffinity(role, domain) {
+  const affinities = {
+    fiscal: ["fiscal", "development"], monetary: ["monetary", "fiscal"],
+    administration: ["institutions", "services", "development"], justice: ["institutions"],
+    security: ["security"], education: ["education", "development"],
+    local: ["services", "development"], intelligence: ["security", "institutions"],
+  };
+  const domains = affinities[role] || [];
+  if (domains[0] === domain) return 1;
+  if (domains.includes(domain)) return .76;
+  return .42;
 }
 
 export function previewPolicy(state, p) {
@@ -537,10 +551,31 @@ function updateCrises(state) {
   }
   d.crises.active = d.crises.active.filter(c => c.status === "active");
   if (state.time.turn % 6 !== 0 || d.crises.active.length >= 3) return;
-  const [family, raw] = Object.entries(exposure).sort((a, b) => b[1] - a[1])[0];
-  const probability = cap((raw - d.crises.resilience) * .009, 0, .55);
+  // Exposure families have different natural scales. Select from every family
+  // whose own meaningful threshold is crossed instead of always taking the
+  // numerically largest raw value (which made trust/financial permanent
+  // winners and left three families mathematically dormant).
+  const familyScale = {
+    inflation: [18, 34], recession: [15, 42], financial: [34, 52],
+    migration: [1.8, 12], institutional: [24, 52], trust: [30, 52], external: [38, 45],
+  };
+  const recentFamilies = new Set(d.crises.history.filter(c => state.time.turn - c.startTurn < 18).map(c => c.family));
+  const eligible = Object.entries(exposure).map(([family, raw]) => {
+    const [threshold, scale] = familyScale[family];
+    const pressure = Math.max(0, (raw - threshold) / scale);
+    const resilienceFactor = cap(1.15 - d.crises.resilience / 120, .2, 1);
+    const cooldown = recentFamilies.has(family) ? .18 : 1;
+    return { family, raw, pressure, weight: Math.pow(pressure, 1.12) * resilienceFactor * cooldown };
+  }).filter(row => row.weight > 0);
+  const totalWeight = eligible.reduce((sum, row) => sum + row.weight, 0);
+  if (!eligible.length || totalWeight <= 0) return;
+  const probability = cap(totalWeight * .105, 0, .58);
   if (hash01(state.meta.seed, state.time.turn, 41) >= probability) return;
-  const crisis = { id: `${family}-${state.time.turn}`, family, startTurn: state.time.turn, severity: cap(raw - d.crises.resilience + 20, 10, 80), status: "active" };
+  let cursor = hash01(state.meta.seed, state.time.turn, 42) * totalWeight;
+  let selected = eligible[eligible.length - 1];
+  for (const row of eligible) { cursor -= row.weight; if (cursor <= 0) { selected = row; break; } }
+  const { family, raw, pressure } = selected;
+  const crisis = { id: `${family}-${state.time.turn}`, family, startTurn: state.time.turn, severity: cap(12 + pressure * 30 - d.crises.resilience * .035, 10, 80), status: "active" };
   d.crises.active.push(crisis); boundedPush(d.crises.history, { ...crisis }, DEVLET_BOUNDS.crisisHistory);
   state.heat = cap(state.heat + crisis.severity * .04);
   d.government.crisisPerformance = cap(d.government.crisisPerformance - crisis.severity * .025 + d.crises.resilience * .015);
