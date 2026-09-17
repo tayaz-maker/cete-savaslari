@@ -75,6 +75,12 @@ import {
   ALT_PRESETS,
   GUNUMUZ_BASELINE,
 } from "./next-wave/devlet-sim.js";
+import {
+  applyContentChoice as devletContentChoice,
+  settleDevletContent,
+  overlayCadres,
+  devletContentBag,
+} from "./next-wave/devlet-content.js";
 
 function pushHist(s, row) {
   s.history = (s.history || []).concat(row).slice(-80);
@@ -225,6 +231,8 @@ export function normalize(id, raw) {
       ? Number.isFinite(value)
       : !value || typeof value !== "object" || Object.values(value).every(finitePayload);
     if (!finitePayload(raw) || !ensureDevletDepth(raw) || !validateDevletDepth(raw)) return null;
+    overlayCadres(raw);
+    devletContentBag(raw);
   }
   return raw;
 }
@@ -624,11 +632,16 @@ export function applyAction(id, s, action) {
     setDecision(s, action.slice(9));
   } else if (id === "kayip-telefon" && action === "return") {
     finishCase(s);
+  } else if (id === "tc-sim-devlet" && action.startsWith("content:")) {
+    const rest = action.slice(8);
+    const cut = rest.indexOf(":");
+    if (cut > 0) devletContentChoice(s, rest.slice(0, cut), rest.slice(cut + 1));
   } else if (id === "tc-sim-devlet" && action === "policy") {
     devletPolicy(s, "imf-sba");
   } else if (id === "tc-sim-devlet" && action.startsWith("policy:")) {
     devletPolicy(s, action.slice(7));
   } else if (id === "tc-sim-devlet" && action === "advance") {
+    settleDevletContent(s);
     devletAdvance(s);
   } else if (id === "tc-sim-devlet" && action.startsWith("era:")) {
     const eraId = action.slice(4);

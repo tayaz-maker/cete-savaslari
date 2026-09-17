@@ -46,6 +46,10 @@ const formLabel = {
   "Kışla-Devlet": "Garrison-State",
   "Bürokrasi-Devlet": "Bureaucracy-State",
   "Parti-Devlet": "Party-State",
+  "Sermaye-Devlet": "Capital-State",
+  "Cemaat-Devlet": "Network-State",
+  "Popülist-Devlet": "Populist-State",
+  "Boş Kabuk": "Empty Shell",
   "Bölgesel-Devlet": "Regional-State",
   "Piyasa-Devlet": "Market-State",
   "Güvenlik-Devlet": "Security-State",
@@ -209,6 +213,14 @@ function draw(session) {
       button.addEventListener("click", () => {
         feedback = { kind: "policy", id: button.dataset.policy };
         session.act(`policy:${button.dataset.policy}`);
+      }),
+    );
+  root
+    .querySelectorAll("[data-content]")
+    .forEach((button) =>
+      button.addEventListener("click", () => {
+        feedback = { kind: "content", id: button.dataset.content };
+        session.act(`content:${button.dataset.content}`);
       }),
     );
   root.querySelector("[data-open-policy]")?.addEventListener("click", () => { selectedScreen = "policy"; session.render(); if (document.scrollingElement) document.scrollingElement.scrollTop = 0; });

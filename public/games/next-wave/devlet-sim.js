@@ -23,6 +23,7 @@ import {
   schedulePolicyDepth,
   tickDevletDepth,
 } from "./devlet-depth.js";
+import { overlayCadres, processDevletContentMonth } from "./devlet-content.js";
 
 export { DOCTRINES, ALT_PRESETS, DNA_AXES, GRAND_HOOKS, GUNUMUZ_BASELINE, PERIOD_BANDS };
 export { ensureDevletDepth, previewPolicy, validateDevletDepth } from "./devlet-depth.js";
@@ -167,7 +168,10 @@ export function hydrateDevlet(eraId, opts = {}) {
     history: [],
     ui: { screen: "Durum", flavor: era.flavor },
   };
-  return ensureDevletDepth(state);
+  ensureDevletDepth(state);
+  overlayCadres(state);
+  processDevletContentMonth(state);
+  return state;
 }
 
 function pushBounded(arr, row, cap) {
@@ -487,6 +491,8 @@ export function tickDevlet(s) {
   // group — and the missing cadre left its policies on the flat cadreFit
   // fallback for the rest of the campaign.
   ensureDevletDepth(s);
+  overlayCadres(s);
+  processDevletContentMonth(s);
   const endYear = s.grand?.endYear || 2005;
   if (s.time.year > endYear || (s.time.year === endYear && s.time.month >= 12)) {
     s.flags.campaignEnd = true;

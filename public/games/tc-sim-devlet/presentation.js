@@ -4,6 +4,12 @@ import { POLICIES, EVENTS, PERIODS } from "../next-wave/devlet-data.js";
 import { HELP_SECTIONS } from "./help.js";
 import { implementationRate, previewPolicy } from "../next-wave/devlet-sim.js";
 import { escapeHtml as h, helpPanel, loc, text as t } from "../next-wave/shared/runtime.js";
+import {
+  eventById,
+  POLICY_PROSE,
+  STATE_FORM_FLAVOR,
+  CADRE_PROFILES,
+} from "../next-wave/devlet-content.js";
 
 const names = {
   us: ["ABD", "United States"],
@@ -146,14 +152,32 @@ export function decisionCards(s, pool = policies(s)) {
       const selected = (s.flags.decisionIds || []).includes(p.id),
         remaining = s.flags.decisionsRemaining ?? 2;
       const preview = previewPolicy(s, p), inst = s.institutions.find((i) => i.id === preview.institution) || s.institutions.find((i) => i.id === p.inst), rate = preview.rate;
+      const prose = POLICY_PROSE[p.id];
       const groups = preview.affectedGroups.map(([id, delta]) => `${id} ${delta > 0 ? "+" : ""}${delta}`).join(" · ");
       const inflationDirection = { up: t("yukarı baskı", "upward pressure"), down: t("aşağı baskı", "downward pressure"), neutral: t("yaklaşık nötr", "roughly neutral") }[preview.expected.inflationDirection];
-      return `<button type="button" class="decision ${selected ? "is-picked" : ""}" data-policy="${h(p.id)}" ${selected || remaining <= 0 || s.flags.campaignEnd ? "disabled" : ""}><strong>${h(loc(p.name))}</strong><span>${h(loc(p.intent))}</span><small>${t("Sorumlu kurum", "Responsible institution")}: ${h(loc(inst?.name || t("Merkez idare", "Central administration")))} · ${t("Beklenen uygulama", "Expected delivery")}: ${band(rate)} (%${Math.round(rate)}) · ${t("Hazine maliyeti", "Treasury cost")}: ${p.cost} ${t("endeks puanı", "index points")}</small><small>${t("Kısa vade enflasyon", "Short-term inflation")}: ${inflationDirection} · ${t("Orta büyüme", "Medium growth")}: ${preview.expected.growthDirection === "up" ? t("yukarı", "up") : preview.expected.growthDirection === "down" ? t("aşağı", "down") : t("nötr", "neutral")} · ${t("Tahmin güveni", "Forecast confidence")}: ${preview.expected.inflationConfidence === "high" ? t("yüksek", "high") : t("orta", "medium")}</small><small>${t("Etkilenen gruplar", "Affected groups")}: ${h(groups)}${preview.context.length ? ` · ${h(preview.context.join("; "))}` : ""}</small><b>${selected ? t("Seçildi — etkiler zaman içinde çözülecek", "Selected — effects resolve over time") : preview.cooldown > 0 ? t(`Tekrar serbest; ${preview.cooldown} tur azalan getiri ve yorgunluk riski`, `Repeat allowed; ${preview.cooldown} turns of diminishing returns and fatigue risk`) : remaining <= 0 ? t("Bu ay iki karar kullanıldı", "Both decisions used this month") : t("Bu ayın kararına ekle", "Choose for this month")}</b></button>`;
+      const proseLine = prose
+        ? `${t("Kurum gerekçesi", "Institutional rationale")}: ${h(prose.rationale)} · ${t("Kısa", "Short")}: ${h(prose.short)} · ${t("Orta", "Medium")}: ${h(prose.medium)} · ${t("Uzun", "Long")}: ${h(prose.long)} · ${t("Risk", "Risk")}: ${h(prose.risk)}`
+        : "";
+      return `<button type="button" class="decision ${selected ? "is-picked" : ""}" data-policy="${h(p.id)}" ${selected || remaining <= 0 || s.flags.campaignEnd ? "disabled" : ""}><strong>${h(loc(p.name))}</strong><span>${h(loc(p.intent))}</span><small>${t("Sorumlu kurum", "Responsible institution")}: ${h(loc(inst?.name || t("Merkez idare", "Central administration")))} · ${t("Beklenen uygulama", "Expected delivery")}: ${band(rate)} (%${Math.round(rate)}) · ${t("Hazine maliyeti", "Treasury cost")}: ${p.cost} ${t("endeks puanı", "index points")}</small><small>${t("Kısa vade enflasyon", "Short-term inflation")}: ${inflationDirection} · ${t("Orta büyüme", "Medium growth")}: ${preview.expected.growthDirection === "up" ? t("yukarı", "up") : preview.expected.growthDirection === "down" ? t("aşağı", "down") : t("nötr", "neutral")} · ${t("Tahmin güveni", "Forecast confidence")}: ${preview.expected.inflationConfidence === "high" ? t("yüksek", "high") : t("orta", "medium")}</small><small>${t("Etkilenen gruplar", "Affected groups")}: ${h(groups)}${preview.context.length ? ` · ${h(preview.context.join("; "))}` : ""}</small>${proseLine ? `<small>${proseLine}</small>` : ""}<b>${selected ? t("Seçildi — etkiler zaman içinde çözülecek", "Selected — effects resolve over time") : preview.cooldown > 0 ? t(`Tekrar serbest; ${preview.cooldown} tur azalan getiri ve yorgunluk riski`, `Repeat allowed; ${preview.cooldown} turns of diminishing returns and fatigue risk`) : remaining <= 0 ? t("Bu ay iki karar kullanıldı", "Both decisions used this month") : t("Bu ayın kararına ekle", "Choose for this month")}</b></button>`;
     })
     .join("")}</div>`;
 }
+export function contentCard(s) {
+  const active = s.flags?.contentActive;
+  const def = active?.eventId ? eventById(active.eventId) : null;
+  if (!def) return "";
+  const title = t(def.title, def.en?.title || def.title);
+  const text = t(def.text, def.en?.text || def.text);
+  const buttons = (def.choices || []).map((row) => {
+    const label = t(row.label, def.en?.choices?.[row.id] || row.en || row.label);
+    return `<button type="button" class="decision content-choice" data-content="${h(def.id)}:${h(row.id)}"><strong>${h(label)}</strong><small>${h(row.risk || "")}</small></button>`;
+  }).join("");
+  return `<section class="card content-dossier" role="region"><p class="eyebrow">${t("DEVLET DOSYASI", "STATE DOSSIER")}</p><h2>${h(title)}</h2><p>${h(text)}</p><div class="decision-grid">${buttons}</div><small>${t("Bu dosya aylık iki politika kararını tüketmez. Seçmezsen ay ilerleyince ilk yol izlenir.", "This file does not use the two monthly policy slots. If you skip it, the first path is taken when the month advances.")}</small></section>`;
+}
 export function feedbackHtml(s, feedback) {
   if (!feedback) return "";
+  if (feedback.kind === "content")
+    return `<section class="card action-feedback" role="status"><h2>${t("Dosya işlendi", "File processed")}</h2><p>${t("Bu seçim politika kotasını kullanmadı. Etkiler hafıza, ısı ve bilgi katmanında birikir.", "This choice did not use the policy quota. Effects accumulate in memory, tension and information.")}</p></section>`;
   if (feedback.kind === "policy" && (s.flags.decisionIds || []).includes(feedback.id))
     return `<section class="card action-feedback" role="status"><h2>${t("Karar alındı", "Decision recorded")}</h2><p>${h(policyName(feedback.id))}</p><p>${t("Ay sonunda uygulanacak. Kalan karar", "Delivery is due at month end. Decisions left")}: ${s.flags.decisionsRemaining}</p></section>`;
   if (feedback.kind !== "month" || s.time.turn <= feedback.before.time.turn) return "";
@@ -213,7 +237,7 @@ export function screenHtml(
             ? a.inflation - b.inflation
             : a.capacityNeed - b.capacityNeed,
       );
-    return `<details class="loop-guide" open><summary>${t("Bu ay nasıl oynanır?", "How to play this month")}</summary><p>${t("Gündemi oku → kapasiten uygunsa en fazla iki karar seç (beklemek de bir tercihtir) → ayı ilerlet → uygulama ve raporları incele.", "Read the agenda → choose up to two decisions when capacity allows (waiting is also a choice) → advance the month → review delivery and reports.")}</p></details>${feedbackHtml(s, feedback)}${reportCards(s)}${wrap(
+    return `<details class="loop-guide" open><summary>${t("Bu ay nasıl oynanır?", "How to play this month")}</summary><p>${t("Gündemi oku → kapasiten uygunsa en fazla iki karar seç (beklemek de bir tercihtir) → ayı ilerlet → uygulama ve raporları incele.", "Read the agenda → choose up to two decisions when capacity allows (waiting is also a choice) → advance the month → review delivery and reports.")}</p></details>${contentCard(s)}${feedbackHtml(s, feedback)}${reportCards(s)}${wrap(
       t("Bu ay ne oluyor?", "What is happening this month?"),
       `<ul>${(issues.length ? issues : [t("Acil baskı yok; uzun vadeli kurum ve hizmet ihtiyaçlarını değerlendir.", "No urgent pressure; consider long-term institutional and service needs.")]).map((x) => `<li>${x}</li>`).join("")}</ul>${s.events
         .slice(-2)
@@ -286,7 +310,12 @@ export function screenHtml(
           const last = s.implementationLog
             .filter((row) => policyOf(row.policy)?.inst === i.id)
             .at(-1);
-          return `<article class="report-card"><h3>${h(loc(i.name))}</h3><p>${t("Kapasite", "Capacity")}</p>${meter(i.capacity)}<p>${t("Profesyonellik", "Professionalism")}: ${number(i.professionalism)} · ${t("Güven", "Trust")}: ${number(i.trust)}</p><p>${t("Özerklik", "Autonomy")}: ${number(i.autonomy)} · ${t("Bütçe", "Budget")}: ${number(i.budget)} · ${t("Yorgunluk", "Fatigue")}: ${number(i.fatigue)}</p><small>${t("Son ilgili karar", "Last relevant decision")}: ${last ? `${h(policyName(last.policy))} · %${Math.round(last.rate)}` : t("Henüz yok", "None yet")}</small></article>`;
+          const cadre = (s.devletDepth?.cadres || []).find((row) => row.institution === i.id);
+          const profile = CADRE_PROFILES.find((row) => row.id === cadre?.profileId);
+          const cadreLine = cadre
+            ? `<p>${t("Kadro", "Cadre")}: ${h(cadre.name || profile?.name || "")}${cadre.style ? ` · ${h(cadre.style)}` : ""}</p><p>${cadre.motivation ? h(cadre.motivation) : ""}${cadre.publicLine ? ` · ${h(cadre.publicLine)}` : ""}</p>`
+            : "";
+          return `<article class="report-card"><h3>${h(loc(i.name))}</h3><p>${t("Kapasite", "Capacity")}</p>${meter(i.capacity)}<p>${t("Profesyonellik", "Professionalism")}: ${number(i.professionalism)} · ${t("Güven", "Trust")}: ${number(i.trust)}</p><p>${t("Özerklik", "Autonomy")}: ${number(i.autonomy)} · ${t("Bütçe", "Budget")}: ${number(i.budget)} · ${t("Yorgunluk", "Fatigue")}: ${number(i.fatigue)}</p>${cadreLine}<small>${t("Son ilgili karar", "Last relevant decision")}: ${last ? `${h(policyName(last.policy))} · %${Math.round(last.rate)}` : t("Henüz yok", "None yet")}</small></article>`;
         })
         .join(
           "",
@@ -348,8 +377,10 @@ export function screenHtml(
         ),
     );
   const p = PERIODS[s.eraId];
+  const formFlavor = STATE_FORM_FLAVOR[s.form];
+  const notes = (s.devletDepth?.outcome?.contentNotes || []).slice(0, 4);
   return wrap(
     t("Dönem dosyası", "Period file"),
-    `<h3>${h(loc(p?.name || ""))}</h3><p>${h(loc(p?.theme || ""))}</p><p>${t("Devlet biçimi", "State form")}: ${h(formOf(s.form))}</p><p>${t("Kampanya", "Campaign")}: ${s.scenario.campaign ? t("Büyük kampanya", "Grand campaign") : t("Dönem", "Period")}</p>`,
+    `<h3>${h(loc(p?.name || ""))}</h3><p>${h(loc(p?.theme || ""))}</p><p>${t("Devlet biçimi", "State form")}: ${h(formOf(s.form))}</p>${formFlavor ? `<p>${h(formFlavor.persist)}</p><p>${h(formFlavor.trace)}</p>` : ""}<p>${t("Kampanya", "Campaign")}: ${s.scenario.campaign ? t("Büyük kampanya", "Grand campaign") : t("Dönem", "Period")}</p>${notes.length ? `<h3>${t("Nasıl bir devlet?", "What kind of state?")}</h3>${notes.map((line) => `<p>${h(line)}</p>`).join("")}` : ""}`,
   );
 }
