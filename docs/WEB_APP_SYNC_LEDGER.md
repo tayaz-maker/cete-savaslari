@@ -34,6 +34,16 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-17 — TC SIM: DEVLET content-max (Wave 5)
+- Web change: Content-only Wave 5 expansion of TC SIM: DEVLET on the frozen causal core. Authored dossier events, delayed continuations, exclusive policy-path families, cadre flavor overlays, policy prose and State Form traces. Persist in existing `devletDepth.content` (`chains` / `exclusive` / `once` / `waiting[]`). Content choices do not consume the two monthly policy slots.
+- Catalog: `public/games/next-wave/devlet-content.js`. Floors met: 329 authored nodes, 107 chains, 231 delayed continuations, 12 exclusive families, 20 cadre profiles, 22 dossier traces, 77 policy-prose entries. 2002 POLICIES=48 / EVENTS=62 unchanged.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no (fiscal causality, entropy recovery, crisis/form math, cadre competence, save V2 frozen).
+- UI/presentation: yes — agenda dossier card, policy rationale/short/medium/long/risk lines, institution cadre flavor, period-file State Form traces. No new screens.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone TC SIM: DEVLET should carry this catalog and overlay contract, not the website controller.
+- Commits: `grok/wave5-tc-sim-devlet-max-content` (not merged to main).
+
 ### 2026-09-17 — TC SIM late-life content patch (65+)
 - Web change: Mini content-only patch for TC SIM. Authored life events now continue after 65 (bands 65–69, 70–74, 75–79, 80+): retirement identity, consulting vs leaving work, adult-child money/role, housing downsize vs stay, family near vs independent, club vs home rhythm, partner pace, care, grief callbacks, independence/keys, photo-box legacy. Frozen engine stays (arcs, arrears, commute, retirement math, death/inheritance, save v6, 6-week scheduler, actor-memory core, callback context guards, dossier outcome math).
 - Catalog still `public/games/tc-sim/js/life-content.js` via `flags.lifeContent`. New exclusive families `late-work` / `late-home` / `late-family` / `late-circle`. Retired players no longer receive the jobless/status-dinner callbacks.
