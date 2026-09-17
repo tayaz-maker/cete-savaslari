@@ -26,6 +26,8 @@ import { deskEnglish } from "../public/games/tc-sim/js/desk.js";
 // yaptı: ölü/ayrılmış aktör kapısı ve Hayat Dosyası iz önceliği.
 // 2026-09-17 kapanış entegrasyonu yalnız bağlama duyarlı partner/iş/konut
 // callback'lerine due-time revalidation ekledi; frozen ekonomi ve yaşam matematiği değişmedi.
+// 2026-09-17 late-life mini patch yalnız life-content.js kataloğuna 65+ authored
+// düğüm, zincir, gecikmeli geri dönüş ve dosya izi ekledi; motor matematiği değişmedi.
 test("frozen baseline: all 37 content, simulation, persistence and projection sources are byte-identical", () => {
   const files = readdirSync("public/games/tc-sim/js")
     .filter(f => f.endsWith(".js") && !["app.js", "desk.js"].includes(f))
@@ -34,7 +36,7 @@ test("frozen baseline: all 37 content, simulation, persistence and projection so
   assert.equal(files.length, 37);
   const hash = createHash("sha256");
   for (const file of files) hash.update(file).update(readFileSync(file));
-  assert.equal(hash.digest("hex"), "654f99cad9185130c648163c9abbd0e1880de5eea75a2e2ccf577ee7acb1f8db");
+  assert.equal(hash.digest("hex"), "28b5337a0cc47a5d46912c52780d55a135d2545dc21703979222f90ebe3ec97d");
 });
 test("accepted content counts remain intact", () => {
   assert.equal(JOBS.length, 58);

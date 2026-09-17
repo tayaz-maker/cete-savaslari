@@ -76,11 +76,14 @@ test("Wave 4 content coverage: unique ids, floors met, no core collisions", () =
   assert.ok(cov.economyHousing >= 20, `economy ${cov.economyHousing}`);
   assert.ok(cov.relationshipFamily >= 20, `rel ${cov.relationshipFamily}`);
   assert.ok(cov.careerEducation >= 15, `career ${cov.careerEducation}`);
-  assert.equal(cov.exclusive, 12);
+  assert.equal(cov.exclusive, 16);
   assert.ok(cov.voices >= 6, `voices ${cov.voices}`);
-  assert.ok(cov.dossierTraces >= 10, `traces ${cov.dossierTraces}`);
+  assert.ok(cov.dossierTraces >= 16, `traces ${cov.dossierTraces}`);
   assert.ok(cov.outcomeFlavor >= 8, `flavor ${cov.outcomeFlavor}`);
   assert.ok(cov.longTerm >= 10, `long ${cov.longTerm}`);
+  assert.ok(cov.lateLifeEvents >= 36, `late events ${cov.lateLifeEvents}`);
+  assert.ok(cov.lateLifeChains >= 12, `late chains ${cov.lateLifeChains}`);
+  assert.ok(cov.lateExclusive >= 4, `late exclusive ${cov.lateExclusive}`);
   const ids = LIFE_CONTENT_EVENTS.map((row) => row.id);
   assert.equal(new Set(ids).size, ids.length);
   const core = new Set(EVENT_DEFINITIONS.filter((row) => !row.lifeContent).map((row) => row.id));
@@ -93,7 +96,7 @@ test("Wave 4 content coverage: unique ids, floors met, no core collisions", () =
   }
   const chainIds = new Set(CHAINS.map((row) => row.id));
   assert.equal(chainIds.size, CHAINS.length);
-  assert.equal(Object.keys(EXCLUSIVE_PAIRS).length, 12);
+  assert.equal(Object.keys(EXCLUSIVE_PAIRS).length, 16);
   for (const [family, branches] of Object.entries(EXCLUSIVE_PAIRS)) {
     assert.equal(branches.length, 2, family);
     assert.notEqual(branches[0], branches[1]);
