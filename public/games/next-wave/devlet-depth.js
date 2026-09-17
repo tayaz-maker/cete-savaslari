@@ -47,6 +47,7 @@ function makeCadres(institutions, eraId) {
   return institutions.slice(0, 8).map((inst, index) => ({
     id: `cadre-${inst.id}`, institution: inst.id, role: institutionRole(inst.id),
     name: `${inst.name} kadrosu`, experience: cap(38 + inst.capacity * 0.45 + index),
+    competence: cap(35 + inst.capacity * .5), professionalism: cap(35 + inst.professionalism * .5),
     management: cap(35 + inst.capacity * 0.5), expertise: cap(42 + inst.professionalism * 0.42),
     reliability: cap(45 + (inst.trust || 50) * 0.35), publicProfile: cap(24 + index * 4),
     networkRisk: cap(55 - inst.professionalism * 0.35), crisisResilience: cap(35 + inst.capacity * 0.4),
@@ -91,7 +92,7 @@ export function ensureDevletDepth(state) {
     termStart: state.time?.turn || 1, terms: 0, memory: [],
   }, d.government || {});
   d.cadres = Array.isArray(d.cadres) && d.cadres.length ? d.cadres : makeCadres(state.institutions || [], state.eraId);
-  d.cadres = d.cadres.slice(0, 12).map(x => ({ ...x, memory: Array.isArray(x.memory) ? x.memory.slice(-DEVLET_BOUNDS.actorMemory) : [] }));
+  d.cadres = d.cadres.slice(0, 12).map(x => ({ ...x, competence: cap(x.competence ?? x.management ?? 50), professionalism: cap(x.professionalism ?? x.expertise ?? 50), memory: Array.isArray(x.memory) ? x.memory.slice(-DEVLET_BOUNDS.actorMemory) : [] }));
   d.demography = Object.assign({ populationIndex: 100, urbanization: preset.urban, youngShare: preset.young, workingShare: 100 - preset.young - preset.old, elderlyShare: preset.old, participation: preset.participation, internalMigration: 1.5, netMigration: 0 }, d.demography || {});
   d.media = Object.assign({ salience: { economy: 55, institutions: 35, security: 30, services: 35 }, trust: state.infoQuality || 50, fragmentation: 35, topIssue: "economy" }, d.media || {});
   d.world = Object.assign({ globalGrowth: preset.global[0], energyPressure: preset.global[1], globalRates: preset.global[2], tradeDemand: preset.global[3], regionalRisk: preset.global[4], shock: null }, d.world || {});
@@ -106,6 +107,12 @@ export function ensureDevletDepth(state) {
   d.traces = Array.isArray(d.traces) ? d.traces.slice(-DEVLET_BOUNDS.traces) : [];
   d.regionalHistory = Array.isArray(d.regionalHistory) ? d.regionalHistory.slice(-DEVLET_BOUNDS.regionalHistory) : [];
   d.outcome = d.outcome && typeof d.outcome === "object" ? d.outcome : {};
+  for (const network of state.networks || []) {
+    network.pressure = cap(network.pressure ?? 10);
+    network.reach = cap(network.reach ?? 28 + network.pressure * .6);
+    network.resources = cap(network.resources ?? 25 + network.pressure * .5);
+    network.affinity = cap(network.affinity ?? 35);
+  }
   for (const region of state.regions || []) {
     region.activity = cap(region.activity ?? 45 + region.impl * .15);
     region.unemployment = cap(region.unemployment ?? (state.actual?.unemployment || 10), 0, 40);
@@ -124,6 +131,7 @@ export function ensureDevletDepth(state) {
 
 function policyDomain(p) {
   const id = p.id || "";
+  if (/region-gap|water-infra|housing-mass|konut-arz|deprem-pay|koy-hizmet|belediye-imar|export-credit|ihracat-acilim/.test(id)) return "development";
   if (p.inst === "merkez" || /inflation|faiz|fx|reserve|capa/.test(id)) return "monetary";
   if (p.inst === "maliye" || /tax|budget|imf|bank|credit/.test(id)) return "fiscal";
   if (p.inst === "maarif" || /egitim|uni/.test(id)) return "education";
@@ -133,8 +141,29 @@ function policyDomain(p) {
   return "development";
 }
 
+function fiscalKind(p, domain) {
+  const id = p.id || "";
+  if (/tax-admin|vergi-idare/.test(id)) return "tax-up";
+  if (/tax-amnesty|acilim-ithalat|customs-union/.test(id)) return "tax-down";
+  if (/imf-sba|budget-transparency|kamu-ihale|procure-audit|pension-param|public-admin/.test(id)) return "consolidation";
+  if (/social-relief|agri-support|tarim-kredi|health-transform|deprem-pay/.test(id)) return "transfers";
+  if (/region-gap|water-infra|housing-mass|konut-arz|koy-hizmet|bank-recap|export-credit|sme-credit|univ-expand|maarif-sefer/.test(id)) return "investment";
+  if (/security-posture|guvenlik-durus|iraq-border|us-defense|disaster/.test(id)) return "emergency";
+  if (domain === "fiscal" && (p.cost || 0) >= 8) return "spending-up";
+  if (domain === "fiscal" && (p.inflation || 0) <= -2) return "spending-down";
+  return "neutral";
+}
+
+const FISCAL_STANCE = Object.freeze({
+  "tax-up": { tax: .8, spending: 0 }, "tax-down": { tax: -.65, spending: .05 }, "spending-down": { tax: 0, spending: -.65 },
+  "spending-up": { tax: 0, spending: .8 }, transfers: { tax: 0, spending: 1.05 },
+  investment: { tax: .05, spending: .75 }, consolidation: { tax: .35, spending: -.8 },
+  emergency: { tax: .05, spending: .55 }, neutral: { tax: 0, spending: 0 },
+});
+
 export function policyMetadata(p) {
   const domain = policyDomain(p), expansion = p.cost >= 7 && (p.inflation || 0) >= 0;
+  const fiscal = fiscalKind(p, domain), stance = FISCAL_STANCE[fiscal];
   const affected = {
     monetary: [["urban", -1], ["business", 2], ["labor", -1], ["retirees", -1]],
     fiscal: [["business", 1], ["bureaucracy", 1], ["urban", -1]],
@@ -145,24 +174,26 @@ export function policyMetadata(p) {
     development: [["business", 2], ["labor", 1], ["farmers", 1]],
   }[domain];
   return {
-    domain, implementationDemand: p.capacityNeed || 50, fiscalCost: p.cost || 0,
-    affectedGroups: affected, institution: p.inst, cooldown: domain === "monetary" ? 3 : 4,
+    domain, fiscal, implementationDemand: p.capacityNeed || 50, fiscalCost: p.cost || 0,
+    affectedGroups: affected, institution: ["press-brief", "dis-politika", "stat-independence"].includes(p.id) ? "istikhbarat" : p.inst, cooldown: domain === "monetary" ? 3 : 4,
     reversibility: ["monetary", "fiscal"].includes(domain) ? "medium" : "low",
     risk: expansion ? "inflation" : domain === "security" ? "trust" : "implementation",
     horizons: {
-      short: { inflation: p.inflation || 0, budget: -(p.cost || 0) * .45, growth: expansion ? .35 : -.08, trust: p.trust || 0 },
-      medium: { inflation: (p.inflation || 0) * .35, budget: -(p.cost || 0) * .12, growth: domain === "education" ? .22 : expansion ? .18 : .08, trust: (p.trust || 0) * .45 },
-      long: { inflation: 0, budget: domain === "institutions" ? .18 : 0, growth: ["education", "development", "services"].includes(domain) ? .18 : 0, trust: domain === "institutions" ? .2 : 0 },
+      short: { inflation: p.inflation || 0, budget: -(p.cost || 0) * .35, growth: expansion ? .35 : -.08, trust: p.trust || 0, tax: stance.tax, spending: stance.spending },
+      medium: { inflation: (p.inflation || 0) * .35, budget: fiscal === "consolidation" ? .7 : -(p.cost || 0) * .08, growth: domain === "education" ? .22 : expansion ? .18 : .08, trust: (p.trust || 0) * .45, tax: stance.tax * .65, spending: stance.spending * .65 },
+      long: { inflation: 0, budget: fiscal === "consolidation" ? .45 : domain === "institutions" ? .18 : 0, growth: ["education", "development", "services"].includes(domain) ? .18 : 0, trust: domain === "institutions" ? .2 : 0, tax: stance.tax * .35, spending: stance.spending * .35 },
     },
   };
 }
 
 function implementationFor(state, p, meta) {
-  const d = state.devletDepth, inst = state.institutions.find(x => x.id === p.inst);
+  const d = state.devletDepth, inst = state.institutions.find(x => x.id === (meta.institution || p.inst)) || state.institutions.find(x => x.id === p.inst);
+  const cadre = d.cadres.find(x => x.institution === (meta.institution || p.inst));
   const institutional = inst ? inst.capacity * .28 + inst.professionalism * .2 + inst.budget * .12 + inst.leadership * .1 + inst.alignment * .1 - inst.fatigue * .16 - Math.max(0, inst.autonomy - 70) * .08 : 42;
   const social = d.groups.reduce((a, g) => a + g.satisfaction, 0) / d.groups.length;
   const repeat = d.policy.counts[p.id] || 0;
-  return cap(institutional + d.confidence.institutional * .12 + social * .08 - state.entropy * .12 - meta.implementationDemand * .16 - repeat * 5, 12, 96);
+  const cadreFit = cadre ? cadre.competence * .05 + cadre.management * .045 + cadre.professionalism * .045 + cadre.expertise * .07 + cadre.reliability * .045 + cadre.crisisResilience * .02 - cadre.networkRisk * .045 : 8;
+  return cap(institutional + cadreFit + d.confidence.institutional * .12 + social * .08 - state.entropy * .08 - meta.implementationDemand * .16 - repeat * 5, 8, 96);
 }
 
 export function previewPolicy(state, p) {
@@ -177,7 +208,13 @@ export function previewPolicy(state, p) {
   if (d.confidence.institutional < 40) context.push("düşük kurumsal güven uygulamayı zayıflatıyor");
   if (repeats) context.push(`tekrar ${repeats}: azalan getiri`);
   if (cooldown) context.push(`${cooldown} tur kurumsal yorgunluk`);
-  return { ...meta, rate, repeats, cooldown, context };
+  const counterforce = (d.world.energyPressure - 50) * .025 + (d.macro.publicSpending - d.macro.taxBurden) * .018 + (50 - d.confidence.institutional) * .012;
+  const visibleInflation = Number.isFinite(state.reported?.inflation) ? state.reported.inflation : 0;
+  const legacyNext = visibleInflation * (1 - rate / 100 * .08) + ((state.heat || 40) - 40) * .01;
+  const direct = meta.horizons.short.inflation * rate / 100;
+  const expectedInflation = (legacyNext + direct) * .965 + counterforce - visibleInflation;
+  const inflationDirection = expectedInflation > .22 ? "up" : expectedInflation < -.22 ? "down" : "neutral";
+  return { ...meta, rate, repeats, cooldown, context, expected: { inflationDirection, inflationConfidence: Math.abs(expectedInflation) > .8 ? "high" : "medium", growthDirection: meta.horizons.medium.growth * rate > 4 ? "up" : meta.horizons.medium.growth < -.08 ? "down" : "neutral" } };
 }
 
 export function schedulePolicyDepth(state, p) {
@@ -190,16 +227,26 @@ export function schedulePolicyDepth(state, p) {
   const repeatFactor = 1 / (1 + preview.repeats * .28);
   for (const [horizon, delay] of [["short", 1], ["medium", 6], ["long", 15]]) {
     const id = `${p.id}:${state.time.turn}:${horizon}`;
-    d.policy.pending.push({ id, source: p.id, domain: meta.domain, institution: p.inst, horizon, scheduledTurn: state.time.turn, dueTurn: state.time.turn + delay, rate: preview.rate, repeatFactor, reversal, effects: meta.horizons[horizon] });
+    d.policy.pending.push({ id, source: p.id, domain: meta.domain, fiscal: meta.fiscal, institution: meta.institution, horizon, scheduledTurn: state.time.turn, dueTurn: state.time.turn + delay, rate: preview.rate, repeatFactor, reversal, effects: meta.horizons[horizon] });
   }
   d.policy.counts[p.id] = preview.repeats + 1;
   d.policy.cooldowns[p.id] = state.time.turn + meta.cooldown;
   d.policy.lastByDomain[meta.domain] = { id: p.id, turn: state.time.turn };
   boundedPush(d.policy.history, { turn: state.time.turn, id: p.id, domain: meta.domain, rate: preview.rate, reversal }, DEVLET_BOUNDS.policyHistory);
-  const inst = state.institutions.find(x => x.id === p.inst);
+  const inst = state.institutions.find(x => x.id === meta.institution) || state.institutions.find(x => x.id === p.inst);
   if (inst) {
     inst.fatigue = cap(inst.fatigue + 4 + preview.repeats * 2);
     boundedPush(inst.memory, { turn: state.time.turn, type: "policy", id: p.id, rate: preview.rate }, DEVLET_BOUNDS.institutionMemory);
+  }
+  const cadre = d.cadres.find(x => x.institution === (meta.institution || p.inst));
+  if (cadre) {
+    const appointment = /^cadre-/.test(p.id);
+    if (appointment) {
+      cadre.experience = cap(cadre.experience + 1);
+      cadre.reliability = cap(cadre.reliability + (preview.rate >= 50 ? 1 : -1));
+      cadre.appointedTurn = state.time.turn;
+    }
+    boundedPush(cadre.memory, { turn: state.time.turn, type: appointment ? "reappointment" : "delivery", policy: p.id, rate: preview.rate }, DEVLET_BOUNDS.actorMemory);
   }
   for (const [id, delta] of meta.affectedGroups) {
     const g = d.groups.find(x => x.id === id); if (!g) continue;
@@ -209,6 +256,12 @@ export function schedulePolicyDepth(state, p) {
   if (reversal) {
     d.confidence.business = cap(d.confidence.business - 2.5);
     d.confidence.institutional = cap(d.confidence.institutional - 2);
+  }
+  const patronageSignal = Number(p.dna?.paternalism || 0), institutionalSignal = Number(p.dna?.institutionalism || 0);
+  for (const network of state.networks || []) {
+    network.resources = cap(network.resources + patronageSignal * .3 - institutionalSignal * .12);
+    network.reach = cap(network.reach + patronageSignal * .2);
+    network.pressure = cap(network.pressure + patronageSignal * .18 - institutionalSignal * .1);
   }
   boundDevletDepth(state);
   return true;
@@ -228,6 +281,11 @@ function resolvePolicies(state) {
     state.actual.inflation = cap(state.actual.inflation + e.inflation * factor, 0, 180);
     d.confidence.household = cap(d.confidence.household + e.trust * factor);
     d.confidence.institutional = cap(d.confidence.institutional + (effect.domain === "institutions" ? 1.2 : .15) * factor);
+    d.macro.taxBurden = cap(d.macro.taxBurden + (e.tax || 0) * factor, 15, 80);
+    d.macro.publicSpending = cap(d.macro.publicSpending + (e.spending || 0) * factor, 20, 90);
+    if (effect.domain === "development") { d.macro.investment = cap(d.macro.investment + .65 * factor); d.confidence.business = cap(d.confidence.business + .25 * factor); }
+    if (effect.domain === "fiscal" && effect.fiscal === "consolidation") d.confidence.institutional = cap(d.confidence.institutional + .35 * factor);
+    if (["education", "services"].includes(effect.domain)) d.confidence.household = cap(d.confidence.household + .3 * factor);
     if (effect.domain === "education" && effect.horizon === "long") d.demography.participation = cap(d.demography.participation + .5 * factor);
     if (effect.domain === "services") for (const r of state.regions) r.services = cap(r.services + .45 * factor);
     if (inst) inst.professionalism = cap(inst.professionalism + (effect.domain === "institutions" ? .5 : .08) * factor);
@@ -275,8 +333,13 @@ function updateMacro(state) {
   // Deficits create debt pressure, but automatic stabilisers and debt service
   // work on a monthly scale. The earlier coefficients made every competent
   // eight-year run hit the debt ceiling regardless of policy.
-  m.budgetBalance = cap(m.budgetBalance + (m.taxBurden - m.publicSpending) * .012 - debtService * .035 + m.realGrowth * .04 - m.budgetBalance * .015, -25, 12);
-  m.publicDebt = cap(m.publicDebt - m.budgetBalance * .015 + debtService * .02 - m.realGrowth * .04, 0, 140);
+  const targetBudget = (m.taxBurden - m.publicSpending) * .2 - debtService * .16 + m.realGrowth * .18;
+  m.budgetBalance = cap(m.budgetBalance * .92 + targetBudget * .08, -25, 12);
+  const debtMomentum = Math.max(-8, Math.min(12, m.interestRate - m.nominalGrowth)) * m.publicDebt * .000025;
+  m.publicDebt = cap(m.publicDebt - m.budgetBalance * .008 + debtMomentum - Math.max(0, m.realGrowth) * .008, 0, 140);
+  const fiscalStress = Math.max(0, m.publicDebt - 85) / 55;
+  m.taxBurden = cap(m.taxBurden + (48 - m.taxBurden) * .0008 + fiscalStress * .006, 15, 80);
+  m.publicSpending = cap(m.publicSpending + (52 - m.publicSpending) * .0005 - fiscalStress * .008, 20, 90);
   state.actual.debt = cap(m.publicDebt, 0, 140);
   m.reserves = cap(m.reserves + (w.tradeDemand - 50) * .018 - (w.globalRates - 50) * .015 - Math.max(0, state.actual.inflation - 25) * .012, 0, 100);
   m.externalPressure = cap((100 - m.reserves) * .42 + w.globalRates * .25 + w.energyPressure * .2 + state.actual.externalDep * .13);
@@ -322,15 +385,26 @@ function updateConfidenceAndGroups(state) {
 }
 
 function implementationAverage(state) {
-  return state.institutions.reduce((a, i) => a + i.capacity + i.professionalism - i.fatigue, 0) / Math.max(1, state.institutions.length * 2);
+  return cap(state.institutions.reduce((a, i) => a + i.capacity + i.professionalism - i.fatigue, 0) / Math.max(1, state.institutions.length * 2));
 }
 
 function updateInstitutionsAndRegions(state) {
   const d = state.devletDepth, m = d.macro;
+  const lastPolicyTurn = d.policy.history.length ? d.policy.history[d.policy.history.length - 1].turn : 1;
+  const inactivity = cap((state.time.turn - lastPolicyTurn - 12) / 24, 0, 1);
+  if (state.time.month === 1) {
+    for (const id of Object.keys(d.policy.counts)) d.policy.counts[id] = Math.max(0, d.policy.counts[id] - 1);
+  }
+  if (inactivity > 0) {
+    m.investment = cap(m.investment - inactivity * .018);
+    d.confidence.institutional = cap(d.confidence.institutional - inactivity * .008);
+  }
   for (const inst of state.institutions) {
+    const cadre = d.cadres.find(c => c.institution === inst.id);
+    const professionalShield = cadre ? cadre.professionalism ?? cadre.expertise : 50;
     inst.fatigue = cap(inst.fatigue * .92 - .3);
     const fundingGap = inst.budget - 50;
-    inst.capacity = cap(inst.capacity + fundingGap * .003 + inst.professionalism * .002 - inst.fatigue * .003 - state.entropy * .0012 + (50 - inst.capacity) * .002);
+    inst.capacity = cap(inst.capacity + fundingGap * .003 + inst.professionalism * .002 - inst.fatigue * (.002 + (100 - professionalShield) * .000008) - state.entropy * .0007 + (50 - inst.capacity) * .002 - inactivity * .05);
     inst.trust = cap(inst.trust * .96 + (inst.professionalism * .45 + d.confidence.institutional * .35 + inst.leadership * .2) * .04);
     inst.alignment = cap(inst.alignment * .97 + (100 - Math.abs(inst.autonomy - d.government.mandate)) * .03);
   }
@@ -341,12 +415,15 @@ function updateInstitutionsAndRegions(state) {
     r.activity = cap(r.activity * .94 + (50 + m.realGrowth * 3 + d.world.tradeDemand * .1) * .06);
     r.unemployment = cap(r.unemployment * .9 + state.actual.unemployment * .1 + (50 - r.activity) * .01, 0, 40);
     r.services = cap(r.services * .97 + local * .03 - state.entropy * .004);
-    r.infrastructure = cap(r.infrastructure * .98 + (state.actual.treasury > 45 ? .12 : -.08));
+    r.infrastructure = cap(r.infrastructure * .98 + (state.actual.treasury > 45 ? .12 : -.08) - inactivity * .06);
     r.satisfaction = cap(r.satisfaction * .9 + (r.services * .3 + r.activity * .3 + (100 - r.unemployment * 2) * .25 + d.confidence.household * .15) * .1);
     r.heat = cap(r.heat * .92 + (100 - r.satisfaction) * .08);
     r.stability = cap(100 - r.heat * .65 - r.unemployment * .5);
-    r.migration = cap(50 + (r.activity - 50) * .4 + (r.services - 50) * .25 - r.heat * .2);
-    r.urbanization = cap(r.urbanization + (r.migration - 50) * .002);
+    const jobs = 50 - r.unemployment * 1.6;
+    r.migration = cap(50 + (r.activity - 50) * .26 + (jobs - 50) * .2 + (r.services - 50) * .18 + (r.infrastructure - 50) * .16 - (r.heat - 45) * .12);
+    const nationalTarget = cap(25 + r.activity * .28 + r.services * .18 + d.demography.participation * .12 - r.unemployment * .18, 25, 86);
+    const urbanPull = (r.migration - 45) * .002 + (nationalTarget - r.urbanization) * .0025 + (r.impl - 50) * .0008;
+    r.urbanization = cap(r.urbanization + urbanPull, 8, 94);
   }
   d.demography.urbanization = cap(state.regions.reduce((a, r) => a + r.urbanization, 0) / state.regions.length);
   d.demography.internalMigration = cap(state.regions.reduce((a, r) => a + Math.abs(r.migration - 50), 0) / state.regions.length * .05, 0, 10);
@@ -359,29 +436,48 @@ function updateMediaGovernmentForms(state) {
   for (const [k, v] of Object.entries(issues)) d.media.salience[k] = cap(d.media.salience[k] * .82 + v * .18);
   d.media.topIssue = Object.entries(d.media.salience).sort((a, b) => b[1] - a[1])[0][0];
   d.media.trust = cap(d.media.trust * .94 + (state.infoQuality * .5 + d.confidence.institutional * .5) * .06);
-  d.media.fragmentation = cap(d.media.fragmentation + (state.heat - 50) * .015 + (50 - d.media.trust) * .01);
+  const fragmentationTarget = cap(22 + state.heat * .34 + (100 - d.media.trust) * .26 + d.crises.active.length * 2.5 + (d.government.publicSupport < 35 ? 5 : 0), 18, 92);
+  d.media.fragmentation = cap(d.media.fragmentation * .96 + fragmentationTarget * .04);
   const avgMood = d.groups.reduce((a, g) => a + g.satisfaction, 0) / d.groups.length;
   d.government.publicSupport = cap(d.government.publicSupport * .9 + (avgMood * .55 + d.confidence.household * .3 + (100 - state.heat) * .15) * .1);
   d.government.politicalCapital = cap(d.government.politicalCapital + (d.government.publicSupport - 50) * .012 - d.government.coalitionPressure * .004);
   if (state.time.turn - d.government.termStart >= 48) {
-    boundedPush(d.government.memory, { turn: state.time.turn, type: "government-change", support: d.government.publicSupport }, 12);
-    d.government = { ...d.government, id: `gov-${state.eraId}-${state.time.turn}`, name: "Yeni hükümet", mandate: cap(45 + hash01(state.meta.seed, state.time.turn, 31) * 30), politicalCapital: 62, coalitionPressure: cap(20 + hash01(state.meta.seed, state.time.turn, 32) * 35), termStart: state.time.turn, terms: d.government.terms + 1, memory: d.government.memory };
+    const memory = d.government.memory;
+    boundedPush(memory, { turn: state.time.turn, type: "government-change", support: d.government.publicSupport, preference: d.government.preference }, 12);
+    const preferenceRoll = hash01(state.meta.seed, state.time.turn, 33);
+    const socialBase = cap(avgMood * .55 + d.confidence.household * .3 + (100 - state.heat) * .15);
+    d.government = { id: `gov-${state.eraId}-${state.time.turn}`, name: "Yeni hükümet", mandate: cap(45 + hash01(state.meta.seed, state.time.turn, 31) * 30), politicalCapital: cap(48 + hash01(state.meta.seed, state.time.turn, 34) * 24), publicSupport: cap(socialBase * .75 + (35 + hash01(state.meta.seed, state.time.turn, 35) * 30) * .25), coalitionPressure: cap(20 + hash01(state.meta.seed, state.time.turn, 32) * 35), crisisPerformance: 50, preference: preferenceRoll < .33 ? "market" : preferenceRoll < .66 ? "social" : "mixed", termStart: state.time.turn, terms: d.government.terms + 1, memory };
+    const cadre = d.cadres.slice().sort((a, b) => (a.reliability - a.networkRisk) - (b.reliability - b.networkRisk))[d.government.terms % Math.max(1, d.cadres.length)];
+    if (cadre) {
+      boundedPush(cadre.memory, { turn: state.time.turn, type: "removed", government: d.government.id }, DEVLET_BOUNDS.actorMemory);
+      cadre.appointedTurn = state.time.turn; cadre.reliability = cap(cadre.reliability + (hash01(state.meta.seed, state.time.turn, 36) - .5) * 8);
+      boundedPush(cadre.memory, { turn: state.time.turn, type: "appointed", government: d.government.id }, DEVLET_BOUNDS.actorMemory);
+    }
     boundedPush(d.traces, { turn: state.time.turn, type: "government", source: "government-change", factors: ["görev süresi tamamlandı", "devlet kurumları ve politika hafızası korundu"] }, DEVLET_BOUNDS.traces);
   }
   const avgAutonomy = state.institutions.reduce((a, i) => a + i.autonomy, 0) / state.institutions.length;
   const avgCapacity = state.institutions.reduce((a, i) => a + i.capacity, 0) / state.institutions.length;
+  const avgProfessionalism = state.institutions.reduce((a, i) => a + i.professionalism, 0) / state.institutions.length;
+  const oldNetworkPressure = state.networks.reduce((a, n) => a + n.pressure, 0) / Math.max(1, state.networks.length);
+  for (const network of state.networks) {
+    const affinity = state.dna.paternalism * .22 + d.government.mandate * .12 + d.media.salience.services * .08 + (100 - avgProfessionalism) * .18 + (100 - d.confidence.institutional) * .12 + (network.reach || 35) * .12 + (network.resources || 30) * .08;
+    network.pressure = cap(network.pressure * .9 + affinity * .1 - avgProfessionalism * .008);
+  }
+  const networkPressure = state.networks.reduce((a, n) => a + n.pressure, 0) / Math.max(1, state.networks.length);
+  const military = state.institutions.find(i => i.id === "ordu");
   const scores = {
-    "Kışla-Devlet": state.dna.security * .55 + (state.institutions.find(i => i.id === "ordu")?.autonomy || 50) * .45,
+    "Kışla-Devlet": state.dna.security * .38 + (military?.autonomy || 50) * .25 + d.media.salience.security * .2 + (military?.capacity || 50) * .17 - avgProfessionalism * .06,
     "Bürokrasi-Devlet": state.dna.institutionalism * .45 + avgCapacity * .35 + avgAutonomy * .2,
-    "Parti-Devlet": state.dna.centralization * .45 + (100 - avgAutonomy) * .35 + d.government.mandate * .2,
+    "Parti-Devlet": state.dna.centralization * .35 + (100 - avgAutonomy) * .24 + d.government.mandate * .18 + d.government.politicalCapital * .08,
     "Sermaye-Devlet": state.dna.market * .5 + d.confidence.business * .3 + m.investment * .2,
-    "Cemaat-Devlet": state.dna.paternalism * .42 + state.networks.reduce((a, n) => a + n.pressure, 0) / Math.max(1, state.networks.length) * .58,
-    "Popülist-Devlet": d.government.publicSupport * .35 + m.publicSpending * .3 + state.heat * .35,
+    "Cemaat-Devlet": state.dna.paternalism * .3 + networkPressure * .5 + (100 - avgProfessionalism) * .2,
+    "Popülist-Devlet": d.government.publicSupport * .25 + m.publicSpending * .22 + d.media.salience.economy * .18 + state.dna.paternalism * .2 + (100 - d.confidence.institutional) * .15,
     "Boş Kabuk": state.entropy * .45 + (100 - avgCapacity) * .35 + (100 - d.confidence.institutional) * .2,
   };
   const dominant = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   d.forms.scores = scores; d.forms.dominant = dominant[0];
   d.forms.reasons = Object.entries(scores).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id, score]) => `${id}: ${Math.round(score)}`);
+  if (Math.abs(networkPressure - oldNetworkPressure) > .05) boundedPush(d.traces, { turn: state.time.turn, type: "state-form", source: dominant[0], factors: [`ağ baskısı ${Math.round(networkPressure)}`, `kurum profesyonelliği ${Math.round(avgProfessionalism)}`, `gündem ${d.media.topIssue}`] }, DEVLET_BOUNDS.traces);
   state.form = dominant[0];
 }
 
@@ -389,7 +485,11 @@ function updateCrises(state) {
   const d = state.devletDepth, m = d.macro;
   const institutionHealth = implementationAverage(state);
   const cohesion = state.regions.reduce((a, r) => a + r.stability, 0) / state.regions.length;
-  d.crises.resilience = cap(state.actual.treasury * .12 + (100 - m.publicDebt) * .15 + institutionHealth * .3 + d.confidence.institutional * .2 + cohesion * .15 + m.reserves * .08);
+  const intelligence = state.institutions.find(i => i.id === "istikhbarat");
+  const intelligenceCadre = d.cadres.find(c => c.institution === "istikhbarat");
+  const cadreResilience = d.cadres.reduce((a, c) => a + c.crisisResilience, 0) / Math.max(1, d.cadres.length);
+  const riskSensing = intelligence ? intelligence.capacity * .45 + intelligence.professionalism * .35 + (intelligenceCadre?.crisisResilience || 45) * .2 : 40;
+  d.crises.resilience = cap(state.actual.treasury * .09 + (100 - m.publicDebt) * .12 + institutionHealth * .24 + d.confidence.institutional * .16 + cohesion * .12 + m.reserves * .07 + riskSensing * .12 + cadreResilience * .08);
   const exposure = {
     inflation: state.actual.inflation * .7 + (100 - d.confidence.institutional) * .3,
     recession: state.actual.unemployment * 2 + Math.max(0, -m.realGrowth) * 8,
@@ -400,6 +500,21 @@ function updateCrises(state) {
     external: d.world.regionalRisk * .45 + d.world.energyPressure * .3 + d.world.globalRates * .25,
   };
   d.crises.exposure = exposure;
+  // An active crisis leaves a smaller monthly drag than its initial shock.
+  // Resilience absorbs part of that drag; it never replays the opening hit.
+  for (const c of d.crises.active) {
+    const drag = c.severity * .006 * cap(1.15 - d.crises.resilience / 120, .25, 1);
+    if (c.family === "financial") { m.externalPressure = cap(m.externalPressure + drag); d.confidence.business = cap(d.confidence.business - drag * .5); m.investment = cap(m.investment - drag * .35); }
+    if (c.family === "inflation") { m.purchasingPower = cap(m.purchasingPower - drag * .5); d.confidence.expectations = cap(d.confidence.expectations - drag * .4); }
+    if (c.family === "recession") { state.actual.unemployment = cap(state.actual.unemployment + drag * .08, 1, 40); d.confidence.household = cap(d.confidence.household - drag * .35); }
+    if (c.family === "institutional") { d.confidence.institutional = cap(d.confidence.institutional - drag * .35); state.entropy = cap(state.entropy + drag * .08); }
+    if (c.family === "trust") { d.confidence.household = cap(d.confidence.household - drag * .3); d.media.trust = cap(d.media.trust - drag * .25); }
+    if (c.family === "external") { m.reserves = cap(m.reserves - drag * .3); d.world.tradeDemand = cap(d.world.tradeDemand - drag * .2); }
+    if (c.family === "migration") for (const r of state.regions) { r.satisfaction = cap(r.satisfaction - drag * .08); r.services = cap(r.services - drag * .04); }
+    c.ticks = (c.ticks || 0) + 1;
+    const historical = d.crises.history.find(row => row.id === c.id);
+    if (historical) historical.ticks = c.ticks;
+  }
   // A crisis has to run its course. Nothing used to remove an entry from
   // `active` or move `status` off "active", so the `active.length >= 3` guard
   // below permanently switched the whole crisis system off: in a 107-year
@@ -409,7 +524,11 @@ function updateCrises(state) {
   // history holds the same objects, so it records the resolution too.
   for (const c of d.crises.active) {
     const duration = Math.max(3, Math.round(c.severity * .35 - d.crises.resilience * .12 + 6));
-    if (state.time.turn - c.startTurn >= duration) { c.status = "resolved"; c.endTurn = state.time.turn; }
+    if (state.time.turn - c.startTurn >= duration) {
+      c.status = "resolved"; c.endTurn = state.time.turn;
+      const historical = d.crises.history.find(row => row.id === c.id);
+      if (historical) Object.assign(historical, { status: c.status, endTurn: c.endTurn, ticks: c.ticks || 0 });
+    }
   }
   d.crises.active = d.crises.active.filter(c => c.status === "active");
   if (state.time.turn % 6 !== 0 || d.crises.active.length >= 3) return;
@@ -417,7 +536,7 @@ function updateCrises(state) {
   const probability = cap((raw - d.crises.resilience) * .009, 0, .55);
   if (hash01(state.meta.seed, state.time.turn, 41) >= probability) return;
   const crisis = { id: `${family}-${state.time.turn}`, family, startTurn: state.time.turn, severity: cap(raw - d.crises.resilience + 20, 10, 80), status: "active" };
-  d.crises.active.push(crisis); boundedPush(d.crises.history, crisis, DEVLET_BOUNDS.crisisHistory);
+  d.crises.active.push(crisis); boundedPush(d.crises.history, { ...crisis }, DEVLET_BOUNDS.crisisHistory);
   state.heat = cap(state.heat + crisis.severity * .04);
   d.government.crisisPerformance = cap(d.government.crisisPerformance - crisis.severity * .025 + d.crises.resilience * .015);
   boundedPush(d.traces, { turn: state.time.turn, type: "crisis", source: family, factors: [`maruziyet ${Math.round(raw)}`, `dayanıklılık ${Math.round(d.crises.resilience)}`, `şiddet ${Math.round(crisis.severity)}`] }, DEVLET_BOUNDS.traces);

@@ -31,12 +31,12 @@ export const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n));
 
 export function implementationRate(s) {
   const inst = s.institutions || [];
-  const cap = inst.reduce((a, x) => a + (x.capacity || 0), 0) / Math.max(1, inst.length);
+  const capacity = inst.reduce((a, x) => a + (x.capacity || 0) + (x.professionalism || 50) - (x.fatigue || 0), 0) / Math.max(1, inst.length * 2);
   const entropy = s.entropy || 0;
   const heat = s.heat || 0;
   const instDna = s.dna?.institutionalism || 50;
   const info = s.infoQuality || 50;
-  return clamp(cap - entropy * 0.18 - heat * 0.12 + (instDna - 50) * 0.12 + (info - 50) * 0.08);
+  return clamp(capacity - entropy * 0.1 - heat * 0.08 + (instDna - 50) * 0.12 + (info - 50) * 0.08, 0, 100);
 }
 
 function eraOfYear(year) {
@@ -369,7 +369,14 @@ export function tickDevlet(s) {
   s.known.inflation = { confidence: settle(s.known.inflation?.confidence, 0.2, 0.02) };
   s.known.treasury = { confidence: settle(s.known.treasury?.confidence, 0.2, 0.015) };
   s.known.unemployment = { confidence: settle(s.known.unemployment?.confidence, 0.15, 0.01) };
-  s.entropy = clamp((s.entropy || 40) + (s.appointments.length > 20 ? 0.15 : 0.02) - rate * 0.05);
+  const recentPolicies = (s.devletDepth?.policy?.history || []).filter((row) => row.turn >= s.time.turn - 1);
+  const reversals = recentPolicies.filter((row) => row.reversal).length;
+  const poor = recentPolicies.filter((row) => row.rate < 35).length;
+  const overload = recentPolicies.length > 1 ? recentPolicies.length - 1 : 0;
+  const churn = recentPolicies.filter((row) => /^cadre-/.test(row.id)).length;
+  const inactivityPressure = recentPolicies.length === 0 && ((s.heat || 0) > 55 || (s.actual.inflation || 0) > 18 || (s.actual.unemployment || 0) > 14) ? .015 : 0;
+  const competentRelief = recentPolicies.length && poor === 0 && overload === 0 && reversals === 0 ? .05 : 0;
+  s.entropy = clamp((s.entropy || 40) + inactivityPressure + overload * .04 + reversals * .07 + poor * .04 + churn * .025 - competentRelief - rate * .012);
   s.heat = clamp(
     (s.heat || 40) +
       ((s.actual.unemployment || 10) - 8) * 0.05 +
