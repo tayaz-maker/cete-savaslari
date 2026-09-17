@@ -92,6 +92,11 @@ export function ensureDevletDepth(state) {
     termStart: state.time?.turn || 1, terms: 0, memory: [],
   }, d.government || {});
   d.cadres = Array.isArray(d.cadres) && d.cadres.length ? d.cadres : makeCadres(state.institutions || [], state.eraId);
+  // An institution that arrives with a period transition needs its own cadre,
+  // otherwise implementationFor falls back to the flat cadreFit for every policy
+  // it owns, permanently.
+  for (const inst of state.institutions || [])
+    if (!d.cadres.some(c => c.institution === inst.id)) d.cadres.push(...makeCadres([inst], state.eraId));
   d.cadres = d.cadres.slice(0, 12).map(x => ({ ...x, competence: cap(x.competence ?? x.management ?? 50), professionalism: cap(x.professionalism ?? x.expertise ?? 50), memory: Array.isArray(x.memory) ? x.memory.slice(-DEVLET_BOUNDS.actorMemory) : [] }));
   d.demography = Object.assign({ populationIndex: 100, urbanization: preset.urban, youngShare: preset.young, workingShare: 100 - preset.young - preset.old, elderlyShare: preset.old, participation: preset.participation, internalMigration: 1.5, netMigration: 0 }, d.demography || {});
   d.media = Object.assign({ salience: { economy: 55, institutions: 35, security: 30, services: 35 }, trust: state.infoQuality || 50, fragmentation: 35, topIssue: "economy" }, d.media || {});

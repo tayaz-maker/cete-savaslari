@@ -465,6 +465,13 @@ export function tickDevlet(s) {
   s.flags.decisionIds = [];
   tickDevletDepth(s);
   maybeTransition(s);
+  // A period transition can add an institution (istikhbarat in 2002). It arrives
+  // as a raw catalog row with no fatigue/budget/leadership/alignment/trust/memory
+  // and no cadre, so for that turn institution health was NaN — clamped to 0 by
+  // implementationAverage, which feeds crisis resilience and the bureaucracy
+  // group — and the missing cadre left its policies on the flat cadreFit
+  // fallback for the rest of the campaign.
+  ensureDevletDepth(s);
   const endYear = s.grand?.endYear || 2005;
   if (s.time.year > endYear || (s.time.year === endYear && s.time.month >= 12)) {
     s.flags.campaignEnd = true;
