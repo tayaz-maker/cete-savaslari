@@ -4,6 +4,7 @@ import { createNewGame } from "../public/games/tc-sim/js/state.js";
 import { advanceWeek } from "../public/games/tc-sim/js/time.js";
 import { normalizeLifetime } from "../public/games/tc-sim/js/lifetime.js";
 import { ensureLifeDepthState } from "../public/games/tc-sim/js/life-depth.js";
+import { migrateState } from "../public/games/tc-sim/js/save.js";
 import {
   CHAINS,
   DOSSIER_TRACE_TEMPLATES,
@@ -87,6 +88,73 @@ test("a due callback is not delivered after death and is not consumed either", (
   assert.equal(takeDueLifeContent(state), null);
   assert.equal(lifeContentBag(state).waiting.length, 1);
   assert.equal(advanceWeek(state).ok, false);
+});
+
+test("partner-sensitive callbacks do not follow a switched partner", () => {
+  const state = midLife();
+  state.social.currentPartnerNpcId = "elif";
+  state.people.find((person) => person.id === "elif").role = "partner";
+  assert.equal(scheduleContent(state, {
+    eventId: "lc_overtime_partner", key: "partner-context", dueWeeks: 2, actorId: "elif",
+  }), true);
+  assert.equal(lifeContentBag(state).waiting[0].expectedPartnerId, "elif");
+  const loaded = migrateState(structuredClone(state));
+  assert.equal(loaded.ok, true);
+  assert.equal(lifeContentBag(loaded.state).waiting[0].expectedPartnerId, "elif");
+  assert.deepEqual(migrateState(structuredClone(loaded.state)).state, loaded.state);
+  Object.assign(state, loaded.state);
+  state.people.find((person) => person.id === "elif").role = "friend";
+  state.people.find((person) => person.id === "selin").role = "partner";
+  state.social.currentPartnerNpcId = "selin";
+  state.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(state), null);
+  assert.equal(lifeContentBag(state).waiting.length, 0);
+
+  const stable = midLife();
+  stable.social.currentPartnerNpcId = "elif";
+  stable.people.find((person) => person.id === "elif").role = "partner";
+  scheduleContent(stable, { eventId: "lc_overtime_partner", key: "partner-stable", dueWeeks: 2, actorId: "elif" });
+  stable.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(stable), "lc_overtime_partner");
+});
+
+test("employer-sensitive callbacks revalidate while portable career echoes survive", () => {
+  for (const mutation of ["unemployed", "changed", "retired"]) {
+    const state = midLife();
+    assert.equal(scheduleContent(state, { eventId: "lc_staff_ceiling", key: `job-${mutation}`, dueWeeks: 2 }), true);
+    assert.equal(lifeContentBag(state).waiting[0].expectedJobId, "office");
+    if (mutation === "unemployed") state.career.jobId = null;
+    if (mutation === "changed") state.career.jobId = "market";
+    if (mutation === "retired") {
+      state.career.jobId = null;
+      state.career.retirement.status = "retired";
+    }
+    state.time.absoluteWeek += 2;
+    assert.equal(takeDueLifeContent(state), null, `stale office callback survived ${mutation}`);
+  }
+
+  const sameJob = midLife();
+  scheduleContent(sameJob, { eventId: "lc_staff_ceiling", key: "job-stable", dueWeeks: 2 });
+  sameJob.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(sameJob), "lc_staff_ceiling");
+
+  for (const eventId of ["lc_mentor_ref", "lc_ref_debt", "lc_cert_door"]) {
+    const portable = midLife();
+    scheduleContent(portable, { eventId, key: `portable-${eventId}`, dueWeeks: 2 });
+    portable.career.jobId = null;
+    portable.time.absoluteWeek += 2;
+    assert.equal(takeDueLifeContent(portable), eventId, `${eventId} should survive unemployment`);
+  }
+});
+
+test("home-sensitive callbacks do not describe a home the player left", () => {
+  const state = midLife();
+  state.household.homeId = "rental-basic";
+  assert.equal(scheduleContent(state, { eventId: "lc_neighbor_day", key: "home-context", dueWeeks: 2 }), true);
+  assert.equal(lifeContentBag(state).waiting[0].expectedHomeId, "rental-basic");
+  state.household.homeId = "family";
+  state.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(state), null);
 });
 
 // buildLifeDossier already hands over ten traces in any mature life, so appending the

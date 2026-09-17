@@ -96,6 +96,9 @@ function bag(state) {
       seenWaiting.add(`event:${row.eventId}`);
       row.dueWeek = Math.max(0, Math.trunc(Number(row.dueWeek)));
       row.actorId = typeof row.actorId === "string" ? row.actorId : null;
+      row.expectedPartnerId = typeof row.expectedPartnerId === "string" ? row.expectedPartnerId : null;
+      row.expectedJobId = typeof row.expectedJobId === "string" ? row.expectedJobId : null;
+      row.expectedHomeId = typeof row.expectedHomeId === "string" ? row.expectedHomeId : null;
       return true;
     })
     .sort((a, b) => a.dueWeek - b.dueWeek || a.id.localeCompare(b.id))
@@ -2054,6 +2057,36 @@ export const LIFE_CONTENT_CHAIN_EVENTS = CHAINS.flatMap((chain) => chain.nodes.m
 export const LIFE_CONTENT_CALLBACKS = EXTRA_CALLBACKS.map(extraToEvent);
 export const LIFE_CONTENT_EVENTS = LIFE_CONTENT_CHAIN_EVENTS.concat(LIFE_CONTENT_CALLBACKS);
 
+// Delayed prose that explicitly assumes the same partner, employer or home must
+// be revalidated when it becomes due. Other career callbacks (certificates,
+// mentors, references) intentionally survive a job change, so this is a small
+// allow-list rather than a blanket "must still have a job" rule.
+const PARTNER_SENSITIVE_CALLBACKS = new Set([
+  "lc_overtime_partner",
+  "lc_secret_kept",
+  "lc_nikah_money",
+  "lc_nikah_held",
+  "lc_elif_walk",
+  "lc_elif_distance",
+]);
+const EMPLOYER_SENSITIVE_CALLBACKS = new Set([
+  "lc_metro_month",
+  "lc_metro_notice",
+  "lc_metro_move",
+  "lc_local_team",
+  "lc_staff_ceiling",
+  "lc_near_job_quiet",
+  "lc_afterwork_bill",
+  "lc_office_side",
+]);
+const HOME_SENSITIVE_CALLBACKS = new Set([
+  "lc_neighbor_day",
+  "lc_dues_paint",
+  "lc_deposit_wait",
+  "lc_sugar_back",
+  "lc_landlord_sale",
+]);
+
 function scheduleContent(state, spec) {
   if (!spec?.eventId || !spec?.key) return false;
   if (!LIFE_CONTENT_EVENTS.some((row) => row.id === spec.eventId)) return false;
@@ -2061,11 +2094,23 @@ function scheduleContent(state, spec) {
   const store = bag(state);
   if (store.once[id] || store.waiting.some((row) => row.id === id || row.eventId === spec.eventId)) return false;
   if (store.waiting.length >= 11) return false;
+  const expectedPartnerId = PARTNER_SENSITIVE_CALLBACKS.has(spec.eventId)
+    ? (spec.actorId || partnerId(state) || null)
+    : null;
+  const expectedJobId = EMPLOYER_SENSITIVE_CALLBACKS.has(spec.eventId)
+    ? (state.career?.jobId || null)
+    : null;
+  const expectedHomeId = HOME_SENSITIVE_CALLBACKS.has(spec.eventId)
+    ? (state.household?.homeId || null)
+    : null;
   store.waiting.push({
     id,
     eventId: spec.eventId,
     dueWeek: state.time.absoluteWeek + Math.max(1, spec.dueWeeks || 4),
     actorId: spec.actorId || null,
+    expectedPartnerId,
+    expectedJobId,
+    expectedHomeId,
   });
   store.waiting = cap(store.waiting, 12);
   store.once[id] = state.time.absoluteWeek;
@@ -2192,6 +2237,12 @@ export function takeDueLifeContent(state) {
     store.waiting = store.waiting.filter((row) => row.id !== due.id);
     store.once[`resolved:${due.id}`] = state.time.absoluteWeek;
     if (due.actorId && !personOk(state, due.actorId)) continue;
+    if (due.expectedPartnerId && partnerId(state) !== due.expectedPartnerId) continue;
+    if (due.expectedJobId && (
+      state.career?.jobId !== due.expectedJobId ||
+      state.career?.retirement?.status === "retired"
+    )) continue;
+    if (due.expectedHomeId && state.household?.homeId !== due.expectedHomeId) continue;
     if (!LIFE_CONTENT_EVENTS.some((row) => row.id === due.eventId)) continue;
     return due.eventId;
   }
