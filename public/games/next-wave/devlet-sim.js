@@ -25,7 +25,7 @@ import {
 } from "./devlet-depth.js";
 
 export { DOCTRINES, ALT_PRESETS, DNA_AXES, GRAND_HOOKS, GUNUMUZ_BASELINE, PERIOD_BANDS };
-export { ensureDevletDepth, previewPolicy } from "./devlet-depth.js";
+export { ensureDevletDepth, previewPolicy, validateDevletDepth } from "./devlet-depth.js";
 
 export const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n));
 

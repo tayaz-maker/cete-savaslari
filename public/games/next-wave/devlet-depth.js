@@ -400,6 +400,18 @@ function updateCrises(state) {
     external: d.world.regionalRisk * .45 + d.world.energyPressure * .3 + d.world.globalRates * .25,
   };
   d.crises.exposure = exposure;
+  // A crisis has to run its course. Nothing used to remove an entry from
+  // `active` or move `status` off "active", so the `active.length >= 3` guard
+  // below permanently switched the whole crisis system off: in a 107-year
+  // campaign the same three crises stayed active for 97 years, crisisHistory
+  // froze at 3 of its 36 rows and six of the seven families never appeared at
+  // all. A resilient state works through a crisis faster than a brittle one;
+  // history holds the same objects, so it records the resolution too.
+  for (const c of d.crises.active) {
+    const duration = Math.max(3, Math.round(c.severity * .35 - d.crises.resilience * .12 + 6));
+    if (state.time.turn - c.startTurn >= duration) { c.status = "resolved"; c.endTurn = state.time.turn; }
+  }
+  d.crises.active = d.crises.active.filter(c => c.status === "active");
   if (state.time.turn % 6 !== 0 || d.crises.active.length >= 3) return;
   const [family, raw] = Object.entries(exposure).sort((a, b) => b[1] - a[1])[0];
   const probability = cap((raw - d.crises.resilience) * .009, 0, .55);

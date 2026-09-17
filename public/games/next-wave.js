@@ -70,6 +70,7 @@ import {
   applyDoctrine,
   finiteState,
   ensureDevletDepth,
+  validateDevletDepth,
   DOCTRINES,
   ALT_PRESETS,
   GUNUMUZ_BASELINE,
@@ -211,7 +212,12 @@ export function normalize(id, raw) {
     if (!ensurePhoneState(raw) || !validatePhoneState(raw)) return null;
   }
   if (id === "tc-sim-devlet") {
-    if (!ensureDevletDepth(raw)) return null;
+    // Every other game validates after hydrating. DEVLET only hydrated, so its
+    // own validateDevletDepth was dead code and a save carrying NaN/Infinity
+    // loaded cleanly: most values were laundered into plausible numbers over the
+    // next few turns, and a non-finite taxBurden — which nothing ever writes —
+    // stayed poisoned for the rest of the campaign.
+    if (!ensureDevletDepth(raw) || !validateDevletDepth(raw)) return null;
   }
   return raw;
 }
