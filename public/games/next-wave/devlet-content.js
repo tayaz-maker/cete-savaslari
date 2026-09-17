@@ -2570,21 +2570,21 @@ push({
 push({
   id: "sf-kisla-alt", arc: "form", era: ["2002", "gunumuz"], exclusive: "form-spine", branch: "garrison", tags: ["form", "cross"],
   nodes: [
-    opening("dc_sf_kisla", { era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form"] },
+    opening("dc_sf_kisla_alt", { era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form"] },
       "Güvenlik cümlesi masada",
       "Haluk Paşa masası kısa yazar. Sivil takvim dipnota iner. Emir kısa, uygulama uzun. Kurumlar tempo ister; müzakere kapanmadan kapanmış gibi durur. Bu bir darbe dosyası değildir — omurga kaymasıdır.",
       "A security sentence on the desk",
       "Haluk Pasha's desk writes short. The civilian calendar drops to a footnote. The order is short, the application long. Institutions want pace; negotiation looks closed without having closed. This is not a coup file — it is a spine-shift.",
-      choice("civil", "Sivil takvimi geri al", "Take the civilian calendar back", "Müzakere", { effects: { heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_kisla2", dueTurns: 6, key: "sf-kisla2" }, echo: "Güvenlik cümlesi masada kaldı; sivil kalem dipnotta." }),
+      choice("civil", "Sivil takvimi geri al", "Take the civilian calendar back", "Müzakere", { effects: { heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_kisla_alt2", dueTurns: 6, key: "sf-kisla-alt2" }, echo: "Güvenlik cümlesi masada kaldı; sivil kalem dipnotta." }),
       choice("spine", "Kısa emri tut, sivil satırı beklet", "Hold the short order, hold the civilian line", "Omurga", { effects: { heat: 1 }, stageTo: 9 })),
-    later("dc_sf_kisla2", { era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form", "memory"] },
+    later("dc_sf_kisla_alt2", { era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form", "memory"] },
       "İstihbarat 'darboğaz' yazar",
       "Leyla koordinasyon darboğazını not düşer. Güvenlik omurgası brifingi hız sanır; sentez gecikir. Kurumsal uyarı, iç işi güvenlik cümlesine çevirmeden durmalıdır.",
       "Intelligence writes bottleneck",
       "Leyla notes a coordination bottleneck. The security spine mistakes briefing for speed; synthesis is late. The institutional warning must stand without turning an internal matter into a security sentence.",
-      choice("brief", "Brifingi sivil kaleme de aç", "Open the briefing to the civilian pen too", "Bilgi", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_kisla3", dueTurns: 24, key: "sf-kisla3" } }),
+      choice("brief", "Brifingi sivil kaleme de aç", "Open the briefing to the civilian pen too", "Bilgi", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_kisla_alt3", dueTurns: 24, key: "sf-kisla-alt3" } }),
       choice("fast", "Tempoda kal", "Stay with pace", "Omurga", { stageTo: 3 })),
-    later("dc_sf_kisla3", { stage: 3, era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form", "long", "memory"] },
+    later("dc_sf_kisla_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Kışla-Devlet", tags: ["form", "long", "memory"] },
       "Sivil kalem geri gelir",
       "Yıllar sonra güvenlik dosyası kapanmaz, yer değiştirir. Devlet, güvenlik omurgasıyla yürüdü; sivil kapasite bekletildi. İz, emrin kısalığında kalır.",
       "The civilian pen comes back",
@@ -2597,21 +2597,21 @@ push({
 push({
   id: "sf-buro-alt", arc: "form", era: ["2002", "gunumuz"], exclusive: "form-spine", branch: "bureau", tags: ["form", "cross"],
   nodes: [
-    opening("dc_sf_buro", { era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form"] },
+    opening("dc_sf_buro_alt", { era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form"] },
       "Dosya hükümetten uzun",
       "Tempo imza sırasına iner. Profesyonellik bir kalkan, yorgunluk da bir kalkan. İkisi aynı koridordadır. Cemil 'yüzde' der; saha binayı arar.",
       "The file outlives the government",
       "Pace reduces to a signature queue. Professionalism is a shield, and so is fatigue. Both are in the same corridor. Cemil says percent; the field looks for the building.",
-      choice("sign", "İmza sırasını kısalt, sahayı yaz", "Shorten the signature queue, write the field", "Uygulama", { effects: { info: 1 }, stageTo: 1, next: { eventId: "dc_sf_buro2", dueTurns: 5, key: "sf-buro2" } }),
+      choice("sign", "İmza sırasını kısalt, sahayı yaz", "Shorten the signature queue, write the field", "Uygulama", { effects: { info: 1 }, stageTo: 1, next: { eventId: "dc_sf_buro_alt2", dueTurns: 5, key: "sf-buro-alt2" } }),
       choice("shield", "Kalkanı tut, sırayı usul say", "Hold the shield, count the queue as procedure", "Süreklilik", { stageTo: 9 })),
-    later("dc_sf_buro2", { era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form", "memory"] },
+    later("dc_sf_buro_alt2", { era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form", "memory"] },
       "Uygulama yüzdesi şişer",
       "Kâğıt 82 yazar. Saha 30 hisseder. Bürokrasi-Devlet, şişmeyi koruma sanır. Seçilmiş irade dosyayı ezmeye başlayınca kalem direnir.",
       "The implementation percent swells",
       "Paper writes 82. The field feels 30. The bureaucracy-state mistakes the swell for protection. When elected will starts to crush the file, the pen resists.",
-      choice("field", "Sahayı yüzdeye bağla", "Tie the field to the percent", "Dürüstlük", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_buro3", dueTurns: 36, key: "sf-buro3" } }),
+      choice("field", "Sahayı yüzdeye bağla", "Tie the field to the percent", "Dürüstlük", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_buro_alt3", dueTurns: 36, key: "sf-buro-alt3" } }),
       choice("resist", "Kalemi direnişte tut", "Keep the pen in resistance", "Kalkan", { stageTo: 3 })),
-    later("dc_sf_buro3", { stage: 3, era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form", "long", "memory"] },
+    later("dc_sf_buro_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Bürokrasi-Devlet", tags: ["form", "long", "memory"] },
       "Süreklilik bir iz olur",
       "Hükümetler kayar. Dosya tanıdık durur. Devlet, bürokratik süreklilikle ayakta kaldı; seçilmiş irade kaydı. Yorgunluk hâlâ kalkan gibi durur.",
       "Continuity becomes a trace",
@@ -2624,21 +2624,21 @@ push({
 push({
   id: "sf-parti-alt", arc: "form", era: ["2002", "gunumuz"], exclusive: "form-mandate", branch: "party", tags: ["form", "cross"],
   nodes: [
-    opening("dc_sf_parti", { era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form"] },
+    opening("dc_sf_parti_alt", { era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form"] },
       "Kurum saati, merkez temposu",
       "Merkez, kurum özerkliğini tempo sanır. Kadrolar aynı cümleyi ezberler. Liyakat CV'si masadadır; koridor sadakat sorar. Oyuncu parti değildir — dosyanın saatini tutmaya çalışan devlettir.",
       "Institution time, centre pace",
       "The centre mistakes institutional autonomy for pace. Cadres memorise the same sentence. The merit CV is on the desk; the corridor asks about loyalty. The player is not a party — it is the state trying to hold the file's clock.",
-      choice("clock", "Kurum saatini tut, cümleyi çoğaltma", "Hold institution time, do not multiply the sentence", "Özerklik", { effects: { info: 1 }, stageTo: 1, next: { eventId: "dc_sf_parti2", dueTurns: 6, key: "sf-parti2" }, echo: "Merkez tempo sandı; kurum saati kaydı." }),
+      choice("clock", "Kurum saatini tut, cümleyi çoğaltma", "Hold institution time, do not multiply the sentence", "Özerklik", { effects: { info: 1 }, stageTo: 1, next: { eventId: "dc_sf_parti_alt2", dueTurns: 6, key: "sf-parti-alt2" }, echo: "Merkez tempo sandı; kurum saati kaydı." }),
       choice("same", "Aynı cümleyi tut, saati kaydır", "Keep the same sentence, shift the clock", "Mandat", { effects: { rumor: 1 }, stageTo: 9 })),
-    later("dc_sf_parti2", { era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form", "memory"] },
+    later("dc_sf_parti_alt2", { era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form", "memory"] },
       "Dosya partinin takvimine bakar",
       "Ayşe kurul takvimi siyasi tempo ister. Mahkeme kalemi başka haftadır. Mandat yüksek, özerklik alçak. İki takvim aynı ayı yazmaz.",
       "The file looks at the party's calendar",
       "Ayşe's board wants political pace from the calendar. The court clerk is another week. Mandate high, autonomy low. Two calendars do not write the same month.",
-      choice("auto", "Özerklik dipnotunu aç", "Open an autonomy footnote", "Kurum", { stageTo: 3, next: { eventId: "dc_sf_parti3", dueTurns: 24, key: "sf-parti3" } }),
+      choice("auto", "Özerklik dipnotunu aç", "Open an autonomy footnote", "Kurum", { stageTo: 3, next: { eventId: "dc_sf_parti_alt3", dueTurns: 24, key: "sf-parti-alt3" } }),
       choice("cal", "Siyasi takvimi tut", "Hold the political calendar", "Tempo", { stageTo: 3 })),
-    later("dc_sf_parti3", { stage: 3, era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form", "long", "memory"] },
+    later("dc_sf_parti_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Parti-Devlet", tags: ["form", "long", "memory"] },
       "Kurumlar kendi saatini arar",
       "Merkez temposu alışkanlık olur. Devlet, siyasi merkeze bağlandı; kurum saati kaydı. Cadre ezber cümleyi unutmaz, uygulamaz da.",
       "Institutions look for their own clock",
@@ -2651,21 +2651,21 @@ push({
 push({
   id: "sf-pop-alt", arc: "form", era: ["2002", "gunumuz"], exclusive: "form-mandate", branch: "populist", tags: ["form", "cross"],
   nodes: [
-    opening("dc_sf_pop", { era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form"] },
+    opening("dc_sf_pop_alt", { era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form"] },
       "Hane rahatlatma, kurum kaybı",
       "Nuri Hazine faturayı siyaset sayar. Rıza kısa, kasa uzun. Manşet iddiası dosyadan hızlıdır. İstatistik özerkliği siyasi maliyet olarak durur.",
       "Household relief, institutional loss",
       "Nuri Treasury treats the bill as politics. Consent is short, the till is long. The headline claim is faster than the file. Statistical autonomy sits as a political cost.",
-      choice("stat", "İstatistiği tut, manşeti beklet", "Hold the statistic, hold the headline", "Kurum; rıza", { effects: { info: 1, heat: 1 }, stageTo: 1, next: { eventId: "dc_sf_pop2", dueTurns: 4, key: "sf-pop2" } }),
+      choice("stat", "İstatistiği tut, manşeti beklet", "Hold the statistic, hold the headline", "Kurum; rıza", { effects: { info: 1, heat: 1 }, stageTo: 1, next: { eventId: "dc_sf_pop_alt2", dueTurns: 4, key: "sf-pop-alt2" } }),
       choice("head", "Manşeti tut, faturayı ertele", "Hold the headline, defer the bill", "Rıza; kasa", { effects: { rumor: 2, heat: -1 }, stageTo: 9 })),
-    later("dc_sf_pop2", { era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form", "memory"] },
+    later("dc_sf_pop_alt2", { era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form", "memory"] },
       "Fatura vaadi geçer",
       "Kira ve fatura manşeti sollar. Güven parçalanır. Kısa rıza omurga yapılmıştı; omurga incelir.",
       "The bill overtakes the promise",
       "Rent and the bill overtake the headline. Trust fragments. Short consent had been made a spine; the spine thins.",
-      choice("bill", "Faturayı açık yaz, vaadi kıs", "Write the bill in the open, shorten the promise", "Dürüstlük", { effects: { info: 1, heat: 1 }, stageTo: 3, next: { eventId: "dc_sf_pop3", dueTurns: 24, key: "sf-pop3" } }),
+      choice("bill", "Faturayı açık yaz, vaadi kıs", "Write the bill in the open, shorten the promise", "Dürüstlük", { effects: { info: 1, heat: 1 }, stageTo: 3, next: { eventId: "dc_sf_pop_alt3", dueTurns: 24, key: "sf-pop-alt3" } }),
       choice("promise", "Vaadi yenile", "Renew the promise", "Rıza", { effects: { rumor: 1 }, stageTo: 3 })),
-    later("dc_sf_pop3", { stage: 3, era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form", "long", "memory"] },
+    later("dc_sf_pop_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Popülist-Devlet", tags: ["form", "long", "memory"] },
       "Kısa rıza bir iz bırakır",
       "Kurumsal güven incelmiştir. Devlet, kısa rızayı omurga yaptı. Hane o kışki faturayı unutmaz; manşet unutur.",
       "Short consent leaves a trace",
@@ -2678,21 +2678,21 @@ push({
 push({
   id: "sf-sermaye-alt", arc: "form", era: ["2002", "gunumuz"], tags: ["form", "network", "cross"],
   nodes: [
-    opening("dc_sf_sermaye", { era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "network"] },
+    opening("dc_sf_sermaye_alt", { era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "network"] },
       "Yatırım cümlesi önde",
       "İş dünyası güler. Hane asık durur. İki güven endeksi aynı ayı tarif etmez. Kredi ısınır; kırılganlık ötelenmiş durur. Fatura haneye ayrıca gelir.",
       "The investment sentence goes first",
       "Business smiles. The household looks grim. Two confidence indexes do not describe the same month. Credit heats; fragility sits postponed. The bill arrives at the household separately.",
-      choice("house", "Hane endeksini yatırımın yanına yaz", "Write the household index next to investment", "Rıza", { effects: { info: 1, heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_sermaye2", dueTurns: 6, key: "sf-sermaye2" } }),
+      choice("house", "Hane endeksini yatırımın yanına yaz", "Write the household index next to investment", "Rıza", { effects: { info: 1, heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_sermaye_alt2", dueTurns: 6, key: "sf-sermaye-alt2" } }),
       choice("invest", "Yatırımı omurga tut", "Keep investment as the spine", "Piyasa", { effects: { rumor: 1 }, stageTo: 9 })),
-    later("dc_sf_sermaye2", { era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "network", "memory"] },
+    later("dc_sf_sermaye_alt2", { era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "network", "memory"] },
       "Kredi ısısı, ötelenmiş kırılganlık",
       "Büyük kapıdan girer. Anadolu KOBİ teminat duyar. Aynı omurga iki ülke gibi durur. Isı, haneye kira olarak iner.",
       "Credit heat, postponed fragility",
       "The large concern walks in. The Anatolian SME hears collateral. The same spine looks like two countries. Heat arrives at the household as rent.",
-      choice("sme", "KOBİ hattını ayır", "Split an SME line", "Adalet", { effects: { heat: -1 }, stageTo: 3, next: { eventId: "dc_sf_sermaye3", dueTurns: 36, key: "sf-sermaye3" } }),
+      choice("sme", "KOBİ hattını ayır", "Split an SME line", "Adalet", { effects: { heat: -1 }, stageTo: 3, next: { eventId: "dc_sf_sermaye_alt3", dueTurns: 36, key: "sf-sermaye-alt3" } }),
       choice("scale", "Ölçeği başarı say", "Count scale as success", "Tempo", { stageTo: 3 })),
-    later("dc_sf_sermaye3", { stage: 3, era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "long", "network"] },
+    later("dc_sf_sermaye_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Sermaye-Devlet", tags: ["form", "long", "network"] },
       "Piyasa homurdanır, kamu oturur",
       "Yıllar sonra yatırım cümlesi yorulur. Devlet, sermaye temposunu omurga sandı; toplumsal rıza ayrı kaldı. Kamu tekrar masaya oturur — oturmuş gibi durur.",
       "The market growls, the public sits down",
@@ -2705,21 +2705,21 @@ push({
 push({
   id: "sf-cemaat-alt", arc: "form", era: ["2002", "gunumuz"], tags: ["form", "network", "cross"],
   nodes: [
-    opening("dc_sf_cemaat", { era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "network"] },
+    opening("dc_sf_cemaat_alt", { era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "network"] },
       "Ağ baskısı, kurum boşluğu",
       "Yüklenici halkası şartnameden önce konuşur. İsimler resmi değildir. Kaynak ve erişim, yazılı yetkinin yanında yürür. Yakınlık bir kadro ilanı değildir — koridor alışkanlığıdır. Emir yoktur; çağrı vardır.",
       "Network pressure, an institutional gap",
       "The contractor ring speaks before the specification. The names are not official. Resource and access walk beside written authority. Affinity is not a vacancy notice — it is a corridor habit. There is no order; there is a call.",
-      choice("spec", "Şartnameyi halkadan önce yaz", "Write the specification before the ring", "Usul", { effects: { info: 1, heat: 1 }, stageTo: 1, next: { eventId: "dc_sf_cemaat2", dueTurns: 5, key: "sf-cemaat2" }, echo: "Halka şartnameden önce konuştu; erişim yazılı yetkiyi solladı." }),
+      choice("spec", "Şartnameyi halkadan önce yaz", "Write the specification before the ring", "Usul", { effects: { info: 1, heat: 1 }, stageTo: 1, next: { eventId: "dc_sf_cemaat_alt2", dueTurns: 5, key: "sf-cemaat-alt2" }, echo: "Halka şartnameden önce konuştu; erişim yazılı yetkiyi solladı." }),
       choice("access", "Erişimi tanı, şartnameyi sonra", "Recognise access, specification later", "Ağ", { effects: { rumor: 2 }, stageTo: 9 })),
-    later("dc_sf_cemaat2", { era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "network", "memory"] },
+    later("dc_sf_cemaat_alt2", { era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "network", "memory"] },
       "Yakınlık, ihale kâğıdı",
       "Kâğıt temiz durur. Koku koridora yayılır. Profesyonel kalkan inceldiği yerden ağ yerleşir. Cadre 'usul' der; halka 'tanıdık' der.",
       "Affinity, tender paper",
       "The paper looks clean. The smell spreads into the corridor. Where the professional shield thins, the network settles. The cadre says procedure; the ring says a familiar face.",
-      choice("shield", "Kalkanı kalınlaştır, halkayı dipnota al", "Thicken the shield, footnote the ring", "Kurum", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_cemaat3", dueTurns: 24, key: "sf-cemaat3" } }),
+      choice("shield", "Kalkanı kalınlaştır, halkayı dipnota al", "Thicken the shield, footnote the ring", "Kurum", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_sf_cemaat_alt3", dueTurns: 24, key: "sf-cemaat-alt3" } }),
       choice("ring", "Tanıdık hattını tut", "Keep the familiar line", "Ağ", { effects: { rumor: 1 }, stageTo: 3 })),
-    later("dc_sf_cemaat3", { stage: 3, era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "long", "network"] },
+    later("dc_sf_cemaat_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Cemaat-Devlet", tags: ["form", "long", "network"] },
       "Ağ incelir ya da kalınlaşır",
       "Profesyonel kalkan onarılmışsa halka incelir. Onarılmamışsa erişim yazılı yetkinin yerini alır. Devlet, resmi olmayan ağ etkisini kurum boşluğunda taşıdı — isimsiz, emirsiz, izli.",
       "The network thins or thickens",
@@ -2732,21 +2732,21 @@ push({
 push({
   id: "sf-bos-alt", arc: "form", era: ["2002", "gunumuz"], tags: ["form", "cross"],
   nodes: [
-    opening("dc_sf_bos", { era: ["2002", "gunumuz"], form: "Boş Kabuk", minEntropy: 55, tags: ["form"] },
+    opening("dc_sf_bos_alt", { era: ["2002", "gunumuz"], form: "Boş Kabuk", minEntropy: 55, tags: ["form"] },
       "Karar var, uygulama yok",
       "Tabela durur. Koridor boştur. Entropy yüksek, kapasite düşük. Her dosya hayalet dosya gibi. Üç kriz aynı anda aktif olabilir; hiçbirinin sahibi yoktur.",
       "A decision exists, implementation does not",
       "The signboard stands. The corridor is empty. Entropy high, capacity low. Every file is a ghost file. Three crises may be active at once; none of them has an owner.",
-      choice("own", "Bir dosyaya sahip ata, diğerini beklet", "Give one file an owner, hold the other", "Sahiplik", { effects: { info: 1, heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_bos2", dueTurns: 4, key: "sf-bos2" }, echo: "Tabela duruyordu; sahip yoktu." }),
+      choice("own", "Bir dosyaya sahip ata, diğerini beklet", "Give one file an owner, hold the other", "Sahiplik", { effects: { info: 1, heat: -1 }, stageTo: 1, next: { eventId: "dc_sf_bos_alt2", dueTurns: 4, key: "sf-bos-alt2" }, echo: "Tabela duruyordu; sahip yoktu." }),
       choice("ghost", "Hayalet dosyayı açık tut", "Keep the ghost file open", "Kabuk", { effects: { rumor: 2 }, stageTo: 9 })),
-    later("dc_sf_bos2", { era: ["2002", "gunumuz"], form: "Boş Kabuk", tags: ["form", "memory"] },
+    later("dc_sf_bos_alt2", { era: ["2002", "gunumuz"], form: "Boş Kabuk", tags: ["form", "memory"] },
       "Üç kriz, sıfır sahip",
       "Gündem şişer. Masa 'hepsi acil' der. Acil, sahipsiz demektir. Bir kurum tempo alırsa kabuk çatlar; devlet henüz dolmaz.",
       "Three crises, zero owners",
       "The agenda swells. The desk says they are all urgent. Urgent means unowned. If one institution takes pace the shell cracks; the state is not yet full.",
-      choice("one", "Tek krize sahip, diğerini arşiv kuyruğuna", "Own one crisis, queue the rest in the archive", "Sade", { effects: { heat: -1 }, stageTo: 3, next: { eventId: "dc_sf_bos3", dueTurns: 24, key: "sf-bos3" } }),
+      choice("one", "Tek krize sahip, diğerini arşiv kuyruğuna", "Own one crisis, queue the rest in the archive", "Sade", { effects: { heat: -1 }, stageTo: 3, next: { eventId: "dc_sf_bos_alt3", dueTurns: 24, key: "sf-bos-alt3" } }),
       choice("all", "Hepsini acil tut", "Keep them all urgent", "Dağılım", { effects: { heat: 2 }, stageTo: 3 })),
-    later("dc_sf_bos3", { stage: 3, era: ["2002", "gunumuz"], form: "Boş Kabuk", tags: ["form", "long", "memory"] },
+    later("dc_sf_bos_alt3", { stage: 3, era: ["2002", "gunumuz"], form: "Boş Kabuk", tags: ["form", "long", "memory"] },
       "Kabuk çatlar, devlet dolmaz",
       "Bir kurum tempo almıştır. Tabela hâlâ durur. Devlet, karar üretip sahaya inemediği bir kabuk döneminden geçti. Dolum, tempo ile aynı şey değildir.",
       "The shell cracks, the state does not fill",
@@ -2786,21 +2786,21 @@ push({
 push({
   id: "rg-dogu-alt", arc: "region", era: ["2002", "gunumuz"], exclusive: "region-path", branch: "east", tags: ["region", "cross"],
   nodes: [
-    opening("dc_rg_dogu", { era: ["2002", "gunumuz"], needRegion: "dogu", maxServices: 62, tags: ["region"] },
+    opening("dc_rg_dogu_alt", { era: ["2002", "gunumuz"], needRegion: "dogu", maxServices: 62, tags: ["region"] },
       "Kamu işi bekler, hizmet açığı",
       "Doğu'da randevu kışı bekler. Kamu iş ilanı asılmıştır; kadro telgrafı bahara kalır. Hizmet açığı bir güvenlik cümlesi değildir — poliklinik günü ve servis saatidir. Cemil yüzde yazar; ilçe 'perşembe doktor' der.",
       "Public work waits, a services gap",
       "In the east the appointment waits for winter. The public-job notice is posted; the staffing telegram waits for spring. The services gap is not a security sentence — it is clinic day and the bus hour. Cemil writes a percent; the district says the doctor on Thursday.",
-      choice("clinic", "Poliklinik gününü yaz, ilanı beklet", "Write the clinic day, hold the notice", "Hizmet", { effects: { heat: -1 }, stageTo: 1, next: { eventId: "dc_rg_dogu2", dueTurns: 6, key: "rg-dogu2" } }),
+      choice("clinic", "Poliklinik gününü yaz, ilanı beklet", "Write the clinic day, hold the notice", "Hizmet", { effects: { heat: -1 }, stageTo: 1, next: { eventId: "dc_rg_dogu_alt2", dueTurns: 6, key: "rg-dogu-alt2" } }),
       choice("notice", "İlanı başarı say", "Count the notice as success", "Tabela", { effects: { rumor: 1 }, stageTo: 9 })),
-    later("dc_rg_dogu2", { era: ["2002", "gunumuz"], needRegion: "dogu", tags: ["region", "memory"] },
+    later("dc_rg_dogu_alt2", { era: ["2002", "gunumuz"], needRegion: "dogu", tags: ["region", "memory"] },
       "Servis saati, kadro baharı",
       "Kadro gelmiş görünür. Servis hâlâ iki günde bir. Bekleme, işsizlik cümlesine karışır; ikisi aynı açık değildir. Genç, ilanı okur, saati kaçırır.",
       "The bus hour, a staffing spring",
       "The post looks as if it has arrived. The bus is still every other day. Waiting mixes into an unemployment sentence; they are not the same gap. The young person reads the notice and misses the hour.",
-      choice("bus", "Servisi kadroya bağla", "Tie the bus to the post", "Hizmet", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_rg_dogu3", dueTurns: 36, key: "rg-dogu3" } }),
+      choice("bus", "Servisi kadroya bağla", "Tie the bus to the post", "Hizmet", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_rg_dogu_alt3", dueTurns: 36, key: "rg-dogu-alt3" } }),
       choice("post", "Kadroyu tut, saati köye bırak", "Hold the post, leave the hour to the village", "Yerel", { stageTo: 3 })),
-    later("dc_rg_dogu3", { stage: 3, era: ["2002", "gunumuz"], tags: ["region", "long", "memory"] },
+    later("dc_rg_dogu_alt3", { stage: 3, era: ["2002", "gunumuz"], tags: ["region", "long", "memory"] },
       "Perşembe doktor bir iz olur",
       "Yıllar sonra ilan çoğalır. Perşembe hâlâ doktor günüdür. Devlet, kamu işini hizmet sandı; hizmet bir takvimdi.",
       "Thursday's doctor becomes a trace",
@@ -2813,21 +2813,21 @@ push({
 push({
   id: "rg-ege-alt", arc: "region", era: ["2002", "gunumuz"], tags: ["region", "cross"],
   nodes: [
-    opening("dc_rg_ege", { era: ["2002", "gunumuz"], needRegion: "ege", tags: ["region"] },
+    opening("dc_rg_ege_alt", { era: ["2002", "gunumuz"], needRegion: "ege", tags: ["region"] },
       "İhracat ve turizm, su tablası",
       "Ege zeytini ve sezonu aynı yazı paylaşır. Tanker kuyusu dolar; vana tarlada kısılır. Döviz cümlesi su cümlesini yemez — ikisi aynı kuyudan içer. Belediye 'sezon' der; sulama birliği 'kota' der.",
       "Export and tourism, a water table",
       "The Aegean shares the same summer between olives and the season. The tanker well fills; the valve is throttled in the field. The foreign-exchange sentence does not eat the water sentence — both drink from the same well. The municipality says season; the irrigation union says quota.",
-      choice("quota", "Kota yaz, sezonu kuyuya bağla", "Write a quota, tie the season to the well", "Su", { effects: { heat: 1, info: 1 }, stageTo: 1, next: { eventId: "dc_rg_ege2", dueTurns: 7, key: "rg-ege2" } }),
+      choice("quota", "Kota yaz, sezonu kuyuya bağla", "Write a quota, tie the season to the well", "Su", { effects: { heat: 1, info: 1 }, stageTo: 1, next: { eventId: "dc_rg_ege_alt2", dueTurns: 7, key: "rg-ege-alt2" } }),
       choice("season", "Sezonu tut, vanayı tarlaya bırak", "Hold the season, leave the valve to the field", "Döviz", { effects: { rumor: 1 }, stageTo: 9 })),
-    later("dc_rg_ege2", { era: ["2002", "gunumuz"], needRegion: "ege", tags: ["region", "memory"] },
+    later("dc_rg_ege_alt2", { era: ["2002", "gunumuz"], needRegion: "ege", tags: ["region", "memory"] },
       "Kuyu iner, otel dolar",
       "Sezon rekor yazar. Tablo başka bir yazı anlatır. Çiftçi 'zeytin' der; tesis 'havuz' der. İki rekor aynı kıtlığı gizler.",
       "The well drops, the hotel fills",
       "The season writes a record. The table describes another summer. The farmer says olives; the facility says pool. Two records hide the same scarcity.",
-      choice("table", "Tabloyu sezona yaz", "Write the table onto the season", "Dürüstlük", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_rg_ege3", dueTurns: 24, key: "rg-ege3" } }),
+      choice("table", "Tabloyu sezona yaz", "Write the table onto the season", "Dürüstlük", { effects: { info: 1 }, stageTo: 3, next: { eventId: "dc_rg_ege_alt3", dueTurns: 24, key: "rg-ege-alt3" } }),
       choice("record", "Rekoru tut", "Hold the record", "Tabela", { stageTo: 3 })),
-    later("dc_rg_ege3", { stage: 3, era: ["2002", "gunumuz"], tags: ["region", "long", "memory"] },
+    later("dc_rg_ege_alt3", { stage: 3, era: ["2002", "gunumuz"], tags: ["region", "long", "memory"] },
       "Kota bir hafıza olur",
       "Yıllar sonra sezon yine konuşulur. Kuyu izi durur. Devlet, dövizi omurga sandı; tablo ayrı kaldı.",
       "The quota becomes a memory",
@@ -3143,7 +3143,7 @@ extra("dc_x_youth_job", { arc: "group", tags: ["group", "region", "delayed"] },
   "Growth turns. Job ads do not. Youth wait in line; statistics say participation.",
   choice("train", "Staj hattı aç", "Open a trainee line", "Kapasite"),
   choice("wait", "Büyümeyi bekle", "Wait for growth", "Erteleme"));
-extra("dc_x_retiree_cola", { arc: "group", tags: ["group", "fiscal", "delayed"] },
+extra("dc_x_retiree_cola", { arc: "group", needGroup: "retirees", tags: ["group", "fiscal", "delayed"] },
   "Aylık, file, endeks",
   "Aktüerya masada. Sokak 'yaş' duyar. Emekli hane filesi resmi sepetten ayrı şişer.",
   "A pension, a bag, an index",
@@ -3171,7 +3171,7 @@ extra("dc_x_business_rate", { arc: "group", tags: ["group", "fiscal", "delayed"]
   "Business smiles. The branch says collateral. The SME and the exporter are not in the same credit sentence.",
   choice("sme", "KOBİ hattını ayır", "Split an SME line", "Adalet"),
   choice("price", "Teminatı piyasa say", "Treat collateral as the market", "Piyasa"));
-extra("dc_x_bureaucracy", { arc: "group", tags: ["group", "institution", "delayed"] },
+extra("dc_x_bureaucracy", { arc: "group", needGroup: "bureaucracy", tags: ["group", "institution", "delayed"] },
   "Dosya hükümetten uzun",
   "Kamu kadrosu tempo ister, yorgunluk da ister. İkisi aynı koridorda. Bürokrasi bir kalkan ve bir tıkaç.",
   "The file outlives the government",
@@ -3192,7 +3192,7 @@ extra("dc_x_rural_clinic", { arc: "development", tags: ["development", "group", 
   "The sign is up. The night-shift list is old. When rural service is translated into urban-transformation language, the queue lengthens.",
   choice("staff", "Nöbeti kaydır", "Move a night shift", "Kapasite"),
   choice("sign", "Tabelayı başarı say", "Count the sign as success", "Görünürlük"));
-extra("dc_x_security_desk", { arc: "group", tags: ["group", "security", "form", "delayed"] },
+extra("dc_x_security_desk", { arc: "group", needGroup: "security", tags: ["group", "security", "form", "delayed"] },
   "Güvenlik masası, sivil dipnot",
   "Güvenlik bürokrasisi tempo ister. Sivil reform iki hafta kayar. Haluk Paşa bütçe satırının gecikmeli şişeceğini bilir.",
   "A security desk, a civil footnote",
@@ -3740,9 +3740,25 @@ export function decorateDevletDossier(state) {
   const d = state.devletDepth;
   if (!d) return null;
   const flavor = STATE_FORM_FLAVOR[state.form] || STATE_FORM_FLAVOR["Bürokrasi-Devlet"];
-  const traces = DOSSIER_TRACE_TEMPLATES.filter((row) => {
+  const eligible = DOSSIER_TRACE_TEMPLATES.filter((row) => {
     try { return row.test(state); } catch { return false; }
-  }).slice(0, 8).map((row) => ({ id: row.id, text: row.text }));
+  });
+  // The first twelve traces describe mutually-exclusive authored routes. A
+  // straight slice made the first eight permanent winners and starved every
+  // institution/crisis/late-campaign trace. Keep both route history and the
+  // living state in the dossier, with a deterministic seed order inside each
+  // group so save/load cannot reroll the report.
+  const ordered = (rows) => rows.slice().sort((a, b) =>
+    hash(state.meta?.seed || 1, `dossier:${a.id}`) - hash(state.meta?.seed || 1, `dossier:${b.id}`));
+  const routeIds = new Set(DOSSIER_TRACE_TEMPLATES.slice(0, 12).map((row) => row.id));
+  const routes = ordered(eligible.filter((row) => routeIds.has(row.id))).slice(0, 4);
+  const dynamics = ordered(eligible.filter((row) => !routeIds.has(row.id))).slice(0, 4);
+  const selected = [...routes, ...dynamics];
+  if (selected.length < 8) {
+    const used = new Set(selected.map((row) => row.id));
+    selected.push(...ordered(eligible.filter((row) => !used.has(row.id))).slice(0, 8 - selected.length));
+  }
+  const traces = selected.map((row) => ({ id: row.id, text: row.text }));
   d.outcome = d.outcome && typeof d.outcome === "object" ? d.outcome : {};
   d.outcome.flavor = flavor.trace;
   d.outcome.contentNotes = traces.map((row) => row.text);

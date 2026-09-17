@@ -7,14 +7,17 @@ import { applyAction, normalize } from "../public/games/next-wave.js";
 import {
   CONTENT_EVENTS,
   CHAINS,
+  EXTRA_NODES,
   EXCLUSIVE_PAIRS,
   EXTRA_CALLBACKS,
+  DOSSIER_TRACE_TEMPLATES,
   POLICY_PROSE,
   coverage,
   shownBranch,
   applyContentChoice,
   settleDevletContent,
   processDevletContentMonth,
+  decorateDevletDossier,
   scheduleContent,
   takeDueDevletContent,
   overlayCadres,
@@ -96,6 +99,10 @@ test("Wave 5 DEVLET content coverage floors, unique ids, bilingual nodes", () =>
   assert.ok(cov.intelligence >= 8, `intel ${cov.intelligence}`);
   const ids = CONTENT_EVENTS.map((row) => row.id);
   assert.equal(new Set(ids).size, ids.length, "duplicate event id");
+  const rawNodes = [...CHAINS.flatMap((row) => row.nodes), ...EXTRA_NODES];
+  const rawIds = rawNodes.map((row) => row.id);
+  assert.equal(new Set(rawIds).size, rawIds.length, "pre-dedupe authored event id collision");
+  assert.equal(CONTENT_EVENTS.length, rawNodes.length, "runtime dedupe must not discard authored nodes");
   const chainIds = CHAINS.map((row) => row.id);
   assert.equal(new Set(chainIds).size, chainIds.length, "duplicate chain id");
   const callbackKeys = EXTRA_CALLBACKS.map((row) => row.key);
@@ -129,6 +136,112 @@ test("Wave 5 DEVLET content coverage floors, unique ids, bilingual nodes", () =>
   assert.equal(POLICIES["2002"].length, 48);
   assert.equal(EVENTS["2002"].length, 62);
   assert.ok(Object.keys(POLICY_PROSE).length >= 70, "policy prose");
+});
+
+test("all 77 policy briefs are complete and mapped to their real period", () => {
+  const policies = Object.entries(POLICIES).flatMap(([period, rows]) => rows.map((row) => ({ period, ...row })));
+  assert.equal(policies.length, 77);
+  assert.equal(new Set(policies.map((row) => row.id)).size, 77);
+  assert.deepEqual(Object.keys(POLICY_PROSE).sort(), policies.map((row) => row.id).sort());
+  for (const policy of policies) {
+    const prose = POLICY_PROSE[policy.id];
+    assert.equal(prose.period, policy.period, `${policy.id} period`);
+    for (const field of ["rationale", "groups", "short", "medium", "long", "risk", "reversal", "trace"]) {
+      assert.ok(typeof prose[field] === "string" && prose[field].trim().length >= 3, `${policy.id}.${field}`);
+      assert.ok(!/undefined|\[object Object\]|TR,EN/.test(prose[field]), `${policy.id}.${field} render`);
+    }
+    assert.ok(policy.inst && Number.isFinite(policy.cost) && Number.isFinite(policy.capacityNeed), `${policy.id} mechanics`);
+  }
+});
+
+test("authored political content stays systemic and non-operational", () => {
+  const corpus = CONTENT_EVENTS.flatMap((event) => [event.title, event.text, event.en?.title, event.en?.text, ...event.choices.flatMap((choice) => [choice.label, event.en?.choices?.[choice.id]])]).join("\n");
+  assert.doesNotMatch(corpus, /\b(AKP|CHP|MHP|DEM Parti|İYİ Parti|Recep Tayyip Erdoğan|Kemal Kılıçdaroğlu|Ekrem İmamoğlu)\b/i);
+  assert.doesNotMatch(corpus, /(darbe nasıl|gizli gözetim yöntemi|sabotaj talimatı|şiddet yöntemi|how to stage a coup|surveillance instructions)/i);
+});
+
+test("all 107 authored chain openings have a satisfiable natural gate", () => {
+  for (const chain of CHAINS) {
+    const node = chain.nodes.find((row) => row.organic);
+    assert.ok(node, `${chain.id} has no organic opening`);
+    const rawEra = [].concat(node.era || chain.era || ["2002"])[0];
+    const era = rawEra === "grand" ? "1923" : rawEra;
+    const state = hydrateDevlet(era, { seed: 97001, campaign: Boolean(node.campaign || rawEra === "grand") });
+    const store = devletContentBag(state);
+    store.chains[chain.id] = node.needStage || 0;
+    if (chain.exclusive) store.exclusive[chain.exclusive] = chain.branch;
+    state.time.turn = Math.max(1, node.minTurn || 1);
+    if (node.maxTurn) state.time.turn = Math.min(state.time.turn, node.maxTurn);
+    if (node.form) {
+      state.form = node.form;
+      state.devletDepth.forms.dominant = node.form;
+    }
+    if (node.needCrisis) state.devletDepth.crises.active = [{ id: `fixture:${chain.id}`, family: node.needCrisis }];
+    if (node.forbidCrisis) state.devletDepth.crises.active = [];
+    if (node.needInst) {
+      let row = state.institutions.find((item) => item.id === node.needInst);
+      if (!row) {
+        row = { id: node.needInst, name: node.needInst, capacity: 50, professionalism: 50, autonomy: 50, trust: 50, fatigue: 10, memory: [] };
+        state.institutions.push(row);
+      }
+      if (node.minCapacity) row.capacity = node.minCapacity;
+      if (node.maxCapacity) row.capacity = node.maxCapacity;
+      if (node.minFatigue) row.fatigue = node.minFatigue;
+      if (node.maxTrust) row.trust = node.maxTrust;
+    }
+    if (node.needGroup) {
+      const row = state.devletDepth.groups.find((item) => item.id === node.needGroup);
+      assert.ok(row, `${chain.id} missing group fixture ${node.needGroup}`);
+      if (node.minPressure) row.pressure = node.minPressure;
+      if (node.maxSatisfaction) row.satisfaction = node.maxSatisfaction;
+    }
+    if (node.needRegion) {
+      const row = state.regions.find((item) => item.id === node.needRegion);
+      assert.ok(row, `${chain.id} missing region fixture ${node.needRegion}`);
+      if (node.maxServices) row.services = node.maxServices;
+      if (node.minUnemp) row.unemployment = node.minUnemp;
+      if (node.minHeat) row.heat = node.minHeat;
+    }
+    if (node.minInflation) state.actual.inflation = node.minInflation;
+    if (node.minHeat && !node.needRegion) state.heat = node.minHeat;
+    if (node.minDebt) state.devletDepth.macro.publicDebt = node.minDebt;
+    if (node.minEntropy) state.entropy = node.minEntropy;
+    if (node.minFragmentation) state.devletDepth.media.fragmentation = node.minFragmentation;
+    if (node.minEnergy) state.devletDepth.world.energyPressure = node.minEnergy;
+    if (node.needCadre && !state.devletDepth.cadres.some((row) => row.institution === node.needCadre)) {
+      state.devletDepth.cadres.push({ institution: node.needCadre, competence: 50, professionalism: 50, expertise: 50, crisisResilience: 50, reliability: 50, networkRisk: 20, memory: [] });
+    }
+    const event = CONTENT_EVENTS.find((row) => row.id === node.id);
+    assert.ok(event?.organicCheck(state), `unsatisfiable opening ${chain.id}/${node.id}`);
+  }
+});
+
+test("dossier cap preserves route and dynamic traces without first-array starvation", () => {
+  const observed = new Set();
+  for (let seed = 1; seed <= 96; seed += 1) {
+    const state = hydrateDevlet("gunumuz", { seed });
+    const store = devletContentBag(state);
+    for (const family of Object.keys(EXCLUSIVE_PAIRS)) shownBranch(state, family);
+    state.devletDepth.crises.history.push({ id: `crisis:${seed}`, family: "trust" });
+    state.institutions[0].memory = [{ turn: 1, type: "fixture" }];
+    state.devletDepth.government.terms = 2;
+    state.devletDepth.world.energyPressure = 80;
+    state.networks[0].pressure = 60;
+    state.regions[0].services = 30;
+    store.once["seen:dc_x_water_loss"] = 3;
+    store.once["seen:dc_x_brief"] = 4;
+    decorateDevletDossier(state);
+    const traces = state.devletDepth.outcome.contentTraces;
+    assert.ok(traces.length <= 8);
+    assert.equal(new Set(traces.map((row) => row.id)).size, traces.length);
+    assert.ok(traces.some((row) => DOSSIER_TRACE_TEMPLATES.slice(0, 12).some((item) => item.id === row.id)));
+    assert.ok(traces.some((row) => DOSSIER_TRACE_TEMPLATES.slice(12).some((item) => item.id === row.id)));
+    for (const row of traces) observed.add(row.id);
+    const loaded = normalize("tc-sim-devlet", clone(state));
+    decorateDevletDossier(loaded);
+    assert.deepEqual(loaded.devletDepth.outcome.contentTraces, traces);
+  }
+  assert.equal(observed.size, DOSSIER_TRACE_TEMPLATES.length, "all authored trace templates should surface across campaigns");
 });
 
 test("exclusive siblings never co-appear and both branches exist across seeds", () => {
