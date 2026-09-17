@@ -1,5 +1,11 @@
 # TC SIM — Değişiklik Kaydı
 
+## Wave 4 — Late-life authored content (65+)
+
+- 65 yaş sonrası authored hayat hikâyesi boşluğu kapatıldı. Yeni zincirler 65–69 / 70–74 / 75–79 / 80+ bantlarına dağılır; emeklilik matematiği, ölüm, miras ve save v6 değişmez.
+- Dört yeni exclusive aile: danışmanlık/bırakma, küçült/kal, aileye yaklaş/bağımsız kal, dernek/ev ritmi. Gecikmeli geri dönüşler mevcut `flags.lifeContent.waiting[]` ve actor/job/home context guard üzerinden yürür.
+- Emekli oyuncuya işsizlik/statü yemeği callback'i gitmez.
+
 ## Wave 4 — Final content integration
 
 - Production event havuzunun organic içeriği aç bırakmasını önleyen altı haftalık deterministic, arc-fair cadence eklendi.

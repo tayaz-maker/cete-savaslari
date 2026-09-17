@@ -34,6 +34,16 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-17 — TC SIM late-life content patch (65+)
+- Web change: Mini content-only patch for TC SIM. Authored life events now continue after 65 (bands 65–69, 70–74, 75–79, 80+): retirement identity, consulting vs leaving work, adult-child money/role, housing downsize vs stay, family near vs independent, club vs home rhythm, partner pace, care, grief callbacks, independence/keys, photo-box legacy. Frozen engine stays (arcs, arrears, commute, retirement math, death/inheritance, save v6, 6-week scheduler, actor-memory core, callback context guards, dossier outcome math).
+- Catalog still `public/games/tc-sim/js/life-content.js` via `flags.lifeContent`. New exclusive families `late-work` / `late-home` / `late-family` / `late-circle`. Retired players no longer receive the jobless/status-dinner callbacks.
+- Content: yes. Artwork: no. Audio: no.
+- Gameplay/rules: no.
+- UI/presentation: no.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone TC SIM should carry the 65+ catalog.
+- Commits: `grok/wave4-tc-sim-late-life-content` (not merged to main).
+
 ### 2026-09-17 — TC SIM content-max (life events, voices, delayed chains)
 - Web change: Content-only Wave 4 expansion of TC SIM. Frozen engine stays: 10 life arcs, commute/arrears/CASH_FLOOR, actor memory core, 4 delayed engine events, education-leverage once-per-life, goals/opportunities, Life Dossier outcome math, save v6 keys `tlab-tc-sim-slot-1..3`.
 - Catalog in `public/games/tc-sim/js/life-content.js`: 128 authored nodes, 49 multi-stage chains, 12 exclusive families, 18 auto delayed callbacks, 7 actor voices, 12 dossier trace templates. Persist via existing `flags.lifeContent` (`chains` / `exclusive` / `once` / `waiting[]`). Content delayed callbacks do not occupy `lifeDepth.pendingEffects`.
