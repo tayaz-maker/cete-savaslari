@@ -103,6 +103,8 @@ function bag(state) {
       row.expectedPartnerId = typeof row.expectedPartnerId === "string" ? row.expectedPartnerId : null;
       row.expectedJobId = typeof row.expectedJobId === "string" ? row.expectedJobId : null;
       row.expectedHomeId = typeof row.expectedHomeId === "string" ? row.expectedHomeId : null;
+      row.expectedNoPartner = row.expectedNoPartner === true;
+      row.requiresAdultChild = row.requiresAdultChild === true;
       return true;
     })
     .sort((a, b) => a.dueWeek - b.dueWeek || a.id.localeCompare(b.id))
@@ -139,6 +141,13 @@ function hasChild(state) {
   return (state.parenthood?.children || []).some((row) => row.alive !== false);
 }
 
+function hasAdultChild(state) {
+  const week = Number(state.time?.absoluteWeek) || 0;
+  return (state.parenthood?.children || []).some((row) =>
+    row?.alive !== false && Number.isFinite(Number(row.bornWeek)) && week - Number(row.bornWeek) >= 18 * 48,
+  );
+}
+
 function partnerId(state) {
   return state.social?.currentPartnerNpcId || null;
 }
@@ -160,6 +169,7 @@ function organicOk(state, chain, node) {
   if (node.needPartner && !partnerId(state)) return false;
   if (node.needNoPartner && partnerId(state)) return false;
   if (node.needChild && !hasChild(state)) return false;
+  if (node.needAdultChild && !hasAdultChild(state)) return false;
   if (node.needArrears && !(Number(state.finances?.arrears) > 0)) return false;
   if (node.needHome && state.household?.homeId !== node.needHome) return false;
   if (node.notHome && state.household?.homeId === node.notHome) return false;
@@ -1857,7 +1867,7 @@ const LATE_LIFE_CHAINS = [
     tags: ["career", "status", "late-life", "age-65", "cross"],
     nodes: [
       {
-        id: "lc_consult_ask", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true, needActor: "burak",
+        id: "lc_consult_ask", stage: 1, organic: true, minAge: 60, maxAge: 69, needRetired: true, needActor: "burak",
         tags: ["career", "status", "late-life", "age-65", "memory"],
         title: "Burak: 'iki saatlik bakış'",
         text: "Mail kısa, ı yok: 'ciddili. kadro değil. bakış. paket ayrı.' Emekli cüzdanı, ofis cümlesi. İkisi aynı masaya oturmuyor.",
@@ -1899,7 +1909,7 @@ const LATE_LIFE_CHAINS = [
     tags: ["career", "health", "late-life", "age-65", "cross"],
     nodes: [
       {
-        id: "lc_leave_clean", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true,
+        id: "lc_leave_clean", stage: 1, organic: true, minAge: 60, maxAge: 69, needRetired: true,
         tags: ["career", "identity", "late-life", "age-65"],
         title: "Grup sohbeti, sen çıkınca susmuyor",
         text: "İş grubu hâlâ açık. 'abi bi bakar mısın' yazılmış. Bakmak, dönmek. Dönmek, emekli olmamak.",
@@ -1927,7 +1937,7 @@ const LATE_LIFE_CHAINS = [
     id: "emekli-sabah", arc: "health", tags: ["health", "career", "late-life", "age-65", "cross"],
     nodes: [
       {
-        id: "lc_morning_empty", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true,
+        id: "lc_morning_empty", stage: 1, organic: true, minAge: 60, maxAge: 69, needRetired: true,
         tags: ["health", "late-life", "age-65", "phase-late"],
         title: "Sabah, teslim yok",
         text: "Eski servis saati. Durakta sen varsın, servis yok. Bacaklar işe gidiyor, sen gitmiyorsun.",
@@ -1967,7 +1977,7 @@ const LATE_LIFE_CHAINS = [
     id: "cocuk-iban", arc: "family", tags: ["family", "finance", "late-life", "age-65", "cross"],
     nodes: [
       {
-        id: "lc_child_ask", stage: 1, organic: true, minAge: 65, maxAge: 72, needChild: true,
+        id: "lc_child_ask", stage: 1, organic: true, minAge: 65, maxAge: 72, needAdultChild: true,
         tags: ["family", "finance", "late-life", "age-65", "memory"],
         title: "Mesaj: 'kısa bir aktarım'",
         text: "Kısa bir aktarım, uzun bir cümle. Çocuk artık çocuk değil. Sen hâlâ hesap. Emekli maaşının bir haftası, birinin peşinatı.",
@@ -2813,6 +2823,7 @@ const PARTNER_SENSITIVE_CALLBACKS = new Set([
   "lc_partner_tea",
   "lc_elif_pace",
 ]);
+const NO_PARTNER_SENSITIVE_CALLBACKS = new Set(["lc_sunday_empty"]);
 const EMPLOYER_SENSITIVE_CALLBACKS = new Set([
   "lc_metro_month",
   "lc_metro_notice",
@@ -2834,6 +2845,19 @@ const HOME_SENSITIVE_CALLBACKS = new Set([
   "lc_downsize_key",
   "lc_stay_stair",
   "lc_rent_weight",
+  "lc_stair_week",
+  "lc_name_plate",
+]);
+const ADULT_CHILD_SENSITIVE_CALLBACKS = new Set([
+  "lc_child_table",
+  "lc_child_year",
+  "lc_child_transfer",
+]);
+const ACTOR_SENSITIVE_CALLBACKS = new Map([
+  ["lc_consult_month", "burak"],
+  ["lc_consult_end", "burak"],
+  ["lc_old_silence", "mehmet"],
+  ["lc_old_photo", "mehmet"],
 ]);
 
 function scheduleContent(state, spec) {
@@ -2852,14 +2876,17 @@ function scheduleContent(state, spec) {
   const expectedHomeId = HOME_SENSITIVE_CALLBACKS.has(spec.eventId)
     ? (state.household?.homeId || null)
     : null;
+  const actorId = spec.actorId || ACTOR_SENSITIVE_CALLBACKS.get(spec.eventId) || null;
   store.waiting.push({
     id,
     eventId: spec.eventId,
     dueWeek: state.time.absoluteWeek + Math.max(1, spec.dueWeeks || 4),
-    actorId: spec.actorId || null,
+    actorId,
     expectedPartnerId,
     expectedJobId,
     expectedHomeId,
+    expectedNoPartner: NO_PARTNER_SENSITIVE_CALLBACKS.has(spec.eventId),
+    requiresAdultChild: ADULT_CHILD_SENSITIVE_CALLBACKS.has(spec.eventId),
   });
   store.waiting = cap(store.waiting, 12);
   store.once[id] = state.time.absoluteWeek;
@@ -2945,8 +2972,8 @@ export function processLifeContentWeek(state) {
   if (trySched(personOk(state, "emre") && week >= 22 && Number(state.finances?.balance) > 3000 && state.player.age < 60, { eventId: "lc_emre_loan", dueWeeks: 9, key: "emre-loan", actorId: "emre" })) return true;
   const age = Number(state.player?.age) || 0;
   if (trySched(isRetired(state) && age >= 65, { eventId: "lc_pension_day", dueWeeks: 3, key: "pension-day" })) return true;
-  if (trySched(isRetired(state) && age >= 65 && age <= 69 && shownBranch(state, "late-work") === "consult" && personOk(state, "burak"), { eventId: "lc_consult_ask", dueWeeks: 4, key: "consult-ask", actorId: "burak" })) return true;
-  if (trySched(isRetired(state) && age >= 65 && age <= 69 && shownBranch(state, "late-work") === "leave", { eventId: "lc_leave_clean", dueWeeks: 4, key: "leave-clean" })) return true;
+  if (trySched(isRetired(state) && age >= 60 && age <= 69 && shownBranch(state, "late-work") === "consult" && personOk(state, "burak"), { eventId: "lc_consult_ask", dueWeeks: 4, key: "consult-ask", actorId: "burak" })) return true;
+  if (trySched(isRetired(state) && age >= 60 && age <= 69 && shownBranch(state, "late-work") === "leave", { eventId: "lc_leave_clean", dueWeeks: 4, key: "leave-clean" })) return true;
   if (trySched(age >= 70 && age <= 74 && state.household?.homeId !== "family" && shownBranch(state, "late-home") === "downsize", { eventId: "lc_downsize_talk", dueWeeks: 5, key: "downsize-talk" })) return true;
   if (trySched(age >= 70 && age <= 74 && state.household?.homeId !== "family" && shownBranch(state, "late-home") === "stay", { eventId: "lc_stay_repair", dueWeeks: 5, key: "stay-repair" })) return true;
   if (trySched(age >= 70 && age <= 74 && shownBranch(state, "late-family") === "near", { eventId: "lc_near_sunday", dueWeeks: 6, key: "near-sunday" })) return true;
@@ -2959,7 +2986,7 @@ export function processLifeContentWeek(state) {
   if (trySched(age >= 75 && state.household?.homeId !== "family", { eventId: "lc_name_plate", dueWeeks: 5, key: "name-plate" })) return true;
   if (trySched(age >= 75 && (state.health?.energy || 100) < 50, { eventId: "lc_winter_bus", dueWeeks: 4, key: "winter-bus" })) return true;
   if (trySched(age >= 80, { eventId: "lc_photo_ask", dueWeeks: 7, key: "photo-ask" })) return true;
-  if (trySched(age >= 65 && hasChild(state), { eventId: "lc_child_transfer", dueWeeks: 9, key: "child-transfer" })) return true;
+  if (trySched(age >= 65 && hasAdultChild(state), { eventId: "lc_child_transfer", dueWeeks: 9, key: "child-transfer" })) return true;
   if (trySched(age >= 70 && personOk(state, "mehmet") && (hasNpcMemory(state, "mehmet", "lc_helped_mehmet_money") || hasNpcMemory(state, "mehmet", "lc_mehmet_years")), { eventId: "lc_mehmet_years", dueWeeks: 8, key: "mehmet-years", actorId: "mehmet" })) return true;
   if (trySched(age >= 70 && partnerId(state) === "elif", { eventId: "lc_elif_pace", dueWeeks: 6, key: "elif-pace", actorId: "elif" })) return true;
   if (trySched(age >= 75 && personOk(state, "selin"), { eventId: "lc_selin_visit", dueWeeks: 10, key: "selin-visit", actorId: "selin" })) return true;
@@ -3010,12 +3037,14 @@ export function takeDueLifeContent(state) {
     store.waiting = store.waiting.filter((row) => row.id !== due.id);
     store.once[`resolved:${due.id}`] = state.time.absoluteWeek;
     if (due.actorId && !personOk(state, due.actorId)) continue;
-    if (due.expectedPartnerId && partnerId(state) !== due.expectedPartnerId) continue;
+    if (due.expectedPartnerId && (partnerId(state) !== due.expectedPartnerId || !personOk(state, due.expectedPartnerId))) continue;
+    if (due.expectedNoPartner && partnerId(state)) continue;
     if (due.expectedJobId && (
       state.career?.jobId !== due.expectedJobId ||
       state.career?.retirement?.status === "retired"
     )) continue;
     if (due.expectedHomeId && state.household?.homeId !== due.expectedHomeId) continue;
+    if (due.requiresAdultChild && !hasAdultChild(state)) continue;
     if (!LIFE_CONTENT_EVENTS.some((row) => row.id === due.eventId)) continue;
     return due.eventId;
   }
@@ -3071,6 +3100,11 @@ export const DOSSIER_TRACE_TEMPLATES = [
   { id: "lc-trace-home-rhythm", test: (state) => bag(state).exclusive["late-circle"] === "home", text: "Öğle haberi evde tutuldu; pencere katılımdan sayılmadı." },
 ];
 
+const LATE_DOSSIER_TRACE_IDS = new Set([
+  "lc-trace-consult", "lc-trace-leave-work", "lc-trace-downsize", "lc-trace-stay-home",
+  "lc-trace-near-family", "lc-trace-independent", "lc-trace-club", "lc-trace-home-rhythm",
+]);
+
 export function decorateLifeDossier(state) {
   const depth = ensureLifeDepthState(state);
   const dossier = depth.dossier;
@@ -3088,16 +3122,26 @@ export function decorateLifeDossier(state) {
   // authored traces and let the generic rows fill the rest. Outcome math and
   // contentNotes are untouched.
   const RESERVED_CONTENT_TRACES = 5;
+  const earlyContent = content.filter((row) => !LATE_DOSSIER_TRACE_IDS.has(row.id));
+  const lateContent = content.filter((row) => LATE_DOSSIER_TRACE_IDS.has(row.id));
+  const prioritizedContent = lateContent.length
+    ? [...earlyContent.slice(0, 3), ...lateContent.slice(0, 2), ...earlyContent.slice(3), ...lateContent.slice(2)]
+    : content;
+  const genericTraces = (dossier.traces || []).filter((row) =>
+    !String(row?.id || "").startsWith("lc-trace-") && !String(row?.id || "").startsWith("lc-flavor-"),
+  );
   const traces = unique([
     { id: "lc-flavor-outcome", text: flavor[0] },
     { id: "lc-flavor-seed", text: extra[0] },
-    ...content.slice(0, RESERVED_CONTENT_TRACES),
-    ...(dossier.traces || []),
-    ...content.slice(RESERVED_CONTENT_TRACES),
+    ...prioritizedContent.slice(0, RESERVED_CONTENT_TRACES),
+    ...genericTraces,
+    ...prioritizedContent.slice(RESERVED_CONTENT_TRACES),
   ]).slice(0, 10);
   dossier.traces = traces;
   dossier.flavor = flavor[0];
-  dossier.contentNotes = content.slice(0, 8).map((row) => row.text);
+  dossier.contentNotes = (lateContent.length
+    ? [...earlyContent.slice(0, 4), ...lateContent.slice(0, 4)]
+    : content.slice(0, 8)).map((row) => row.text);
   const report = state.lifetime?.reports?.find((row) => row.id === state.lifetime?.death?.reportId);
   if (report?.lifeDossier) {
     report.lifeDossier.traces = traces;

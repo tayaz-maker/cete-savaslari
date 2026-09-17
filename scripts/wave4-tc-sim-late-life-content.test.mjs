@@ -192,6 +192,79 @@ test("retirement, partner, child and dead-actor gates hold", () => {
   assert.equal(takeDueLifeContent(dead), null);
 });
 
+test("60–65 retirement transition uses late-life content without reopening jobless prose", () => {
+  const state = createNewGame({ seed: 701 });
+  ageTo(state, 61, { retire: true });
+  const workBranch = shownBranch(state, "late-work");
+  const workOpening = LIFE_CONTENT_EVENTS.find((row) => row.id === (workBranch === "consult" ? "lc_consult_ask" : "lc_leave_clean"));
+  assert.equal(workOpening.organicCheck(state), true);
+  assert.equal(LIFE_CONTENT_EVENTS.find((row) => row.id === "lc_morning_empty").organicCheck(state), true);
+  assert.equal(LIFE_CONTENT_EVENTS.find((row) => row.id === "lc_jobless_ad").organicCheck(state), false);
+});
+
+test("child transfer prose requires a living adult child at opening and due time", () => {
+  const state = createNewGame({ seed: 702 });
+  ageTo(state, 66, { retire: true });
+  const childAsk = LIFE_CONTENT_EVENTS.find((row) => row.id === "lc_child_ask");
+  state.parenthood.children = [{ id: "late-child", alive: true, bornWeek: state.time.absoluteWeek - 10 * 48 }];
+  assert.equal(childAsk.organicCheck(state), false);
+  state.parenthood.children[0].bornWeek = state.time.absoluteWeek - 20 * 48;
+  assert.equal(childAsk.organicCheck(state), true);
+  assert.equal(scheduleContent(state, { eventId: "lc_child_transfer", key: "adult-child", dueWeeks: 2 }), true);
+  state.parenthood.children[0].alive = false;
+  state.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(state), null);
+});
+
+test("late callback guards drop changed partner, home and actor contexts", () => {
+  const noPartner = createNewGame({ seed: 703 });
+  ageTo(noPartner, 72, { retire: true });
+  assert.equal(scheduleContent(noPartner, { eventId: "lc_sunday_empty", key: "alone", dueWeeks: 2 }), true);
+  noPartner.social.currentPartnerNpcId = "elif";
+  noPartner.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(noPartner), null);
+
+  const home = createNewGame({ seed: 704 });
+  ageTo(home, 76, { retire: true, home: "studio" });
+  assert.equal(scheduleContent(home, { eventId: "lc_name_plate", key: "name-plate-context", dueWeeks: 2 }), true);
+  home.household.homeId = "family";
+  home.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(home), null);
+
+  const actor = createNewGame({ seed: 705 });
+  ageTo(actor, 78, { retire: true });
+  assert.equal(scheduleContent(actor, { eventId: "lc_old_silence", key: "old-number-context", dueWeeks: 2 }), true);
+  assert.equal(lifeContentBag(actor).waiting[0].actorId, "mehmet");
+  actor.people.find((row) => row.id === "mehmet").deceased = true;
+  actor.time.absoluteWeek += 2;
+  assert.equal(takeDueLifeContent(actor), null);
+});
+
+test("all late-life openings have a natural fixture and every continuation has a chain edge", () => {
+  for (const chain of LATE_LIFE_CHAINS) {
+    const opening = chain.nodes[0];
+    let state = null;
+    for (let seed = 1; seed <= 200; seed += 1) {
+      const candidate = createNewGame({ seed });
+      const age = Math.max(60, opening.minAge || 60);
+      ageTo(candidate, age, { retire: opening.needRetired === true, home: opening.notHome === "family" ? "studio" : undefined });
+      if (opening.notRetired) {
+        candidate.career.retirement.status = "working";
+        candidate.career.jobId = "office";
+      }
+      if (opening.needPartner) candidate.social.currentPartnerNpcId = "elif";
+      if (opening.needAdultChild) candidate.parenthood.children = [{ id: "adult", alive: true, bornWeek: candidate.time.absoluteWeek - 20 * 48 }];
+      if (opening.needChild) candidate.parenthood.children = [{ id: "child", alive: true, bornWeek: candidate.time.absoluteWeek - 5 * 48 }];
+      if (opening.needMemory) addNpcMemory(candidate, opening.needMemory[0], "Doğal yol hafızası", opening.needMemory[1]);
+      if (chain.exclusive && shownBranch(candidate, chain.exclusive) !== chain.branch) continue;
+      if (LIFE_CONTENT_EVENTS.find((row) => row.id === opening.id).organicCheck(candidate)) { state = candidate; break; }
+    }
+    assert.ok(state, `unreachable opening ${chain.id}:${opening.id}`);
+    const linked = new Set(chain.nodes.flatMap((node) => node.choices.flatMap((choice) => choice.lifeNext?.eventId || [])));
+    for (const node of chain.nodes.slice(1)) assert.ok(linked.has(node.id), `broken chain node ${chain.id}:${node.id}`);
+  }
+});
+
 test("delayed late-life callbacks stay once and drop stale partner/home", () => {
   const state = createNewGame({ seed: 80 });
   ageTo(state, 71, { retire: true });
@@ -237,6 +310,24 @@ test("late-life dossier traces are additive and stay under cap 10", () => {
   assert.ok((decorated.contentNotes || []).length >= 1);
 });
 
+test("a mature dossier keeps early, late and generic life evidence together", () => {
+  const state = createNewGame({ seed: 901 });
+  ageTo(state, 82, { retire: true, home: "studio" });
+  const bag = lifeContentBag(state);
+  Object.assign(bag.exclusive, {
+    "career-fork": "yerel", "commute-path": "metro", "housing-near": "aile", "crisis-response": "aile",
+    "late-work": "consult", "late-home": "downsize", "late-family": "near", "late-circle": "club",
+  });
+  buildLifeDossier(state);
+  state.lifeDepth.dossier.traces = [{ id: "generic-early", text: "Kariyerin ilk yıllarından genel iz." }];
+  const dossier = decorateLifeDossier(state);
+  const ids = dossier.traces.map((row) => row.id);
+  assert.ok(ids.some((id) => ["lc-trace-local", "lc-trace-metro", "lc-trace-home", "lc-trace-crisis"].includes(id)), ids.join(","));
+  assert.ok(ids.some((id) => id.startsWith("lc-trace-") && ["lc-trace-consult", "lc-trace-downsize", "lc-trace-near-family", "lc-trace-club"].includes(id)), ids.join(","));
+  assert.ok(ids.some((id) => !id.startsWith("lc-trace-") && !id.startsWith("lc-flavor-")), ids.join(","));
+  assert.equal(ids.length, 10);
+});
+
 test("generation handoff does not leak waiting or once stamps", () => {
   const parent = createNewGame({ seed: 91 });
   normalizeLifetime(parent);
@@ -276,9 +367,12 @@ test("generation handoff does not leak waiting or once stamps", () => {
 test("old v6 save remains bounded after late-life process", () => {
   const state = createNewGame({ seed: 92 });
   assert.equal(state.meta.saveVersion, 6);
+  state.yearlyHistory = Array.from({ length: 80 }, (_, index) => ({ year: 2027 + index, startingBalance: 0, endingBalance: index }));
   delete state.flags.lifeContent;
   const migrated = migrateState(copy(state));
   assert.equal(migrated.ok, true);
+  assert.equal(migrated.state.yearlyHistory.length, 56);
+  assert.deepEqual(migrateState(copy(migrated.state)).state, migrated.state);
   ageTo(migrated.state, 68, { retire: true });
   assert.doesNotThrow(() => processLifeContentWeek(migrated.state));
   fire(migrated.state, "lc_leave_clean", "mute");
@@ -382,8 +476,11 @@ test("20x8 age 18–82 density: authored 65–75 and 75+ are non-zero", { timeou
 
   const summary = {
     lateSeen: seenLate.size,
+    unseenNodes: LATE_EVENTS.filter((row) => !seenLate.has(row.id)).map((row) => row.id),
     bands: Object.fromEntries(Object.entries(bands).map(([k, v]) => [k, { events: v.events.size, hits: v.hits, arcs: [...v.arcs] }])),
     started: started.size, completed: completed.size,
+    unstartedChains: LATE_LIFE_CHAINS.filter((chain) => !started.has(chain.id)).map((chain) => chain.id),
+    incompleteChains: LATE_LIFE_CHAINS.filter((chain) => started.has(chain.id) && !completed.has(chain.id)).map((chain) => chain.id),
     exclusive: Object.fromEntries(Object.entries(exclusiveSeen).map(([k, v]) => [k, [...v]])),
     memorySeen: memorySeen.size, delayedSeen: delayedSeen.size, semanticHits,
   };

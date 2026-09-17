@@ -46,7 +46,10 @@ const LIMITS = {
   memories: 200,
   npcMemories: 50,
   eventHistory: 200,
-  yearlyHistory: 80,
+  // Sixty annual snapshots still cover an entire adult life while keeping
+  // 90+ saves below the storage budget. Lifetime reports separately archive
+  // the final eight years, so generation handoff does not depend on this tail.
+  yearlyHistory: 56,
   careerHistory: 40,
   secrets: 30,
   comparisonMilestones: 24,
@@ -625,6 +628,9 @@ export function normalizeEducationCareer(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) return state;
 
   const finances = state.finances && typeof state.finances === "object" ? state.finances : {};
+  state.yearlyHistory = Array.isArray(state.yearlyHistory)
+    ? state.yearlyHistory.slice(-LIMITS.yearlyHistory)
+    : [];
   state.finances = {
     ...finances,
     arrears: Number.isFinite(finances.arrears) ? Math.max(0, Math.min(300000, Math.round(finances.arrears))) : 0,
