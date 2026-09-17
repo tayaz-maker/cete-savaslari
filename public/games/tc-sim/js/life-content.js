@@ -27,6 +27,10 @@ export const EXCLUSIVE_PAIRS = {
   "social-circle": ["mahalle", "is"],
   "crisis-response": ["aile", "yalniz"],
   "wedding-path": ["git", "skip"],
+  "late-work": ["consult", "leave"],
+  "late-home": ["downsize", "stay"],
+  "late-family": ["near", "independent"],
+  "late-circle": ["club", "home"],
 };
 
 export const ACTOR_VOICES = {
@@ -139,6 +143,10 @@ function partnerId(state) {
   return state.social?.currentPartnerNpcId || null;
 }
 
+function isRetired(state) {
+  return state.career?.retirement?.status === "retired";
+}
+
 function organicOk(state, chain, node) {
   if (stageOf(state, chain.id) !== (node.needStage || 0)) return false;
   if (chain.exclusive && shownBranch(state, chain.exclusive) !== chain.branch) return false;
@@ -147,7 +155,10 @@ function organicOk(state, chain, node) {
   if (node.minAge && state.player.age < node.minAge) return false;
   if (node.maxAge && state.player.age > node.maxAge) return false;
   if (node.needJob && !state.career?.jobId) return false;
+  if (node.needRetired && !isRetired(state)) return false;
+  if (node.notRetired && isRetired(state)) return false;
   if (node.needPartner && !partnerId(state)) return false;
+  if (node.needNoPartner && partnerId(state)) return false;
   if (node.needChild && !hasChild(state)) return false;
   if (node.needArrears && !(Number(state.finances?.arrears) > 0)) return false;
   if (node.needHome && state.household?.homeId !== node.needHome) return false;
@@ -1713,9 +1724,9 @@ const MORE_CHAINS = [
     id: "issizlik-ilan", arc: "career", tags: ["career", "crisis", "finance", "cross"],
     nodes: [
       {
-        id: "lc_jobless_ad", stage: 1, organic: true, minWeek: 20,
+        id: "lc_jobless_ad", stage: 1, organic: true, minWeek: 20, notRetired: true,
         tags: ["career", "crisis", "economy"],
-        if: (state) => !state.career?.jobId,
+        if: (state) => !state.career?.jobId && state.career?.retirement?.status !== "retired",
         title: "İlan 'acil aranıyor'",
         text: "Acil, her ilanda var. Cevap yok. Annen çay koyuyor, ilan koymuyor.",
         enTitle: "The listing says urgently wanted", enText: "Urgent is on every listing. No answer. Your mother pours tea, not listings.",
@@ -1811,6 +1822,541 @@ const MORE_CHAINS = [
   },
 ];
 for (const chain of MORE_CHAINS) CHAINS.push(chain);
+
+const LATE_LIFE_CHAINS = [
+  {
+    id: "son-kadro", arc: "career", tags: ["career", "status", "late-life", "age-65", "cross"],
+    nodes: [
+      {
+        id: "lc_last_badge", stage: 1, organic: true, minAge: 65, maxAge: 69, notRetired: true, needJob: true,
+        tags: ["career", "late-life", "age-65", "phase-late"],
+        title: "Kart, hâlâ fotoğrafın",
+        text: "Güvenlik 'abi bu kart eski sistem' diyor. Sistem senin yüzünü tanıyor, kadro tanımıyor. Koridor aynı, isimlik yenilenmiş.",
+        enTitle: "The badge still has your photo", enText: "Security says 'this badge is the old system.' The system knows your face. The post does not. The corridor is the same. The nameplate has been replaced.",
+        choices: [
+          choice("keep", "Kartı tak, gir", "Wear the badge, go in", "Ritim durur; kimlik sızar", { health: { stress: 3 }, memory: "Altmış beşinde kartı takıp girdin." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_last_desk", dueWeeks: 5, key: "last-desk" }, echo: "Kart hâlâ cebinde, kadro değil.",
+          }),
+          choice("drawer", "Çekmeceye koy", "Put it in the drawer", "Mesafe; koridor soğur", { health: { stress: 2 } }, { lifeStage: 9 }),
+        ],
+      },
+      {
+        id: "lc_last_desk", stage: 2, tags: ["career", "late-life", "memory"],
+        title: "Masa sade, mail dolu",
+        text: "Çekmece boşaltılıyor. Senin kalem duruyor. Bir stajyer 'bunu kullanabilir miyim' diye soruyor. Kalem, veda gibi duruyor.",
+        enTitle: "A clear desk, a full inbox", enText: "The drawer is being emptied. Your pen is still there. An intern asks if they can use it. The pen looks like a goodbye.",
+        choices: [
+          choice("give", "Ver, gül", "Give it, smile", "Hafiflik", { health: { stress: -3 } }, { lifeStage: 3 }),
+          choice("keep-pen", "Kalemi al, çık", "Take the pen, leave", "Nesne; kapanış", { health: { stress: 2 }, memory: "Son masadan kalemi aldın." }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "danisman-kapi", exclusive: "late-work", branch: "consult", arc: "career",
+    tags: ["career", "status", "late-life", "age-65", "cross"],
+    nodes: [
+      {
+        id: "lc_consult_ask", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true, needActor: "burak",
+        tags: ["career", "status", "late-life", "age-65", "memory"],
+        title: "Burak: 'iki saatlik bakış'",
+        text: "Mail kısa, ı yok: 'ciddili. kadro değil. bakış. paket ayrı.' Emekli cüzdanı, ofis cümlesi. İkisi aynı masaya oturmuyor.",
+        enTitle: "Burak: a two-hour look", enText: "Short mail, no ı: 'serious. not a post. a look. separate package.' A pension wallet, an office sentence. They do not sit at the same table.",
+        choices: [
+          choice("take", "Bakışa git", "Take the look", "Kimlik dolusu; tempo", { health: { energy: -5, stress: 4 }, memory: "Emeklilikte danışmanlık kapısını açtın." }, {
+            lifeStage: 1, lifeLock: "consult", npcMemory: { personId: "burak", text: "Bakış için geldi.", type: "lc_consult_took" },
+            lifeNext: { eventId: "lc_consult_month", dueWeeks: 6, key: "consult-month" }, echo: "Kapı kapandı sanıldı, aralandı.",
+          }),
+          choice("pass", "Bu kapı kapandı de", "Say this door has closed", "Huzur; boş pazartesi", { health: { stress: -2 } }, { lifeStage: 9, lifeLock: "consult" }),
+        ],
+      },
+      {
+        id: "lc_consult_month", stage: 2, tags: ["career", "health", "late-life", "memory"],
+        title: "Toplantı, sen susunca bitmiyor",
+        text: "Soru senin eski cümlen. Cevap genç birinin. Sen 'ben karışmam' demiyorsun, karışıyorsun. Bel ağrısı da karışıyor.",
+        enTitle: "The meeting does not end when you go quiet", enText: "The question is your old sentence. The answer is a younger person's. You are not saying you will stay out of it. You are in it. The back pain is in it too.",
+        choices: [
+          choice("again", "Bir ay daha", "One more month", "Gelir; beden", { money: 1800, reason: "Danışmanlık", health: { energy: -6, stress: 5 } }, {
+            lifeStage: 2, lifeNext: { eventId: "lc_consult_end", dueWeeks: 8, key: "consult-end" },
+          }),
+          choice("stop", "Bu kadarı", "This is enough", "Sınır", { health: { energy: 4, stress: -3 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_consult_end", stage: 3, tags: ["career", "late-life", "memory"],
+        title: "Teşekkür maili, kadro yok",
+        text: "Burak 'iyi bakıştı' yazmış. İyi bakış, iş değil. Pazartesi yine senin, ofisin değil.",
+        enTitle: "A thank-you mail, no post", enText: "Burak wrote 'good look.' A good look is not a job. Monday is yours again, not the office's.",
+        choices: [
+          choice("file", "Maili sakla", "Keep the mail", "Hatıra", { health: { stress: -2 } }, { lifeStage: 4, echo: "Danışmanlık bir mevsim sürdü, bir hayat değil." }),
+          choice("delete", "Sil, kapat", "Delete it, close it", "Kesin kapanış", { health: { stress: -1 } }, { lifeStage: 4 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "emekli-sus", exclusive: "late-work", branch: "leave", arc: "career",
+    tags: ["career", "health", "late-life", "age-65", "cross"],
+    nodes: [
+      {
+        id: "lc_leave_clean", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true,
+        tags: ["career", "identity", "late-life", "age-65"],
+        title: "Grup sohbeti, sen çıkınca susmuyor",
+        text: "İş grubu hâlâ açık. 'abi bi bakar mısın' yazılmış. Bakmak, dönmek. Dönmek, emekli olmamak.",
+        enTitle: "The group chat does not go quiet when you leave", enText: "The work group is still open. Someone wrote 'abi can you take a look.' Looking is returning. Returning is not being retired.",
+        choices: [
+          choice("mute", "Grubu sessize al", "Mute the group", "Sınır; kimlik boşalır", { health: { stress: -4 }, memory: "İş grubunu sessize alıp çıktın." }, {
+            lifeStage: 1, lifeLock: "leave", lifeNext: { eventId: "lc_leave_monday", dueWeeks: 4, key: "leave-monday" }, echo: "Sessiz grup, gürültülü pazartesi.",
+          }),
+          choice("reply", "Bir cümle yaz, çık", "Write one sentence, leave", "Nezaket; kapı aralık", { health: { stress: 3 } }, { lifeStage: 2, lifeLock: "leave" }),
+        ],
+      },
+      {
+        id: "lc_leave_monday", stage: 2, tags: ["career", "health", "late-life"],
+        title: "Pazartesi, alarm yok",
+        text: "Beden 07:10'da kalkıyor. İş yok. Çay fazla demli. Bu bir zafer diye satılmıyor, satılsa da almıyorsun.",
+        enTitle: "Monday, no alarm", enText: "The body gets up at 07:10. No work. The tea is over-brewed. This is not being sold as a victory. If it were, you would not buy it.",
+        choices: [
+          choice("walk", "Çık, yürü", "Go out, walk", "Ritim", { health: { energy: 5, stress: -4 } }, { lifeStage: 3 }),
+          choice("sit", "Pencerede otur", "Sit at the window", "Sessizlik", { health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "emekli-sabah", arc: "health", tags: ["health", "career", "late-life", "age-65", "cross"],
+    nodes: [
+      {
+        id: "lc_morning_empty", stage: 1, organic: true, minAge: 65, maxAge: 69, needRetired: true,
+        tags: ["health", "late-life", "age-65", "phase-late"],
+        title: "Sabah, teslim yok",
+        text: "Eski servis saati. Durakta sen varsın, servis yok. Bacaklar işe gidiyor, sen gitmiyorsun.",
+        enTitle: "Morning, no deadline", enText: "The old shuttle hour. You are at the stop. The shuttle is not. The legs are going to work. You are not.",
+        choices: [
+          choice("walk", "Yürü, durak değişsin", "Walk, change the stop", "Beden; ritim", { health: { energy: 4, stress: -3 }, memory: "Emekli sabahında durağı yürüyüşe çevirdin." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_morning_walk", dueWeeks: 6, key: "morning-walk" },
+          }),
+          choice("home", "Dön, çay koy", "Go home, make tea", "Huzur; durgunluk", { health: { stress: -2 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_morning_walk", stage: 2, tags: ["health", "social", "late-life"],
+        title: "Aynı bank, başka yüzler",
+        text: "Parkta tanıdık yok. Köpek var, sahibi yok gibi. Yürüyüş iş gibi duruyor, durmuyor. Nefes sayılıyor.",
+        enTitle: "The same bench, other faces", enText: "No one you know in the park. A dog, apparently without an owner. The walk looks like work. It is not. Breath is being counted.",
+        choices: [
+          choice("again", "Yarın da gel", "Come tomorrow too", "Alışkanlık", { health: { energy: 3, stress: -3 } }, {
+            lifeStage: 2, lifeNext: { eventId: "lc_morning_year", dueWeeks: 12, key: "morning-year" },
+          }),
+          choice("skip", "Bu hafta yok", "Not this week", "Beden dinlenir", { health: { energy: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_morning_year", stage: 3, tags: ["health", "late-life", "memory"],
+        title: "Bir yıl, aynı ayakkabı",
+        text: "Taban incelmiş. Doktor 'yürüyün' demişti. Yürümek, reçete gibi duruyor şimdi, kaçış değil.",
+        enTitle: "A year, the same shoes", enText: "The soles have thinned. The doctor had said 'walk.' Walking looks like a prescription now, not an escape.",
+        choices: [
+          choice("new", "Ayakkabı al", "Buy shoes", "Nakit; devam", { money: -900, reason: "Yürüyüş ayakkabısı", health: { energy: 2 } }, { lifeStage: 4 }),
+          choice("keep", "Bu yeter", "These will do", "Tasarruf", { health: { stress: 1 } }, { lifeStage: 4 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "cocuk-iban", arc: "family", tags: ["family", "finance", "late-life", "age-65", "cross"],
+    nodes: [
+      {
+        id: "lc_child_ask", stage: 1, organic: true, minAge: 65, maxAge: 72, needChild: true,
+        tags: ["family", "finance", "late-life", "age-65", "memory"],
+        title: "Mesaj: 'kısa bir aktarım'",
+        text: "Kısa bir aktarım, uzun bir cümle. Çocuk artık çocuk değil. Sen hâlâ hesap. Emekli maaşının bir haftası, birinin peşinatı.",
+        enTitle: "A message: 'a short transfer'", enText: "A short transfer, a long sentence. The child is no longer a child. You are still the account. A week of the pension is someone's deposit.",
+        choices: [
+          choice("send", "Gönder, sorma", "Send it, do not ask", "Nakit iner; rol durur", { money: -2200, reason: "Çocuk aktarımı", health: { stress: 4 }, memory: "Emekli ayında çocuğa sormadan aktardın." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_child_table", dueWeeks: 7, key: "child-table" }, echo: "Aktarım kısa durdu, rol uzun.",
+          }),
+          choice("talk", "Konuşalım de", "Say let's talk", "Sınır; gerginlik", { health: { stress: 5 } }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_child_year", dueWeeks: 10, key: "child-year" },
+          }),
+        ],
+      },
+      {
+        id: "lc_child_table", stage: 2, tags: ["family", "late-life", "memory"],
+        title: "Sofra, teşekkür yok gibi",
+        text: "Yemek var. Teşekkür, kapı eşiğinde mırıldanıyor. Mırıldanmak, görmemek değil. Sen de bir zamanlar mırıldanmıştın.",
+        enTitle: "A table, thanks that barely exist", enText: "There is food. Thanks are muttered on the doorstep. Muttering is not not-seeing. You used to mutter too.",
+        choices: [
+          choice("stay", "Çaya kal", "Stay for tea", "Bağ", { health: { stress: -3 } }, { lifeStage: 3 }),
+          choice("go", "Erken kalk", "Leave early", "Mesafe", { health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_child_year", stage: 2, tags: ["family", "finance", "late-life", "memory"],
+        title: "Bu yıl da aynı cümle",
+        text: "Aktarım kelimesi değişmemiş. Senin cümlen değişmiş: 'bu ay yok' denebilir artık. Denmek, kopmak değil.",
+        enTitle: "The same sentence this year too", enText: "The word transfer has not changed. Your sentence has: 'not this month' can be said now. Saying it is not a break.",
+        choices: [
+          choice("hold", "Bu ay yok de", "Say not this month", "Sınır", { health: { stress: 3 }, memory: "Aktarımı bu kez tuttun." }, { lifeStage: 3 }),
+          choice("half", "Yarısını gönder", "Send half", "Paylaşılmış yük", { money: -1100, reason: "Yarım aktarım", health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "ev-kucult", exclusive: "late-home", branch: "downsize", arc: "housing",
+    tags: ["housing", "finance", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_downsize_talk", stage: 1, organic: true, minAge: 70, maxAge: 74, notHome: "family",
+        tags: ["housing", "finance", "late-life", "age-70"],
+        title: "Oda fazla, merdiven dik",
+        text: "Eşya duruyor, nefes yetmiyor. Küçülmek yenilgi gibi satılıyor. Satılmasa da merdiven speküle etmiyor, dik.",
+        enTitle: "A spare room, a steep stair", enText: "The furniture is still there. The breath is not enough. Downsizing is being sold as a defeat. Even if it is not, the stairs do not speculate. They are steep.",
+        choices: [
+          choice("move", "Küçült, in", "Downsize, go down", "Gider iner; hatıra taşınır", { health: { energy: -6, stress: 5 }, memory: "Yetmişinde evi küçülttün." }, {
+            lifeStage: 1, lifeLock: "downsize", lifeNext: { eventId: "lc_downsize_box", dueWeeks: 5, key: "downsize-box" }, echo: "Oda azaldı, merdiven kısaldı.",
+          }),
+          choice("later", "Bu kış değil", "Not this winter", "Erteleme", { health: { stress: 2 } }, { lifeStage: 9, lifeLock: "downsize" }),
+        ],
+      },
+      {
+        id: "lc_downsize_box", stage: 2, tags: ["housing", "late-life", "memory"],
+        title: "Kutu, isimsiz fotoğraf",
+        text: "Albüm ağır. Kim olduğunu unuttuğun bir yüz. Atmak, unutmak. Saklamak, taşımak.",
+        enTitle: "A box, an unnamed photograph", enText: "The album is heavy. A face you have forgotten the name of. Throwing it away is forgetting. Keeping it is carrying.",
+        choices: [
+          choice("keep", "Kutuyu götür", "Take the box", "Hatıra; yer", { health: { energy: -3 } }, {
+            lifeStage: 2, lifeNext: { eventId: "lc_downsize_key", dueWeeks: 4, key: "downsize-key" },
+          }),
+          choice("toss", "Bir kısmını bırak", "Leave some of it", "Hafiflik", { health: { stress: -2 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_downsize_key", stage: 3, tags: ["housing", "late-life"],
+        title: "Eski anahtar, yeni kilit",
+        text: "Anahtarlıkta fazla halka. Kapıcı 'bunlar uymuyor' diyor. Uymamak, gitmiş olmak.",
+        enTitle: "An old key, a new lock", enText: "Too many rings on the keyring. The caretaker says these do not fit. Not fitting is having left.",
+        choices: [
+          choice("drop", "Fazlasını çıkar", "Take the extras off", "Kapanış", { health: { stress: -3 } }, { lifeStage: 4 }),
+          choice("keep-key", "Halkada dursun", "Leave them on the ring", "Hatıra ağırlığı", { health: { stress: 1 } }, { lifeStage: 4 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "ev-kal", exclusive: "late-home", branch: "stay", arc: "housing",
+    tags: ["housing", "health", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_stay_repair", stage: 1, organic: true, minAge: 70, maxAge: 74, notHome: "family",
+        tags: ["housing", "health", "late-life", "age-70", "economy"],
+        title: "Musluk, gece damlıyor",
+        text: "Tesisatçı 'abi merdiven' diyor. Merdiven senin kararın. Damla, kira kadar düzenli.",
+        enTitle: "The tap drips at night", enText: "The plumber says 'abi, the stairs.' The stairs are your decision. The drip is as regular as rent.",
+        choices: [
+          choice("fix", "Çağır, öde", "Call, pay", "Nakit; uyku", { money: -850, reason: "Tesisat", health: { stress: -3 }, memory: "Eski evde kaldın, musluğu tamir ettin." }, {
+            lifeStage: 1, lifeLock: "stay", lifeNext: { eventId: "lc_stay_stair", dueWeeks: 6, key: "stay-stair" },
+          }),
+          choice("bowl", "Kase koy, idare", "Put a bowl, manage", "Tasarruf; damla", { health: { stress: 3 } }, { lifeStage: 2, lifeLock: "stay" }),
+        ],
+      },
+      {
+        id: "lc_stay_stair", stage: 2, tags: ["housing", "health", "late-life"],
+        title: "Üçüncü kat, market poşeti",
+        text: "Poşet sapı ele gömülüyor. Komşu 'bırakın ben' diyor. Bırakmak, evden bir parça teslim.",
+        enTitle: "Third floor, a shopping bag", enText: "The bag handle is sinking into the hand. A neighbour says 'leave it, I will.' Leaving it is handing over a piece of the house.",
+        choices: [
+          choice("accept", "Bırak, teşekkür et", "Leave it, say thank you", "Destek; gurur iner", { health: { energy: 3, stress: -2 } }, { lifeStage: 3 }),
+          choice("carry", "Sen çıkar", "You carry it", "Bağımsızlık; nefes", { health: { energy: -5, stress: 3 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "aile-yakin-gec", exclusive: "late-family", branch: "near", arc: "family",
+    tags: ["family", "social", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_near_sunday", stage: 1, organic: true, minAge: 70, maxAge: 74,
+        tags: ["family", "late-life", "age-70", "memory"],
+        title: "Pazar masası, sen misafir",
+        text: "Sandalye senin değil artık, ayrılmış. Yemek bildik, saat onların. Yaklaşmak, ev sahibi olmamak.",
+        enTitle: "Sunday table, you are the guest", enText: "The chair is no longer yours; it has been set aside. The food is familiar, the hour is theirs. Drawing near is not being the host.",
+        choices: [
+          choice("go", "Her pazar git", "Go every Sunday", "Bağ; ritim onların", { health: { energy: -3, stress: -4 }, memory: "Pazar masasına misafir oldun." }, {
+            lifeStage: 1, lifeLock: "near", lifeNext: { eventId: "lc_near_guest", dueWeeks: 8, key: "near-guest" },
+          }),
+          choice("skip", "İki haftada bir", "Every two weeks", "Mesafe", { health: { stress: 2 } }, { lifeStage: 2, lifeLock: "near" }),
+        ],
+      },
+      {
+        id: "lc_near_guest", stage: 2, tags: ["family", "late-life", "memory"],
+        title: "Kapı zili, sen açmıyorsun",
+        text: "Ev onların. Zil onların. Sen içeridesin, anahtar sende değil. Bu bir ziyaret, bir dönüş değil.",
+        enTitle: "The doorbell, you do not open it", enText: "The house is theirs. The bell is theirs. You are inside. The key is not on you. This is a visit, not a return.",
+        choices: [
+          choice("stay", "Yemeğe kal", "Stay for the meal", "Aidiyet jesti", { health: { stress: -3 } }, { lifeStage: 3 }),
+          choice("leave", "Çaya kalma", "Do not stay for tea", "Kendi düzen", { health: { stress: 1 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "bagimsiz-duzen", exclusive: "late-family", branch: "independent", arc: "family",
+    tags: ["family", "housing", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_own_table", stage: 1, organic: true, minAge: 70, maxAge: 74, notHome: "family",
+        tags: ["family", "housing", "late-life", "age-70"],
+        title: "Tek tabak, radyo açık",
+        text: "Arıyorlar. 'neden gelmedin.' Gelmemek, küsmek değil. Kendi saatin, kendi tuzu.",
+        enTitle: "One plate, the radio on", enText: "They are calling. 'why did you not come.' Not coming is not a feud. Your own hour, your own salt.",
+        choices: [
+          choice("hold", "Bu pazar evde", "This Sunday at home", "Bağımsızlık", { health: { stress: -2 }, memory: "Pazar masasını evde kurdun." }, {
+            lifeStage: 1, lifeLock: "independent", lifeNext: { eventId: "lc_own_call", dueWeeks: 6, key: "own-call" },
+          }),
+          choice("go", "Yine de git", "Go anyway", "Bağ", { health: { energy: -3 } }, { lifeStage: 2, lifeLock: "independent" }),
+        ],
+      },
+      {
+        id: "lc_own_call", stage: 2, tags: ["family", "late-life", "memory"],
+        title: "Akşam araması, kısa",
+        text: "'yemek yedin mi.' Cümle çocukluk gibi, tersine. Sen 'yedim' diyorsun. Yemek, kanıt.",
+        enTitle: "An evening call, short", enText: "'did you eat.' The sentence is like childhood, reversed. You say you did. Eating is proof.",
+        choices: [
+          choice("true", "Yedim de", "Say you ate", "Huzur", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("invite", "Siz gelin de", "Say they should come", "Kapı aralanır", { health: { stress: 1 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "es-tempo", arc: "relationship", tags: ["relationship", "health", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_partner_slow", stage: 1, organic: true, minAge: 70, maxAge: 76, needPartner: true,
+        tags: ["relationship", "health", "late-life", "age-70", "memory"],
+        title: "Yürüyüş, sen öndesin",
+        text: "Partnerin 'yavaş' demiyor, duruyor. Durmak, bir cümle. Tempo artık ortak bir karar, alışkanlık değil.",
+        enTitle: "A walk, you are ahead", enText: "Your partner does not say 'slow.' They stop. Stopping is a sentence. Pace is a joint decision now, not a habit.",
+        choices: [
+          choice("match", "Tempo onların olsun", "Let the pace be theirs", "Bağ; mesafe kısalır", { health: { energy: -2, stress: -4 }, memory: "Yürüyüşü partnere uydurdun." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_partner_clinic", dueWeeks: 7, key: "partner-clinic" },
+          }),
+          choice("loop", "Sen turunu bitir", "Finish your loop", "Beden; mesafe", { health: { energy: 2, stress: 3 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_partner_clinic", stage: 2, tags: ["relationship", "health", "late-life", "memory"],
+        title: "Sıra, iki sandalye, bir isim",
+        text: "Randevu onun. Dosya senin elinde. Gişe 'yakını' diyor. Yakın, imza yetkisi değil, bekleme yetkisi.",
+        enTitle: "A queue, two chairs, one name", enText: "The appointment is theirs. The file is in your hand. The window says 'relative.' Relative is not signing authority. It is waiting authority.",
+        choices: [
+          choice("wait", "Sırada kal", "Stay in the queue", "Bakım", { health: { energy: -4 }, memory: "Partnerin randevusunda sırada kaldın." }, {
+            lifeStage: 2, lifeNext: { eventId: "lc_partner_tea", dueWeeks: 5, key: "partner-tea" },
+          }),
+          choice("errand", "Sen marketten dön", "You go to the shop", "Paylaşım", { health: { energy: -2 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_partner_tea", stage: 3, tags: ["relationship", "late-life"],
+        title: "Çay, tansiyon, susuş",
+        text: "Konuşulacak şey reçete. Reçete bitince ev yine ev. Bu bir kriz değil, bir tempo.",
+        enTitle: "Tea, blood pressure, a hush", enText: "What there is to talk about is the prescription. When the prescription ends the house is a house again. This is not a crisis. It is a pace.",
+        choices: [
+          choice("tea", "Çayı sen koy", "You pour the tea", "Ritim", { health: { stress: -3 } }, { lifeStage: 4 }),
+          choice("news", "Televizyonu aç", "Turn the television on", "Kaçış", { health: { stress: -1 } }, { lifeStage: 4 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "bakim-el", arc: "health", tags: ["health", "family", "late-life", "age-70", "cross"],
+    nodes: [
+      {
+        id: "lc_care_day", stage: 1, organic: true, minAge: 70, maxAge: 76,
+        tags: ["health", "late-life", "age-70", "phase-late"],
+        title: "Kutular, öğle, unutulan öğün",
+        text: "İlaç kutusu günlere ayrılmış. Salı, çarşamba gibi duruyor. Öğün atlanınca kutu suçluyor, sen değil.",
+        enTitle: "Boxes, noon, a missed meal", enText: "The pill box is divided by days. It looks like Tuesday, Wednesday. When a meal is skipped the box is to blame, not you.",
+        choices: [
+          choice("alarm", "Saat kur", "Set an alarm", "Ritim; bağımlılık küçük", { health: { stress: -2 }, memory: "İlaç saatini kendin kurdun." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_care_night", dueWeeks: 4, key: "care-night" },
+          }),
+          choice("note", "Kâğıda yaz", "Write it on paper", "Eski yöntem", { health: { stress: 1 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_care_night", stage: 2, tags: ["health", "late-life"],
+        title: "Gece lambası, koridor",
+        text: "Tuvalet yolu uzun. Lamba yanık kalmış. Yanık lamba, fatura değil, düşmeme kararı.",
+        enTitle: "A night light, the corridor", enText: "The way to the toilet is long. The lamp has been left on. A lamp left on is not a bill. It is a decision not to fall.",
+        choices: [
+          choice("on", "Lambayı bırak", "Leave the lamp on", "Güvenlik", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("off", "Söndür, ezberle", "Switch it off, memorise it", "Tasarruf; risk", { health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "kulup-cay", exclusive: "late-circle", branch: "club", arc: "social",
+    tags: ["social", "health", "late-life", "age-75", "cross"],
+    nodes: [
+      {
+        id: "lc_club_chair", stage: 1, organic: true, minAge: 75, maxAge: 79,
+        tags: ["social", "late-life", "age-75"],
+        title: "Dernek sandalyesi, çay 10 lira değil",
+        text: "Masa sabit, isimler değişiyor. 'abi gel' deniyor. Gelmek, aidiyet aidatı. Aidat, yalnızlıktan ucuz duruyor.",
+        enTitle: "A club chair, tea that is not ten lira", enText: "The table is fixed. The names change. Someone says 'abi come.' Coming is a membership due. The due looks cheaper than being alone.",
+        choices: [
+          choice("sit", "Otur, çay söyle", "Sit, order tea", "Çevre; nakit", { money: -120, reason: "Dernek çayı", health: { stress: -4 }, memory: "Yetmiş beşinde dernek masasına oturdun." }, {
+            lifeStage: 1, lifeLock: "club", lifeNext: { eventId: "lc_club_absent", dueWeeks: 6, key: "club-absent" },
+          }),
+          choice("pass", "Bu hafta yok", "Not this week", "Ev", { health: { stress: 2 } }, { lifeStage: 9, lifeLock: "club" }),
+        ],
+      },
+      {
+        id: "lc_club_absent", stage: 2, tags: ["social", "late-life", "memory"],
+        title: "Sandalyen dolu, sen yoksun",
+        text: "Birisi senin yere oturmuş. Küsmek çocuk işi. Yer, mülk değil. Yine de yerin varmış, öğreniyorsun.",
+        enTitle: "Your chair is taken, you are not there", enText: "Someone is sitting in your place. Taking offence is a child's job. A place is not property. Still, you learn you had a place.",
+        choices: [
+          choice("other", "Başka sandalye", "Another chair", "Esneklik", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("home", "Eve dön", "Go home", "Mesafe", { health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "ev-sessiz", exclusive: "late-circle", branch: "home", arc: "social",
+    tags: ["social", "health", "late-life", "age-75", "cross"],
+    nodes: [
+      {
+        id: "lc_home_radio", stage: 1, organic: true, minAge: 75, maxAge: 79,
+        tags: ["social", "late-life", "age-75"],
+        title: "Radyo, öğle haberleri",
+        text: "Dışarı gürültü. İçerisi cümle. Haber bitince ev yeniden büyük. Büyük ev, kalabalık değil.",
+        enTitle: "The radio, the noon news", enText: "Noise outside. Sentences inside. When the news ends the house is large again. A large house is not a crowd.",
+        choices: [
+          choice("keep", "Radyoyu açık bırak", "Leave the radio on", "Ritim", { health: { stress: -3 }, memory: "Öğle haberini evde tuttun." }, {
+            lifeStage: 1, lifeLock: "home", lifeNext: { eventId: "lc_home_window", dueWeeks: 5, key: "home-window" },
+          }),
+          choice("out", "Balkona çık", "Go to the balcony", "Hava", { health: { energy: 2 } }, { lifeStage: 2, lifeLock: "home" }),
+        ],
+      },
+      {
+        id: "lc_home_window", stage: 2, tags: ["social", "housing", "late-life"],
+        title: "Pencere, aşağıda çocuk sesi",
+        text: "Ses tanıdık değil. Tanıdık olması gerekmiyor. Bakmak, katılmak değil. Katılmamak da bir seçim, bir eksik değil.",
+        enTitle: "The window, a child's voice below", enText: "The voice is not familiar. It does not have to be. Looking is not joining. Not joining is also a choice, not a lack.",
+        choices: [
+          choice("watch", "Bak, çekilme", "Look, do not pull away", "Dünya durur", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("curtain", "Perdeyi çek", "Draw the curtain", "İçeri", { health: { stress: 1 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "eski-numara", arc: "social", tags: ["social", "status", "late-life", "age-75", "cross"],
+    nodes: [
+      {
+        id: "lc_old_number", stage: 1, organic: true, minAge: 75, maxAge: 80, needActor: "mehmet",
+        tags: ["social", "memory", "late-life", "age-75"],
+        needMemory: ["mehmet", "lc_helped_mehmet_money"],
+        title: "Mehmet, eski numara, yeni ses",
+        text: "kanka rakam net. bu sefer rakam yok. 'abi naber' var. Naber, yıllar sonra bir borç defteri değil, bir yoklama.",
+        enTitle: "Mehmet, old number, new voice", enText: "kanka the number is clear. this time there is no number. there is 'abi how are you.' How are you, years later, is not a debt book. It is a roll-call.",
+        choices: [
+          choice("talk", "Konuş, çay söyle", "Talk, say tea", "Hatıra ısınır", { health: { stress: -4 }, memory: "Mehmet yıllar sonra aradı, konuştun." }, {
+            lifeStage: 1, npcMemory: { personId: "mehmet", text: "Yıllar sonra konuştuk.", type: "lc_mehmet_years" },
+            lifeNext: { eventId: "lc_old_silence", dueWeeks: 8, key: "old-silence" },
+          }),
+          choice("short", "Kısa kes", "Keep it short", "Mesafe", { health: { stress: 2 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_old_silence", stage: 2, tags: ["social", "late-life", "memory"],
+        title: "İkinci arama yok",
+        text: "Bir hafta. Mehmet yazmıyor. Yazmamak, küsmek değil. Yoklama bir kez yapılır, yoklama defteri değil.",
+        enTitle: "There is no second call", enText: "A week. Mehmet does not write. Not writing is not a feud. Roll-call is taken once. It is not a register.",
+        choices: [
+          choice("call", "Sen ara", "You call", "Bağ", { health: { stress: -2 } }, {
+            lifeStage: 2, lifeNext: { eventId: "lc_old_photo", dueWeeks: 10, key: "old-photo" },
+          }),
+          choice("leave", "Bırak", "Leave it", "Huzur", { health: { stress: -1 } }, { lifeStage: 3 }),
+        ],
+      },
+      {
+        id: "lc_old_photo", stage: 3, tags: ["social", "late-life", "memory"],
+        title: "Bir fotoğraf, ikiniz genç",
+        text: "Mehmet atmış. Mekân belirsiz, saç belirsiz. 'bu biz' yazmış. Biz, geçmiş zaman.",
+        enTitle: "A photograph, both of you young", enText: "Mehmet sent it. The place is unclear, the hair is unclear. He wrote 'this is us.' Us is past tense.",
+        choices: [
+          choice("keep", "Sakla", "Keep it", "Hatıra", { health: { stress: -3 } }, { lifeStage: 4 }),
+          choice("reply", "Bir cümle yaz", "Write one sentence", "Cevap", { health: { stress: -2 } }, { lifeStage: 4 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "anahtar-kopya", arc: "crisis", tags: ["crisis", "family", "housing", "late-life", "age-80", "cross"],
+    nodes: [
+      {
+        id: "lc_key_keep", stage: 1, organic: true, minAge: 80, maxAge: 88,
+        tags: ["crisis", "housing", "late-life", "age-80"],
+        title: "Yedek anahtar, kime",
+        text: "Kapıcı 'bir kopya durur' diyor. Durmak, güven. Vermek, teslim. Vermemek, düşme ihtimali.",
+        enTitle: "A spare key, to whom", enText: "The caretaker says a copy can stay with him. Staying is trust. Giving it is handing over. Not giving it is the chance of a fall.",
+        choices: [
+          choice("give", "Kopyayı bırak", "Leave the copy", "Güvenlik; mahremiyet iner", { health: { stress: 3 }, memory: "Yedek anahtarı kapıcıya bıraktın." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_key_give", dueWeeks: 6, key: "key-give" }, echo: "Anahtar sende değil, kapı sende.",
+          }),
+          choice("hold", "Cebinde dursun", "Keep it in your pocket", "Bağımsızlık; risk", { health: { stress: 2 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_key_give", stage: 2, tags: ["crisis", "late-life", "memory"],
+        title: "Zil, sen açmadan açılıyor",
+        text: "Kapıcı 'kontrol' demiş. Kontrol, ziyaret. Ziyaret, izin. İzin senin cümlen değil artık.",
+        enTitle: "The bell, the door opens without you", enText: "The caretaker said 'a check.' A check is a visit. A visit is permission. Permission is no longer your sentence.",
+        choices: [
+          choice("thank", "Sağ ol de", "Say thank you", "Ağ", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("rule", "Önce zil de", "Say the bell first", "Sınır", { health: { stress: 3 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+  {
+    id: "kutu-fotograf", arc: "family", tags: ["family", "status", "late-life", "age-80", "cross"],
+    nodes: [
+      {
+        id: "lc_box_open", stage: 1, organic: true, minAge: 80, maxAge: 90,
+        tags: ["family", "late-life", "age-80", "memory"],
+        title: "Kutu, senin el yazın",
+        text: "Zarflar isimsiz. Birinin üzerinde 'sakla' yazıyor, kimin için belli değil. Saklamak, teslim etmek değil. Henüz.",
+        enTitle: "A box, your handwriting", enText: "The envelopes have no names. One says 'keep,' for whom is not clear. Keeping is not handing over. Not yet.",
+        choices: [
+          choice("sort", "Ayır, yaz", "Sort, write names", "Miras cümlesi", { health: { energy: -3, stress: 2 }, memory: "Fotoğraf kutusunu isimleyerek ayırdın." }, {
+            lifeStage: 1, lifeNext: { eventId: "lc_box_leave", dueWeeks: 8, key: "box-leave" }, echo: "Kutu konuşmaya başladı, henüz teslim değil.",
+          }),
+          choice("close", "Kapat, başka gün", "Close it, another day", "Erteleme", { health: { stress: -1 } }, { lifeStage: 2 }),
+        ],
+      },
+      {
+        id: "lc_box_leave", stage: 2, tags: ["family", "late-life", "memory"],
+        title: "Kutu dolapta, not üstte",
+        text: "Not: 'bunlar dağıtılır.' Dağıtmak gelecek zaman. Gelecek zaman, bugün değil. Yine de cümle duruyor.",
+        enTitle: "The box in the cupboard, a note on top", enText: "The note: 'these get handed out.' Handing out is future tense. Future tense is not today. Still the sentence is there.",
+        choices: [
+          choice("leave", "Not dursun", "Leave the note", "Hazırlık", { health: { stress: -2 } }, { lifeStage: 3 }),
+          choice("tell", "Birine söyle", "Tell someone", "Paylaşım", { health: { stress: 2 } }, { lifeStage: 3 }),
+        ],
+      },
+    ],
+  },
+];
+for (const chain of LATE_LIFE_CHAINS) CHAINS.push(chain);
 
 const EXTRA_CALLBACKS = [
   {
@@ -2029,6 +2575,201 @@ const EXTRA_CALLBACKS = [
       choice("no", "Bu ay yok", "Not this month", "Sınır", { health: { stress: 2 }, relationships: { emre: -3 } }, {}),
     ],
   },
+  {
+    id: "lc_pension_day",
+    arc: "finance",
+    tags: ["finance", "career", "late-life", "age-65", "delayed"],
+    title: "Maaş yattı, cümle değişti",
+    text: "Hesap bildirimi. Eski maaş değil, emekli. Rakam küçük, gün aynı. Aynı gün, başka hayat.",
+    enTitle: "The pension landed, the sentence changed",
+    enText: "An account notice. Not the old salary, a pension. The number is smaller, the day is the same. The same day, another life.",
+    choices: [
+      choice("budget", "Bu aya göre kes", "Cut the month to fit", "Disiplin", { health: { stress: 2 }, memory: "Emekli maaşına göre ayı kestin." }, { echo: "Maaş kelimesi değişti, ay değişmedi." }),
+      choice("same", "Eski tempo", "The old pace", "Lifestyle; açık", { health: { stress: 4 } }, {}),
+    ],
+  },
+  {
+    id: "lc_old_office_mail",
+    arc: "career",
+    tags: ["career", "social", "late-life", "age-65", "delayed", "memory"],
+    title: "Burak: 'bir bakış daha'",
+    text: "Aynı ı'sız cümle. Bu sefer 'kısa.' Kısa, geçen sefer de kısaydı. Kapı yine aralık.",
+    enTitle: "Burak: one more look",
+    enText: "The same sentence without an ı. This time 'short.' Short was short last time too. The door is ajar again.",
+    choices: [
+      choice("go", "Git, bir saat", "Go, one hour", "Kimlik; yorgunluk", { health: { energy: -4, stress: 3 } }, { npcMemory: { personId: "burak", text: "Bir bakış daha geldi.", type: "lc_consult_again" } }),
+      choice("no", "Kapandı de", "Say it has closed", "Sınır", { health: { stress: -2 } }, {}),
+    ],
+  },
+  {
+    id: "lc_stair_week",
+    arc: "health",
+    tags: ["health", "housing", "late-life", "age-70", "delayed"],
+    title: "Merdiven, market, durak",
+    text: "Poşet iki el. Ara basamak yok. Nefes üçüncü katta bitiyor, kapı dördüncüde.",
+    enTitle: "Stairs, the shop, a stop",
+    enText: "The bag takes both hands. There is no landing. Breath ends on the third floor. The door is on the fourth.",
+    choices: [
+      choice("rest", "Ara katta dur", "Stop on the landing", "Beden", { health: { energy: 3, stress: -2 } }, {}),
+      choice("up", "Çık, bitir", "Go up, finish it", "Gurur; nefes", { health: { energy: -5 } }, {}),
+    ],
+  },
+  {
+    id: "lc_sunday_empty",
+    arc: "crisis",
+    tags: ["crisis", "relationship", "late-life", "age-70", "delayed"],
+    title: "Pazar, tek tabak",
+    text: "Televizyon yüksek. Yüksek, konuşacak biri yok diye. Bu bir tercih diye satılıyor yine. Satılmıyor.",
+    enTitle: "Sunday, one plate",
+    enText: "The television is loud. Loud because there is no one to talk to. It is being sold as a choice again. It does not sell.",
+    choices: [
+      choice("call", "Birini ara", "Call someone", "Bağ", { health: { stress: -4 } }, {}),
+      choice("walk", "Çık, otur bankta", "Go out, sit on a bench", "Hava", { health: { energy: 3, stress: -2 } }, {}),
+    ],
+  },
+  {
+    id: "lc_name_plate",
+    arc: "housing",
+    tags: ["housing", "status", "late-life", "age-75", "delayed"],
+    title: "İsimlik, silik",
+    text: "Kapıdaki isim okunmuyor. Postacı 'hangi daire' diye soruyor. Sormak, görünmez olmak değil, solmuş olmak.",
+    enTitle: "The nameplate, faded",
+    enText: "The name on the door cannot be read. The postman asks which flat. Asking is not being invisible. It is having faded.",
+    choices: [
+      choice("new", "İsimlik yaptır", "Have a new plate made", "Görünürlük; nakit", { money: -350, reason: "İsimlik", health: { stress: -2 } }, {}),
+      choice("say", "Numarayı söyle", "Give the number", "İdare", { health: { stress: 1 } }, {}),
+    ],
+  },
+  {
+    id: "lc_winter_bus",
+    arc: "health",
+    tags: ["health", "late-life", "age-75", "delayed"],
+    title: "Otobüs, basamak, şoför bekliyor",
+    text: "Kapı açık. Sen yavaşsın. Arkadan 'abi' deniyor. Abi, acele demek. Acele, düşmek.",
+    enTitle: "The bus, a step, the driver waiting",
+    enText: "The door is open. You are slow. Someone behind says 'abi.' Abi means hurry. Hurry means falling.",
+    choices: [
+      choice("slow", "Yavaş in, bakma", "Get off slowly, do not look", "Beden", { health: { energy: -3, stress: 2 } }, {}),
+      choice("taxi", "Bu hat değil, taksi", "Not this line, a taxi", "Nakit; güvenlik", { money: -280, reason: "Taksi", health: { stress: -2 } }, {}),
+    ],
+  },
+  {
+    id: "lc_photo_ask",
+    arc: "family",
+    tags: ["family", "late-life", "age-80", "delayed", "memory"],
+    title: "Birisi fotoğraf istiyor",
+    text: "Eski bir yüz, 'şu kutu' diyor. Kutu senin elinde değil, dolapta. Vermek, dağıtmak. Dağıtmak, henüz ölüm değil.",
+    enTitle: "Someone wants a photograph",
+    enText: "An old face says 'that box.' The box is not in your hand, it is in the cupboard. Giving is handing out. Handing out is not death yet.",
+    choices: [
+      choice("give", "Bir tanesini ver", "Give one", "Paylaşım", { health: { stress: -2 } }, {}),
+      choice("later", "Ben bakarım de", "Say you will look", "Erteleme", { health: { stress: 1 } }, {}),
+    ],
+  },
+  {
+    id: "lc_child_transfer",
+    arc: "family",
+    tags: ["family", "finance", "late-life", "age-65", "delayed", "memory"],
+    title: "Aktarım cümlesi yine",
+    text: "Emekli ayı. Çocuk 'kısa' diyor yine. Kısa, senin bir haftan. Rol değişmedi, rakam değişti.",
+    enTitle: "The transfer sentence again",
+    enText: "A pension month. The child says 'short' again. Short is a week of yours. The role has not changed. The number has.",
+    choices: [
+      choice("send", "Gönder", "Send it", "Rol durur", { money: -1800, reason: "Geç dönem aktarım", health: { stress: 3 } }, {}),
+      choice("no", "Bu ay yok", "Not this month", "Sınır", { health: { stress: 4 } }, {}),
+    ],
+  },
+  {
+    id: "lc_mehmet_years",
+    arc: "social",
+    tags: ["social", "memory", "late-life", "age-70", "delayed"],
+    title: "Mehmet, 'kanka duruyorsun'",
+    text: "Durmak, yaşamak. Rakam yok. Çay var. Çay, eski borcun faizi değil, yoklama.",
+    enTitle: "Mehmet, 'kanka you are still here'",
+    enText: "Still here means alive. No number. There is tea. Tea is not interest on the old debt. It is roll-call.",
+    choices: [
+      choice("tea", "Çay söyle", "Order tea", "Hatıra", { health: { stress: -3 } }, { npcMemory: { personId: "mehmet", text: "Çayda durduk.", type: "lc_mehmet_tea" } }),
+      choice("short", "Kısa otur", "Sit a short while", "Mesafe", { health: { stress: -1 } }, {}),
+    ],
+  },
+  {
+    id: "lc_elif_pace",
+    arc: "relationship",
+    tags: ["relationship", "health", "late-life", "age-70", "delayed", "memory"],
+    title: "Elif, takvim yine, tempo başka",
+    text: "Takvim değil, ayırdığın zaman konuşuyor. Bu sefer zaman var. Tempo yok. İki sandalye, bir yürüyüş, yarım tur.",
+    enTitle: "Elif, the calendar again, another pace",
+    enText: "It is not the calendar. It is the time you set aside. This time there is time. There is no pace. Two chairs, one walk, half a loop.",
+    choices: [
+      choice("slow", "Yarım tur, tam çay", "Half a loop, a full tea", "Bağ", { health: { stress: -4 } }, { npcMemory: { personId: "elif", text: "Tempo benim olsun dedi.", type: "lc_elif_slow" } }),
+      choice("skip", "Bugün ev", "Home today", "Beden", { health: { energy: 3 } }, {}),
+    ],
+  },
+  {
+    id: "lc_selin_visit",
+    arc: "social",
+    tags: ["social", "family", "late-life", "age-75", "delayed", "memory"],
+    title: "Selin kapıda, zarf yok",
+    text: "Kuzenim bu ay yetiştiremedim demiyor. Yetişmiş. Zarf yok. Zarf olmayınca ziyaret, hesap değil.",
+    enTitle: "Selin at the door, no envelope",
+    enText: "She does not say she could not make it this month. She has made it. No envelope. Without an envelope a visit is not an account.",
+    choices: [
+      choice("in", "Buyur, çay", "Come in, tea", "Bağ", { health: { stress: -3 } }, { npcMemory: { personId: "selin", text: "Zarf olmadan oturdu.", type: "lc_selin_sat" } }),
+      choice("short", "Kapıda konuş", "Talk at the door", "Mesafe", { health: { stress: 1 } }, {}),
+    ],
+  },
+  {
+    id: "lc_arrears_quiet",
+    arc: "finance",
+    tags: ["finance", "late-life", "age-65", "delayed", "economy"],
+    title: "Gecikme, emekli satırında",
+    text: "Kâğıt aynı kâğıt. Maaş başka maaş. Arrears emekli olunca kaybolmuyor, küçülünce görünüyor.",
+    enTitle: "Arrears, on the pension line",
+    enText: "The same paper. A different wage. Arrears do not vanish when you retire. They show when you shrink.",
+    choices: [
+      choice("pay", "Bir kısmını kapat", "Clear some of it", "Sicil", { money: -900, reason: "Emekli gecikme", health: { stress: 3 } }, {}),
+      choice("hold", "Bu ay dokunma", "Do not touch it this month", "Yük", { health: { stress: 5 } }, {}),
+    ],
+  },
+  {
+    id: "lc_rent_weight",
+    arc: "housing",
+    tags: ["housing", "finance", "late-life", "age-70", "delayed", "economy"],
+    title: "Kira, emekli ayının yarısı",
+    text: "Ev sahibi artırmıyor, artırmasına gerek yok. Oran kendiliğinden büyümüş. Büyümek, metrekare değil, pay.",
+    enTitle: "Rent, half the pension month",
+    enText: "The landlord is not raising it. He does not have to. The ratio has grown on its own. Growing is not square metres. It is a share.",
+    choices: [
+      choice("pay", "Zamanında yatır", "Pay on time", "Huzur", { money: -400, reason: "Kira farkı", health: { stress: 2 } }, {}),
+      choice("talk", "Konuş, indirim yoksa da sor", "Talk, even if there is no cut", "Netlik", { health: { stress: 4 } }, {}),
+    ],
+  },
+  {
+    id: "lc_late_clinic",
+    arc: "health",
+    tags: ["health", "late-life", "age-75", "delayed"],
+    title: "Randevu üç ay sonra",
+    text: "Sistem 'en yakın' diyor. En yakın, kış. Kış, yürümek. Yürümek, randevunun kendisi kadar iş.",
+    enTitle: "An appointment in three months",
+    enText: "The system says 'the nearest.' The nearest is winter. Winter is walking. Walking is as much work as the appointment.",
+    choices: [
+      choice("take", "Al, yaz", "Take it, write it down", "Bakım", { health: { stress: 2 }, memory: "Üç ay sonraki randevuyu aldın." }, {}),
+      choice("wait", "Bu kış idare", "Manage this winter", "Erteleme", { health: { stress: 3 } }, {}),
+    ],
+  },
+  {
+    id: "lc_night_lamp",
+    arc: "health",
+    tags: ["health", "housing", "late-life", "age-80", "delayed"],
+    title: "Gece, koridor, tek lamba",
+    text: "Düşmemek bir başarı gibi durmuyor. Durması da gerekmiyor. Lamba yanık, ev uyanık.",
+    enTitle: "Night, the corridor, one lamp",
+    enText: "Not falling does not look like an achievement. It does not have to. The lamp is on. The house is awake.",
+    choices: [
+      choice("on", "Yanık bırak", "Leave it on", "Güvenlik", { health: { stress: -2 } }, {}),
+      choice("off", "Söndür", "Switch it off", "Tasarruf; risk", { health: { stress: 2 } }, {}),
+    ],
+  },
 ];
 
 function extraToEvent(row) {
@@ -2068,6 +2809,9 @@ const PARTNER_SENSITIVE_CALLBACKS = new Set([
   "lc_nikah_held",
   "lc_elif_walk",
   "lc_elif_distance",
+  "lc_partner_clinic",
+  "lc_partner_tea",
+  "lc_elif_pace",
 ]);
 const EMPLOYER_SENSITIVE_CALLBACKS = new Set([
   "lc_metro_month",
@@ -2078,6 +2822,7 @@ const EMPLOYER_SENSITIVE_CALLBACKS = new Set([
   "lc_near_job_quiet",
   "lc_afterwork_bill",
   "lc_office_side",
+  "lc_last_desk",
 ]);
 const HOME_SENSITIVE_CALLBACKS = new Set([
   "lc_neighbor_day",
@@ -2085,6 +2830,10 @@ const HOME_SENSITIVE_CALLBACKS = new Set([
   "lc_deposit_wait",
   "lc_sugar_back",
   "lc_landlord_sale",
+  "lc_downsize_box",
+  "lc_downsize_key",
+  "lc_stay_stair",
+  "lc_rent_weight",
 ]);
 
 function scheduleContent(state, spec) {
@@ -2179,10 +2928,10 @@ export function processLifeContentWeek(state) {
   if (trySched(Number(state.finances?.arrears) > 0 && week >= 16, { eventId: "lc_arrears_letter", dueWeeks: 3, key: "arrears-letter" })) return true;
   if (trySched((state.flags.overtimeStreak || 0) >= 3 && partnerId(state), { eventId: "lc_overtime_partner", dueWeeks: 5, key: "overtime-partner", actorId: partnerId(state) })) return true;
   if (trySched(hasNpcMemory(state, "mehmet", "lc_helped_mehmet_money") && state.household?.homeId !== "family" && week >= 20, { eventId: "lc_move_help_echo", dueWeeks: 7, key: "move-help", actorId: "mehmet" })) return true;
-  if (trySched(!state.career?.jobId && week >= 24, { eventId: "lc_jobless_week", dueWeeks: 4, key: "jobless-week" })) return true;
+  if (trySched(!state.career?.jobId && !isRetired(state) && week >= 24, { eventId: "lc_jobless_week", dueWeeks: 4, key: "jobless-week" })) return true;
   if (trySched((state.health?.energy || 100) < 35 && week >= 12, { eventId: "lc_sleep_debt", dueWeeks: 2, key: "sleep-debt" })) return true;
   if (trySched(state.household?.homeId === "family" && state.player.age >= 23 && week >= 20 && !depth.goals.some((row) => row.id === "lc-goal:lc_goal_housing"), { eventId: "lc_goal_housing", dueWeeks: 6, key: "goal-housing" })) return true;
-  if (trySched((state.career?.performance || 0) >= 70 && week >= 30, { eventId: "lc_status_dinner", dueWeeks: 8, key: "status-dinner" })) return true;
+  if (trySched((state.career?.performance || 0) >= 70 && week >= 30 && !isRetired(state) && state.career?.jobId, { eventId: "lc_status_dinner", dueWeeks: 8, key: "status-dinner" })) return true;
   if (trySched(hasNpcMemory(state, "elif", "lc_elif_delay") && partnerId(state), { eventId: "lc_secret_kept", dueWeeks: 9, key: "secret-kept" })) return true;
   if (trySched((hasNpcMemory(state, "anne", "lc_bayram_came") || hasNpcMemory(state, "anne", "lc_bayram_missed")) && week >= 48, { eventId: "lc_bayram_year", dueWeeks: 8, key: "bayram-year", actorId: "anne" })) return true;
   if (trySched(hasNpcMemory(state, "mehmet", "lc_wedding_came") || hasNpcMemory(state, "mehmet", "lc_wedding_missed"), { eventId: "lc_wedding_year", dueWeeks: 12, key: "wedding-year", actorId: "mehmet" })) return true;
@@ -2193,7 +2942,31 @@ export function processLifeContentWeek(state) {
   if (trySched(!partnerId(state) && week >= 50 && (state.health?.stress || 0) >= 40, { eventId: "lc_newyear_alone", dueWeeks: 6, key: "newyear-alone" })) return true;
   if (trySched(week >= 36 && (Number(state.finances?.arrears) > 0 || economyCausality(state).debt > 0), { eventId: "lc_tax_notice", dueWeeks: 5, key: "tax-notice" })) return true;
   if (trySched(hasChild(state) && week >= 34, { eventId: "lc_child_fever_night", dueWeeks: 7, key: "child-fever" })) return true;
-  if (trySched(personOk(state, "emre") && week >= 22 && Number(state.finances?.balance) > 3000, { eventId: "lc_emre_loan", dueWeeks: 9, key: "emre-loan", actorId: "emre" })) return true;
+  if (trySched(personOk(state, "emre") && week >= 22 && Number(state.finances?.balance) > 3000 && state.player.age < 60, { eventId: "lc_emre_loan", dueWeeks: 9, key: "emre-loan", actorId: "emre" })) return true;
+  const age = Number(state.player?.age) || 0;
+  if (trySched(isRetired(state) && age >= 65, { eventId: "lc_pension_day", dueWeeks: 3, key: "pension-day" })) return true;
+  if (trySched(isRetired(state) && age >= 65 && age <= 69 && shownBranch(state, "late-work") === "consult" && personOk(state, "burak"), { eventId: "lc_consult_ask", dueWeeks: 4, key: "consult-ask", actorId: "burak" })) return true;
+  if (trySched(isRetired(state) && age >= 65 && age <= 69 && shownBranch(state, "late-work") === "leave", { eventId: "lc_leave_clean", dueWeeks: 4, key: "leave-clean" })) return true;
+  if (trySched(age >= 70 && age <= 74 && state.household?.homeId !== "family" && shownBranch(state, "late-home") === "downsize", { eventId: "lc_downsize_talk", dueWeeks: 5, key: "downsize-talk" })) return true;
+  if (trySched(age >= 70 && age <= 74 && state.household?.homeId !== "family" && shownBranch(state, "late-home") === "stay", { eventId: "lc_stay_repair", dueWeeks: 5, key: "stay-repair" })) return true;
+  if (trySched(age >= 70 && age <= 74 && shownBranch(state, "late-family") === "near", { eventId: "lc_near_sunday", dueWeeks: 6, key: "near-sunday" })) return true;
+  if (trySched(age >= 70 && age <= 74 && shownBranch(state, "late-family") === "independent" && state.household?.homeId !== "family", { eventId: "lc_own_table", dueWeeks: 6, key: "own-table" })) return true;
+  if (trySched(age >= 75 && age <= 79 && shownBranch(state, "late-circle") === "club", { eventId: "lc_club_chair", dueWeeks: 5, key: "club-chair" })) return true;
+  if (trySched(age >= 75 && age <= 79 && shownBranch(state, "late-circle") === "home", { eventId: "lc_home_radio", dueWeeks: 5, key: "home-radio" })) return true;
+  if (trySched(isRetired(state) && age >= 65 && age <= 72 && personOk(state, "burak"), { eventId: "lc_old_office_mail", dueWeeks: 8, key: "old-office-mail", actorId: "burak" })) return true;
+  if (trySched(age >= 70 && (state.health?.energy || 100) < 55, { eventId: "lc_stair_week", dueWeeks: 4, key: "stair-week" })) return true;
+  if (trySched(age >= 70 && !partnerId(state), { eventId: "lc_sunday_empty", dueWeeks: 6, key: "sunday-empty" })) return true;
+  if (trySched(age >= 75 && state.household?.homeId !== "family", { eventId: "lc_name_plate", dueWeeks: 5, key: "name-plate" })) return true;
+  if (trySched(age >= 75 && (state.health?.energy || 100) < 50, { eventId: "lc_winter_bus", dueWeeks: 4, key: "winter-bus" })) return true;
+  if (trySched(age >= 80, { eventId: "lc_photo_ask", dueWeeks: 7, key: "photo-ask" })) return true;
+  if (trySched(age >= 65 && hasChild(state), { eventId: "lc_child_transfer", dueWeeks: 9, key: "child-transfer" })) return true;
+  if (trySched(age >= 70 && personOk(state, "mehmet") && (hasNpcMemory(state, "mehmet", "lc_helped_mehmet_money") || hasNpcMemory(state, "mehmet", "lc_mehmet_years")), { eventId: "lc_mehmet_years", dueWeeks: 8, key: "mehmet-years", actorId: "mehmet" })) return true;
+  if (trySched(age >= 70 && partnerId(state) === "elif", { eventId: "lc_elif_pace", dueWeeks: 6, key: "elif-pace", actorId: "elif" })) return true;
+  if (trySched(age >= 75 && personOk(state, "selin"), { eventId: "lc_selin_visit", dueWeeks: 10, key: "selin-visit", actorId: "selin" })) return true;
+  if (trySched(age >= 65 && Number(state.finances?.arrears) > 0, { eventId: "lc_arrears_quiet", dueWeeks: 5, key: "arrears-quiet" })) return true;
+  if (trySched(age >= 70 && state.household?.homeId !== "family" && isRetired(state), { eventId: "lc_rent_weight", dueWeeks: 6, key: "rent-weight" })) return true;
+  if (trySched(age >= 75 && (state.health?.energy || 100) < 45, { eventId: "lc_late_clinic", dueWeeks: 5, key: "late-clinic" })) return true;
+  if (trySched(age >= 80, { eventId: "lc_night_lamp", dueWeeks: 4, key: "night-lamp" })) return true;
   return true;
 }
 
@@ -2267,6 +3040,12 @@ const EXTRA_FLAVOR = [
   ["Kreş kapısı ile iş kapısı aynı dakikaya sığmadı.", "The nursery door and the work door did not fit the same minute."],
   ["Kadıköy hattı işin parçası oldu, evin değil.", "The Kadıköy line became part of the job, not of the house."],
   ["Sessiz ev bir başarı gibi satıldı, satılmadı.", "The quiet flat was sold as an achievement. It did not sell."],
+  ["Pazartesi alarmı kalktı, beden kalkmadı.", "The Monday alarm was lifted. The body was not."],
+  ["Danışmanlık bir mevsim sürdü, bir hayat değil.", "The consulting lasted a season, not a life."],
+  ["Oda azaldı, merdiven kısaldı.", "The rooms shrank. The stairs shortened."],
+  ["Pazar masasında misafirdin, ev sahibi değil.", "At the Sunday table you were a guest, not the host."],
+  ["Dernek sandalyesi doldu ya da ev radyo ile kaldı.", "The club chair filled, or the house stayed with the radio."],
+  ["Yedek anahtar kapıcıda, düşmeme kararı sende.", "The spare key is with the caretaker. The decision not to fall is yours."],
 ];
 
 export const DOSSIER_TRACE_TEMPLATES = [
@@ -2282,6 +3061,14 @@ export const DOSSIER_TRACE_TEMPLATES = [
   { id: "lc-trace-school", test: (state) => Boolean(bag(state).exclusive["education-vs-job"]), text: "Kurs ile kapanış aynı saate sığmadı." },
   { id: "lc-trace-home", test: (state) => Boolean(bag(state).exclusive["housing-near"] || state.household?.homeId), text: "Adres bir tercih olarak yazıldı; semt bir cümle, dakika bir fatura." },
   { id: "lc-trace-crisis", test: (state) => Boolean(bag(state).exclusive["crisis-response"]), text: "Krizde kapı açıldı ya da kilitli kaldı." },
+  { id: "lc-trace-consult", test: (state) => bag(state).exclusive["late-work"] === "consult", text: "Emeklilikte kapı aralandı; bakış bir mevsim sürdü." },
+  { id: "lc-trace-leave-work", test: (state) => bag(state).exclusive["late-work"] === "leave", text: "İş grubu sessize alındı; pazartesi evde kaldı." },
+  { id: "lc-trace-downsize", test: (state) => bag(state).exclusive["late-home"] === "downsize", text: "Oda azaldı, merdiven kısaldı; kutu isimlenerek taşındı." },
+  { id: "lc-trace-stay-home", test: (state) => bag(state).exclusive["late-home"] === "stay", text: "Eski katta kalındı; damla ve poşet idare edildi." },
+  { id: "lc-trace-near-family", test: (state) => bag(state).exclusive["late-family"] === "near", text: "Pazar masasında misafirdin; zil artık senin değil." },
+  { id: "lc-trace-independent", test: (state) => bag(state).exclusive["late-family"] === "independent", text: "Tek tabak ve radyo bir düzen olarak tutuldu." },
+  { id: "lc-trace-club", test: (state) => bag(state).exclusive["late-circle"] === "club", text: "Dernek sandalyesi bir yer oldu, mülk değil." },
+  { id: "lc-trace-home-rhythm", test: (state) => bag(state).exclusive["late-circle"] === "home", text: "Öğle haberi evde tutuldu; pencere katılımdan sayılmadı." },
 ];
 
 export function decorateLifeDossier(state) {
@@ -2331,6 +3118,8 @@ export function coverage() {
   const tagged = (tag) => events.filter((row) => (row.tags || []).includes(tag)).length;
   const delayedNodes = events.filter((row) => row.organic !== true);
   const organic = events.filter((row) => row.organic).length;
+  const lateEvents = events.filter((row) => (row.tags || []).includes("late-life"));
+  const lateChains = CHAINS.filter((chain) => (chain.tags || []).includes("late-life") || (chain.nodes || []).some((node) => node.minAge >= 65));
   return {
     events: events.length,
     chains: CHAINS.length,
@@ -2349,7 +3138,13 @@ export function coverage() {
     longTerm: events.filter((row) => (row.choices || []).some((c) => (c.lifeNext?.dueWeeks || 0) >= 10)).length,
     dossierTraces: DOSSIER_TRACE_TEMPLATES.length,
     outcomeFlavor: Object.keys(OUTCOME_FLAVOR).length + EXTRA_FLAVOR.length,
+    lateLifeEvents: lateEvents.length,
+    lateLifeChains: lateChains.length,
+    lateLifeDelayed: lateEvents.filter((row) => row.organic !== true).length,
+    lateLifeOrganic: lateEvents.filter((row) => row.organic).length,
+    lateLifeMemory: lateEvents.filter((row) => (row.tags || []).includes("memory") || (row.choices || []).some((c) => c.npcMemory)).length,
+    lateExclusive: Object.keys(EXCLUSIVE_PAIRS).filter((id) => id.startsWith("late-")).length,
   };
 }
 
-export { CHAINS, EXTRA_CALLBACKS, bag as lifeContentBag, scheduleContent };
+export { CHAINS, EXTRA_CALLBACKS, LATE_LIFE_CHAINS, bag as lifeContentBag, scheduleContent };
