@@ -48,6 +48,12 @@ function emptyPlayer(id, archetype, deck) {
   };
 }
 
+function archetypeSeed(seed, archetype) {
+  let hash = finite(seed, 1) >>> 0;
+  for (const char of String(archetype)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+  return hash;
+}
+
 function log(state, row) {
   state.log = (state.log || []).concat(row).slice(-LIMITS.logCap);
 }
@@ -56,10 +62,12 @@ function memPush(state, key) {
   state.memory = (state.memory || []).concat(key).slice(-LIMITS.memoryCap);
 }
 
-export function createMatch({ seed = 1, playerArchetype = "kalemci", oppArchetype = "hesapci", first = 0 } = {}) {
-  const rng = mulberry(seed);
-  const p0 = emptyPlayer(0, playerArchetype, buildDeck(playerArchetype, rng));
-  const p1 = emptyPlayer(1, oppArchetype, buildDeck(oppArchetype, rng));
+export function createMatch({ seed = 1, playerArchetype = "kalemci", oppArchetype = "hesapci", first = 0, aiProfile = "adaptive" } = {}) {
+  // A mirrored archetype receives the same seeded deck regardless of seat.
+  // Previously P1 consumed the tail of P0's RNG stream, making deck quality
+  // depend on seat even when first player was mirrored independently.
+  const p0 = emptyPlayer(0, playerArchetype, buildDeck(playerArchetype, mulberry(archetypeSeed(seed, playerArchetype))));
+  const p1 = emptyPlayer(1, oppArchetype, buildDeck(oppArchetype, mulberry(archetypeSeed(seed, oppArchetype))));
   const state = {
     meta: { id: GAME_ID, version: SAVE_VERSION, seed: finite(seed, 1) >>> 0 },
     turn: 1,
@@ -83,6 +91,7 @@ export function createMatch({ seed = 1, playerArchetype = "kalemci", oppArchetyp
     repeats: [0, 0],
     lastDesk: [null, null],
     tutorial: false,
+    aiProfile: ["aggressive", "defensive", "tempo", "control", "resource", "adaptive"].includes(aiProfile) ? aiProfile : "adaptive",
   };
   for (const p of state.players) draw(state, p, LIMITS.handStart);
   beginTurn(state, false);
@@ -278,7 +287,12 @@ function beginTurn(state, increment) {
     if (state.turnPlayer === 0) state.turn += 1;
   }
   const p = state.players[state.turnPlayer];
-  const bonus = lockedCount(state, p.id) + (ARCHETYPES[p.archetype]?.inkBonus || 0);
+  // Heat is not merely an end counter: a pressured board moves more paper.
+  // This also gives heat-heavy lines a real tempo trade-off before dissolution.
+  const heatBand = state.heat >= 75 ? 2 : state.heat >= 50 ? 1 : 0;
+  const heatTempo = heatBand + (ARCHETYPES[p.archetype]?.heatInkBonus || 0) * heatBand;
+  const ownedLocks = lockedCount(state, p.id);
+  const bonus = ownedLocks + (ARCHETYPES[p.archetype]?.inkBonus || 0) + heatTempo;
   p.murekkep = clamp(LIMITS.murekkepBase + bonus, 1, LIMITS.murekkepMax);
   draw(state, p, 1);
   resolveDueArchive(state);
@@ -293,11 +307,15 @@ function beginTurn(state, increment) {
   state.lastPlay = null;
   state.pendingCounter = false;
   state.peek[p.id] = null;
+  if (increment && ownedLocks >= 2) {
+    p.hukum = clamp(p.hukum + 1, 0, 12);
+    log(state, { t: state.turn, k: "lock-tenure", a: p.id });
+  }
   checkEnd(state);
 }
 
-function playKey(cardId, desk) {
-  return `${cardId}:${desk}`;
+function playKey(playerId, cardId, desk) {
+  return `${playerId}:${cardId}:${desk}`;
 }
 
 function chainReady(state, player, card) {
@@ -313,11 +331,11 @@ export function canPlay(state, playerId, cardId, desk) {
   const card = cardOf(cardId);
   if (!player || !card) return { ok: false, why: "missing" };
   if (!player.hand.includes(cardId)) return { ok: false, why: "not-in-hand" };
-  if (state.once[cardId]) return { ok: false, why: "once" };
+  if (state.once[`${playerId}:${cardId}`]) return { ok: false, why: "once" };
   const target = resolveDesk(card.desk === "any" ? desk : card.desk, desk);
   if (!DESKS.includes(target)) return { ok: false, why: "desk" };
   if (card.desk !== "any" && desk && desk !== card.desk) return { ok: false, why: "wrong-desk" };
-  if (state.playedDesk[playKey(cardId, target)]) return { ok: false, why: "repeat-desk" };
+  if (state.playedDesk[playKey(playerId, cardId, target)]) return { ok: false, why: "repeat-desk" };
   if (player.murekkep < card.cost) return { ok: false, why: "ink" };
   if (player.muhur < card.seal) return { ok: false, why: "seal" };
   if (card.type === "karsi") {
@@ -372,17 +390,17 @@ function noteRepeat(state, player, desk) {
   else state.repeats[player.id] = 1;
   state.lastDesk[player.id] = desk;
   if (state.repeats[player.id] >= 3) {
-    state.heat = clamp(state.heat + 2, 0, LIMITS.isiMax);
+    state.heat = clamp(state.heat + 8, 0, LIMITS.isiMax);
     state.repeats[player.id] = 0;
     log(state, { t: state.turn, k: "repeat-heat", a: player.id, d: desk });
   }
 }
 
 function afterPlay(state, player, card, desk) {
-  state.playedDesk[playKey(card.id, desk)] = true;
+  state.playedDesk[playKey(player.id, card.id, desk)] = true;
   const keys = Object.keys(state.playedDesk);
   if (keys.length > LIMITS.playedCap) delete state.playedDesk[keys[0]];
-  if (card.once) state.once[card.id] = true;
+  if (card.once) state.once[`${player.id}:${card.id}`] = true;
   noteChain(state, player, card);
   noteFamily(state, player, card);
   noteRepeat(state, player, desk);
@@ -553,6 +571,8 @@ function finitePlayer(p, i) {
   const discard = Array.isArray(p.discard) ? p.discard.filter((id) => cardOf(id)).slice(0, 40) : [];
   const exile = Array.isArray(p.exile) ? p.exile.filter((id) => cardOf(id)).slice(0, 40) : [];
   if (!ARCHETYPES[p.archetype]) return null;
+  const zones = [...hand, ...deck, ...discard, ...exile];
+  if (new Set(zones).size !== zones.length) return null;
   return {
     id: i,
     archetype: p.archetype,
@@ -566,6 +586,17 @@ function finitePlayer(p, i) {
     skips: clamp(p.skips, 0, 8),
     plays: clamp(p.plays, 0, 4),
   };
+}
+
+function boundedRecord(value, cap, accept) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const entries = [];
+  for (const [key, row] of Object.entries(value)) {
+    if (entries.length >= cap) break;
+    const clean = accept(String(key).slice(0, 80), row);
+    if (clean !== undefined) entries.push([String(key).slice(0, 80), clean]);
+  }
+  return Object.fromEntries(entries);
 }
 
 export function normalize(raw) {
@@ -586,9 +617,16 @@ export function normalize(raw) {
         protect: [clamp(src.protect?.[0], 0, 80), clamp(src.protect?.[1], 0, 80)],
       };
     }
+    const archiveIds = new Set();
     const archive = Array.isArray(raw.archive)
       ? raw.archive
-          .filter((x) => x && cardOf(x.cardId) && (x.owner === 0 || x.owner === 1))
+          .filter((x) => {
+            if (!x || !cardOf(x.cardId) || (x.owner !== 0 && x.owner !== 1)) return false;
+            const id = String(x.id || x.cardId).slice(0, 48);
+            if (archiveIds.has(id)) return false;
+            archiveIds.add(id);
+            return true;
+          })
           .slice(0, LIMITS.archiveCap)
           .map((x) => ({
             id: String(x.id || x.cardId).slice(0, 48),
@@ -610,19 +648,49 @@ export function normalize(raw) {
       desks,
       archive,
       players,
-      playedDesk: raw.playedDesk && typeof raw.playedDesk === "object" ? { ...raw.playedDesk } : {},
-      once: raw.once && typeof raw.once === "object" ? { ...raw.once } : {},
-      familyClaim: raw.familyClaim && typeof raw.familyClaim === "object" ? { ...raw.familyClaim } : {},
-      chains: raw.chains && typeof raw.chains === "object" ? { ...raw.chains } : {},
-      lastPlay: raw.lastPlay && typeof raw.lastPlay === "object" ? raw.lastPlay : null,
+      playedDesk: boundedRecord(raw.playedDesk, LIMITS.playedCap, (_key, value) => value === true ? true : undefined),
+      once: boundedRecord(raw.once, CARDS.length * 2, (_key, value) => value === true ? true : undefined),
+      familyClaim: boundedRecord(raw.familyClaim, 64, (_key, value) => {
+        if (value === 0 || value === 1) return value;
+        if (!value || typeof value !== "object") return undefined;
+        return { n: clamp(value.n, 0, 3), family: String(value.family || "").slice(0, 40) };
+      }),
+      chains: boundedRecord(raw.chains, 48, (_key, value) => {
+        if (!value || typeof value !== "object") return undefined;
+        return { id: String(value.id || "").slice(0, 40), step: clamp(value.step, 0, 8) };
+      }),
+      lastPlay: raw.lastPlay && typeof raw.lastPlay === "object" && cardOf(raw.lastPlay.cardId)
+        ? {
+            actor: raw.lastPlay.actor === 1 ? 1 : 0,
+            cardId: raw.lastPlay.cardId,
+            desk: DESKS.includes(raw.lastPlay.desk) ? raw.lastPlay.desk : "sicil",
+            type: String(raw.lastPlay.type || "").slice(0, 16),
+          }
+        : null,
       pendingCounter: !!raw.pendingCounter,
-      peek: Array.isArray(raw.peek) ? [raw.peek[0] || null, raw.peek[1] || null] : [null, null],
-      result: raw.result && typeof raw.result === "object" ? raw.result : null,
-      log: Array.isArray(raw.log) ? raw.log.slice(-LIMITS.logCap) : [],
-      memory: Array.isArray(raw.memory) ? raw.memory.slice(-LIMITS.memoryCap) : [],
+      peek: Array.isArray(raw.peek) ? [cardOf(raw.peek[0])?.id || null, cardOf(raw.peek[1])?.id || null] : [null, null],
+      result: raw.result && typeof raw.result === "object" && [0, 1, "draw"].includes(raw.result.winner) && ["hukum", "dagilma", "exhaust", "skip", "time"].includes(raw.result.reason)
+        ? { winner: raw.result.winner, reason: raw.result.reason }
+        : null,
+      log: Array.isArray(raw.log)
+        ? raw.log.slice(-LIMITS.logCap).map((row) => ({
+            t: clamp(row?.t, 1, 80),
+            k: String(row?.k || "").slice(0, 24),
+            ...(row?.a === 0 || row?.a === 1 || row?.a === "draw" ? { a: row.a } : {}),
+            ...(DESKS.includes(row?.d) ? { d: row.d } : {}),
+            ...(cardOf(row?.c) ? { c: row.c } : {}),
+            ...(typeof row?.r === "string" ? { r: row.r.slice(0, 24) } : {}),
+            ...(typeof row?.f === "string" ? { f: row.f.slice(0, 40) } : {}),
+            ...(Number.isFinite(Number(row?.s)) ? { s: clamp(row.s, 0, 8) } : {}),
+          }))
+        : [],
+      memory: Array.isArray(raw.memory) ? raw.memory.slice(-LIMITS.memoryCap).map((x) => String(x).slice(0, 80)) : [],
       repeats: [clamp(raw.repeats?.[0], 0, 5), clamp(raw.repeats?.[1], 0, 5)],
       lastDesk: [DESKS.includes(raw.lastDesk?.[0]) ? raw.lastDesk[0] : null, DESKS.includes(raw.lastDesk?.[1]) ? raw.lastDesk[1] : null],
       tutorial: !!raw.tutorial,
+      aiProfile: ["aggressive", "defensive", "tempo", "control", "resource", "adaptive"].includes(raw.aiProfile)
+        ? raw.aiProfile
+        : "adaptive",
     };
   } catch {
     return null;

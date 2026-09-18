@@ -192,3 +192,80 @@ test("ihtilal sources do not call Math.random", () => {
     assert.doesNotMatch(src, /Math\.random/);
   }
 });
+
+test("mirrored archetypes receive the same seeded deck independent of seat", () => {
+  const ab = createMatch({ seed: 991, playerArchetype: "kalemci", oppArchetype: "mansetci" });
+  const ba = createMatch({ seed: 991, playerArchetype: "mansetci", oppArchetype: "kalemci" });
+  assert.deepEqual([...ab.players[0].hand, ...ab.players[0].deck], [...ba.players[1].hand, ...ba.players[1].deck]);
+  assert.deepEqual([...ab.players[1].hand, ...ab.players[1].deck], [...ba.players[0].hand, ...ba.players[0].deck]);
+});
+
+test("once and same-desk guards are scoped to each player's copy", () => {
+  const s = createMatch({ seed: 77, playerArchetype: "kalemci", oppArchetype: "kalemci" });
+  const shared = [...s.players[0].hand, ...s.players[0].deck].find((id) =>
+    [...s.players[1].hand, ...s.players[1].deck].includes(id) &&
+      !CARD_BY_ID[id].once && (!CARD_BY_ID[id].chain || CARD_BY_ID[id].chain.step === 1),
+  );
+  assert.ok(shared);
+  s.players[0].hand = [shared];
+  s.players[1].hand = [shared];
+  s.players[0].murekkep = s.players[1].murekkep = 8;
+  s.players[0].muhur = s.players[1].muhur = 20;
+  const desk = CARD_BY_ID[shared].desk === "any" ? "sicil" : CARD_BY_ID[shared].desk;
+  s.phase = "kalem";
+  s.turnPlayer = 0;
+  assert.equal(applyAction(s, { type: "play", cardId: shared, desk }).ok, true);
+  s.phase = "kalem";
+  s.turnPlayer = 1;
+  s.playsLeft = 2;
+  assert.equal(canPlay(s, 1, shared, desk).ok, true);
+});
+
+test("save normalization rejects duplicate cards and bounds hostile growth", () => {
+  const base = createMatch({ seed: 404 });
+  const duplicate = JSON.parse(JSON.stringify(base));
+  duplicate.players[0].deck.push(duplicate.players[0].hand[0]);
+  assert.equal(normalize(duplicate), null);
+
+  const hostile = JSON.parse(JSON.stringify(base));
+  hostile.playedDesk = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`junk-${i}`, true]));
+  hostile.once = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`once-${i}`, true]));
+  hostile.familyClaim = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`family-${i}`, { n: 999, family: "x".repeat(500) }]));
+  hostile.chains = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`chain-${i}`, { step: 999, id: "x".repeat(500) }]));
+  hostile.log = Array.from({ length: 1000 }, () => ({ t: Infinity, k: "x".repeat(500), nested: "x".repeat(50000) }));
+  hostile.memory = Array.from({ length: 1000 }, () => "x".repeat(50000));
+  hostile.archive = [
+    { id: "same", owner: 0, due: 2, cardId: base.players[0].hand[0], desk: "sicil", ops: [] },
+    { id: "same", owner: 0, due: 2, cardId: base.players[0].hand[0], desk: "sicil", ops: [] },
+  ];
+  const clean = normalize(hostile);
+  assert.ok(clean);
+  assert.ok(Object.keys(clean.playedDesk).length <= 80);
+  assert.ok(Object.keys(clean.once).length <= CARDS.length * 2);
+  assert.ok(Object.keys(clean.familyClaim).length <= 64);
+  assert.ok(Object.keys(clean.chains).length <= 48);
+  assert.equal(clean.archive.length, 1);
+  assert.ok(JSON.stringify(clean).length < 50000);
+});
+
+test("25 reloads preserve a pending state without reroll or growth", () => {
+  const store = memStore();
+  let state = createMatch({ seed: 515, playerArchetype: "nobetci", oppArchetype: "mansetci" });
+  state.aiProfile = "control";
+  for (let i = 0; i < 25; i += 1) {
+    assert.equal(saveSlot(store, 1, state).ok, true);
+    const loaded = loadSlot(store, 1);
+    assert.equal(loaded.ok, true);
+    assert.deepEqual(loaded.state.players.map((p) => p.hand), state.players.map((p) => p.hand));
+    assert.equal(loaded.state.aiProfile, "control");
+    state = loaded.state;
+  }
+  assert.ok(JSON.stringify(state).length < 20000);
+});
+
+test("rules copy matches lock threshold, tenure and heat tempo bands", () => {
+  assert.match(HELP.tr.find((x) => x.title === "Masalar").body, /3 varlık/);
+  assert.match(HELP.en.find((x) => x.title === "Desks").body, /Three presence/);
+  assert.match(JSON.stringify(HELP) + JSON.stringify(TUTORIAL), /50/);
+  assert.match(JSON.stringify(HELP) + JSON.stringify(TUTORIAL), /75/);
+});

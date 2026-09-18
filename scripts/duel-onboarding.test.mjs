@@ -105,3 +105,20 @@ test("VETO-H! and GETT-OH! first-duel guides do not share a seen flag", () => {
   assert.equal(onboardingSeen(storage, "veto-h"), false);
   assert.equal(onboardingSeen(storage, "gett-oh"), true);
 });
+
+test("legacy onboarding migrates once and reset sentinel stays theme-local", () => {
+  const mem = new Map([[ONBOARDING_KEY, "done"]]);
+  const storage = {
+    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+    setItem: (k, v) => mem.set(k, v),
+    removeItem: (k) => mem.delete(k),
+  };
+  assert.equal(onboardingSeen(storage, "veto-h"), true);
+  assert.equal(mem.get("tariklab.veto-h.onboarding.v1"), "done");
+  resetOnboarding(storage, "veto-h");
+  assert.equal(onboardingSeen(storage, "veto-h"), false);
+  assert.equal(onboardingSeen(storage, "gett-oh"), true);
+  assert.equal(mem.get("tariklab.gett-oh.onboarding.v1"), "done");
+  mem.delete(ONBOARDING_KEY);
+  assert.equal(onboardingSeen(storage, "gett-oh"), true, "migrated state survives legacy deletion");
+});

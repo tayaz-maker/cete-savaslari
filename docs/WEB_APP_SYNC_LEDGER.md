@@ -43,6 +43,17 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 - Native follow-up: yes (paused) — later standalone İhtilâl should carry this ruleset and catalog, not a board-game reskin.
 - Commits: `grok/ihtilal-full-wave-original`.
 
+### 2026-09-18 — İHTİLAL adversarial final integration
+- Web change: Final audit made Hüküm pacing the normal close instead of the turn cap, made shared Isı mechanically active at 50/75 and naturally capable of reaching 100, and removed seat-dependent deck RNG. Holding two locks now writes +1 Hüküm per turn; the tutorial/help documents the shipped lock threshold and heat bands.
+- Content: no. Artwork: no. Audio: no.
+- Gameplay/rules: yes — lock tenure, heat tempo bands, player-scoped once/repeat guards and archetype ink tuning. A 1,296-match mirrored matrix closed at Hüküm 1,235 / time 51 / dağılma 10, median 11 turns / p95 25, with decisive archetype rates inside 40–60% and low seat skew.
+- Save/state: Save V1 namespace/version unchanged. AI profile now survives reload; hostile maps/logs/memory and duplicate pending rows are bounded; duplicate card zones fail closed; 25x reload stays deterministic.
+- Shared duel preflight: VETO-H!/GETT-OH! legacy settings and onboarding now migrate once into theme-specific keys; reset sentinels stay isolated.
+- UI/presentation: copy truth only; visual hierarchy and layout unchanged.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — carry the final pacing, heat, save and seeded-deck rules into any later standalone İHTİLAL build.
+- Commits: `gpt/ihtilal-final-integration`.
+
 ### 2026-09-18 — Preflight integration fixes (closed waves frozen)
 - Web change: DEVLET catalog icon `tc-sim-devlet` now resolves to the existing devlet glyph instead of the Labirent fallback. Sitemap lists every live play route plus `/ihtilal`. Service worker module graph includes `/games/son-kasaba/`. VETO-H! and GETT-OH! settings/onboarding persist on per-theme keys with a one-time shared-key fallback.
 - Content: no. Artwork: no. Audio: no.

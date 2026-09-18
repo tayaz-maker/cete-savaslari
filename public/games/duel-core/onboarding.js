@@ -78,7 +78,11 @@ export function onboardingSeen(storage, theme) {
       const themed = storage.getItem(onboardingKey(theme));
       if (themed === "done") return true;
       if (themed === "open") return false;
-      return storage.getItem(ONBOARDING_KEY) === "done";
+      if (storage.getItem(ONBOARDING_KEY) === "done") {
+        storage.setItem(onboardingKey(theme), "done");
+        return true;
+      }
+      return false;
     }
     return storage.getItem(ONBOARDING_KEY) === "done";
   } catch {

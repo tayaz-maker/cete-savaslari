@@ -10,7 +10,7 @@ export const ARCHETYPES = {
     secondary: "koridor",
     weak: "manset",
     family: "sicil-hatti",
-    inkBonus: 1,
+    inkBonus: 2,
     title: { tr: "Kalemci", en: "Registrar" },
     pitch: {
       tr: "Sicil masasını kilitlersin. İsimler senin defterinde durur. Manşet seni geç yener.",
@@ -39,6 +39,7 @@ export const ARCHETYPES = {
     weak: "sicil",
     family: "manset-dizgi",
     inkBonus: 1,
+    heatInkBonus: 1,
     title: { tr: "Manşetçi", en: "Gazetteer" },
     pitch: {
       tr: "Cümleyi önce sen basarsın. Isı yükselir. Sicil seni bozar.",
@@ -52,7 +53,7 @@ export const ARCHETYPES = {
     secondary: "sicil",
     weak: "kasa",
     family: "imza-zinciri",
-    inkBonus: 1,
+    inkBonus: 0,
     title: { tr: "Koridorcu", en: "Corridor Clerk" },
     pitch: {
       tr: "Paraf zincirini sen yürürsün. İmza senden geçer. Kasa seni aç bırakır.",

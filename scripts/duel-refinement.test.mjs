@@ -155,12 +155,15 @@ test("VETO-H! and GETT-OH! settings stay on isolated keys with a shared-key fall
   assert.equal(loadSettings(storage, "veto-h").uiScale, 80);
   assert.equal(loadSettings(storage, "gett-oh").uiScale, 125);
   assert.notEqual(mem.get("tariklab.veto-h.settings.v1"), mem.get("tariklab.gett-oh.settings.v1"));
-  mem.set(SETTINGS_KEY, JSON.stringify({ uiScale: 110, aiProfile: "trapper" }));
+  const legacyMem = new Map([[SETTINGS_KEY, JSON.stringify({ uiScale: 110, aiProfile: "trapper" })]]);
   const fresh = {
-    getItem: (k) => (k === SETTINGS_KEY ? mem.get(k) : null),
-    setItem: (k, v) => mem.set(k, v),
+    getItem: (k) => (legacyMem.has(k) ? legacyMem.get(k) : null),
+    setItem: (k, v) => legacyMem.set(k, v),
   };
   assert.equal(loadSettings(fresh, "veto-h").uiScale, 110, "legacy shared key is a one-time fallback");
+  legacyMem.set(SETTINGS_KEY, JSON.stringify({ uiScale: 90, aiProfile: "gambler" }));
+  assert.equal(loadSettings(fresh, "veto-h").uiScale, 110, "migrated theme no longer follows shared changes");
+  assert.equal(JSON.parse(legacyMem.get("tariklab.veto-h.settings.v1")).uiScale, 110);
 });
 
 test("identities exist without stat fields", () => {

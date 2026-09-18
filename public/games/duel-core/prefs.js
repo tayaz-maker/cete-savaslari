@@ -23,10 +23,19 @@ const PROFILES = ["aggressive", "patient", "trapper", "gambler", "controlled"];
 export function loadSettings(storage, theme) {
   try {
     const themed = theme ? storage.getItem(settingsKey(theme)) : null;
-    const raw = themed || storage.getItem(SETTINGS_KEY);
+    const legacy = themed ? null : storage.getItem(SETTINGS_KEY);
+    const raw = themed || legacy;
     if (!raw) return { ...DEFAULT_SETTINGS };
     const parsed = JSON.parse(raw);
-    return sanitizeSettings({ ...DEFAULT_SETTINGS, ...parsed });
+    const settings = sanitizeSettings({ ...DEFAULT_SETTINGS, ...parsed });
+    if (theme && !themed && legacy) {
+      try {
+        storage.setItem(settingsKey(theme), JSON.stringify(settings));
+      } catch {
+        /* Readable legacy settings still apply when migration cannot persist. */
+      }
+    }
+    return settings;
   } catch {
     return { ...DEFAULT_SETTINGS };
   }

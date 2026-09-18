@@ -195,11 +195,11 @@ export const HELP = {
     },
     {
       title: "Masalar",
-      body: "Sicil isimleri tutar, Kasa rakamı, Manşet cümleyi, Koridor parafı, Nöbet geceyi. Bir masada 4 varlık ve rakibinden fazla olmak kilidi getirir. Kilit +2 Hüküm demektir; çalınabilir.",
+      body: "Sicil isimleri tutar, Kasa rakamı, Manşet cümleyi, Koridor parafı, Nöbet geceyi. Bir masada 3 varlık ve rakibinden fazla olmak kilidi getirir. Kilit +2 Hüküm demektir; iki kilidi koruyan kalem her tur +1 Hüküm yazar. Kilit çalınabilir.",
     },
     {
       title: "Risk",
-      body: "Aynı masaya üç kez üst üste inmek ısıyı yükseltir. Isı 100 olunca mühür konuşur. Mürekkep bitince kalem kapanır. Aynı dosya aynı masaya ikinci kez inmez.",
+      body: "Aynı masaya üç kez üst üste inmek ısıyı yükseltir. Isı 50 ve 75'te kurulun temposu artar; 100 olunca mühür konuşur. Mürekkep bitince kalem kapanır. Aynı dosya aynı masaya ikinci kez inmez.",
     },
     {
       title: "Kayıt",
@@ -217,11 +217,11 @@ export const HELP = {
     },
     {
       title: "Desks",
-      body: "Registry holds names, Till the figure, Gazette the sentence, Corridor the initials, Watch the night. Four presence and a lead locks a desk. A lock is +2 Ruling and can be stolen.",
+      body: "Registry holds names, Till the figure, Gazette the sentence, Corridor the initials, Watch the night. Three presence and a lead locks a desk. A lock is +2 Ruling; a pen holding two locks writes +1 Ruling each turn. Locks can be stolen.",
     },
     {
       title: "Risk",
-      body: "Landing on the same desk three times in a row raises heat. At 100, seal decides. When ink runs out the pen closes. The same file does not land on the same desk twice.",
+      body: "Landing on the same desk three times in a row raises heat. At 50 and 75 the board gains tempo; at 100, seal decides. When ink runs out the pen closes. The same file does not land on the same desk twice.",
     },
     {
       title: "Saves",
@@ -232,17 +232,17 @@ export const HELP = {
 
 export const TUTORIAL = {
   tr: [
-    { id: "aim", title: "Hüküm", body: "On hüküm yazan kalem masayı kapatır. Hüküm, kilitlenen masalardan ve tamamlanan zincirlerden gelir." },
+    { id: "aim", title: "Hüküm", body: "On hüküm yazan kalem masayı kapatır. Hüküm, kilitlenen masalardan, iki kilidi korumaktan ve tamamlanan zincirlerden gelir." },
     { id: "desks", title: "Beş masa", body: "Sicil, Kasa, Manşet, Koridor, Nöbet. Bu bir harita değil; dosyanın düştüğü kalem masalarıdır." },
-    { id: "meters", title: "Üç ölçü", body: "Mürekkep bu turdaki elin. Mühür ağır dosya ve dağılma hesabı. Isı paylaşılır; 100 olursa kurul dağılır." },
+    { id: "meters", title: "Üç ölçü", body: "Mürekkep bu turdaki elin. Mühür ağır dosya ve dağılma hesabı. Isı paylaşılır; 50 ve 75'te tempo artar, 100 olursa kurul dağılır." },
     { id: "play", title: "Dosya düşürmek", body: "Elindeki bir dosyayı uygun masaya düşür. En fazla iki. Sonra kalemi kapat." },
     { id: "artci", title: "Artçı", body: "Bazı dosyalar hemen konuşmaz. Vadesi gelince arşivden düşer. Taşma olursa en eski dosya zorla çözülür." },
     { id: "end", title: "Dağılma", body: "Isı 100, evrak bitmesi veya kalemlerin susması masayı kapatır. O zaman kilit ve mühür konuşur." },
   ],
   en: [
-    { id: "aim", title: "Ruling", body: "The pen that writes ten rulings closes the board. Rulings come from locked desks and finished chains." },
+    { id: "aim", title: "Ruling", body: "The pen that writes ten rulings closes the board. Rulings come from locked desks, holding two locks, and finished chains." },
     { id: "desks", title: "Five desks", body: "Registry, Till, Gazette, Corridor, Watch. This is not a map; it is the desks a file can land on." },
-    { id: "meters", title: "Three meters", body: "Ink is this turn's hand. Seal pays for heavy files and the dissolve. Heat is shared; at 100 the board dissolves." },
+    { id: "meters", title: "Three meters", body: "Ink is this turn's hand. Seal pays for heavy files and the dissolve. Heat is shared; tempo rises at 50 and 75, and at 100 the board dissolves." },
     { id: "play", title: "Dropping a file", body: "Drop a file from your hand onto a legal desk. At most two. Then close the pen." },
     { id: "artci", title: "Aftershock", body: "Some files do not speak at once. They fall from the archive when due. Overflow forces the oldest to resolve." },
     { id: "end", title: "Dissolve", body: "Heat 100, empty papers or silent pens close the board. Then locks and seals speak." },

@@ -30,7 +30,7 @@ This is **not** a digitization of the 2015 physical board game İhtilâl
 - **Desks:** Sicil, Kasa, Manşet, Koridor, Nöbet. Not parliament / police / army / university / capital.
 - **Meters:** Mürekkep 0–8 (turn ink), Mühür 0–20 (seal), shared Isı 0–100 (heat).
 - **Turn:** refill ink, draw 1, resolve due aftershocks, play up to 2 files, optional counter window, lock check, discard to 7.
-- **Lock:** 3 presence and a lead. +2 Hüküm. Stealable unless protected.
+- **Lock:** 3 presence and a lead. +2 Hüküm. Holding two locks writes +1 Hüküm each turn. Stealable unless protected.
 - **Dissolve:** heat 100 → higher seal wins, else draw.
 - **Exhaustion / silence / turn 40:** locked desks, then seal, else draw.
 - **Anti-loop:** same file cannot land on the same desk twice; three repeats on one desk raise heat; archive cap 12; log cap 80.

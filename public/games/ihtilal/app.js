@@ -192,8 +192,8 @@ function startMatch() {
     playerArchetype: setup.you,
     oppArchetype: setup.opp,
     first: 0,
+    aiProfile: setup.profile,
   });
-  state.aiProfile = setup.profile;
   selected = null;
   screen = "play";
   coach = setup.tutorial ? 0 : -1;
