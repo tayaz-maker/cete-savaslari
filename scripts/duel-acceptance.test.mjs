@@ -28,7 +28,7 @@ for (const [theme, pool] of Object.entries(pools)) {
       assert.ok(["main", "auxiliary"].includes(c.deckLocation));
       if (c.deckLocation === "auxiliary") assert.equal(c.kind, "unit");
       const inspect = (value, path = c.id) => {
-        if (typeof value === "string" && /^(SND|RCN)-\d{3}$/.test(value))
+        if (typeof value === "string" && /^(SND|RCN|DRB)-\d{3}$/.test(value))
           assert.ok(
             pool.some((card) => card.id === value),
             `${path}: missing reference ${value}`,
