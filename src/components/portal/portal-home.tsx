@@ -38,15 +38,6 @@ function GameCard({ game, featured = false }: { game: CatalogGame; featured?: bo
         </span>
       </article>
     );
-  if (game.slug === "ihtilal")
-    return (
-      <Link to="/ihtilal" aria-label={label} className={classes}>
-        {content}
-        <span className="text-[0.65rem] uppercase tracking-[0.2em] text-subtle">
-          {t("portal.soon", "Yakında")}
-        </span>
-      </Link>
-    );
   if (game.slug === "cete-savaslari")
     return (
       <Link to="/cete-savaslari" aria-label={label} className={classes}>

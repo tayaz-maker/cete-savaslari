@@ -33,38 +33,33 @@ test("all five Next Wave games are live and resolve to playable catalog routes",
   }
 });
 
-test("İhtilâl is the sole coming-soon catalog entry and links to its dedicated route", () => {
-  assert.equal((games.match(/status: "soon"/g) ?? []).length, 1);
+test("İhtilâl is live on the HTML5 play route and keeps /ihtilal as a redirect", () => {
+  assert.equal((games.match(/status: "soon"/g) ?? []).length, 0);
   const block = catalogBlock("ihtilal");
-  assert.match(block, /status: "soon"/);
-  assert.match(block, /href: "\/ihtilal"/);
-  assert.doesNotMatch(
+  assert.match(block, /status: "live"/);
+  assert.match(block, /href: "\/oyna\/ihtilal"/);
+  assert.match(
     games.slice(games.indexOf("export const HTML5_SLUGS"), games.indexOf("] as const")),
     /"ihtilal"/,
   );
-
+  assert.ok(existsSync(new URL("../public/games/ihtilal/index.html", import.meta.url)));
   const portal = read("src/components/portal/portal-home.tsx");
-  assert.match(portal, /game\.slug === "ihtilal"/);
-  assert.match(portal, /<Link to="\/ihtilal"/);
+  assert.doesNotMatch(portal, /game\.slug === "ihtilal"/);
   assert.match(read("src/routeTree.gen.ts"), /'\/ihtilal'/);
+  const route = read("src/routes/ihtilal.tsx");
+  assert.match(route, /redirect/);
+  assert.match(route, /ihtilal/);
+  assert.doesNotMatch(route, /ALTI OK|KIRAT|Kene Yapım|Tunca Zeki Berkkurt/);
 });
 
-test("İhtilâl is a bilingual information page, not a gameplay implementation", () => {
-  const route = read("src/routes/ihtilal.tsx");
-  for (const copy of [
-    "Seçim kazanılır. İktidar tutulmaz.",
-    "Elections are won. Power is not kept.",
-    "1950–80. İki taraf. Bir harita. Kurumlar ayrı konuşur.",
-    "Meclis · Polis · Ordu · Üniversite · Sermaye",
-    "Parliament · Police · Military · University · Capital",
-    "Kart düşer. Pul konur. Zar konuşur.",
-    "Dört turda bir sandık.",
-    "Bazen gece, sandıktan önce.",
-    "İhtilâl (2015), Kene Yapım / Tunca Zeki Berkkurt",
-  ]) {
-    assert.match(route, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-  assert.doesNotMatch(route, /<iframe|localStorage|game engine|newGame|save/i);
+test("İhtilâl play runtime is original and not a duel-core reskin", () => {
+  const app = read("public/games/ihtilal/app.js");
+  const engine = read("public/games/ihtilal/engine.js");
+  assert.doesNotMatch(app, /startApp\(/);
+  assert.doesNotMatch(engine, /startApp\(/);
+  assert.doesNotMatch(app + engine, /duel-core/);
+  assert.match(engine, /GAME_ID = "ihtilal"/);
+  assert.match(read("public/games/ihtilal/index.html"), /app\.js/);
 });
 
 test("DEVLET release copy reflects the live multi-period runtime without changing identity", () => {
@@ -89,8 +84,6 @@ test("DEVLET release copy reflects the live multi-period runtime without changin
   assert.match(staticI18n, /A multi-era state simulation/);
   assert.doesNotMatch(staticI18n, /2002[–-]05 core/);
   assert.equal(catalogEntries.length, 17);
-  assert.equal(catalogEntries.filter((game) => game.status === "live").length, 16);
-  assert.deepEqual(catalogEntries.filter((game) => game.status === "soon"), [
-    { slug: "ihtilal", status: "soon" },
-  ]);
+  assert.equal(catalogEntries.filter((game) => game.status === "live").length, 17);
+  assert.deepEqual(catalogEntries.filter((game) => game.status === "soon"), []);
 });

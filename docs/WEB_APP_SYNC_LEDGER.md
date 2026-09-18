@@ -34,6 +34,15 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-18 — İHTİLAL original Kalem Masası (full wave)
+- Web change: İhtilâl is live. Original digital-first ruleset (five desks, ink/seal/heat, Hüküm 10, aftershocks, counter window). 204 authored files, 6 archetypes, seeded AI, 3-slot save V1, tutorial, closing report, oxblood-on-paper visual identity. Canonical route `/oyna/ihtilal`; `/ihtilal` redirects. Old teaser (ALTI OK / KIRAT / 2015 credit) removed.
+- Content: yes. Artwork: no (procedural CSS/SVG). Audio: no.
+- Gameplay/rules: yes — new game. Closed waves untouched.
+- UI/presentation: yes — own iframe shell, not duel-core, not next-wave.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone İhtilâl should carry this ruleset and catalog, not a board-game reskin.
+- Commits: `grok/ihtilal-full-wave-original`.
+
 ### 2026-09-18 — Preflight integration fixes (closed waves frozen)
 - Web change: DEVLET catalog icon `tc-sim-devlet` now resolves to the existing devlet glyph instead of the Labirent fallback. Sitemap lists every live play route plus `/ihtilal`. Service worker module graph includes `/games/son-kasaba/`. VETO-H! and GETT-OH! settings/onboarding persist on per-theme keys with a one-time shared-key fallback.
 - Content: no. Artwork: no. Audio: no.

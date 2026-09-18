@@ -39,12 +39,11 @@ In the table below, “native app” for Çete Savaşları means a first-party R
 | SON KÖY MANAGER | `son-kasaba` | `/oyna/son-koy-manager` | [docs/son-kasaba/](son-kasaba/IMPLEMENTATION.md) | `public/games/son-kasaba/` | Canonical play route `/oyna/son-koy-manager`; `/oyna/son-kasaba` remains an alias. Save id stays `son-kasaba`. |
 | VETO-H! | `veto-h` | `/oyna/veto-h` | [docs/veto-h/](veto-h/README.md) | `public/games/veto-h/` | Shares the duel engine with GETT-OH! (see Shared Systems). |
 | GETT-OH! | `gett-oh` | `/oyna/gett-oh` | [docs/gett-oh/](gett-oh/README.md) | `public/games/gett-oh/` | Shares the duel engine with VETO-H! (see Shared Systems). |
+| İhtilâl | `ihtilal` | `/oyna/ihtilal` | [docs/ihtilal/](ihtilal/README.md) | `public/games/ihtilal/` | Original Kalem Masası ruleset. `/ihtilal` redirects here. |
 
 ## Coming Soon
 
-| Game | Slug | Route | Docs | Notes |
-|---|---|---|---|---|
-| İhtilâl | `ihtilal` | `/ihtilal` | [docs/ihtilal/](ihtilal/README.md) | Design scope only — no gameplay engine implemented. |
+None. The catalog currently has no coming-soon titles.
 
 ## Retired / Archived
 

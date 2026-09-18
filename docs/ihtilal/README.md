@@ -1,52 +1,55 @@
 # İhtilâl
 
-> Seçim kazanılır. İktidar tutulmaz.
+> Hüküm yazılır. Arşiv unutmaz.
 
 ## What is this game?
 
-A political two-player board/card strategy concept. **No gameplay engine has
-been implemented yet.** This document captures only the accepted, current
-design scope — it is not an implementation spec.
+An original TarikLab institutional card game. Two Kalem sit on a fictional
+republic's Extraordinary File Board and drop files onto five desks. Desks lock.
+A ruling is written — or the board dissolves.
+
+This is **not** a digitization of the 2015 physical board game İhtilâl
+(Kene Yapım / Tunca Zeki Berkkurt), and it is **not** a VETO-H! reskin.
 
 ## Status
 
-**COMING SOON.** Gameplay is not implemented.
-
-## Route
-
-```text
-/ihtilal
-```
-
-(`src/routes/ihtilal.tsx`) — a "coming soon" placeholder route, distinct from
-the `/oyna/$slug` pattern used by playable games.
+**LIVE.** Canonical play is `/oyna/ihtilal`. `/ihtilal` redirects there.
 
 ## Runtime
 
-No `public/games/ihtilal/` directory exists. There is nothing to run yet.
+`public/games/ihtilal/` — own engine, cards, AI, save, UI and CSS.
+
+- Game id: `ihtilal`
+- Save: `tariklab.ihtilal.v1.slot{1,2,3}` (fail-closed, checksum, 3 slots)
+- Schema version: 1
+- Seeded LCG in `rng.js` (no `Math.random` in the ruleset)
+
+## Original rules (short)
+
+- **Objective:** write **Hüküm 10**, mostly by locking desks.
+- **Desks:** Sicil, Kasa, Manşet, Koridor, Nöbet. Not parliament / police / army / university / capital.
+- **Meters:** Mürekkep 0–8 (turn ink), Mühür 0–20 (seal), shared Isı 0–100 (heat).
+- **Turn:** refill ink, draw 1, resolve due aftershocks, play up to 2 files, optional counter window, lock check, discard to 7.
+- **Lock:** 3 presence and a lead. +2 Hüküm. Stealable unless protected.
+- **Dissolve:** heat 100 → higher seal wins, else draw.
+- **Exhaustion / silence / turn 40:** locked desks, then seal, else draw.
+- **Anti-loop:** same file cannot land on the same desk twice; three repeats on one desk raise heat; archive cap 12; log cap 80.
+
+## Content
+
+- 204 unique authored files (`ITL-001` …)
+- 6 archetypes: Kalemci, Hesapçı, Manşetçi, Koridorcu, Nöbetçi, Heyetçi
+- 21 multi-step chains, 32 delayed aftershocks, 9 exclusive families
+- Deterministic AI profiles: aggressive, defensive, tempo, control, resource, adaptive
+
+## Originality
+
+Placeholder teaser copy (ALTI OK / KIRAT, 1950–80 map, Meclis·Polis·Ordu·Üniversite·Sermaye, dice/tokens, “inspired by İhtilâl 2015”) is **removed**. The name `İHTİLÂL` is kept. Expression, taxonomy, visual language and rules presentation are TarikLab-original (archive folders, oxblood stamp, carbon-copy paper).
 
 ## Shared engine
 
-Not applicable — no engine work has started.
+Not applicable. Duel-core and next-wave runtimes are not imported. Only generic ideas were reused: seeded RNG family, 3-slot fail-closed saves, bounded logs.
 
-## Accepted design scope (current)
+## Historical note
 
-- 9 macro regions.
-- 5 institutions.
-- An election/tension structure.
-- A responsive desktop/mobile presentation contract (same bar as TarikLab's
-  other games, once implementation starts).
-
-Do not add mechanics, card lists, numeric balancing, or UI details beyond
-what is listed above — none of that has been designed or accepted yet.
-
-## What must not be assumed from older design docs
-
-- There is no implementation to reference. Any mechanic, card, or UI detail
-  not listed above is speculative and must not be treated as accepted scope.
-- Do not start gameplay implementation based on this document alone; it
-  exists to prevent documentation drift, not to greenlight a build.
-
-## Deeper docs
-
-None yet. This README is the first-class entry point.
+Older placeholder docs that listed “9 regions / 5 institutions / election every four rounds” were speculative coming-soon copy and are superseded by this file.

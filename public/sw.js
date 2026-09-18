@@ -63,6 +63,7 @@ const MODULE_GAME_PATHS = [
   "/games/kayip-telefon/",
   "/games/tc-sim-devlet/",
   "/games/son-kasaba/",
+  "/games/ihtilal/",
   "/i18n/",
 ];
 

@@ -186,6 +186,6 @@ when the contextual primary action already ends the turn. A browser assertion
 now prevents the duplicate in both languages.
 
 Resources were updated after this game acceptance: 300 illustrated cards per
-entry in TR/EN, 16 live games, one coming-soon title, retired Hayat excluded.
+entry in TR/EN, 17 live games, retired Hayat excluded.
 Main integration and exact-byte production verification are subsequent release
 gates; their deployment status must be read from the final commit checks.

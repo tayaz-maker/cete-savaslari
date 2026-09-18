@@ -22,6 +22,7 @@ export const HTML5_SLUGS = [
   "son-kasaba",
   "veto-h",
   "gett-oh",
+  "ihtilal",
 ] as const;
 
 export type Html5Slug = (typeof HTML5_SLUGS)[number];
@@ -171,9 +172,9 @@ export const GAMES: CatalogGame[] = [
   {
     slug: "ihtilal",
     title: "İhtilâl",
-    subtitle: "Seçim kazanılır. İktidar tutulmaz.",
-    status: "soon",
-    href: "/ihtilal",
+    subtitle: "Hüküm yazılır. Arşiv unutmaz.",
+    status: "live",
+    href: "/oyna/ihtilal",
     icon: "ihtilal",
   },
 ];
