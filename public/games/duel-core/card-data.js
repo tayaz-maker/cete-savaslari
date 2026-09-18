@@ -30,30 +30,29 @@ const rcnSeries = (n) =>
               : n <= 90
                 ? ["Yemin", "Aile"]
                 : ["Racon"];
-const drbSeries = (n) =>
-  n <= 22
-    ? ["Dosya"]
-    : n <= 44
-      ? ["Paraf"]
-      : n <= 66
-        ? ["Heyet"]
-        : n <= 88
-          ? ["Karargah"]
-          : n <= 110
-            ? ["Brifing"]
-            : n <= 132
-              ? ["Kabine"]
-              : n <= 154
-                ? ["Arsiv"]
-                : n <= 170
-                  ? ["Mesruiyet"]
-                  : n <= 210
-                    ? ["Telex"]
-                    : n <= 250
-                      ? ["Tebligat"]
-                      : n <= 275
-                        ? ["Muhtira"]
-                        : ["Ihtar"];
+const DRB_FAMILIES = [
+  "Dosya",
+  "Paraf",
+  "Heyet",
+  "Karargah",
+  "Telex",
+  "Muhtira",
+  "Zeyil",
+  "Brifing",
+  "Kabine",
+  "Arsiv",
+  "Tebligat",
+  "Mesruiyet",
+];
+const drbSeries = (n) => {
+  if (n <= 80) return [DRB_FAMILIES[(n - 1) % 12]];
+  if (n <= 124) return [DRB_FAMILIES[(n - 81) % 12]];
+  if (n <= 150) return ["İhtar"];
+  if (n <= 234) return [DRB_FAMILIES[Math.floor((n - 151) / 7)]];
+  if (n <= 240) return [DRB_FAMILIES[(n - 235) * 2]];
+  if (n <= 275) return [DRB_FAMILIES[(n - 241) % 12]];
+  return ["İhtar"];
+};
 /**
  * Rules identity for copy limits and name locks.
  *
