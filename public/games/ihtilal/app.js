@@ -65,6 +65,7 @@ const flavorOf = (card) => (card?.flavor && (card.flavor[lang] || card.flavor.tr
 
 function setLang() {
   lang = lang === "tr" ? "en" : "tr";
+  notice = "";
   try {
     localStorage.setItem("tariklab.language", lang);
   } catch {
