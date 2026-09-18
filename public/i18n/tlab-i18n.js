@@ -383,6 +383,7 @@
       subtitle: "Istanbul at night. Field your crew and play your street power.",
     },
     ihtilal: { title: "İhtilâl", subtitle: "The ruling is written. The archive does not forget." },
+    "darbe-h": { title: "DARBE-H!", subtitle: "The telex lands. The desk decides." },
   };
 
   const CREDITS_EN = {
@@ -392,7 +393,7 @@
     sections: [
       {
         h: "Catalog",
-        lead: "TarikLab has 17 playable games.",
+        lead: "TarikLab has 18 playable games.",
         items: [
           '<a href="/cete-savaslari">Çete Savaşları</a> · LIVE — Build a crew, run missions and hold turf under police and rival pressure.',
           '<a href="/oyna/hanedan">Çete Savaşları: Hanedan</a> · LIVE — Manage a roster, raids and legacy across generations.',
@@ -411,6 +412,7 @@
           '<a href="/oyna/veto-h">VETO-H!</a> · LIVE — An election and campaign duel with 300 original cards and individual illustrations, a seeded 40-card deck, a computer opponent and a pregame Card Archive.',
           '<a href="/oyna/gett-oh">GETT-OH!</a> · LIVE — A neighborhood and street-power duel with 300 original cards and individual illustrations: the same deterministic engine, a separate card pool and an Istanbul-night table.',
           '<a href="/oyna/ihtilal">İhtilâl</a> · LIVE — Two pens on an Extraordinary File Board drop files onto Registry, Till, Gazette, Corridor and Watch desks and write a ruling.',
+          '<a href="/oyna/darbe-h">DARBE-H!</a> · LIVE — A fictional Extraordinary Desk duel of officers, orders and notices: the shared duel engine, a separate 300-card pool and crisis points.',
         ],
       },
       {

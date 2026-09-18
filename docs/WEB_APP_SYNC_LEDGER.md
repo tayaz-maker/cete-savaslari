@@ -34,6 +34,15 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-18 — DARBE-H! full wave (duel sibling)
+- Web change: DARBE-H! is live as the third VETO-H! / GETT-OH! sibling. Shared duel engine, own theme id `darbe-h`, 300 DRB cards, five crisis decks, KP, telex/briefing visual identity, procedural card faces. Canonical route `/oyna/darbe-h`. Saves/settings/onboarding isolated; no shared `tariklab.duel.*` fallback. İHTİLAL untouched.
+- Content: yes. Artwork: procedural SVG (no painted webp pack). Audio: no.
+- Gameplay/rules: shared generic duel rules; unique cards/decks/copy. VETO/GETT catalogs unchanged.
+- UI/presentation: own theme tokens on the shared shell (ink navy / telex amber).
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone DARBE-H! should carry this catalog and isolation, not a VETO reskin.
+- Commits: `grok/darbe-h-full-wave`.
+
 ### 2026-09-18 — İHTİLAL original Kalem Masası (full wave)
 - Web change: İhtilâl is live. Original digital-first ruleset (five desks, ink/seal/heat, Hüküm 10, aftershocks, counter window). 204 authored files, 6 archetypes, seeded AI, 3-slot save V1, tutorial, closing report, oxblood-on-paper visual identity. Canonical route `/oyna/ihtilal`; `/ihtilal` redirects. Old teaser (ALTI OK / KIRAT / 2015 credit) removed.
 - Content: yes. Artwork: no (procedural CSS/SVG). Audio: no.

@@ -1,8 +1,8 @@
 # VETO-H! / GETT-OH! implementation contract
 
 Canonical shared-engine documentation for `public/games/duel-core/`, the
-deterministic duel engine behind both VETO-H! and GETT-OH!. Game-specific docs
-live in `docs/veto-h/` and `docs/gett-oh/` and link back here; do not fork a
+deterministic duel engine behind VETO-H!, GETT-OH! and DARBE-H!. Game-specific docs
+live in `docs/veto-h/`, `docs/gett-oh/` and `docs/darbe-h/` and link back here; do not fork a
 second copy of this contract per theme.
 
 Baseline: 73a7ee36e5d87f300e219984fec6a186be782e65.
@@ -186,6 +186,6 @@ when the contextual primary action already ends the turn. A browser assertion
 now prevents the duplicate in both languages.
 
 Resources were updated after this game acceptance: 300 illustrated cards per
-entry in TR/EN, 17 live games, retired Hayat excluded.
+entry in TR/EN, 18 live games, retired Hayat excluded.
 Main integration and exact-byte production verification are subsequent release
 gates; their deployment status must be read from the final commit checks.

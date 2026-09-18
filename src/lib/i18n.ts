@@ -91,6 +91,7 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
   "veto-h": { title: "VETO-H!", subtitle: "Election night. Build your campaign and answer your rival’s move." },
   "gett-oh": { title: "GETT-OH!", subtitle: "Istanbul at night. Field your crew and play your street power." },
   ihtilal: { title: "İhtilâl", subtitle: "The ruling is written. The archive does not forget." },
+  "darbe-h": { title: "DARBE-H!", subtitle: "The telex lands. The desk decides." },
 };
 
 export const CETE_HELP_EN = [

@@ -40,6 +40,7 @@ In the table below, “native app” for Çete Savaşları means a first-party R
 | VETO-H! | `veto-h` | `/oyna/veto-h` | [docs/veto-h/](veto-h/README.md) | `public/games/veto-h/` | Shares the duel engine with GETT-OH! (see Shared Systems). |
 | GETT-OH! | `gett-oh` | `/oyna/gett-oh` | [docs/gett-oh/](gett-oh/README.md) | `public/games/gett-oh/` | Shares the duel engine with VETO-H! (see Shared Systems). |
 | İhtilâl | `ihtilal` | `/oyna/ihtilal` | [docs/ihtilal/](ihtilal/README.md) | `public/games/ihtilal/` | Original Kalem Masası ruleset. `/ihtilal` redirects here. |
+| DARBE-H! | `darbe-h` | `/oyna/darbe-h` | [docs/darbe-h/](darbe-h/README.md) | `public/games/darbe-h/` | Third duel sibling. Shared engine, own 300-card pool. |
 
 ## Coming Soon
 
@@ -55,7 +56,7 @@ None. The catalog currently has no coming-soon titles.
 
 | System | Docs | Used By |
 |---|---|---|
-| Duel engine (`public/games/duel-core/`) | [docs/duel/DUEL_ENGINE.md](duel/DUEL_ENGINE.md) | VETO-H!, GETT-OH! |
+| Duel engine (`public/games/duel-core/`) | [docs/duel/DUEL_ENGINE.md](duel/DUEL_ENGINE.md) | VETO-H!, GETT-OH!, DARBE-H! |
 | Next Wave engine families (`public/games/next-wave*`) | [docs/next-wave/](next-wave/00_MASTER_PLAN.md) | Apartman, Son 100 Gün, Kayıp Telefon, TC SIM: DEVLET (reuse references); TC SIM (Life Sim reference engine) |
 | TLab Classics provenance/licensing | [docs/tlab-classics/PROVENANCE_AND_LICENSES.md](tlab-classics/PROVENANCE_AND_LICENSES.md) | Labirent, Tek Taş, Satranç |
 | Web ↔ native sync ledger | [docs/WEB_APP_SYNC_LEDGER.md](WEB_APP_SYNC_LEDGER.md) | All games that will later have a standalone native build |
