@@ -144,6 +144,25 @@ test("settings and history persist on versioned keys", () => {
   assert.ok(mem.get("tariklab.gett-oh.history.v1"));
 });
 
+test("VETO-H! and GETT-OH! settings stay on isolated keys with a shared-key fallback", () => {
+  const mem = new Map();
+  const storage = {
+    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+    setItem: (k, v) => mem.set(k, v),
+  };
+  saveSettings(storage, { uiScale: 80, aiProfile: "aggressive" }, "veto-h");
+  saveSettings(storage, { uiScale: 125, aiProfile: "patient" }, "gett-oh");
+  assert.equal(loadSettings(storage, "veto-h").uiScale, 80);
+  assert.equal(loadSettings(storage, "gett-oh").uiScale, 125);
+  assert.notEqual(mem.get("tariklab.veto-h.settings.v1"), mem.get("tariklab.gett-oh.settings.v1"));
+  mem.set(SETTINGS_KEY, JSON.stringify({ uiScale: 110, aiProfile: "trapper" }));
+  const fresh = {
+    getItem: (k) => (k === SETTINGS_KEY ? mem.get(k) : null),
+    setItem: (k, v) => mem.set(k, v),
+  };
+  assert.equal(loadSettings(fresh, "veto-h").uiScale, 110, "legacy shared key is a one-time fallback");
+});
+
 test("identities exist without stat fields", () => {
   for (const id of Object.keys(CAMPAIGN_STYLES)) {
     assert.ok(CAMPAIGN_STYLES[id].tr.name);

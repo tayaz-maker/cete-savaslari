@@ -1,4 +1,6 @@
 export const SETTINGS_KEY = "tariklab.duel.settings.v1";
+export const settingsKey = (theme) =>
+  theme === "veto-h" || theme === "gett-oh" ? `tariklab.${theme}.settings.v1` : SETTINGS_KEY;
 export const HISTORY_KEY = (theme) =>
   theme === "veto-h" ? "tariklab.veto-h.campaign-history.v1" : `tariklab.${theme}.history.v1`;
 export const HISTORY_CAP = 25;
@@ -18,9 +20,10 @@ const CARD_SIZES = ["small", "normal", "large"];
 const DENSITIES = ["compact", "normal"];
 const PROFILES = ["aggressive", "patient", "trapper", "gambler", "controlled"];
 
-export function loadSettings(storage) {
+export function loadSettings(storage, theme) {
   try {
-    const raw = storage.getItem(SETTINGS_KEY);
+    const themed = theme ? storage.getItem(settingsKey(theme)) : null;
+    const raw = themed || storage.getItem(SETTINGS_KEY);
     if (!raw) return { ...DEFAULT_SETTINGS };
     const parsed = JSON.parse(raw);
     return sanitizeSettings({ ...DEFAULT_SETTINGS, ...parsed });
@@ -29,10 +32,10 @@ export function loadSettings(storage) {
   }
 }
 
-export function saveSettings(storage, settings) {
+export function saveSettings(storage, settings, theme) {
   const next = sanitizeSettings(settings);
   try {
-    storage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    storage.setItem(theme ? settingsKey(theme) : SETTINGS_KEY, JSON.stringify(next));
     return { ok: true, settings: next };
   } catch {
     return { ok: false, settings: next };

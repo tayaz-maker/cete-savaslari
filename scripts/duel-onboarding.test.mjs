@@ -89,3 +89,19 @@ test("seen state is remembered, resettable, and safe without storage", () => {
   assert.doesNotThrow(() => markOnboardingSeen(blocked));
   assert.doesNotThrow(() => resetOnboarding(blocked));
 });
+
+test("VETO-H! and GETT-OH! first-duel guides do not share a seen flag", () => {
+  const mem = new Map();
+  const storage = {
+    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+    setItem: (k, v) => mem.set(k, v),
+    removeItem: (k) => mem.delete(k),
+  };
+  markOnboardingSeen(storage, "veto-h");
+  assert.equal(onboardingSeen(storage, "veto-h"), true);
+  assert.equal(onboardingSeen(storage, "gett-oh"), false);
+  markOnboardingSeen(storage, "gett-oh");
+  resetOnboarding(storage, "veto-h");
+  assert.equal(onboardingSeen(storage, "veto-h"), false);
+  assert.equal(onboardingSeen(storage, "gett-oh"), true);
+});

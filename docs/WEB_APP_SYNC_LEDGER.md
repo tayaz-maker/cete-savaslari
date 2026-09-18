@@ -34,6 +34,15 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-18 — Preflight integration fixes (closed waves frozen)
+- Web change: DEVLET catalog icon `tc-sim-devlet` now resolves to the existing devlet glyph instead of the Labirent fallback. Sitemap lists every live play route plus `/ihtilal`. Service worker module graph includes `/games/son-kasaba/`. VETO-H! and GETT-OH! settings/onboarding persist on per-theme keys with a one-time shared-key fallback.
+- Content: no. Artwork: no. Audio: no.
+- Gameplay/rules: no — Waves 1–5 and VETO/GETT mechanics untouched.
+- UI/presentation: DEVLET portal card icon only.
+- Shared-content source: no.
+- Native follow-up: no.
+- Commits: `grok/ihtilal-full-wave-original` (preflight commit).
+
 ### 2026-09-18 — TC SIM: DEVLET multi-period catalog truth closure
 - Web change: Catalog-facing TR/EN summary now reflects the shipped multi-period runtime (six selectable period packs plus the 1923–2030 grand campaign) instead of describing only the historical 2002–2005 vertical slice. Historical design/handoff documents retain that milestone with explicit supersession notes.
 - Content: no. Artwork: no. Audio: no.

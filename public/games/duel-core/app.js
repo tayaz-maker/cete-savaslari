@@ -91,7 +91,7 @@ export async function startApp(theme, designs) {
   } catch {
     /* Storage errors are reported when a duel is saved. */
   }
-  let settings = loadSettings(storage);
+  let settings = loadSettings(storage, theme);
   motion = settings.motion || motion;
   applyDisplay(settings, theme);
   let state = null,
@@ -173,7 +173,7 @@ export async function startApp(theme, designs) {
   const text = (value) => localized(value, lang);
   const persistSettings = (patch = {}) => {
     settings = { ...settings, ...patch, motion };
-    saveSettings(storage, settings);
+    saveSettings(storage, settings, theme);
     applyDisplay(settings, theme);
   };
   const catalog = () => state?.catalog || Object.fromEntries(pool.map((c) => [c.id, c]));
@@ -188,7 +188,7 @@ export async function startApp(theme, designs) {
           button(
             lang === "tr" ? "İlk Düello Rehberini Tekrar Göster" : "Replay the First-Duel Guide",
             () => {
-              resetOnboarding(storage);
+              resetOnboarding(storage, theme);
               close();
               startCoach(true);
             },
@@ -888,7 +888,7 @@ export async function startApp(theme, designs) {
           lastAnalysis = null;
           setup = null;
           screen = "duel";
-          startFirstDuelCoach = !onboardingSeen(storage);
+          startFirstDuelCoach = !onboardingSeen(storage, theme);
           lastPoints = null;
           close();
           save();
@@ -1538,14 +1538,14 @@ export async function startApp(theme, designs) {
     coachOn = false,
     startFirstDuelCoach = false;
   function startCoach(force = false) {
-    if (!force && onboardingSeen(storage)) return;
+    if (!force && onboardingSeen(storage, theme)) return;
     coachStep = 0;
     coachOn = true;
     render();
   }
   function endCoach() {
     coachOn = false;
-    markOnboardingSeen(storage);
+    markOnboardingSeen(storage, theme);
     render();
   }
   function coachMark() {

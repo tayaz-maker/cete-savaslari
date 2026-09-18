@@ -8,6 +8,8 @@
  * the thing it describes and the player can keep playing straight through it.
  */
 export const ONBOARDING_KEY = "tariklab.duel.onboarding.v1";
+export const onboardingKey = (theme) =>
+  theme === "veto-h" || theme === "gett-oh" ? `tariklab.${theme}.onboarding.v1` : ONBOARDING_KEY;
 
 /**
  * Steps are anchored by selector and gated by a board predicate, so each note
@@ -70,25 +72,32 @@ export function onboardingSteps(theme, lang, words) {
 }
 
 /** Has the player already been shown (or dismissed) the first-duel guide? */
-export function onboardingSeen(storage) {
+export function onboardingSeen(storage, theme) {
   try {
+    if (theme) {
+      const themed = storage.getItem(onboardingKey(theme));
+      if (themed === "done") return true;
+      if (themed === "open") return false;
+      return storage.getItem(ONBOARDING_KEY) === "done";
+    }
     return storage.getItem(ONBOARDING_KEY) === "done";
   } catch {
     return true; // No storage: never nag.
   }
 }
 
-export function markOnboardingSeen(storage) {
+export function markOnboardingSeen(storage, theme) {
   try {
-    storage.setItem(ONBOARDING_KEY, "done");
+    storage.setItem(theme ? onboardingKey(theme) : ONBOARDING_KEY, "done");
   } catch {
     /* A blocked store only means the guide may appear again. */
   }
 }
 
-export function resetOnboarding(storage) {
+export function resetOnboarding(storage, theme) {
   try {
-    storage.removeItem(ONBOARDING_KEY);
+    if (theme) storage.setItem(onboardingKey(theme), "open");
+    else storage.removeItem(ONBOARDING_KEY);
   } catch {
     /* Nothing to clear. */
   }
