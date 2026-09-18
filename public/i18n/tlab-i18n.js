@@ -372,7 +372,7 @@
     },
     "tc-sim-devlet": {
       title: "TC SIM: DEVLET",
-      subtitle: "2002–05 core. Statecraft at one table.",
+      subtitle: "A multi-era state simulation. Institutions, economy and society from 1923 to 2030.",
     },
     "veto-h": {
       title: "VETO-H!",

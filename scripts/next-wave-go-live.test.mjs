@@ -4,6 +4,9 @@ import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const games = read("src/lib/games.ts");
+const catalogEntries = [
+  ...games.matchAll(/\{\s*slug: "([^"]+)",[\s\S]*?status: "(live|soon)",[\s\S]*?\}/g),
+].map((match) => ({ slug: match[1], status: match[2] }));
 
 function catalogBlock(slug) {
   const marker = `slug: "${slug}"`;
@@ -64,11 +67,30 @@ test("İhtilâl is a bilingual information page, not a gameplay implementation",
   assert.doesNotMatch(route, /<iframe|localStorage|game engine|newGame|save/i);
 });
 
-test("DEVLET release copy is honest about the currently playable period", () => {
+test("DEVLET release copy reflects the live multi-period runtime without changing identity", () => {
   const block = catalogBlock("tc-sim-devlet");
-  assert.match(block, /2002–05 çekirdeği/);
+  assert.match(block, /title: "TC SIM: DEVLET"/);
+  assert.match(block, /status: "live"/);
+  assert.match(block, /href: "\/oyna\/tc-sim-devlet"/);
+  assert.match(block, /Çok dönemli devlet simülasyonu/);
+  assert.match(block, /1923'ten 2030'a/);
+  assert.doesNotMatch(block, /2002[–-]05 çekirdeği/);
+  assert.doesNotMatch(block, /status: "soon"/);
   assert.doesNotMatch(block, /4000/);
+
   const i18n = read("src/lib/i18n.ts");
-  assert.match(i18n, /2002–05 core/);
+  assert.match(i18n, /"tc-sim-devlet": \{/);
+  assert.match(i18n, /A multi-era state simulation/);
+  assert.match(i18n, /Institutions, economy and society from 1923 to 2030/);
+  assert.doesNotMatch(i18n, /2002[–-]05 core/);
   assert.doesNotMatch(i18n, /Four thousand years of state mind/);
+
+  const staticI18n = read("public/i18n/tlab-i18n.js");
+  assert.match(staticI18n, /A multi-era state simulation/);
+  assert.doesNotMatch(staticI18n, /2002[–-]05 core/);
+  assert.equal(catalogEntries.length, 17);
+  assert.equal(catalogEntries.filter((game) => game.status === "live").length, 16);
+  assert.deepEqual(catalogEntries.filter((game) => game.status === "soon"), [
+    { slug: "ihtilal", status: "soon" },
+  ]);
 });

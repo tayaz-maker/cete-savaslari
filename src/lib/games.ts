@@ -139,7 +139,7 @@ export const GAMES: CatalogGame[] = [
   {
     slug: "tc-sim-devlet",
     title: "TC SIM: DEVLET",
-    subtitle: "2002–05 çekirdeği. Devlet aklı, tek masada.",
+    subtitle: "Çok dönemli devlet simülasyonu. Kurumlar, ekonomi ve toplum 1923'ten 2030'a.",
     status: "live",
     href: "/oyna/tc-sim-devlet",
     icon: "tc-sim-devlet",

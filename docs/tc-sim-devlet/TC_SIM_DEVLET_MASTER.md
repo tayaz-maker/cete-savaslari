@@ -1,6 +1,8 @@
 # TARIKLAB — TC SIM: DEVLET
 ## MASTER PROJECT HANDOFF / COWORK BAĞLAM DOSYASI
 
+> **Tasarım tarihi notu:** Bu belge özgün ürün vizyonunu ve ilk prototip sıralamasını korur. Aşağıdaki 2002–2005 vertical-slice önerisi güncel runtime sınırı değildir; Wave 5 runtime bugün 1923, 1950, 1980, 2002, Günümüz ve Alternatif Türkiye dönemleriyle 1923–2030 büyük kampanyasını destekler. Güncel shipped-change kaydı için [`../WEB_APP_SYNC_LEDGER.md`](../WEB_APP_SYNC_LEDGER.md) esas alınır.
+
 **Oyun adı:** TC SIM: DEVLET
 **Slogan:** “4000 Yıllık Devlet Aklı”
 

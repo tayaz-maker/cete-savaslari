@@ -84,7 +84,10 @@ export const CATALOG_EN: Record<string, { title: string; subtitle: string }> = {
     title: "SON KÖY MANAGER",
     subtitle: "Everyone is leaving. You stay and try to keep the village standing.",
   },
-  "tc-sim-devlet": { title: "TC SIM: DEVLET", subtitle: "2002–05 core. Statecraft at one table." },
+  "tc-sim-devlet": {
+    title: "TC SIM: DEVLET",
+    subtitle: "A multi-era state simulation. Institutions, economy and society from 1923 to 2030.",
+  },
   "veto-h": { title: "VETO-H!", subtitle: "Election night. Build your campaign and answer your rival’s move." },
   "gett-oh": { title: "GETT-OH!", subtitle: "Istanbul at night. Field your crew and play your street power." },
   ihtilal: { title: "İhtilâl", subtitle: "Elections are won. Power is not kept." },

@@ -34,6 +34,15 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-18 — TC SIM: DEVLET multi-period catalog truth closure
+- Web change: Catalog-facing TR/EN summary now reflects the shipped multi-period runtime (six selectable period packs plus the 1923–2030 grand campaign) instead of describing only the historical 2002–2005 vertical slice. Historical design/handoff documents retain that milestone with explicit supersession notes.
+- Content: no. Artwork: no. Audio: no.
+- Gameplay/rules: no — route, game id, save V2, period/policy/event engines and all gameplay files are unchanged.
+- UI/presentation: copy only; no layout or component change.
+- Shared-content source: no.
+- Native follow-up: no.
+- Commits: `gpt/post-wave5-devlet-catalog-closure`.
+
 ### 2026-09-17 — TC SIM: DEVLET content-max (Wave 5)
 - Web change: Content-only Wave 5 expansion of TC SIM: DEVLET on the frozen causal core. Authored dossier events, delayed continuations, exclusive policy-path families, cadre flavor overlays, policy prose and State Form traces. Persist in existing `devletDepth.content` (`chains` / `exclusive` / `once` / `waiting[]`). Content choices do not consume the two monthly policy slots.
 - Catalog: `public/games/next-wave/devlet-content.js`. Floors met: 329 authored nodes, 107 chains, 231 delayed continuations, 12 exclusive families, 20 cadre profiles, 22 dossier traces, 77 policy-prose entries. 2002 POLICIES=48 / EVENTS=62 unchanged.

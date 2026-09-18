@@ -1,5 +1,7 @@
 # TC SIM: DEVLET — Next Safe Implementation Handoff
 
+> **Historical implementation snapshot — superseded.** This handoff records the original 2002–2005 vertical-slice gate. The current Wave 5 runtime supports the 1923, 1950, 1980, 2002, Günümüz and Alternatif Türkiye period packs plus the 1923–2030 grand campaign. Current shipped-change evidence is recorded in [`../WEB_APP_SYNC_LEDGER.md`](../WEB_APP_SYNC_LEDGER.md).
+
 Audit conclusion + build-ready delta. Read alongside `TC_SIM_DEVLET_MASTER.md` (vision, unchanged), `TC_SIM_DEVLET_ROADMAP.md` (phase sequence, unchanged), and `08_CURRENT_REUSE_DELTA.md` (concrete reuse references, this pass).
 
 ## Vertical slice: locked to 2002–2005
