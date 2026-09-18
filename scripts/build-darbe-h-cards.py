@@ -1058,10 +1058,18 @@ def build():
         fee = 700 + i * 100
         atk = 2300 + i * 100
         defense = 2000 + i * 100
-        tr = f"Yedek heyet: 1 {satr} ve 1 {sbtr} görevlisi malzeme. Turda bir: {fee} KP öde; rakibin 1 açık destek kartını eline gönder."
-        en = f"Reserve panel: 1 {saen} and 1 {sben} officer as materials. Once per turn: pay {fee} KP; return 1 opposing face-up support card to its owner's hand."
+        # Repair II: this expansion boss family is the ONLY fusion family
+        # whose materials must already be standing on the field. The default
+        # (core DRB-068..073, untouched) draws materials from hand+units,
+        # which let an opener special-summon straight out of the opening
+        # hand for a paraf fee alone -- a same-turn 2300-2800 ATK body with
+        # zero board investment and zero tempo cost. Restricting these six
+        # bosses to on-field materials keeps them a payoff for units already
+        # committed to the board instead of a hand-fusion opening bomb.
+        tr = f"Yedek heyet: sahadaki 1 {satr} ve 1 {sbtr} görevlisi malzeme. Turda bir: {fee} KP öde; rakibin 1 açık destek kartını eline gönder."
+        en = f"Reserve panel: 1 {saen} and 1 {sben} officer on the field as materials. Once per turn: pay {fee} KP; return 1 opposing face-up support card to its owner's hand."
         effects = [points(-fee), select("support", enemy("support", face="up")), move("hand")]
-        traits = {"materials": {"series": [sa, sb]}}
+        traits = {"materials": {"series": [sa, sb], "zones": ["units"]}}
         cards.append(pack(
             n, name_tr, name_en, "unit", "fusion", sa, [sa, sb],
             7, atk, defense, "auxiliary", tr, en, effects, traits, [],

@@ -7009,7 +7009,7 @@ export const designs = {
   },
   "235": {
     "name": "Joint Paraf",
-    "text": "Reserve panel: 1 File and 1 Paraf officer as materials. Once per turn: pay 700 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 File and 1 Paraf officer on the field as materials. Once per turn: pay 700 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7039,6 +7039,9 @@ export const designs = {
         "series": [
           "Dosya",
           "Paraf"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },
@@ -7054,7 +7057,7 @@ export const designs = {
   },
   "236": {
     "name": "Twin Panel",
-    "text": "Reserve panel: 1 Panel and 1 Command officer as materials. Once per turn: pay 800 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 Panel and 1 Command officer on the field as materials. Once per turn: pay 800 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7084,6 +7087,9 @@ export const designs = {
         "series": [
           "Heyet",
           "Karargah"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },
@@ -7099,7 +7105,7 @@ export const designs = {
   },
   "237": {
     "name": "Telex Board",
-    "text": "Reserve panel: 1 Telex and 1 Memo officer as materials. Once per turn: pay 900 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 Telex and 1 Memo officer on the field as materials. Once per turn: pay 900 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7129,6 +7135,9 @@ export const designs = {
         "series": [
           "Telex",
           "Muhtira"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },
@@ -7144,7 +7153,7 @@ export const designs = {
   },
   "238": {
     "name": "Annex Board",
-    "text": "Reserve panel: 1 Annex and 1 Brief officer as materials. Once per turn: pay 1000 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 Annex and 1 Brief officer on the field as materials. Once per turn: pay 1000 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7174,6 +7183,9 @@ export const designs = {
         "series": [
           "Zeyil",
           "Brifing"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },
@@ -7189,7 +7201,7 @@ export const designs = {
   },
   "239": {
     "name": "Archive Board",
-    "text": "Reserve panel: 1 Cabinet and 1 Archive officer as materials. Once per turn: pay 1100 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 Cabinet and 1 Archive officer on the field as materials. Once per turn: pay 1100 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7219,6 +7231,9 @@ export const designs = {
         "series": [
           "Kabine",
           "Arsiv"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },
@@ -7234,7 +7249,7 @@ export const designs = {
   },
   "240": {
     "name": "Writ Panel",
-    "text": "Reserve panel: 1 Dispatch and 1 Charter officer as materials. Once per turn: pay 1200 KP; return 1 opposing face-up support card to its owner's hand.",
+    "text": "Reserve panel: 1 Dispatch and 1 Charter officer on the field as materials. Once per turn: pay 1200 KP; return 1 opposing face-up support card to its owner's hand.",
     "effects": [
       {
         "op": "points",
@@ -7264,6 +7279,9 @@ export const designs = {
         "series": [
           "Tebligat",
           "Mesruiyet"
+        ],
+        "zones": [
+          "units"
         ]
       }
     },

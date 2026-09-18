@@ -3285,9 +3285,9 @@
     "attack": 2300,
     "defense": 2000,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Dosya ve 1 Paraf görevlisi malzeme. Turda bir: 700 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Dosya ve 1 Paraf görevlisi malzeme. Turda bir: 700 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Joint Paraf",
-    "textEn": "Reserve panel: 1 File and 1 Paraf officer as materials. Once per turn: pay 700 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 File and 1 Paraf officer on the field as materials. Once per turn: pay 700 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-236",
@@ -3299,9 +3299,9 @@
     "attack": 2400,
     "defense": 2100,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Heyet ve 1 Karargâh görevlisi malzeme. Turda bir: 800 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Heyet ve 1 Karargâh görevlisi malzeme. Turda bir: 800 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Twin Panel",
-    "textEn": "Reserve panel: 1 Panel and 1 Command officer as materials. Once per turn: pay 800 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 Panel and 1 Command officer on the field as materials. Once per turn: pay 800 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-237",
@@ -3313,9 +3313,9 @@
     "attack": 2500,
     "defense": 2200,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Telex ve 1 Muhtıra görevlisi malzeme. Turda bir: 900 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Telex ve 1 Muhtıra görevlisi malzeme. Turda bir: 900 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Telex Board",
-    "textEn": "Reserve panel: 1 Telex and 1 Memo officer as materials. Once per turn: pay 900 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 Telex and 1 Memo officer on the field as materials. Once per turn: pay 900 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-238",
@@ -3327,9 +3327,9 @@
     "attack": 2600,
     "defense": 2300,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Zeyil ve 1 Brifing görevlisi malzeme. Turda bir: 1000 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Zeyil ve 1 Brifing görevlisi malzeme. Turda bir: 1000 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Annex Board",
-    "textEn": "Reserve panel: 1 Annex and 1 Brief officer as materials. Once per turn: pay 1000 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 Annex and 1 Brief officer on the field as materials. Once per turn: pay 1000 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-239",
@@ -3341,9 +3341,9 @@
     "attack": 2700,
     "defense": 2400,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Kabine ve 1 Arşiv görevlisi malzeme. Turda bir: 1100 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Kabine ve 1 Arşiv görevlisi malzeme. Turda bir: 1100 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Archive Board",
-    "textEn": "Reserve panel: 1 Cabinet and 1 Archive officer as materials. Once per turn: pay 1100 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 Cabinet and 1 Archive officer on the field as materials. Once per turn: pay 1100 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-240",
@@ -3355,9 +3355,9 @@
     "attack": 2800,
     "defense": 2500,
     "deckLocation": "auxiliary",
-    "text": "Yedek heyet: 1 Tebligat ve 1 Meşruiyet görevlisi malzeme. Turda bir: 1200 KP öde; rakibin 1 açık destek kartını eline gönder.",
+    "text": "Yedek heyet: sahadaki 1 Tebligat ve 1 Meşruiyet görevlisi malzeme. Turda bir: 1200 KP öde; rakibin 1 açık destek kartını eline gönder.",
     "nameEn": "Writ Panel",
-    "textEn": "Reserve panel: 1 Dispatch and 1 Charter officer as materials. Once per turn: pay 1200 KP; return 1 opposing face-up support card to its owner's hand."
+    "textEn": "Reserve panel: 1 Dispatch and 1 Charter officer on the field as materials. Once per turn: pay 1200 KP; return 1 opposing face-up support card to its owner's hand."
   },
   {
     "id": "DRB-241",
