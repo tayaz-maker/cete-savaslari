@@ -34,6 +34,16 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-18 — DARBE-H! targeted balance / expansion repair
+- Web change: Regenerated the 300-card DARBE-H! catalog so expansion 151–300 is 90 görevli / 35 emirname / 25 ihtar, the ATK/level curve respects paraf cost (L1–4 free, L5–6 one, L7+ two), and all five 40-card desks mix free and paid officers. Teaching map and expansion trap-series (İhtar) closed. Opus flow-copy (Arşiv / paraf) untouched. VETO/GETT/İHTİLAL untouched.
+- Content: yes. Artwork: procedural SVG, unchanged pipeline. Audio: no.
+- Gameplay/rules: no shared duel-core rules change. DARBE catalog/decks only.
+- UI/presentation: no.
+- Shared-content source: no.
+- Native follow-up: yes (paused) — later standalone DARBE-H! should ship this repaired catalog, not the inverted-curve dump.
+- Commits: `grok/darbe-h-balance-repair`.
+
+
 ### 2026-09-18 — DARBE-H! full wave (duel sibling)
 - Web change: DARBE-H! is live as the third VETO-H! / GETT-OH! sibling. Shared duel engine, own theme id `darbe-h`, 300 DRB cards, five crisis decks, KP, telex/briefing visual identity, procedural card faces. Canonical route `/oyna/darbe-h`. Saves/settings/onboarding isolated; no shared `tariklab.duel.*` fallback. İHTİLAL untouched.
 - Content: yes. Artwork: procedural SVG (no painted webp pack). Audio: no.

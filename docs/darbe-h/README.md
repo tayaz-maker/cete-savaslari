@@ -44,7 +44,8 @@ public/games/darbe-h/
 ## Decks
 
 Muhtıra, Tebligat, Karargâh, İstişare, Zeyilname — five genuinely different
-40-card lists (control, tempo, midrange, grind, recursion).
+40-card lists (control, tempo, midrange, grind, recursion). Each desk mixes
+free (L1–4) and paraf-costed (L5+) officers. Expansion 151–300 is 90/35/25.
 
 ## Shared engine
 
