@@ -42,6 +42,7 @@ import {
   historyBody,
   actionLogBody,
 } from "./match-ux.js";
+import { cardArt, identityPatch, identityValue, pickLang, themeMeta } from "./theme-meta.js";
 
 /**
  * The one rule for what may become a child node.
@@ -122,52 +123,10 @@ export async function startApp(theme, designs) {
     archiveTab = "cards",
     archiveDeckId = null,
     archivePage = 0;
-  const name = theme === "veto-h" ? "VETO-H!" : "GETT-OH!",
-    point = theme === "veto-h" ? "OP" : "RP";
-  const themeLabels =
-    theme === "veto-h"
-      ? {
-          tr: {
-            unit: "Kadro",
-            spell: "Kampanya",
-            trap: "Skandal",
-            battle: "Tartışma",
-            auxiliary: "Koalisyon Destesi",
-            grave: "Atılan Kartlar",
-            "end-main": "Turu Bitir",
-            "set-field": "Alanı Set Et",
-          },
-          en: {
-            unit: "Campaigner",
-            spell: "Campaign",
-            trap: "Scandal",
-            battle: "Debate",
-            auxiliary: "Coalition",
-            "end-main": "End Turn",
-            "set-field": "Set Field",
-          },
-        }
-      : {
-          tr: {
-            unit: "Adam",
-            spell: "Racon",
-            trap: "İhbar",
-            battle: "Kapışma",
-            auxiliary: "Birleşik Deste",
-            grave: "Iskarta",
-            "end-main": "Turu Bitir",
-            "set-field": "Alanı Set Et",
-          },
-          en: {
-            unit: "Crew",
-            spell: "Racon",
-            trap: "Tip-off",
-            battle: "Clash",
-            auxiliary: "Alliance",
-            "end-main": "End Turn",
-            "set-field": "Set Field",
-          },
-        };
+  const meta = themeMeta(theme);
+  const name = meta.name,
+    point = meta.point;
+  const themeLabels = meta.labels;
   const t = (key) =>
     typeof key === "string" ? themeLabels[lang][key] || labels[lang][key] || key : "";
   const text = (value) => localized(value, lang);
@@ -381,7 +340,7 @@ export async function startApp(theme, designs) {
           turns: lastAnalysis.turns,
           winner: lastAnalysis.winner,
           aiProfile: settings.aiProfile,
-          identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+          identity: identityValue(theme, settings),
           starId: lastAnalysis.starId,
           starValue: lastAnalysis.starValue,
           turning: lastAnalysis.turning,
@@ -603,13 +562,7 @@ export async function startApp(theme, designs) {
         $(
           "div",
           { class: "eyebrow" },
-          theme === "veto-h"
-            ? lang === "tr"
-              ? "SEÇİM GECESİ · KART DÜELLOSU"
-              : "ELECTION NIGHT · CARD DUEL"
-            : lang === "tr"
-              ? "İSTANBUL GECESİ · KART DÜELLOSU"
-              : "ISTANBUL NIGHT · CARD DUEL",
+          pickLang(meta.eyebrow, lang),
         ),
         $("h1", {}, name),
         $("p", {}, t("deckNote")),
@@ -637,7 +590,7 @@ export async function startApp(theme, designs) {
                     theme,
                     seed: state.seed,
                     aiProfile: settings.aiProfile,
-                    identity: theme === "veto-h" ? settings.campaignStyle : settings.neighborhood,
+                    identity: identityValue(theme, settings),
                   });
                 if (state.result) {
                   lastAnalysis = analyzeMatch(telemetry, catalog(), lang);
@@ -659,7 +612,7 @@ export async function startApp(theme, designs) {
             render();
           }),
           button(t("help"), () => show(t("help"), rulesBody())),
-          button(theme === "veto-h" ? t("campaignFile") : t("nightFile"), () => openCampaignFile()),
+          button(t(meta.fileLabelKey), () => openCampaignFile()),
           button(t("settings"), openSettings),
           $("a", { href: "/", target: "_top" }, `← ${t("back")}`),
         ),
@@ -688,7 +641,7 @@ export async function startApp(theme, designs) {
   }
   function openCampaignFile() {
     show(
-      theme === "veto-h" ? t("campaignFile") : t("nightFile"),
+      t(meta.fileLabelKey),
       historyBody($, t, lang, theme, loadHistory(storage, theme), catalog()),
     );
   }
@@ -728,7 +681,7 @@ export async function startApp(theme, designs) {
     }
   }
   function chosenDeckId() {
-    const stored = theme === "veto-h" ? settings.campaignStyle : settings.neighborhood;
+    const stored = identityValue(theme, settings);
     return findPreset(decks, stored)?.id || decks[0]?.id || null;
   }
   function beginSetup() {
@@ -769,11 +722,7 @@ export async function startApp(theme, designs) {
           close();
         },
         onStart: () => {
-          persistSettings(
-            theme === "veto-h"
-              ? { campaignStyle: setup.deckId, aiProfile: setup.aiProfile }
-              : { neighborhood: setup.deckId, aiProfile: setup.aiProfile },
-          );
+          persistSettings(identityPatch(theme, setup.deckId, { aiProfile: setup.aiProfile }));
           rps();
         },
       });
@@ -951,14 +900,14 @@ export async function startApp(theme, designs) {
           { class: "card-art", "aria-hidden": "true" },
           down
             ? "◈"
-            : card.id && /^(SND|RCN)-[0-9]{3}$/.test(card.id)
+            : card.id
               ? $("img", {
-                  src: `/games/${theme}/assets/cards/${card.id}.webp`,
+                  src: cardArt(theme, card).src,
                   alt: "",
                   loading: "lazy",
                   decoding: "async",
-                  width: theme === "veto-h" ? 576 : 400,
-                  height: theme === "veto-h" ? 384 : 300,
+                  width: cardArt(theme, card).width,
+                  height: cardArt(theme, card).height,
                 })
               : "◈",
         ),
@@ -1480,8 +1429,7 @@ export async function startApp(theme, designs) {
     draw: lang === "tr" ? "Kart Çekme Aşaması" : "Draw Phase",
     standby: lang === "tr" ? "Hazırlık Aşaması" : "Standby Phase",
     main1: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
-    battle:
-      lang === "tr" ? (theme === "veto-h" ? "Tartışma Aşaması" : "Kapışma Aşaması") : t("battle"),
+    battle: lang === "tr" ? `${meta.labels.tr.battle} Aşaması` : t("battle"),
     main2: lang === "tr" ? "Hamle Aşaması" : "Main Phase",
     end: lang === "tr" ? "Tur Sonu" : "End Phase",
   };

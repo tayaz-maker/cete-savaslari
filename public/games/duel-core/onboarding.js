@@ -7,9 +7,11 @@
  * replayable from How to Play. It never blocks a click — the note sits beside
  * the thing it describes and the player can keep playing straight through it.
  */
+import { LEGACY_SHARED_THEMES, SIBLING_THEMES } from "./theme-meta.js";
+
 export const ONBOARDING_KEY = "tariklab.duel.onboarding.v1";
 export const onboardingKey = (theme) =>
-  theme === "veto-h" || theme === "gett-oh" ? `tariklab.${theme}.onboarding.v1` : ONBOARDING_KEY;
+  SIBLING_THEMES.includes(theme) ? `tariklab.${theme}.onboarding.v1` : ONBOARDING_KEY;
 
 /**
  * Steps are anchored by selector and gated by a board predicate, so each note
@@ -78,7 +80,7 @@ export function onboardingSeen(storage, theme) {
       const themed = storage.getItem(onboardingKey(theme));
       if (themed === "done") return true;
       if (themed === "open") return false;
-      if (storage.getItem(ONBOARDING_KEY) === "done") {
+      if (LEGACY_SHARED_THEMES.includes(theme) && storage.getItem(ONBOARDING_KEY) === "done") {
         storage.setItem(onboardingKey(theme), "done");
         return true;
       }

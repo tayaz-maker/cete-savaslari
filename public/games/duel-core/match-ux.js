@@ -1,8 +1,9 @@
 import { AI_PROFILES } from "./ai.js";
-import { NEIGHBORHOODS } from "./identities.js";
+import { COMMAND_DESKS, NEIGHBORHOODS } from "./identities.js";
 import { electionShare, formatAnalysis, opGraphSvg } from "./analyzer.js";
 import { DEFAULT_SETTINGS, mostUsedAi } from "./prefs.js";
 import { reasonLabel } from "./relationships.js";
+import { cardArt, identityValue, pickLang, themeMeta } from "./theme-meta.js";
 
 export function applyDisplay(settings, theme) {
   const root = document.documentElement;
@@ -15,11 +16,13 @@ export function applyDisplay(settings, theme) {
   document.body.dataset.cardSize = settings.cardSize || "normal";
   document.body.dataset.density = settings.tableDensity || "normal";
   document.body.dataset.motion = settings.motion === "on" ? "full" : "reduced";
-  const identity = theme === "veto-h" ? settings.campaignStyle : settings.neighborhood;
+  const identity = identityValue(theme, settings);
   document.body.dataset.identity = identity || "";
-  if (theme === "gett-oh") {
-    const hood = NEIGHBORHOODS[settings.neighborhood];
-    if (hood?.accent) root.style.setProperty("--hood-accent", hood.accent);
+  const meta = themeMeta(theme);
+  if (meta.hoodAccent) {
+    const table = theme === "gett-oh" ? NEIGHBORHOODS : theme === "darbe-h" ? COMMAND_DESKS : null;
+    const row = table?.[settings[meta.identityKey]];
+    if (row?.accent) root.style.setProperty("--hood-accent", row.accent);
   }
 }
 
@@ -148,9 +151,13 @@ export function relatedBlock($, t, lang, rows, onOpen, theme = "veto-h", onMore 
       ? lang === "en"
         ? "Campaign Combos"
         : "Kampanya Komboları"
-      : lang === "en"
-        ? "Table Combos"
-        : "Masa Komboları";
+      : theme === "darbe-h"
+        ? lang === "en"
+          ? "Crisis Combos"
+          : "Kriz Komboları"
+        : lang === "en"
+          ? "Table Combos"
+          : "Masa Komboları";
   return [
     $("h3", {}, heading),
     $(
@@ -173,7 +180,7 @@ export function relatedBlock($, t, lang, rows, onOpen, theme = "veto-h", onMore 
             },
             $("img", {
               class: "combo-art",
-              src: `/games/${theme}/assets/cards/${row.id}.webp`,
+              src: cardArt(theme, card || { id: row.id }).src,
               alt: "",
               loading: "lazy",
               decoding: "async",
@@ -206,18 +213,19 @@ export function relatedBlock($, t, lang, rows, onOpen, theme = "veto-h", onMore 
 
 export function postMatchBody($, t, lang, theme, analysis, catalog, on) {
   const fmt = formatAnalysis(analysis, catalog, lang, theme);
-  const share = theme === "veto-h" ? electionShare(analysis) : null;
+  const meta = themeMeta(theme);
+  const share = meta.showElectionShare ? electionShare(analysis) : null;
   const title = analysis.winner === 0 ? t("win") : analysis.winner === 1 ? t("lose") : t("tie");
-  const starLabel = theme === "veto-h" ? t("matchStar") : t("nightMove");
-  const turnLabel = theme === "veto-h" ? t("turningPoint") : t("tableTurn");
-  const workLabel = theme === "gett-oh" ? t("hardestWorker") : t("matchStar");
+  const starLabel = t(meta.starLabelKey);
+  const turnLabel = t(meta.turnLabelKey);
+  const workLabel = t(meta.workLabelKey);
   const graph = document.createElement("div");
   graph.innerHTML = opGraphSvg(analysis.opByTurn);
   return [
     $(
       "div",
       { class: "post-match" },
-      $("h3", {}, theme === "veto-h" ? t("electionResult") : t("postMatch")),
+      $("h3", {}, t(meta.resultLabelKey)),
       $("p", {}, title),
       share
         ? $(
@@ -230,7 +238,7 @@ export function postMatchBody($, t, lang, theme, analysis, catalog, on) {
       $("p", {}, `${t("turn")}: ${analysis.turns}`),
       $("p", {}, `${turnLabel}: ${fmt.turning}`),
       $("p", {}, `${starLabel}: ${fmt.star}`),
-      theme === "gett-oh" ? $("p", {}, `${workLabel}: ${fmt.damage}`) : null,
+      meta.showHardestWorker ? $("p", {}, `${workLabel}: ${fmt.damage}`) : null,
       $(
         "p",
         {},
@@ -266,7 +274,7 @@ export function analysisBody($, t, lang, analysis, catalog) {
 
 export function historyBody($, t, lang, theme, history, catalog) {
   const life = history?.lifetime || {};
-  const fileTitle = theme === "veto-h" ? t("campaignFile") : t("nightFile");
+  const fileTitle = t(themeMeta(theme).fileLabelKey);
   const fav = life.favorite && catalog?.[life.favorite];
   const favName = fav?.name ? fav.name[lang] || fav.name.tr : life.favorite || "—";
   const ai = mostUsedAi(history);

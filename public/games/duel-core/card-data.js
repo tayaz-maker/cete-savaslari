@@ -1,3 +1,5 @@
+import { themeMeta } from "./theme-meta.js";
+
 const sndSeries = (n) =>
   n <= 12
     ? ["Sandık"]
@@ -28,6 +30,30 @@ const rcnSeries = (n) =>
               : n <= 90
                 ? ["Yemin", "Aile"]
                 : ["Racon"];
+const drbSeries = (n) =>
+  n <= 22
+    ? ["Dosya"]
+    : n <= 44
+      ? ["Paraf"]
+      : n <= 66
+        ? ["Heyet"]
+        : n <= 88
+          ? ["Karargah"]
+          : n <= 110
+            ? ["Brifing"]
+            : n <= 132
+              ? ["Kabine"]
+              : n <= 154
+                ? ["Arsiv"]
+                : n <= 170
+                  ? ["Mesruiyet"]
+                  : n <= 210
+                    ? ["Telex"]
+                    : n <= 250
+                      ? ["Tebligat"]
+                      : n <= 275
+                        ? ["Muhtira"]
+                        : ["Ihtar"];
 /**
  * Rules identity for copy limits and name locks.
  *
@@ -55,10 +81,12 @@ export function buildCards(source, designs, theme) {
       ? [...design.series]
       : theme === "veto-h"
         ? sndSeries(n)
-        : rcnSeries(n);
+        : theme === "darbe-h"
+          ? drbSeries(n)
+          : rcnSeries(n);
     if (design.traits.extraSeries) series.push(design.traits.extraSeries);
     if (raw.kind === "trap" && !design.series)
-      series.splice(0, series.length, theme === "veto-h" ? "Skandal" : "İhbar");
+      series.splice(0, series.length, themeMeta(theme).trapSeries);
     const responseOnly =
       !design.traits.allowProactive &&
       Object.keys(design.traits).some((key) => key.startsWith("response"));

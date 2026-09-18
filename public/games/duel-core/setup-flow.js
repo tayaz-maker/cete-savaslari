@@ -7,6 +7,7 @@
  */
 import { AI_PROFILES, AI_PROFILE_IDS } from "./ai.js";
 import { deckBreakdown, deckCopy, findPreset, presetCardIds } from "./decks.js";
+import { pickLang, themeMeta } from "./theme-meta.js";
 
 export const SETUP_STEPS = 3;
 
@@ -14,16 +15,11 @@ const tr = (lang) => lang !== "en";
 
 /** Deck heading: these presets are the 40-card deck, not a cosmetic label. */
 export function deckHeading(theme, lang) {
-  if (theme === "veto-h") return tr(lang) ? "Kampanya Destesi" : "Campaign Deck";
-  return tr(lang) ? "Racon Destesi" : "Racon Deck";
+  return pickLang(themeMeta(theme).deckHeading, lang);
 }
 
 export function deckIntro(theme, lang) {
-  if (tr(lang))
-    return theme === "veto-h"
-      ? "Burada oynayacağın 40 kartlık desteyi seçiyorsun. Her seçenek farklı bir kart listesidir."
-      : "Burada oynayacağın 40 kartlık desteyi seçiyorsun. Her semt farklı bir kart listesidir.";
-  return "You are choosing the 40-card deck you will play. Each option is a different card list.";
+  return pickLang(themeMeta(theme).deckIntro, lang);
 }
 
 function stepLabels(lang) {

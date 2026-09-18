@@ -1,6 +1,8 @@
+import { LEGACY_SHARED_THEMES, SIBLING_THEMES } from "./theme-meta.js";
+
 export const SETTINGS_KEY = "tariklab.duel.settings.v1";
 export const settingsKey = (theme) =>
-  theme === "veto-h" || theme === "gett-oh" ? `tariklab.${theme}.settings.v1` : SETTINGS_KEY;
+  SIBLING_THEMES.includes(theme) ? `tariklab.${theme}.settings.v1` : SETTINGS_KEY;
 export const HISTORY_KEY = (theme) =>
   theme === "veto-h" ? "tariklab.veto-h.campaign-history.v1" : `tariklab.${theme}.history.v1`;
 export const HISTORY_CAP = 25;
@@ -12,6 +14,7 @@ export const DEFAULT_SETTINGS = {
   aiProfile: "controlled",
   campaignStyle: "halkci",
   neighborhood: "kadikoy",
+  commandDesk: "muhtira",
   motion: "on",
 };
 
@@ -23,7 +26,10 @@ const PROFILES = ["aggressive", "patient", "trapper", "gambler", "controlled"];
 export function loadSettings(storage, theme) {
   try {
     const themed = theme ? storage.getItem(settingsKey(theme)) : null;
-    const legacy = themed ? null : storage.getItem(SETTINGS_KEY);
+    // Unthemed reads and VETO/GETT may still hydrate from the historical shared
+    // key. DARBE-H! and any later sibling must not.
+    const allowLegacy = !theme || LEGACY_SHARED_THEMES.includes(theme);
+    const legacy = themed || !allowLegacy ? null : storage.getItem(SETTINGS_KEY);
     const raw = themed || legacy;
     if (!raw) return { ...DEFAULT_SETTINGS };
     const parsed = JSON.parse(raw);
@@ -60,6 +66,7 @@ export function sanitizeSettings(s = {}) {
     aiProfile: PROFILES.includes(s.aiProfile) ? s.aiProfile : "controlled",
     campaignStyle: typeof s.campaignStyle === "string" ? s.campaignStyle : "halkci",
     neighborhood: typeof s.neighborhood === "string" ? s.neighborhood : "kadikoy",
+    commandDesk: typeof s.commandDesk === "string" ? s.commandDesk : "muhtira",
     motion: s.motion === "reduced" ? "reduced" : "on",
   };
 }

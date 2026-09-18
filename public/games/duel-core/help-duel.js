@@ -5,6 +5,7 @@
  * is on screen, what one turn looks like, and what each button does. Only
  * behaviour that the engine actually implements is described here.
  */
+import { pickLang, themeMeta } from "./theme-meta.js";
 
 const VETO = {
   point: "OP",
@@ -28,10 +29,23 @@ const GETT = {
   tribute: { tr: "feda", en: "tribute" },
 };
 
+const DARBE = {
+  point: "KP",
+  pointLong: { tr: "Kriz Puanı", en: "Crisis Points" },
+  unit: { tr: "Görevli", en: "Officer" },
+  spell: { tr: "Emirname", en: "Order" },
+  trap: { tr: "İhtar", en: "Notice" },
+  battle: { tr: "Kriz", en: "Crisis" },
+  deck: { tr: "Kriz Destesi", en: "Crisis Deck" },
+  tribute: { tr: "paraf", en: "initial" },
+};
+
+const HELP_VOCAB = { "veto-h": VETO, "gett-oh": GETT, "darbe-h": DARBE };
+
 const pick = (value, lang) => (lang === "en" ? value.en : value.tr);
 
 function sections(theme, lang) {
-  const v = theme === "veto-h" ? VETO : GETT;
+  const v = HELP_VOCAB[theme] || GETT;
   const en = lang === "en";
   const P = v.point;
   const unit = pick(v.unit, lang);
@@ -40,7 +54,7 @@ function sections(theme, lang) {
   const battle = pick(v.battle, lang);
   const deck = pick(v.deck, lang);
   const tribute = pick(v.tribute, lang);
-  const game = theme === "veto-h" ? "VETO-H!" : "GETT-OH!";
+  const game = themeMeta(theme).name;
 
   if (en)
     return [
@@ -141,7 +155,7 @@ function sections(theme, lang) {
         list: [
           `A result screen shows the turning point, the standout card and an ${P} graph of the whole duel.`,
           `Action History lists every move of the duel, turn by turn.`,
-          `Your record is kept in ${theme === "veto-h" ? "Campaign File" : "Night File"}: duels played, wins, losses and your most-used cards.`,
+          `Your record is kept in ${pickLang(themeMeta(theme).recordFile, "en")}: duels played, wins, losses and your most-used cards.`,
           `The duel autosaves. Continue from the main menu resumes exactly where you left off, including a pending response.`,
         ],
       },
@@ -252,7 +266,7 @@ function sections(theme, lang) {
       list: [
         `Sonuç ekranı dönüm noktasını, öne çıkan kartı ve düello boyunca ${P} değişimini gösteren grafiği verir.`,
         `Hamle Geçmişi düellodaki bütün hamleleri tur tur listeler.`,
-        `${theme === "veto-h" ? "Kampanya dosyası" : "Gece dosyası"} bölümünde geçmişin tutulur: oynadığın düello sayısı, galibiyet, mağlubiyet ve en çok kullandığın kartlar.`,
+        `${pickLang(themeMeta(theme).recordFile, "tr")} bölümünde geçmişin tutulur: oynadığın düello sayısı, galibiyet, mağlubiyet ve en çok kullandığın kartlar.`,
         `Düello otomatik kaydedilir. Ana menüdeki Devam Et, bekleyen bir cevap varsa bile tam kaldığın yerden sürdürür.`,
       ],
     },

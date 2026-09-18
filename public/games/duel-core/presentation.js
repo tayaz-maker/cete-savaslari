@@ -1,9 +1,10 @@
 import { dispatch } from "./rules.js";
 import { legalActions } from "./actions.js";
+import { pickLang, themeMeta } from "./theme-meta.js";
 // Presentation-only vocabulary: engine command names and phase semantics stay stable.
 export function primaryTitle(view, theme, lang) {
   const tr = lang === "tr",
-    veto = theme === "veto-h";
+    meta = themeMeta(theme);
   switch (view.phase) {
     case "draw":
       return tr ? "Kart Çek" : "Draw Card";
@@ -14,76 +15,34 @@ export function primaryTitle(view, theme, lang) {
         ? tr
           ? "Turu Bitir"
           : "End Turn"
-        : veto
-          ? tr
-            ? "Tartışmaya Geç"
-            : "Enter Debate"
-          : tr
-            ? "Kapışmaya Geç"
-            : "Enter Clash";
+        : pickLang(meta.battleEnter, lang);
     case "battle":
-      return veto ? (tr ? "Tartışmayı Bitir" : "End Debate") : tr ? "Kapışmayı Bitir" : "End Clash";
+      return pickLang(meta.battleEnd, lang);
     default:
       return tr ? "Turu Bitir" : "End Turn";
   }
 }
 export function cardActionTitle(action, card, view, theme, lang, fallback) {
   const tr = lang === "tr",
-    veto = theme === "veto-h";
+    meta = themeMeta(theme);
   if (action.type === "phase") return primaryTitle(view, theme, lang);
   if (action.type === "end-main") return tr ? "Turu Bitir" : "End Turn";
   if (action.type === "summon")
     return action.tributes?.length
-      ? veto
-        ? tr
-          ? "İstifa ile Çağır"
-          : "Summon by Resignation"
-        : tr
-          ? "Adam Yakarak Sür"
-          : "Tribute Crew"
-      : veto
-        ? tr
-          ? "Normal Çağır"
-          : "Normal Summon"
-        : tr
-          ? "Sahaya Sür"
-          : "Deploy Crew";
+      ? pickLang(meta.tributeSummon, lang)
+      : pickLang(meta.normalSummon, lang);
   if (action.type === "set-unit" || action.type === "set-support")
-    return tr ? (veto ? "Set Et" : "Setle") : "Set";
+    return pickLang(meta.setVerb, lang);
   if (action.type === "attack")
     return action.target === null
-      ? veto
-        ? tr
-          ? "Açık Miting"
-          : "Open Rally"
-        : tr
-          ? "Kapıya Dayan"
-          : "Storm the Door"
-      : veto
-        ? tr
-          ? "Tartış"
-          : "Debate"
-        : tr
-          ? "Kapış"
-          : "Clash";
+      ? pickLang(meta.directAttack, lang)
+      : pickLang(meta.unitAttack, lang);
   if (action.type === "respond") return tr ? "Cevap Ver" : "Respond";
   if (action.type === "pass") return tr ? "Geç" : "Pass";
   if (action.type === "activate" && card?.kind !== "unit")
-    return veto
-      ? card?.kind === "trap"
-        ? tr
-          ? "Skandalı Aç"
-          : "Reveal Scandal"
-        : tr
-          ? "Kampanyayı Aç"
-          : "Launch Campaign"
-      : card?.kind === "trap"
-        ? tr
-          ? "İhbarı Aç"
-          : "Reveal Tip-off"
-        : tr
-          ? "Raconu Aç"
-          : "Play Racon";
+    return card?.kind === "trap"
+      ? pickLang(meta.activateTrap, lang)
+      : pickLang(meta.activateSpell, lang);
   return fallback;
 }
 
