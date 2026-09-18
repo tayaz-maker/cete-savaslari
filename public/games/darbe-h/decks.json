@@ -1,0 +1,901 @@
+{
+  "schemaVersion": 1,
+  "theme": "darbe-h",
+  "decks": [
+    {
+      "id": "muhtira",
+      "name": {
+        "tr": "Muhtıra",
+        "en": "Memorandum"
+      },
+      "blurb": {
+        "tr": "İhtarları setle, acele eden masayı boz. Yavaş başlar, geç kilitlersin.",
+        "en": "Set notices and spoil the hurried desk. Slow to start, late to lock."
+      },
+      "cards": [
+        {
+          "id": "DRB-015",
+          "count": 1
+        },
+        {
+          "id": "DRB-131",
+          "count": 1
+        },
+        {
+          "id": "DRB-081",
+          "count": 1
+        },
+        {
+          "id": "DRB-013",
+          "count": 1
+        },
+        {
+          "id": "DRB-083",
+          "count": 1
+        },
+        {
+          "id": "DRB-009",
+          "count": 1
+        },
+        {
+          "id": "DRB-042",
+          "count": 1
+        },
+        {
+          "id": "DRB-041",
+          "count": 1
+        },
+        {
+          "id": "DRB-086",
+          "count": 1
+        },
+        {
+          "id": "DRB-037",
+          "count": 1
+        },
+        {
+          "id": "DRB-005",
+          "count": 1
+        },
+        {
+          "id": "DRB-118",
+          "count": 1
+        },
+        {
+          "id": "DRB-014",
+          "count": 1
+        },
+        {
+          "id": "DRB-074",
+          "count": 1
+        },
+        {
+          "id": "DRB-145",
+          "count": 1
+        },
+        {
+          "id": "DRB-146",
+          "count": 1
+        },
+        {
+          "id": "DRB-065",
+          "count": 1
+        },
+        {
+          "id": "DRB-032",
+          "count": 1
+        },
+        {
+          "id": "DRB-114",
+          "count": 1
+        },
+        {
+          "id": "DRB-045",
+          "count": 1
+        },
+        {
+          "id": "DRB-087",
+          "count": 1
+        },
+        {
+          "id": "DRB-169",
+          "count": 1
+        },
+        {
+          "id": "DRB-124",
+          "count": 1
+        },
+        {
+          "id": "DRB-197",
+          "count": 1
+        },
+        {
+          "id": "DRB-216",
+          "count": 1
+        },
+        {
+          "id": "DRB-239",
+          "count": 1
+        },
+        {
+          "id": "DRB-233",
+          "count": 1
+        },
+        {
+          "id": "DRB-237",
+          "count": 1
+        },
+        {
+          "id": "DRB-185",
+          "count": 1
+        },
+        {
+          "id": "DRB-212",
+          "count": 1
+        },
+        {
+          "id": "DRB-205",
+          "count": 1
+        },
+        {
+          "id": "DRB-225",
+          "count": 1
+        },
+        {
+          "id": "DRB-234",
+          "count": 1
+        },
+        {
+          "id": "DRB-187",
+          "count": 1
+        },
+        {
+          "id": "DRB-262",
+          "count": 1
+        },
+        {
+          "id": "DRB-261",
+          "count": 1
+        },
+        {
+          "id": "DRB-281",
+          "count": 1
+        },
+        {
+          "id": "DRB-269",
+          "count": 1
+        },
+        {
+          "id": "DRB-251",
+          "count": 1
+        },
+        {
+          "id": "DRB-296",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "DRB-163",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "tebligat",
+      "name": {
+        "tr": "Tebligat",
+        "en": "Dispatch"
+      },
+      "blurb": {
+        "tr": "Telex erken düşer. Doğrudan baskı ve tempo; boş saha seni geç yener.",
+        "en": "The telex lands early. Direct pressure and tempo; an empty field beats you late."
+      },
+      "cards": [
+        {
+          "id": "DRB-015",
+          "count": 1
+        },
+        {
+          "id": "DRB-013",
+          "count": 1
+        },
+        {
+          "id": "DRB-009",
+          "count": 1
+        },
+        {
+          "id": "DRB-005",
+          "count": 1
+        },
+        {
+          "id": "DRB-014",
+          "count": 1
+        },
+        {
+          "id": "DRB-006",
+          "count": 1
+        },
+        {
+          "id": "DRB-018",
+          "count": 1
+        },
+        {
+          "id": "DRB-022",
+          "count": 1
+        },
+        {
+          "id": "DRB-019",
+          "count": 1
+        },
+        {
+          "id": "DRB-001",
+          "count": 1
+        },
+        {
+          "id": "DRB-010",
+          "count": 1
+        },
+        {
+          "id": "DRB-020",
+          "count": 1
+        },
+        {
+          "id": "DRB-004",
+          "count": 1
+        },
+        {
+          "id": "DRB-016",
+          "count": 1
+        },
+        {
+          "id": "DRB-011",
+          "count": 1
+        },
+        {
+          "id": "DRB-002",
+          "count": 1
+        },
+        {
+          "id": "DRB-012",
+          "count": 1
+        },
+        {
+          "id": "DRB-021",
+          "count": 1
+        },
+        {
+          "id": "DRB-131",
+          "count": 1
+        },
+        {
+          "id": "DRB-081",
+          "count": 1
+        },
+        {
+          "id": "DRB-083",
+          "count": 1
+        },
+        {
+          "id": "DRB-042",
+          "count": 1
+        },
+        {
+          "id": "DRB-041",
+          "count": 1
+        },
+        {
+          "id": "DRB-197",
+          "count": 1
+        },
+        {
+          "id": "DRB-216",
+          "count": 1
+        },
+        {
+          "id": "DRB-239",
+          "count": 1
+        },
+        {
+          "id": "DRB-233",
+          "count": 1
+        },
+        {
+          "id": "DRB-237",
+          "count": 1
+        },
+        {
+          "id": "DRB-185",
+          "count": 1
+        },
+        {
+          "id": "DRB-212",
+          "count": 1
+        },
+        {
+          "id": "DRB-205",
+          "count": 1
+        },
+        {
+          "id": "DRB-225",
+          "count": 1
+        },
+        {
+          "id": "DRB-234",
+          "count": 1
+        },
+        {
+          "id": "DRB-187",
+          "count": 1
+        },
+        {
+          "id": "DRB-262",
+          "count": 1
+        },
+        {
+          "id": "DRB-261",
+          "count": 1
+        },
+        {
+          "id": "DRB-281",
+          "count": 1
+        },
+        {
+          "id": "DRB-269",
+          "count": 1
+        },
+        {
+          "id": "DRB-251",
+          "count": 1
+        },
+        {
+          "id": "DRB-296",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "DRB-163",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "karargah",
+      "name": {
+        "tr": "Karargâh",
+        "en": "Command Post"
+      },
+      "blurb": {
+        "tr": "Heyeti kalabalık tut. Orta saha ve paraflı çağrı.",
+        "en": "Keep the panel crowded. Mid-board presence and signed summons."
+      },
+      "cards": [
+        {
+          "id": "DRB-131",
+          "count": 1
+        },
+        {
+          "id": "DRB-081",
+          "count": 1
+        },
+        {
+          "id": "DRB-083",
+          "count": 1
+        },
+        {
+          "id": "DRB-086",
+          "count": 1
+        },
+        {
+          "id": "DRB-118",
+          "count": 1
+        },
+        {
+          "id": "DRB-074",
+          "count": 1
+        },
+        {
+          "id": "DRB-065",
+          "count": 1
+        },
+        {
+          "id": "DRB-114",
+          "count": 1
+        },
+        {
+          "id": "DRB-045",
+          "count": 1
+        },
+        {
+          "id": "DRB-087",
+          "count": 1
+        },
+        {
+          "id": "DRB-124",
+          "count": 1
+        },
+        {
+          "id": "DRB-132",
+          "count": 1
+        },
+        {
+          "id": "DRB-060",
+          "count": 1
+        },
+        {
+          "id": "DRB-051",
+          "count": 1
+        },
+        {
+          "id": "DRB-122",
+          "count": 1
+        },
+        {
+          "id": "DRB-059",
+          "count": 1
+        },
+        {
+          "id": "DRB-127",
+          "count": 1
+        },
+        {
+          "id": "DRB-113",
+          "count": 1
+        },
+        {
+          "id": "DRB-128",
+          "count": 1
+        },
+        {
+          "id": "DRB-078",
+          "count": 1
+        },
+        {
+          "id": "DRB-064",
+          "count": 1
+        },
+        {
+          "id": "DRB-123",
+          "count": 1
+        },
+        {
+          "id": "DRB-082",
+          "count": 1
+        },
+        {
+          "id": "DRB-197",
+          "count": 1
+        },
+        {
+          "id": "DRB-216",
+          "count": 1
+        },
+        {
+          "id": "DRB-239",
+          "count": 1
+        },
+        {
+          "id": "DRB-233",
+          "count": 1
+        },
+        {
+          "id": "DRB-237",
+          "count": 1
+        },
+        {
+          "id": "DRB-185",
+          "count": 1
+        },
+        {
+          "id": "DRB-212",
+          "count": 1
+        },
+        {
+          "id": "DRB-205",
+          "count": 1
+        },
+        {
+          "id": "DRB-225",
+          "count": 1
+        },
+        {
+          "id": "DRB-234",
+          "count": 1
+        },
+        {
+          "id": "DRB-187",
+          "count": 1
+        },
+        {
+          "id": "DRB-262",
+          "count": 1
+        },
+        {
+          "id": "DRB-261",
+          "count": 1
+        },
+        {
+          "id": "DRB-281",
+          "count": 1
+        },
+        {
+          "id": "DRB-269",
+          "count": 1
+        },
+        {
+          "id": "DRB-251",
+          "count": 1
+        },
+        {
+          "id": "DRB-296",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "DRB-069",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "istisare",
+      "name": {
+        "tr": "İstişare",
+        "en": "Consultation"
+      },
+      "blurb": {
+        "tr": "Brifing uzar, kart akar. Uzun krize oyna.",
+        "en": "The briefing runs long and cards flow. Play the long crisis."
+      },
+      "cards": [
+        {
+          "id": "DRB-042",
+          "count": 1
+        },
+        {
+          "id": "DRB-041",
+          "count": 1
+        },
+        {
+          "id": "DRB-037",
+          "count": 1
+        },
+        {
+          "id": "DRB-145",
+          "count": 1
+        },
+        {
+          "id": "DRB-146",
+          "count": 1
+        },
+        {
+          "id": "DRB-032",
+          "count": 1
+        },
+        {
+          "id": "DRB-033",
+          "count": 1
+        },
+        {
+          "id": "DRB-133",
+          "count": 1
+        },
+        {
+          "id": "DRB-109",
+          "count": 1
+        },
+        {
+          "id": "DRB-036",
+          "count": 1
+        },
+        {
+          "id": "DRB-140",
+          "count": 1
+        },
+        {
+          "id": "DRB-096",
+          "count": 1
+        },
+        {
+          "id": "DRB-141",
+          "count": 1
+        },
+        {
+          "id": "DRB-024",
+          "count": 1
+        },
+        {
+          "id": "DRB-100",
+          "count": 1
+        },
+        {
+          "id": "DRB-028",
+          "count": 1
+        },
+        {
+          "id": "DRB-154",
+          "count": 1
+        },
+        {
+          "id": "DRB-095",
+          "count": 1
+        },
+        {
+          "id": "DRB-137",
+          "count": 1
+        },
+        {
+          "id": "DRB-023",
+          "count": 1
+        },
+        {
+          "id": "DRB-142",
+          "count": 1
+        },
+        {
+          "id": "DRB-101",
+          "count": 1
+        },
+        {
+          "id": "DRB-091",
+          "count": 1
+        },
+        {
+          "id": "DRB-197",
+          "count": 1
+        },
+        {
+          "id": "DRB-216",
+          "count": 1
+        },
+        {
+          "id": "DRB-239",
+          "count": 1
+        },
+        {
+          "id": "DRB-233",
+          "count": 1
+        },
+        {
+          "id": "DRB-237",
+          "count": 1
+        },
+        {
+          "id": "DRB-185",
+          "count": 1
+        },
+        {
+          "id": "DRB-212",
+          "count": 1
+        },
+        {
+          "id": "DRB-205",
+          "count": 1
+        },
+        {
+          "id": "DRB-225",
+          "count": 1
+        },
+        {
+          "id": "DRB-234",
+          "count": 1
+        },
+        {
+          "id": "DRB-187",
+          "count": 1
+        },
+        {
+          "id": "DRB-262",
+          "count": 1
+        },
+        {
+          "id": "DRB-261",
+          "count": 1
+        },
+        {
+          "id": "DRB-281",
+          "count": 1
+        },
+        {
+          "id": "DRB-269",
+          "count": 1
+        },
+        {
+          "id": "DRB-251",
+          "count": 1
+        },
+        {
+          "id": "DRB-296",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "DRB-073",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "zeyilname",
+      "name": {
+        "tr": "Zeyilname",
+        "en": "Addendum"
+      },
+      "blurb": {
+        "tr": "Arşiv konuşur. Mezarlıktan dönüş ve son zeyil.",
+        "en": "The archive speaks. Grave returns and a last addendum."
+      },
+      "cards": [
+        {
+          "id": "DRB-145",
+          "count": 1
+        },
+        {
+          "id": "DRB-146",
+          "count": 1
+        },
+        {
+          "id": "DRB-169",
+          "count": 1
+        },
+        {
+          "id": "DRB-133",
+          "count": 1
+        },
+        {
+          "id": "DRB-140",
+          "count": 1
+        },
+        {
+          "id": "DRB-141",
+          "count": 1
+        },
+        {
+          "id": "DRB-154",
+          "count": 1
+        },
+        {
+          "id": "DRB-168",
+          "count": 1
+        },
+        {
+          "id": "DRB-137",
+          "count": 1
+        },
+        {
+          "id": "DRB-142",
+          "count": 1
+        },
+        {
+          "id": "DRB-164",
+          "count": 1
+        },
+        {
+          "id": "DRB-151",
+          "count": 1
+        },
+        {
+          "id": "DRB-150",
+          "count": 1
+        },
+        {
+          "id": "DRB-155",
+          "count": 1
+        },
+        {
+          "id": "DRB-136",
+          "count": 1
+        },
+        {
+          "id": "DRB-170",
+          "count": 1
+        },
+        {
+          "id": "DRB-143",
+          "count": 1
+        },
+        {
+          "id": "DRB-134",
+          "count": 1
+        },
+        {
+          "id": "DRB-156",
+          "count": 1
+        },
+        {
+          "id": "DRB-166",
+          "count": 1
+        },
+        {
+          "id": "DRB-135",
+          "count": 1
+        },
+        {
+          "id": "DRB-152",
+          "count": 1
+        },
+        {
+          "id": "DRB-015",
+          "count": 1
+        },
+        {
+          "id": "DRB-197",
+          "count": 1
+        },
+        {
+          "id": "DRB-216",
+          "count": 1
+        },
+        {
+          "id": "DRB-239",
+          "count": 1
+        },
+        {
+          "id": "DRB-233",
+          "count": 1
+        },
+        {
+          "id": "DRB-237",
+          "count": 1
+        },
+        {
+          "id": "DRB-185",
+          "count": 1
+        },
+        {
+          "id": "DRB-212",
+          "count": 1
+        },
+        {
+          "id": "DRB-205",
+          "count": 1
+        },
+        {
+          "id": "DRB-225",
+          "count": 1
+        },
+        {
+          "id": "DRB-234",
+          "count": 1
+        },
+        {
+          "id": "DRB-187",
+          "count": 1
+        },
+        {
+          "id": "DRB-262",
+          "count": 1
+        },
+        {
+          "id": "DRB-261",
+          "count": 1
+        },
+        {
+          "id": "DRB-281",
+          "count": 1
+        },
+        {
+          "id": "DRB-269",
+          "count": 1
+        },
+        {
+          "id": "DRB-251",
+          "count": 1
+        },
+        {
+          "id": "DRB-296",
+          "count": 1
+        }
+      ],
+      "auxiliary": [
+        {
+          "id": "DRB-163",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}
