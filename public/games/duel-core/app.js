@@ -42,7 +42,7 @@ import {
   historyBody,
   actionLogBody,
 } from "./match-ux.js";
-import { cardArt, identityPatch, identityValue, pickLang, themeMeta } from "./theme-meta.js";
+import { cardArt, flowWords, identityPatch, identityValue, pickLang, themeMeta } from "./theme-meta.js";
 
 /**
  * The one rule for what may become a child node.
@@ -1566,6 +1566,7 @@ export async function startApp(theme, designs) {
       foe: t("opponent"),
       mine: e.player === 0,
       name: uid ? cname(uid, v) : "",
+      words: flowWords(theme, lang),
     };
   }
   function board() {

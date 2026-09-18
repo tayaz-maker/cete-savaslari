@@ -72,6 +72,14 @@ const DARBE_LABELS = {
   },
 };
 
+// The match rail's two theme-bound nouns. VETO-H! and GETT-OH! are frozen, so
+// both keep the wording their players already see; only a theme that declares
+// its own overrides it.
+const FLOW_COPY_DEFAULT = {
+  graveTo: { tr: "Atılan Kartlar’a", en: "the graveyard" },
+  tribute: { tr: "adak", en: "a tribute" },
+};
+
 export const THEME_META = {
   "veto-h": {
     name: "VETO-H!",
@@ -107,6 +115,7 @@ export const THEME_META = {
     activateTrap: { tr: "Skandalı Aç", en: "Reveal Scandal" },
     activateSpell: { tr: "Kampanyayı Aç", en: "Launch Campaign" },
     recordFile: { tr: "Kampanya dosyası", en: "Campaign File" },
+    flowCopy: FLOW_COPY_DEFAULT,
   },
   "gett-oh": {
     name: "GETT-OH!",
@@ -142,6 +151,7 @@ export const THEME_META = {
     activateTrap: { tr: "İhbarı Aç", en: "Reveal Tip-off" },
     activateSpell: { tr: "Raconu Aç", en: "Play Racon" },
     recordFile: { tr: "Gece dosyası", en: "Night File" },
+    flowCopy: FLOW_COPY_DEFAULT,
   },
   "darbe-h": {
     name: "DARBE-H!",
@@ -177,6 +187,10 @@ export const THEME_META = {
     activateTrap: { tr: "İhtarı Aç", en: "Open the Notice" },
     activateSpell: { tr: "Emirnameyi Oku", en: "Read the Order" },
     recordFile: { tr: "Kriz dosyası", en: "Crisis File" },
+    flowCopy: {
+      graveTo: { tr: "Arşiv’e", en: "the archive" },
+      tribute: { tr: "paraf", en: "a countersignature" },
+    },
   },
 };
 
@@ -256,4 +270,11 @@ export function cardArt(theme, card) {
 export function pickLang(value, lang) {
   if (!value || typeof value === "string") return value || "";
   return lang === "en" ? value.en || value.tr : value.tr || value.en;
+}
+
+/** The rail's theme-bound nouns, with the frozen siblings' wording as default. */
+export function flowWords(theme, lang) {
+  const flow = themeMeta(theme).flowCopy || FLOW_COPY_DEFAULT;
+  const pick = (v) => (lang === "en" ? v.en : v.tr);
+  return { graveTo: pick(flow.graveTo), tribute: pick(flow.tribute) };
 }

@@ -13,11 +13,25 @@
  * words what the engine already did.
  */
 
+/**
+ * The two nouns the match rail borrows from the theme. The rail used to print
+ * VETO-H!'s "Atılan Kartlar" and the shared "adak" for every sibling, so a
+ * DARBE-H! match narrated its own Arşiv as a campaign discard pile. Callers
+ * pass `words`; the defaults are what the frozen siblings already print, so
+ * VETO-H! and GETT-OH! output is unchanged.
+ */
+const DEFAULT_WORDS = {
+  tr: { graveTo: "Atılan Kartlar’a", tribute: "adak" },
+  en: { graveTo: "the graveyard", tribute: "a tribute" },
+};
+const themeWords = (ctx) => ({ ...DEFAULT_WORDS[ctx?.lang === "en" ? "en" : "tr"], ...(ctx?.words || {}) });
+const resolve = (value, words) => (typeof value === "function" ? value(words) : value);
+
 /** Why a card left where it was, in the player's words. */
 const MOVE_REASON = {
   tr: {
-    tribute: "adak olarak verildi",
-    "tribute-replacement": "adak yerine geçti",
+    tribute: (w) => `${w.tribute} olarak verildi`,
+    "tribute-replacement": (w) => `${w.tribute} yerine geçti`,
     discard: "elden atıldı",
     "hand-limit": "el sınırı için atıldı",
     battle: "savaşta yenildi",
@@ -42,7 +56,7 @@ const MOVE_REASON = {
     "control-return": "sahibine geri döndü",
   },
   en: {
-    tribute: "given as a tribute",
+    tribute: (w) => `given as ${w.tribute}`,
     "tribute-replacement": "used in place of a tribute",
     discard: "discarded",
     "hand-limit": "discarded for the hand limit",
@@ -75,7 +89,7 @@ const DESTINATION = {
     units: { own: "sahaya sürdün", foe: "sahaya sürdü", note: "Artık savaşabilir." },
     support: { own: "oynadın", foe: "oynadı", note: "Destek bölgesinde duruyor." },
     hand: { own: "eline aldın", foe: "eline aldı", note: "Tekrar oynanabilir." },
-    grave: { own: "Atılan Kartlar’a gönderdin", foe: "Atılan Kartlar’a gönderdi", note: "" },
+    grave: (w) => ({ own: `${w.graveTo} gönderdin`, foe: `${w.graveTo} gönderdi`, note: "" }),
     banished: {
       own: "oyun dışı bıraktın",
       foe: "oyun dışı bıraktı",
@@ -97,7 +111,7 @@ const DESTINATION = {
     units: { own: "put onto the field", foe: "put onto the field", note: "It can battle now." },
     support: { own: "played", foe: "played", note: "It sits in the support row." },
     hand: { own: "returned to hand", foe: "returned to hand", note: "It can be played again." },
-    grave: { own: "sent to the graveyard", foe: "sent to the graveyard", note: "" },
+    grave: (w) => ({ own: `sent to ${w.graveTo}`, foe: `sent to ${w.graveTo}`, note: "" }),
     banished: { own: "banished", foe: "banished", note: "It will not come back this duel." },
     deck: {
       own: "returned to the deck",
@@ -119,6 +133,7 @@ const DESTINATION = {
  */
 export function eventStory(event, ctx) {
   const { lang, name, point, you, foe, mine } = ctx;
+  const words = themeWords(ctx);
   const tr = lang !== "en";
   const who = mine ? you : foe;
   const label = name ? `“${name}”` : "";
@@ -131,7 +146,7 @@ export function eventStory(event, ctx) {
         ? `${who} ${label} kartını sahaya çıkardı.`
         : `${who} brought ${label} to the field.`;
     case "tribute":
-      return tr ? `${label} adak olarak verildi.` : `${label} was given as a tribute.`;
+      return tr ? `${label} ${words.tribute} olarak verildi.` : `${label} was given as ${words.tribute}.`;
     case "set":
       return tr
         ? `${who} bir kartı kapalı koydu. Uygun anda açılabilir.`
@@ -173,8 +188,9 @@ export function eventStory(event, ctx) {
 export function moveStory(event, ctx) {
   const { lang, name, mine } = ctx;
   const tr = lang !== "en";
-  const dest = DESTINATION[tr ? "tr" : "en"][event.to];
-  const reason = MOVE_REASON[tr ? "tr" : "en"][event.reason];
+  const words = themeWords(ctx);
+  const dest = resolve(DESTINATION[tr ? "tr" : "en"][event.to], words);
+  const reason = resolve(MOVE_REASON[tr ? "tr" : "en"][event.reason], words);
   const who = mine ? ctx.you : ctx.foe;
   const label = name ? `“${name}”` : tr ? "bir kart" : "a card";
   if (!dest) return null;
