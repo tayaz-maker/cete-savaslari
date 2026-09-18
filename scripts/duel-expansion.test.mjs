@@ -314,10 +314,11 @@ for (const [theme, pool] of Object.entries(pools)) {
   });
 }
 
-test("expansion traps retain the legacy Scandal/Tip-off search identity", () => {
+test("expansion traps retain the legacy Scandal/Tip-off/Notice search identity", () => {
+  const trapSeries = { "veto-h": "Skandal", "gett-oh": "İhbar", "darbe-h": "İhtar" };
   for (const [theme, pool] of Object.entries(pools))
     for (const c of pool.slice(150).filter((c) => c.kind === "trap"))
-      assert.ok(c.series.includes(theme === "veto-h" ? "Skandal" : "İhbar"), c.id);
+      assert.ok(c.series.includes(trapSeries[theme]), `${c.id} series=${c.series}`);
 });
 test("new discard clauses consume real other cards, never their resolving source", () => {
   let s = fixture("veto-h");
