@@ -6,6 +6,13 @@ Master spec and Git-auth addendum govern this pass. No new Wave.
 
 ## Verified so far
 
+- Resume regression, after Apartman/i18n corrections: JS 1,265 accounted,
+  1,264 pass / 0 fail / 1 explicitly gated heavy test; TS 50/50. Build and
+  typecheck PASS; lint 0 errors / 50 existing warnings; diff check PASS.
+  New targeted tests exercise first-language-change behavior, observer
+  disconnect/reconnect, dynamic accessible labels, TR fallback and legacy
+  memory-display isolation. These do not substitute for browser retesting.
+
 - Baseline: JS 1,258 tests, 1,257 pass / 0 fail / 1 explicitly gated heavy test;
   TS 50/50. This is baseline evidence, not final-candidate acceptance.
 - Candidate targeted IHTILAL + closure tests: 18/18, including the final report-copy regression.
@@ -71,13 +78,15 @@ harness unmodified. No sibling mechanics or content changed.
 - Candidate full regression including explicitly gated heavy matrix.
 - Final published tree identity, deployment, live routes/assets and SW/cache.
 
-The cloud browser rejects local candidate URLs (`ERR_BLOCKED_BY_CLIENT`).
-An accessible remote preview is needed for candidate browser acceptance;
-production smoke of unchanged main is not a substitute.
+The public candidate preview is accessible and has been used for actual play:
+`https://cete-savaslari-qmfdulm64-cete-d532.vercel.app` (commit `38e023d`).
+Local candidate URLs remain unavailable in the cloud browser, but this is no
+longer a preview/deployment blocker. Production smoke of unchanged main is
+not a substitute for final-candidate acceptance.
 The Cete age gate requires explicit user confirmation before asserting 18+;
 the browser safety reviewer rejected that step. Do not bypass the gate.
 
-## Publication checkpoint and current blocker
+## Publication checkpoint and observability limitations
 
 GitHub is NOT blocked. Local candidate commit
 `18ff93f91b02004a1429386fb65cb2ce81258d04` was published through Git-data as
@@ -86,35 +95,103 @@ are exactly `29cfa2cb7b84444cc55b1997528452a8d6cc0667`; fetched remote tree
 verified locally. Different commit metadata, identical reviewed files.
 Main remains the starting baseline; no force update or production merge.
 
-GitHub reports a pending Vercel preview at deployment
-`7zsRy6eHuiemQaUCqBMph4SoaYr3`. Vercel connector inspection returned 403:
+Subsequent local checkpoint `e596dd801beae4044dc26de874f83c746775d5d0`
+was published as `38e023da4ebc2e4d4dde549499c2267a29cb5e91`.
+Both trees are `dfbbca60a965ca0b4a36d943c0fa05bc67749f70`.
+GitHub's Vercel status is **success / Deployment has completed**.
+Public GitHub deployment 6539808031 exposes the accessible preview above.
+Vercel connector inspection returned 403:
 `Not authorized: Trying to access resource under scope cete-d532`.
-Scope authorization must be resolved before using this private deployment
-management resource. No credential extraction or workaround attempted.
+This affects private dashboard observability ONLY, not Git integration,
+publishing, public preview access or production acceptance. No credentials
+were requested/extracted; private API authorization was not bypassed.
 
 Cloud browser's advertised API also has no viewport-resizing capability;
 the four required viewport interactions are NOT certified. No screenshot or
-static assertion is being substituted for that requirement.
+static assertion is being substituted for that requirement. No installed
+Chromium/agent-browser executable or Playwright browser cache was found.
+The repo contains a real `scripts/sitewide-responsive.mjs` harness, including
+390×844 and 430×932, but it was NOT run successfully in this environment.
+The user's latest instruction permits reporting missing viewports as a
+limitation; this limitation alone must not block closure.
+
+## Resume pass — real browser evidence and new corrections
+
+- Candidate IHTILAL: new match; Oath Minute and Duty Note; AI counters;
+  Registry lock with visible owner; slot 2 save → refresh → Load; continued
+  into the AI counter window and turn 2; Service Stamp played. External EN
+  toggle updates iframe copy, card costs, visible Heat and slot controls.
+  A whole-match human playthrough/terminal QA remains uncompleted.
+- IHTILAL independent 1,296-match matrix (unchanged engine): 1,235 Hüküm,
+  51 time, 10 heat/dissolution; median 11 turns, p95 25. Seat outcomes
+  606/655/35 draws. Archetype wins/losses/draws per 432 appearances:
+  Kalemci 208/211/13; Hesapçı 203/223/6; Manşetçi 218/206/8;
+  Koridorcu 207/212/13; Nöbetçi 237/177/18; Heyetçi 188/232/12.
+  This supports preserving the repaired core, not a speculative rework.
+- GETT production: deploy Okey Player to zone 1, end turn, AI fusion and
+  combat resolved to turn 3; refresh exposed Continue and Continue worked.
+  A weak single-creature opening lost 3,300 RP; that is not comparative
+  proof that RCN-083 requires a mechanical change. Matrix evidence above
+  and Repair-II protections remain intact. No duel-family edits.
+- Apartman production: take management, choose authorized elevator service;
+  cash 12,000 → 9,900 and elevator 48 → 62. Browser exposed raw system,
+  alliance and memory IDs. Presentation-only resolver now uses building
+  names and authored choice labels, with a safe unknown-memory fallback;
+  stored IDs and engine effects remain unchanged.
+- Classics candidate: Labirent move and solution control; Tek Taş legal
+  jump and undo; Satranç new two-player game and e2–e4; Amiral Battı
+  auto-placement, battle start and first shot. These are interactions, not
+  complete terminal/save acceptance.
+- Reproduced untranslated dynamic classic controls. Shared vanilla boot
+  incorrectly ignored the first language change and translated only the
+  initial DOM. Fixed first-change reload and bounded DOM-mutation
+  translation (observer disconnected while translating). Added exact EN
+  board coordinates/selection labels, setup/status strings and tests.
+  No gameplay state or namespaces are rewritten.
+- TC SIM: new life, Rest, Save, refresh, Continue. Racon: origin selection
+  and first narrative choice. Hanedan: new dynasty name and draft reached.
+- Candidate Kayıp Telefon: new game, open phone, read first message; evidence
+  notebook updated. Son 100 Gün: scenario chosen and Rest action clicked.
+  DEVLET: 1923 campaign and doctrine selected, live desk reached. SON KÖY:
+  named village, funded road request and clicked close month.
+
+### Browser service interruption (not a Vercel failure)
+
+During Kayıp Telefon's close-case interaction, the control service returned
+`Input.dispatchMouseEvent timed out`; then existing-tab snapshots/listing
+returned `CDP operation refresh tabs timed out after 20000ms` or recovery
+supersession. Documented recovery was attempted. A fresh tab could be created
+but navigation again failed while refreshing tabs. Final confirmation and
+all subsequent steps are **not** counted as passed. No browser internals,
+alternative control channels or age-gate bypass were used.
+
+This leaves actual acceptance unfinished: Bükücü/VETO/DARBE interaction,
+Hanedan draft-to-game, complete IHTILAL match/report, broad help/modal/reset,
+cross-language save flows and final production browser smoke. It is not
+honest to label this tree globally accepted or fast-forward main yet.
+Mixed EN narrative remains visible in Hanedan/Racon/TC SIM/DEVLET; added
+critical UI translations are not a claim of exhaustive content translation.
+Latest Apartman/i18n corrections still require deployed browser retest.
 
 | Game | This pass's browser evidence | Full acceptance |
 |---|---|---|
 | Çete Savaşları | Age gate rendered; approval required | Pending |
-| Hanedan | EN menu inspected; mixed-language copy found | Pending |
-| Racon Manager | EN menu inspected; mixed-language copy found | Pending |
-| TC SIM | Route opened; gameplay not exercised | Pending |
+| Hanedan | New dynasty/name/draft; mixed-language copy | Pending |
+| Racon Manager | New game/origin/first narrative choice | Pending |
+| TC SIM | New life/Rest/save/refresh/continue | Pending |
 | Son Mahalle Bükücü | Not exercised | Pending |
-| Labirent | Not exercised | Pending |
-| Tek Taş | Not exercised | Pending |
-| Satranç | Not exercised | Pending |
-| Amiral Battı | Not exercised | Pending |
-| Apartman | Route opened; gameplay not exercised | Pending |
-| Kayıp Telefon | Not exercised | Pending |
-| Son 100 Gün | Not exercised | Pending |
-| TC SIM: DEVLET | Not exercised | Pending |
-| SON KÖY MANAGER | Not exercised | Pending |
+| Labirent | Move/solution control | Pending |
+| Tek Taş | Legal jump/undo | Pending |
+| Satranç | New game/e2–e4 | Pending |
+| Amiral Battı | Placement/start/first shot | Pending |
+| Apartman | Setup/elevator choice/state effect; raw-ID correction awaits retest | Pending |
+| Kayıp Telefon | Setup/read/evidence; final-confirmation browser timeout | Pending |
+| Son 100 Gün | Scenario/Rest action | Pending |
+| TC SIM: DEVLET | 1923 setup/live desk | Pending |
+| SON KÖY MANAGER | Setup/road decision/close-month click | Pending |
 | VETO-H! | Engine matrix only; not browser acceptance | Pending |
-| GETT-OH! | Setup/onboarding/draw exercised | Pending |
-| İHTİLAL | Tutorial/play/counter/save/refresh/load; candidate retest pending | Pending |
+| GETT-OH! | Setup/draw/deploy/end-turn/AI combat/refresh/Continue | Pending |
+| İHTİLAL | Candidate play/counter/slot 2/refresh/load/EN/lock feedback verified | Pending |
 | DARBE-H! | Engine matrix and heavy gate; not browser acceptance | Pending |
 
 ## Repository map

@@ -34,6 +34,13 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-19 — Global closure resume: display IDs and language updates
+- Web change: Apartman presents building-system names, resident-group names and authored decision labels instead of raw memory IDs. Legacy memory payloads are preserved.
+- Classics/shared vanilla pages: first language change reloads correctly; dynamic DOM text and accessible board coordinates receive EN copy after moves. TC SIM and Hanedan critical setup labels expanded.
+- Gameplay/rules: no. Namespaces/migration formats: unchanged. Artwork/audio: no.
+- Native follow-up: presentation parity only, when native work resumes.
+- Status: candidate only; deployed browser retest and global acceptance still pending.
+
 ### 2026-09-19 — Global closure candidate: İHTİLAL usability
 - Web change: all three existing save slots selectable in-game; delete-save copy and confirmation; portal language storage synchronization; document language and pressed-state semantics; visible heat value, lock owner, card costs and meaningful ledger events.
 - Save: reject non-integer/non-finite slot numbers before storage access; V1 namespace/schema and existing payloads unchanged.

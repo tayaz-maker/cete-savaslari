@@ -1,5 +1,6 @@
 import { apartmanForecast, PROPOSALS, RESIDENTS } from "../next-wave.js";
 import { HELP_SECTIONS } from "./help.js";
+import { memoryLabel, allianceLabel, systemLabel } from "./presentation.js";
 import {
   bindFrontMenu,
   bindSavePanel,
@@ -63,7 +64,7 @@ function issueCard(issue, state) {
   const focused = state.flags.focusIssue === issue.id;
   return `<button type="button" class="issue ${focused ? "is-focus" : ""}" data-issue="${h(issue.id)}">
     <strong>${h(loc(issue.title || issue.type))}</strong>
-    <small>${h(issue.system || t("ortak alan", "common area"))} · ${t("tahmini", "estimate")} ₺${money((issue.severity || 1) * 550)} · ${t("gecikme riski", "delay risk")} ${issue.severity || 1}/4</small>
+    <small>${h(systemLabel(issue.system, state.building.parts, loc, t))} · ${t("tahmini", "estimate")} ₺${money((issue.severity || 1) * 550)} · ${t("gecikme riski", "delay risk")} ${issue.severity || 1}/4</small>
     <small>${people.length ? h(people.join(" · ")) : t("Duyuru kutusundan geldi", "Filed through the notice box")} ${prepared ? `· ✓ ${t("hazırlandı", "prepared")}` : ""}</small>
   </button>`;
 }
@@ -102,7 +103,7 @@ function draw(session) {
         `<p>${t("Açık mesele yok; haftayı kapatabilirsin.", "No open issue; you can close the week.")}</p>`
       }</div>
         ${focus ? `<div class="desk-actions"><button type="button" data-prepare="${h(focus.id)}" ${(state.flags.prepared || []).includes(focus.id) || (state.flags.prepared || []).length >= 2 ? "disabled" : ""}>${t("Dosyayı hazırla", "Prepare file")} · ${(state.flags.prepared || []).length}/2</button><span class="muted">${t("Toplantı gündemi", "Meeting agenda")}: ${h(loc(focus.title))}</span></div>` : ""}</section>
-      <aside class="card notice-board"><p class="eyebrow">${t("BİNA SİYASETİ", "BUILDING POLITICS")}</p><p class="muted">${t("İttifak", "Alliances")}: ${(state.politics?.alliances || []).join(", ") || "—"} · ${t("Muhalefet", "Opposition")}: ${state.politics?.opposition?.length || 0}</p><div class="resident-list">${(residents.length ? residents : state.residents.slice(0, 5)).map((resident) => `<div class="resident"><strong>${h(resident.name)}</strong> · ${t("güven", "trust")} ${resident.trust}<br>${h(resident.personality)} · ${h(resident.interest)}${resident.memories?.length ? `<br>${t("Hatırlıyor", "Remembers")}: ${h(loc(resident.memories.at(-1).type))}` : ""}</div>`).join("")}</div></aside></section>
+      <aside class="card notice-board"><p class="eyebrow">${t("BİNA SİYASETİ", "BUILDING POLITICS")}</p><p class="muted">${t("İttifak", "Alliances")}: ${h((state.politics?.alliances || []).map((id) => allianceLabel(id, t)).join(", ") || "—")} · ${t("Muhalefet", "Opposition")}: ${state.politics?.opposition?.length || 0}</p><div class="resident-list">${(residents.length ? residents : state.residents.slice(0, 5)).map((resident) => `<div class="resident"><strong>${h(resident.name)}</strong> · ${t("güven", "trust")} ${resident.trust}<br>${h(loc(resident.personality))} · ${h(loc(resident.interest))}${resident.memories?.length ? `<br>${t("Hatırlıyor", "Remembers")}: ${h(memoryLabel(resident.memories.at(-1), loc, t))}` : ""}</div>`).join("")}</div></aside></section>
     ${state.lastMeeting ? `<section class="card vote-result"><strong>${t("Son oylama", "Last vote")}: ${state.lastMeeting.yes}-${state.lastMeeting.no}</strong> · ${state.lastMeeting.accepted ? t("Kabul", "Passed") : t("Ret", "Rejected")} · ${h(loc(PROPOSALS.find((p) => p.id === state.lastMeeting.proposal)?.label || state.lastMeeting.proposal))}</section>` : ""}
     ${
       state.activeEvent

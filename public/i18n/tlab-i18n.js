@@ -611,6 +611,23 @@
     if (lang !== "en" || text == null) return text;
     const raw = String(text);
     if (Object.prototype.hasOwnProperty.call(PHRASE, raw)) return PHRASE[raw];
+    const pieces = { Kale: "Rook", At: "Knight", Fil: "Bishop", Vezir: "Queen", Şah: "King", Piyon: "Pawn" };
+    let match = raw.match(/^([a-h][1-8]), (Beyaz|Siyah) (Kale|At|Fil|Vezir|Şah|Piyon)$/);
+    if (match) return `${match[1]}, ${match[2] === "Beyaz" ? "White" : "Black"} ${pieces[match[3]]}`;
+    match = raw.match(/^([a-h][1-8]), boş$/);
+    if (match) return `${match[1]}, empty`;
+    match = raw.match(/^(Beyaz|Siyah) (Kale|At|Fil|Vezir|Şah|Piyon) seçildi\.$/);
+    if (match) return `${match[1] === "Beyaz" ? "White" : "Black"} ${pieces[match[2]]} selected.`;
+    match = raw.match(/^([1-7])\. sıra ([1-7])\. sütundaki taş(, seçili)?$/);
+    if (match) return `Peg at row ${match[1]}, column ${match[2]}${match[3] ? ", selected" : ""}`;
+    match = raw.match(/^([1-7])\. sıra ([1-7])\. sütuna atla$/);
+    if (match) return `Jump to row ${match[1]}, column ${match[2]}`;
+    match = raw.match(/^Taş seçildi — (\d+) olası atlayış\.$/);
+    if (match) return `Peg selected — ${match[1]} possible jumps.`;
+    match = raw.match(/^(rakip|kendi) (10|[1-9])-(10|[1-9])$/);
+    if (match) return `${match[1] === "rakip" ? "Enemy" : "Own"} ${match[2]}-${match[3]}`;
+    match = raw.match(/^Slot ([1-3]) (devam|· boş)$/);
+    if (match) return match[2] === "devam" ? `Continue slot ${match[1]}` : `Slot ${match[1]} · empty`;
     return raw;
   }
 
@@ -633,18 +650,20 @@
         if (!v) return;
         const trimmed = v.trim();
         if (!trimmed) return;
-        if (lang === "en" && Object.prototype.hasOwnProperty.call(PHRASE, trimmed)) {
-          node.nodeValue = v.replace(trimmed, PHRASE[trimmed]);
+        const translated = phrase(trimmed);
+        if (translated !== trimmed) {
+          node.nodeValue = v.replace(trimmed, translated);
         }
         return;
       }
       if (node.nodeType !== 1) return;
+      if (["SCRIPT", "STYLE", "TEXTAREA"].includes(node.tagName)) return;
       if (node.closest && node.closest("[data-i18n-skip]")) return;
       const attrs = ["aria-label", "title", "placeholder", "alt"];
       for (const a of attrs) {
         const cur = node.getAttribute && node.getAttribute(a);
-        if (cur && lang === "en" && Object.prototype.hasOwnProperty.call(PHRASE, cur)) {
-          node.setAttribute(a, PHRASE[cur]);
+        if (cur && phrase(cur) !== cur) {
+          node.setAttribute(a, phrase(cur));
         }
       }
       const kids = node.childNodes;

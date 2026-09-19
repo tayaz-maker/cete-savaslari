@@ -15,13 +15,23 @@
     var header = document.querySelector("header") || document.querySelector(".top") || document.querySelector("main") || document.body;
     I.mountLangToggle(header);
     if (I.getLang() === "en") I.applyPhrases(document.body);
-    var first = true;
     I.onLang(function () {
-      if (first) {
-        first = false;
-        return;
-      }
       location.reload();
     });
+    // Classic game renderers replace text after every move. Translate those
+    // new nodes too; disconnect during our writes to avoid observer loops.
+    var observer = new MutationObserver(function () {
+      if (I.getLang() !== "en") return;
+      observer.disconnect();
+      I.applyPhrases(document.body);
+      observe();
+    });
+    function observe() {
+      observer.observe(document.body, {
+        subtree: true, childList: true, characterData: true, attributes: true,
+        attributeFilter: ["aria-label", "title", "placeholder", "alt"],
+      });
+    }
+    observe();
   });
 })();
