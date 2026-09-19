@@ -8,11 +8,19 @@ Master spec and Git-auth addendum govern this pass. No new Wave.
 
 - Baseline: JS 1,258 tests, 1,257 pass / 0 fail / 1 explicitly gated heavy test;
   TS 50/50. This is baseline evidence, not final-candidate acceptance.
-- Candidate targeted IHTILAL + closure tests: 17/17.
+- Candidate targeted IHTILAL + closure tests: 18/18, including the final report-copy regression.
+- Full candidate run: JS 1,261 accounted / 1,260 pass / 0 fail / 1 gated skip;
+  TS 50/50. The final report-copy test was added during that run and separately
+  passed in the 18-test targeted rerun; a fully quiescent final gate is still required.
+- Explicit `DARBE_H_CLOSURE=1` heavy 3,000-match gate: PASS (0 skipped).
 - Candidate build and typecheck pass; lint 0 errors, 50 existing warnings.
 - Real production browser: portal renders 18 catalog games; IHTILAL portal
   launch, tutorial, two played cards, AI counter, manual save, refresh and
   reload into a counter window exercised.
+- GETT real browser: new duel, deck/profile wizard, rock-paper-scissors,
+  turn-order selection, onboarding skip and initial draw exercised in EN.
+- Hanedan/Racon EN entry inspection exposes mixed untranslated copy; not
+  yet repaired or classified as full language acceptance.
 - Reproduced IHTILAL outer language toggle leaving iframe in Turkish.
 - Reproduced three visible save slots but only Save 1 offered in gameplay.
 
@@ -25,6 +33,7 @@ Candidate fixes: selectable slots 1–3; explicit delete-save confirmation;
 delete/storage feedback; non-finite/non-integer slot rejection; storage-event
 language synchronization; document language; selection pressed semantics;
 visible heat and thresholds, card costs, lock owner, explanatory ledger rows.
+Terminal report translates internal `steal-lock`/`lock` event names.
 This is not yet a claim that exhaustive gameplay-quality testing is complete.
 
 ## Duel-family baseline
@@ -67,6 +76,46 @@ An accessible remote preview is needed for candidate browser acceptance;
 production smoke of unchanged main is not a substitute.
 The Cete age gate requires explicit user confirmation before asserting 18+;
 the browser safety reviewer rejected that step. Do not bypass the gate.
+
+## Publication checkpoint and current blocker
+
+GitHub is NOT blocked. Local candidate commit
+`18ff93f91b02004a1429386fb65cb2ce81258d04` was published through Git-data as
+`e75c923ded5476f7aea286837299623155a8d37c` on the closure branch. Both trees
+are exactly `29cfa2cb7b84444cc55b1997528452a8d6cc0667`; fetched remote tree
+verified locally. Different commit metadata, identical reviewed files.
+Main remains the starting baseline; no force update or production merge.
+
+GitHub reports a pending Vercel preview at deployment
+`7zsRy6eHuiemQaUCqBMph4SoaYr3`. Vercel connector inspection returned 403:
+`Not authorized: Trying to access resource under scope cete-d532`.
+Scope authorization must be resolved before using this private deployment
+management resource. No credential extraction or workaround attempted.
+
+Cloud browser's advertised API also has no viewport-resizing capability;
+the four required viewport interactions are NOT certified. No screenshot or
+static assertion is being substituted for that requirement.
+
+| Game | This pass's browser evidence | Full acceptance |
+|---|---|---|
+| Çete Savaşları | Age gate rendered; approval required | Pending |
+| Hanedan | EN menu inspected; mixed-language copy found | Pending |
+| Racon Manager | EN menu inspected; mixed-language copy found | Pending |
+| TC SIM | Route opened; gameplay not exercised | Pending |
+| Son Mahalle Bükücü | Not exercised | Pending |
+| Labirent | Not exercised | Pending |
+| Tek Taş | Not exercised | Pending |
+| Satranç | Not exercised | Pending |
+| Amiral Battı | Not exercised | Pending |
+| Apartman | Route opened; gameplay not exercised | Pending |
+| Kayıp Telefon | Not exercised | Pending |
+| Son 100 Gün | Not exercised | Pending |
+| TC SIM: DEVLET | Not exercised | Pending |
+| SON KÖY MANAGER | Not exercised | Pending |
+| VETO-H! | Engine matrix only; not browser acceptance | Pending |
+| GETT-OH! | Setup/onboarding/draw exercised | Pending |
+| İHTİLAL | Tutorial/play/counter/save/refresh/load; candidate retest pending | Pending |
+| DARBE-H! | Engine matrix and heavy gate; not browser acceptance | Pending |
 
 ## Repository map
 
