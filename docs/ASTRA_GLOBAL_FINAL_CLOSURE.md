@@ -12,6 +12,8 @@ Master spec and Git-auth addendum govern this pass. No new Wave.
   New targeted tests exercise first-language-change behavior, observer
   disconnect/reconnect, dynamic accessible labels, TR fallback and legacy
   memory-display isolation. These do not substitute for browser retesting.
+- Resume heavy gate: `DARBE_H_CLOSURE=1 node --test scripts/darbe-h-balance-closure.test.mjs`
+  PASS, 3,000+ mirrored matches, 1/1 test, zero skips (326.8 seconds).
 
 - Baseline: JS 1,258 tests, 1,257 pass / 0 fail / 1 explicitly gated heavy test;
   TS 50/50. This is baseline evidence, not final-candidate acceptance.
@@ -164,6 +166,8 @@ supersession. Documented recovery was attempted. A fresh tab could be created
 but navigation again failed while refreshing tabs. Final confirmation and
 all subsequent steps are **not** counted as passed. No browser internals,
 alternative control channels or age-gate bypass were used.
+The documented DOM-control alternative on the fresh tab also returned the
+same refresh-tabs timeout; the failure is not limited to Playwright locators.
 
 This leaves actual acceptance unfinished: Bükücü/VETO/DARBE interaction,
 Hanedan draft-to-game, complete IHTILAL match/report, broad help/modal/reset,
@@ -172,6 +176,32 @@ honest to label this tree globally accepted or fast-forward main yet.
 Mixed EN narrative remains visible in Hanedan/Racon/TC SIM/DEVLET; added
 critical UI translations are not a claim of exhaustive content translation.
 Latest Apartman/i18n corrections still require deployed browser retest.
+
+### Latest implementation publication
+
+- Local implementation: `33e83ac775e457fe7bce50aac51cfecb91a4c347`.
+- Published branch commit: `f7b1cceab29bed496e6975c6fc87b6832f436318`.
+- Exact shared tree: `80ee823cf2a8b631629790f9d73d67333fe64891`.
+- Git-data branch update: fast-forward, `force=false`; main untouched.
+- Vercel commit status: **success**. Public GitHub deployment 6540074871:
+  `https://cete-savaslari-pf5wyxgad-cete-d532.vercel.app`.
+- HTTP byte-verification helper: `scripts/final-public-smoke.mjs URL --exact-public`.
+  It checks root + all 18 catalog routes, critical static game assets and
+  root bundles against the local production build. It explicitly does not
+  claim gameplay/browser acceptance. Initial HTTP preview attempt timed out
+  following the root redirect. A bounded header check established HTTP 302
+  to Vercel SSO: this preview requires authentication for the shell HTTP
+  client. No bypass was attempted and no asset equivalence is claimed.
+  The verifier now rejects redirects explicitly instead of following SSO.
+- No final production promotion: the user's full product-acceptance gate
+  remains binding. Dashboard 403, branch deletion and viewport limitations
+  are **not** the reason main was held.
+- Current production `https://tariklab-six.vercel.app`: root + all 18 live
+  catalog routes returned HTTP 200 (19 checked, zero failures). This checks
+  the unchanged production main, not publication of the new candidate.
+- Local main and origin/main remain `fce9ccd868d773f2e6a7c5a2c29dc376b1414c50`.
+  Historical cleanup remains 61 merged + 9 patch-equivalent superseded +
+  22 uncertain = 92. Seventy safe deletion candidates; none deleted.
 
 | Game | This pass's browser evidence | Full acceptance |
 |---|---|---|

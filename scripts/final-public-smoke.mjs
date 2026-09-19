@@ -13,7 +13,7 @@ const games = [...catalog.matchAll(/slug: "([^"]+)"[\s\S]*?status: "live",\s*hre
 assert.equal(games.length, 18);
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 async function get(path) {
-  const response = await fetch(new URL(path, origin), { signal: AbortSignal.timeout(30000), cache: "no-store" });
+  const response = await fetch(new URL(path, origin), { signal: AbortSignal.timeout(30000), cache: "no-store", redirect: "manual" });
   assert.equal(response.status, 200, `${path}: HTTP ${response.status}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   assert.ok(bytes.length > 0, `${path}: empty response`);
@@ -21,8 +21,21 @@ async function get(path) {
 }
 const home = (await get("/")).toString();
 console.log("HTTP 200 /");
+const bundles = [...home.matchAll(/(?:src|href)="(\/assets\/[^"?]+\.js)(?:\?[^" ]*)?"/g)].map((m) => m[1]);
+assert.ok(bundles.length > 0, "root has no built JS references");
+let catalogOutput = home;
+for (const path of new Set(bundles)) {
+  const bytes = await get(path);
+  assert.doesNotMatch(bytes.toString().slice(0,100), /<!doctype html/i, `JS fallback: ${path}`);
+  catalogOutput += bytes.toString();
+  if (exact) {
+    const local = readFileSync(new URL(`../.output/public${path}`, import.meta.url));
+    assert.equal(hash(bytes), hash(local), `built bundle differs: ${path}`);
+  }
+  console.log(`BUNDLE ${exact ? "EXACT" : "200"} ${path} ${hash(bytes)}`);
+}
 for (const game of games) {
-  assert.ok(home.includes(game.href), `root missing catalog route ${game.href}`);
+  assert.ok(catalogOutput.includes(game.href), `catalog missing route ${game.href}`);
   const page = await get(game.href);
   assert.match(page.toString(), /<!doctype html/i, game.href);
   console.log(`HTTP 200 ${game.href}`);
@@ -42,13 +55,6 @@ for (const path of assets) {
   }
   console.log(`${exact ? "EXACT" : "HTTP 200"} ${path} ${hash(bytes)}`);
 }
-const bundles = [...home.matchAll(/(?:src|href)="(\/assets\/[^"?]+\.js)(?:\?[^" ]*)?"/g)].map((m) => m[1]);
-assert.ok(bundles.length > 0, "root has no built JS references");
-for (const path of new Set(bundles)) {
-  const bytes = await get(path);
-  assert.doesNotMatch(bytes.toString().slice(0,100), /<!doctype html/i, `JS fallback: ${path}`);
-  console.log(`BUNDLE 200 ${path} ${hash(bytes)}`);
-}
-assert.ok(home.includes("1923") && home.includes("2030"), "root missing current DEVLET scope");
-assert.doesNotMatch(home, /2002[–-]05 (?:core|çekirdeği)/i);
+assert.ok(catalogOutput.includes("1923") && catalogOutput.includes("2030"), "catalog missing current DEVLET scope");
+assert.doesNotMatch(catalogOutput, /2002[–-]05 (?:core|çekirdeği)/i);
 console.log("PASS: root + 18 routes; critical public assets; root bundles; DEVLET catalog scope. Browser acceptance remains separate.");
