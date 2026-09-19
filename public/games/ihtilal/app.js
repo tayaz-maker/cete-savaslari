@@ -60,10 +60,27 @@ let setup = {
 };
 let busy = false;
 let activeSlot = 1;
+let aiTimer = null;
+let aiGeneration = 0;
+let modalReturnKey = null;
+let renderedScreen = null;
 
 const t = (key) => COPY[lang][key] || COPY.tr[key] || key;
 const titleOf = (card) => (card?.title && (card.title[lang] || card.title.tr)) || "";
 const flavorOf = (card) => (card?.flavor && (card.flavor[lang] || card.flavor.tr)) || "";
+
+function stopAi() {
+  aiGeneration += 1;
+  if (aiTimer != null) clearTimeout(aiTimer);
+  aiTimer = null;
+  busy = false;
+}
+
+function goToMenu() {
+  stopAi();
+  screen = "menu";
+  render();
+}
 
 function setLang() {
   lang = lang === "tr" ? "en" : "tr";
@@ -81,6 +98,29 @@ window.addEventListener("storage", (event) => {
   lang = readLang();
   notice = "";
   render();
+});
+
+const modalControls = (dialog) => [...dialog.querySelectorAll("button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex='0']")];
+const activeDialog = () => [...root.querySelectorAll('[role="dialog"]')].at(-1);
+
+window.addEventListener("keydown", (event) => {
+  const dialog = activeDialog();
+  if (!dialog) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    if (dialog.getAttribute("data-modal") === "help") helpOn = false;
+    else coach = -1;
+    render();
+  } else if (event.key === "Tab") {
+    const controls = modalControls(dialog);
+    const first = controls[0] || dialog;
+    const last = controls.at(-1) || dialog;
+    const focused = document.activeElement;
+    if (!controls.includes(focused) || (event.shiftKey ? focused === first : focused === last)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    }
+  }
 });
 
 function saveControls() {
@@ -127,7 +167,7 @@ function menu() {
         { class: "row" },
         $("button", { class: "btn primary", type: "button", onclick: () => { screen = "setup"; setup.tutorial = false; render(); } }, t("newGame")),
         $("button", { class: "btn", type: "button", onclick: () => { screen = "setup"; setup.tutorial = true; render(); } }, t("tutorial")),
-        $("button", { class: "btn ghost", type: "button", onclick: () => { helpOn = true; render(); } }, t("how")),
+        $("button", { class: "btn ghost", type: "button", "data-focus-key": "help", onclick: () => { helpOn = true; render(); } }, t("how")),
       ),
       $("h2", { class: "display" }, t("slots")),
       notice ? $("p", { role: "status" }, notice) : null,
@@ -164,11 +204,11 @@ function menu() {
   );
 }
 
-function archButton(id, current, onPick) {
+function archButton(id, current, onPick, owner) {
   const a = ARCHETYPES[id];
   return $(
     "button",
-    { class: `arch${current === id ? " is-on" : ""}`, type: "button", "aria-pressed": current === id, onclick: () => onPick(id) },
+    { class: `arch${current === id ? " is-on" : ""}`, type: "button", "aria-pressed": current === id, "data-focus-key": `arch-${owner}-${id}`, onclick: () => onPick(id) },
     $("b", { class: "display" }, a.title[lang] || a.title.tr),
     $("small", {}, a.pitch[lang] || a.pitch.tr),
     $("small", {}, a.weakness[lang] || a.weakness.tr),
@@ -179,15 +219,15 @@ function setupScreen() {
   return $(
     "div",
     { class: "shell" },
-    topbar($("button", { class: "link", type: "button", onclick: () => { screen = "menu"; render(); } }, t("menu"))),
+    topbar($("button", { class: "link", type: "button", onclick: goToMenu }, t("menu"))),
     $(
       "main",
       { class: "menu" },
       $("p", { class: "kicker" }, t("kicker")),
       $("h1", { class: "display" }, t("pickYou")),
-      $("div", { class: "arch-grid" }, ARCHETYPE_IDS.map((id) => archButton(id, setup.you, (v) => { setup.you = v; render(); }))),
+      $("div", { class: "arch-grid" }, ARCHETYPE_IDS.map((id) => archButton(id, setup.you, (v) => { setup.you = v; render(); }, "you"))),
       $("h2", { class: "display" }, t("pickOpp")),
-      $("div", { class: "arch-grid" }, ARCHETYPE_IDS.map((id) => archButton(id, setup.opp, (v) => { setup.opp = v; render(); }))),
+      $("div", { class: "arch-grid" }, ARCHETYPE_IDS.map((id) => archButton(id, setup.opp, (v) => { setup.opp = v; render(); }, "opp"))),
       $(
         "label",
         {},
@@ -210,6 +250,7 @@ function setupScreen() {
 }
 
 function startMatch() {
+  stopAi();
   state = createMatch({
     seed: setup.seed,
     playerArchetype: setup.you,
@@ -232,9 +273,11 @@ function openSlot(n) {
     render();
     return;
   }
+  stopAi();
   state = loaded.state;
   activeSlot = n;
   selected = null;
+  notice = "";
   screen = state.result ? "report" : "play";
   render();
   pumpAi();
@@ -294,7 +337,9 @@ function afterHuman() {
 }
 
 function pumpAi() {
-  if (!state || state.result || busy) return;
+  if (screen !== "play" || !state || state.result || busy) return;
+  const match = state;
+  const generation = aiGeneration;
   const aiActs = () => {
     if (state.phase === "karsi") return 1 - state.turnPlayer === 1;
     return state.turnPlayer === 1 && state.phase === "kalem";
@@ -302,6 +347,9 @@ function pumpAi() {
   if (!aiActs()) return;
   busy = true;
   const step = () => {
+    // A queued callback belongs to this match and must not touch a new/load session.
+    if (generation !== aiGeneration || state !== match || screen !== "play") return;
+    aiTimer = null;
     if (!state || state.result || !aiActs()) {
       busy = false;
       if (state?.result) screen = "report";
@@ -317,7 +365,7 @@ function pumpAi() {
     render();
     if (aiActs() && !state.result) {
       const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setTimeout(step, reduce ? 0 : 220);
+      aiTimer = setTimeout(step, reduce ? 0 : 220);
     } else {
       busy = false;
       if (state.result) screen = "report";
@@ -325,7 +373,7 @@ function pumpAi() {
     }
   };
   const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  setTimeout(step, reduce ? 0 : 180);
+  aiTimer = setTimeout(step, reduce ? 0 : 180);
 }
 
 function logLine(row) {
@@ -360,6 +408,7 @@ function fileCard(id, on) {
       type: "button",
       "aria-label": card.a11y?.[lang] || titleOf(card),
       "aria-pressed": on,
+      "data-focus-key": `card-${id}`,
       onclick: () => { selected = id; render(); },
     },
     $("span", { class: "stamp display" }, stamp),
@@ -389,8 +438,8 @@ function playScreen() {
       $(
         "div",
         { class: "row" },
-        $("button", { class: "link", type: "button", onclick: () => { helpOn = true; render(); } }, t("how")),
-        $("button", { class: "link", type: "button", onclick: () => { screen = "menu"; render(); } }, t("menu")),
+        $("button", { class: "link", type: "button", "data-focus-key": "help", onclick: () => { helpOn = true; render(); } }, t("how")),
+        $("button", { class: "link", type: "button", onclick: goToMenu }, t("menu")),
       ),
     ),
     $(
@@ -503,8 +552,8 @@ function helpSheet() {
     { class: "overlay", onclick: (e) => { if (e.target.classList.contains("overlay")) { helpOn = false; render(); } } },
     $(
       "div",
-      { class: "sheet", role: "dialog", "aria-label": t("helpTitle") },
-      $("h2", { class: "display" }, t("helpTitle")),
+      { class: "sheet", role: "dialog", "aria-modal": true, "aria-label": t("helpTitle"), "data-modal": "help", tabindex: "-1" },
+      $("h2", { class: "display", tabindex: "-1", "data-modal-primary": true }, t("helpTitle")),
       HELP[lang].map((s) => [$("h3", {}, s.title), $("p", {}, s.body)]),
       $("button", { class: "btn primary", type: "button", onclick: () => { helpOn = false; render(); } }, t("close")),
     ),
@@ -520,7 +569,7 @@ function coachSheet() {
     { class: "overlay" },
     $(
       "div",
-      { class: "sheet", role: "dialog", "aria-label": step.title },
+      { class: "sheet", role: "dialog", "aria-modal": true, "aria-label": step.title, "data-modal": "coach", tabindex: "-1" },
       $("p", { class: "kicker" }, `${coach + 1} / ${steps.length}`),
       $("h2", { class: "display" }, step.title),
       $("p", {}, step.body),
@@ -531,6 +580,7 @@ function coachSheet() {
         $("button", {
           class: "btn primary",
           type: "button",
+          "data-modal-primary": true,
           onclick: () => {
             coach += 1;
             if (coach >= steps.length) coach = -1;
@@ -564,11 +614,12 @@ function reportScreen() {
           : `Tekrar eden dosyalar: ${report.repeated.map((r) => r.title).join(", ")}`)
         : null,
       $("p", {}, report.alt),
+      notice ? $("p", { role: "status" }, notice) : null,
       $(
         "div",
         { class: "row" },
         $("button", { class: "btn primary", type: "button", onclick: () => { screen = "setup"; render(); } }, t("again")),
-        $("button", { class: "btn", type: "button", onclick: () => { screen = "menu"; render(); } }, t("toMenu")),
+        $("button", { class: "btn", type: "button", onclick: goToMenu }, t("toMenu")),
         saveControls(),
       ),
     ),
@@ -576,9 +627,32 @@ function reportScreen() {
 }
 
 function render() {
+  const previousDialog = activeDialog();
+  const focused = document.activeElement;
+  const focusedIndex = previousDialog ? modalControls(previousDialog).indexOf(focused) : -1;
   document.documentElement.lang = lang;
   const view = screen === "menu" ? menu() : screen === "setup" ? setupScreen() : screen === "report" ? reportScreen() : playScreen();
   root.replaceChildren(view);
+  const dialog = activeDialog();
+  if (dialog) {
+    if (!previousDialog) modalReturnKey = focused?.getAttribute("data-focus-key") || null;
+    // Only the active overlay is interactive, including when tutorial/help overlap.
+    for (const child of view.children) child.inert = child !== dialog.parentElement;
+    const sameDialog = previousDialog?.getAttribute("data-modal") === dialog.getAttribute("data-modal");
+    const target = (sameDialog && modalControls(dialog)[focusedIndex]) || dialog.querySelector("[data-modal-primary]") || modalControls(dialog)[0] || dialog;
+    target.focus({ preventScroll: true });
+  } else if (previousDialog) {
+    const target = (modalReturnKey && root.querySelector(`[data-focus-key="${modalReturnKey}"]`)) || root.querySelector(".file-card") || root.querySelector("button");
+    target?.focus({ preventScroll: true });
+    modalReturnKey = null;
+  } else if (screen === renderedScreen) {
+    const focusKey = focused?.getAttribute("data-focus-key");
+    if (focusKey) root.querySelector(`[data-focus-key="${focusKey}"]`)?.focus({ preventScroll: true });
+  }
+  if (screen !== renderedScreen) {
+    window.scrollTo(0, 0);
+    renderedScreen = screen;
+  }
 }
 
 render();

@@ -306,3 +306,12 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 - **Browser/production:** all 18 live surfaces smoke-tested (desktop+mobile, iframe-content level); production HTTP and deployed catalog bundle reconciled against current main.
 - Content: no. Artwork: no. Gameplay/rules: no. UI/presentation: no. Shared-content source: no.
 - Native follow-up: no code shipped this pass; the GETT-OH! RCN-083 finding and the İHTİLAL balance-edge finding are both handed to Astra, not the native track.
+
+### 2026-09-19 — Post-launch: PWA precache and İHTİLAL interaction repairs
+- Baseline: `e091644e70f5d257adb96591d0690d065416b701`; branch `astra/post-launch-upgrade-sweep`. Evidence and retained limitations: [POST_LAUNCH_UPGRADE_SWEEP.md](POST_LAUNCH_UPGRADE_SWEEP.md).
+- Web change: restore generated JS/CSS precache injection with an explicit build contract; retain the current static shell, cache name and network-first module policy. Production acceptance compares the emitted SW with the build output.
+- İHTİLAL: cancel stale AI callbacks on menu/new/load; modal keyboard containment, Escape and focus return; card/archetype focus preservation; screen-entry scroll reset; narrow mobile label/header repairs; visible terminal save/quota status in existing TR/EN copy.
+- Dependency: js-yaml 4.3.1→4.3.2, surgical lock-only advisory patch.
+- Content: no. Artwork: no. Audio: no. Gameplay/rules/balance: no. AI decision policy: no. Save schema and namespaces: unchanged.
+- UI/presentation: yes. Shared-content source: no.
+- Native follow-up: paused. Future standalone İHTİLAL should preserve session-scoped AI work, accessible modal focus, and save-result feedback. No native repository was changed.

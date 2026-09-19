@@ -8,6 +8,14 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SW_PATH = join(ROOT, "public/sw.js");
+const BUILD_ASSETS_MARKER = "/* TARIKLAB_BUILD_ASSETS */ []";
+
+export function injectBuildAssets(source, assets) {
+  if (source.split(BUILD_ASSETS_MARKER).length !== 2) {
+    throw new Error("Offline service worker must contain exactly one build-assets marker");
+  }
+  return source.replace(BUILD_ASSETS_MARKER, () => JSON.stringify(assets));
+}
 
 export function offlineSwPlugin() {
   return {
@@ -22,17 +30,7 @@ export function offlineSwPlugin() {
         .filter((n) => !n.endsWith(".map"))
         .filter((n) => /\.(js|css|svg|png|webmanifest)$/.test(n))
         .map((n) => `/${n.replace(/^\/+/, "")}`);
-      let source;
-      try {
-        source = readFileSync(SW_PATH, "utf8");
-      } catch {
-        return;
-      }
-      const extra = JSON.stringify(assets);
-      source = source.replace(
-        'const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"];',
-        `const SHELL = ["/", "/cete-savaslari", "/favicon.svg", "/__grok/icon-180.png", "/manifest.webmanifest"].concat(${extra});`,
-      );
+      const source = injectBuildAssets(readFileSync(SW_PATH, "utf8"), assets);
       this.emitFile({ type: "asset", fileName: "sw.js", source });
     },
   };

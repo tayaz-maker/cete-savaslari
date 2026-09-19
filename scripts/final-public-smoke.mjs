@@ -50,7 +50,8 @@ for (const game of games.filter((g) => g.slug !== "cete-savaslari")) assets.add(
 for (const path of assets) {
   const bytes = await get(path);
   if (exact) {
-    const local = readFileSync(new URL(`../public${path}`, import.meta.url));
+    // sw.js contains the build's hashed precache manifest after Vite emits it.
+    const local = readFileSync(new URL(`../${path === "/sw.js" ? ".output/public" : "public"}${path}`, import.meta.url));
     assert.equal(hash(bytes), hash(local), `deployed bytes differ: ${path}`);
   }
   console.log(`${exact ? "EXACT" : "HTTP 200"} ${path} ${hash(bytes)}`);

@@ -9,6 +9,7 @@ any older design document's plan.
 
 ## Product posture
 
+- **Post-launch repairs:** [POST_LAUNCH_UPGRADE_SWEEP.md](POST_LAUNCH_UPGRADE_SWEEP.md) records the narrow PWA, İHTİLAL interaction/accessibility and dependency updates after closure.
 - **Final closure:** [ASTRA_GLOBAL_FINAL_CLOSURE.md](ASTRA_GLOBAL_FINAL_CLOSURE.md) records the accepted release under the owner's final completion override, with executed QA, regression coverage and infrastructure limitations separated explicitly.
 - **Frozen baseline:** [MASTER_FREEZE_CHECK.md](MASTER_FREEZE_CHECK.md).
 - **History:** [archive/](archive/) contains superseded handoffs and audits; historical findings are not automatically current defects.
