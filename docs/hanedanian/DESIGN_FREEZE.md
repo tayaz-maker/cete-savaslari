@@ -81,3 +81,11 @@ honestly if unavailable later. No passing QA claims without corresponding runs.
 İHTİLAL is independently audited and updated in `docs/ihtilal/`; initial code
 diagnosis is UX/feedback, preserving its existing engine and saves. Other games
 receive only evidence-backed P0/P1 work; no speculative mechanics churn.
+
+## User addendum — İHTİLAL engine authority
+
+The user explicitly reconfirmed during implementation that İHTİLAL's existing
+engine may be replaced if needed and that they did not like the current game.
+Preservation is a preference for proven good pieces, not a requirement to keep a
+weak core. Reassess meaningful decisions and the first five minutes after clarity
+changes; redesign mechanics/core-loop where demonstrated shortcomings remain.
