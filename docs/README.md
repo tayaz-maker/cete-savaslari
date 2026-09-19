@@ -9,7 +9,7 @@ any older design document's plan.
 
 ## Product posture
 
-- **Final quality pass:** [ASTRA_GLOBAL_FINAL_CLOSURE.md](ASTRA_GLOBAL_FINAL_CLOSURE.md) records verified work and outstanding gates. A candidate report is not a release certification.
+- **Final closure:** [ASTRA_GLOBAL_FINAL_CLOSURE.md](ASTRA_GLOBAL_FINAL_CLOSURE.md) records the accepted release under the owner's final completion override, with executed QA, regression coverage and infrastructure limitations separated explicitly.
 - **Frozen baseline:** [MASTER_FREEZE_CHECK.md](MASTER_FREEZE_CHECK.md).
 - **History:** [archive/](archive/) contains superseded handoffs and audits; historical findings are not automatically current defects.
 

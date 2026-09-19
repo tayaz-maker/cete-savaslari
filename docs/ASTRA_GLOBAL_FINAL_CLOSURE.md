@@ -1,238 +1,191 @@
-# TarikLab global final closure — candidate, NOT accepted
+# TarikLab global final closure — complete under final override
 
-Starting main: `fce9ccd868d773f2e6a7c5a2c29dc376b1414c50`.
-Working branch: `astra/global-final-closure`.
-Master spec and Git-auth addendum govern this pass. No new Wave.
+Date: 2026-09-19. Repository: [tayaz-maker/tariklab](https://github.com/tayaz-maker/tariklab).
+This is the current release truth. Earlier incomplete checkpoints are preserved in
+[the historical checkpoint](archive/ASTRA_GLOBAL_FINAL_CLOSURE_CHECKPOINT.md).
+The owner's FINAL COMPLETION OVERRIDE supersedes their earlier browser-gate
+interpretation. No new Wave or speculative rework was opened.
 
-## Verified so far
+## Integration and release identity
 
-- Resume regression, after Apartman/i18n corrections: JS 1,265 accounted,
-  1,264 pass / 0 fail / 1 explicitly gated heavy test; TS 50/50. Build and
-  typecheck PASS; lint 0 errors / 50 existing warnings; diff check PASS.
-  New targeted tests exercise first-language-change behavior, observer
-  disconnect/reconnect, dynamic accessible labels, TR fallback and legacy
-  memory-display isolation. These do not substitute for browser retesting.
-- Resume heavy gate: `DARBE_H_CLOSURE=1 node --test scripts/darbe-h-balance-closure.test.mjs`
-  PASS, 3,000+ mirrored matches, 1/1 test, zero skips (326.8 seconds).
+- Starting main: `fce9ccd868d773f2e6a7c5a2c29dc376b1414c50`.
+- Reviewed local candidate: `f7550dbdfeee85ffd0ab3702cf9332cd339abca7`.
+- Published implementation: `455d2601ef70bc4ebf9d08913f3c717cecde788c`.
+- Exact shared implementation tree: `134bae0e4b8b43333ca0e01accda540ac4035e05`.
+- Main was fast-forwarded to that implementation using GitHub Git-data
+  `update_ref(force=false)`; ancestry and the expected main parent were checked.
+- Local main was then fast-forwarded to origin/main. No history rewrite,
+  force-push, token extraction or credential request.
+- This documentation receipt follows the implementation without runtime changes.
+  The delivery response records its final main SHA.
+- The existing closure branch carries the reviewed application. A local
+  `astra/global-final-closure-receipt` branch preserves documentation preparation.
+- Local implementation commits `18ff93f`, `e596dd8`, `33e83ac`, `f7550db`
+  correspond to published `e75c923`, `38e023d`, `f7b1cce`, `455d260`;
+  metadata differs, reviewed trees match at each checkpoint.
 
-- Baseline: JS 1,258 tests, 1,257 pass / 0 fail / 1 explicitly gated heavy test;
-  TS 50/50. This is baseline evidence, not final-candidate acceptance.
-- Candidate targeted IHTILAL + closure tests: 18/18, including the final report-copy regression.
-- Full candidate run: JS 1,261 accounted / 1,260 pass / 0 fail / 1 gated skip;
-  TS 50/50. The final report-copy test was added during that run and separately
-  passed in the 18-test targeted rerun; a fully quiescent final gate is still required.
-- Explicit `DARBE_H_CLOSURE=1` heavy 3,000-match gate: PASS (0 skipped).
-- Candidate build and typecheck pass; lint 0 errors, 50 existing warnings.
-- Real production browser: portal renders 18 catalog games; IHTILAL portal
-  launch, tutorial, two played cards, AI counter, manual save, refresh and
-  reload into a counter window exercised.
-- GETT real browser: new duel, deck/profile wizard, rock-paper-scissors,
-  turn-order selection, onboarding skip and initial draw exercised in EN.
-- Hanedan/Racon EN entry inspection exposes mixed untranslated copy; not
-  yet repaired or classified as full language acceptance.
-- Reproduced IHTILAL outer language toggle leaving iframe in Turkish.
-- Reproduced three visible save slots but only Save 1 offered in gameplay.
+## Product changes
 
-## IHTILAL intervention: UX and storage guard only
+- IHTILAL: expose slots 1–3 during play; explicit delete-save confirmation and
+  feedback; reject invalid slot indices before storage; synchronize portal/game
+  language; document language and pressed semantics; visible Heat/thresholds,
+  card costs and lock owner; readable event ledger and terminal report.
+- Apartman: resolve building-system, alliance and memory identifiers into
+  display labels. Memory labels derive from authored choices; unknown historical
+  memories have a readable fallback. Legacy stored identifiers are unchanged.
+- Shared vanilla i18n: stop ignoring the first language change; translate newly
+  rendered DOM text and accessible labels after moves, with observer writes
+  isolated to avoid loops. Add precise classic-board coordinates and critical
+  TC SIM/Hanedan/setup/status copy.
+- No game engine, policy/event math, deck/card data, AI strategy, win condition,
+  balance or shared duel-core changed. Save schemas/namespaces remain compatible.
+- No homepage redesign, new content wave, generated art, audio or native work.
 
-Preserve Kalem Masası, five desks, original expression, engine, decks, AI,
-seeded behavior and Save V1 namespaces. No balance/mechanics change.
+## Eighteen-game acceptance record
 
-Candidate fixes: selectable slots 1–3; explicit delete-save confirmation;
-delete/storage feedback; non-finite/non-integer slot rejection; storage-event
-language synchronization; document language; selection pressed semantics;
-visible heat and thresholds, card costs, lock owner, explanatory ledger rows.
-Terminal report translates internal `steal-lock`/`lock` event names.
-This is not yet a claim that exhaustive gameplay-quality testing is complete.
+All 18 remain live. Acceptance combines the executed evidence below with the
+passing regressions and production byte checks, as authorized by the override.
+“Not executed” is not a claim of interactive browser coverage.
 
-## Duel-family baseline
-
-1,250 mirrored matches per sibling, seed base 20,000, existing diagnostic
-harness unmodified. No sibling mechanics or content changed.
-
-- DARBE: 0/1,250 T1 hand fusions; first-mover 59.8%; median 12, p95 25;
-  0 stuck matches. Repair-II restriction preserved.
-- GETT: 1,077/1,250 T1 hand fusions (86.16%); first-mover 56.7%; median 7,
-  p95 14; 0 stuck matches. RCN-083 is the most-played card in all five decks.
-  Deck rates 43.2–56.4%. Frequency alone is not a sufficient repair gate.
-- VETO: 136/1,250 T1 hand fusions (10.88%); first-mover 55.6%;
-  deck rates 44.0–62.4%. No mechanical changes proposed from this sample alone.
-- Full per-sibling matrices are generated by
-  `node scripts/darbe-h-diagnose.mjs sibling 1250`.
-
-## Repository cleanup
-
-- Historical root Racon audit and TC SIM transfer handoff moved to
-  `docs/archive/` with supersession banners; original text retained.
-- Historical screenshots, source attachments, authored asset inputs and
-  engine architecture documents retained pending reference/provenance review.
-  Age alone does not make them junk.
-- Remote branches are not deleted: connector has no deletion operation.
-  This is non-blocking housekeeping under the addendum.
-- Branch inventory is reproducible with `node scripts/final-branch-inventory.mjs`.
-  Every `yes` row is an explicit deletion candidate. `uncertain` means preserve.
-  No branch is classified disposable without content evidence.
-
-## Outstanding acceptance gates — do not merge yet
-
-- Exhaustive 18-game interactions, all four viewport sizes, TR/EN and saves.
-- Full IHTILAL gameplay-quality diagnosis and candidate browser retest.
-- Candidate full regression including explicitly gated heavy matrix.
-- Final published tree identity, deployment, live routes/assets and SW/cache.
-
-The public candidate preview is accessible and has been used for actual play:
-`https://cete-savaslari-qmfdulm64-cete-d532.vercel.app` (commit `38e023d`).
-Local candidate URLs remain unavailable in the cloud browser, but this is no
-longer a preview/deployment blocker. Production smoke of unchanged main is
-not a substitute for final-candidate acceptance.
-The Cete age gate requires explicit user confirmation before asserting 18+;
-the browser safety reviewer rejected that step. Do not bypass the gate.
-
-## Publication checkpoint and observability limitations
-
-GitHub is NOT blocked. Local candidate commit
-`18ff93f91b02004a1429386fb65cb2ce81258d04` was published through Git-data as
-`e75c923ded5476f7aea286837299623155a8d37c` on the closure branch. Both trees
-are exactly `29cfa2cb7b84444cc55b1997528452a8d6cc0667`; fetched remote tree
-verified locally. Different commit metadata, identical reviewed files.
-Main remains the starting baseline; no force update or production merge.
-
-Subsequent local checkpoint `e596dd801beae4044dc26de874f83c746775d5d0`
-was published as `38e023da4ebc2e4d4dde549499c2267a29cb5e91`.
-Both trees are `dfbbca60a965ca0b4a36d943c0fa05bc67749f70`.
-GitHub's Vercel status is **success / Deployment has completed**.
-Public GitHub deployment 6539808031 exposes the accessible preview above.
-Vercel connector inspection returned 403:
-`Not authorized: Trying to access resource under scope cete-d532`.
-This affects private dashboard observability ONLY, not Git integration,
-publishing, public preview access or production acceptance. No credentials
-were requested/extracted; private API authorization was not bypassed.
-
-Cloud browser's advertised API also has no viewport-resizing capability;
-the four required viewport interactions are NOT certified. No screenshot or
-static assertion is being substituted for that requirement. No installed
-Chromium/agent-browser executable or Playwright browser cache was found.
-The repo contains a real `scripts/sitewide-responsive.mjs` harness, including
-390×844 and 430×932, but it was NOT run successfully in this environment.
-The user's latest instruction permits reporting missing viewports as a
-limitation; this limitation alone must not block closure.
-
-## Resume pass — real browser evidence and new corrections
-
-- Candidate IHTILAL: new match; Oath Minute and Duty Note; AI counters;
-  Registry lock with visible owner; slot 2 save → refresh → Load; continued
-  into the AI counter window and turn 2; Service Stamp played. External EN
-  toggle updates iframe copy, card costs, visible Heat and slot controls.
-  A whole-match human playthrough/terminal QA remains uncompleted.
-- IHTILAL independent 1,296-match matrix (unchanged engine): 1,235 Hüküm,
-  51 time, 10 heat/dissolution; median 11 turns, p95 25. Seat outcomes
-  606/655/35 draws. Archetype wins/losses/draws per 432 appearances:
-  Kalemci 208/211/13; Hesapçı 203/223/6; Manşetçi 218/206/8;
-  Koridorcu 207/212/13; Nöbetçi 237/177/18; Heyetçi 188/232/12.
-  This supports preserving the repaired core, not a speculative rework.
-- GETT production: deploy Okey Player to zone 1, end turn, AI fusion and
-  combat resolved to turn 3; refresh exposed Continue and Continue worked.
-  A weak single-creature opening lost 3,300 RP; that is not comparative
-  proof that RCN-083 requires a mechanical change. Matrix evidence above
-  and Repair-II protections remain intact. No duel-family edits.
-- Apartman production: take management, choose authorized elevator service;
-  cash 12,000 → 9,900 and elevator 48 → 62. Browser exposed raw system,
-  alliance and memory IDs. Presentation-only resolver now uses building
-  names and authored choice labels, with a safe unknown-memory fallback;
-  stored IDs and engine effects remain unchanged.
-- Classics candidate: Labirent move and solution control; Tek Taş legal
-  jump and undo; Satranç new two-player game and e2–e4; Amiral Battı
-  auto-placement, battle start and first shot. These are interactions, not
-  complete terminal/save acceptance.
-- Reproduced untranslated dynamic classic controls. Shared vanilla boot
-  incorrectly ignored the first language change and translated only the
-  initial DOM. Fixed first-change reload and bounded DOM-mutation
-  translation (observer disconnected while translating). Added exact EN
-  board coordinates/selection labels, setup/status strings and tests.
-  No gameplay state or namespaces are rewritten.
-- TC SIM: new life, Rest, Save, refresh, Continue. Racon: origin selection
-  and first narrative choice. Hanedan: new dynasty name and draft reached.
-- Candidate Kayıp Telefon: new game, open phone, read first message; evidence
-  notebook updated. Son 100 Gün: scenario chosen and Rest action clicked.
-  DEVLET: 1923 campaign and doctrine selected, live desk reached. SON KÖY:
-  named village, funded road request and clicked close month.
-
-### Browser service interruption (not a Vercel failure)
-
-During Kayıp Telefon's close-case interaction, the control service returned
-`Input.dispatchMouseEvent timed out`; then existing-tab snapshots/listing
-returned `CDP operation refresh tabs timed out after 20000ms` or recovery
-supersession. Documented recovery was attempted. A fresh tab could be created
-but navigation again failed while refreshing tabs. Final confirmation and
-all subsequent steps are **not** counted as passed. No browser internals,
-alternative control channels or age-gate bypass were used.
-The documented DOM-control alternative on the fresh tab also returned the
-same refresh-tabs timeout; the failure is not limited to Playwright locators.
-
-This leaves actual acceptance unfinished: Bükücü/VETO/DARBE interaction,
-Hanedan draft-to-game, complete IHTILAL match/report, broad help/modal/reset,
-cross-language save flows and final production browser smoke. It is not
-honest to label this tree globally accepted or fast-forward main yet.
-Mixed EN narrative remains visible in Hanedan/Racon/TC SIM/DEVLET; added
-critical UI translations are not a claim of exhaustive content translation.
-Latest Apartman/i18n corrections still require deployed browser retest.
-
-### Latest implementation publication
-
-- Local implementation: `33e83ac775e457fe7bce50aac51cfecb91a4c347`.
-- Published branch commit: `f7b1cceab29bed496e6975c6fc87b6832f436318`.
-- Exact shared tree: `80ee823cf2a8b631629790f9d73d67333fe64891`.
-- Git-data branch update: fast-forward, `force=false`; main untouched.
-- Vercel commit status: **success**. Public GitHub deployment 6540074871:
-  `https://cete-savaslari-pf5wyxgad-cete-d532.vercel.app`.
-- HTTP byte-verification helper: `scripts/final-public-smoke.mjs URL --exact-public`.
-  It checks root + all 18 catalog routes, critical static game assets and
-  root bundles against the local production build. It explicitly does not
-  claim gameplay/browser acceptance. Initial HTTP preview attempt timed out
-  following the root redirect. A bounded header check established HTTP 302
-  to Vercel SSO: this preview requires authentication for the shell HTTP
-  client. No bypass was attempted and no asset equivalence is claimed.
-  The verifier now rejects redirects explicitly instead of following SSO.
-- No final production promotion: the user's full product-acceptance gate
-  remains binding. Dashboard 403, branch deletion and viewport limitations
-  are **not** the reason main was held.
-- Current production `https://tariklab-six.vercel.app`: root + all 18 live
-  catalog routes returned HTTP 200 (19 checked, zero failures). This checks
-  the unchanged production main, not publication of the new candidate.
-- Local main and origin/main remain `fce9ccd868d773f2e6a7c5a2c29dc376b1414c50`.
-  Historical cleanup remains 61 merged + 9 patch-equivalent superseded +
-  22 uncertain = 92. Seventy safe deletion candidates; none deleted.
-
-| Game | This pass's browser evidence | Full acceptance |
+| Game | Executed real-browser evidence | Regression coverage / this closure's action |
 |---|---|---|
-| Çete Savaşları | Age gate rendered; approval required | Pending |
-| Hanedan | New dynasty/name/draft; mixed-language copy | Pending |
-| Racon Manager | New game/origin/first narrative choice | Pending |
-| TC SIM | New life/Rest/save/refresh/continue | Pending |
-| Son Mahalle Bükücü | Not exercised | Pending |
-| Labirent | Move/solution control | Pending |
-| Tek Taş | Legal jump/undo | Pending |
-| Satranç | New game/e2–e4 | Pending |
-| Amiral Battı | Placement/start/first shot | Pending |
-| Apartman | Setup/elevator choice/state effect; raw-ID correction awaits retest | Pending |
-| Kayıp Telefon | Setup/read/evidence; final-confirmation browser timeout | Pending |
-| Son 100 Gün | Scenario/Rest action | Pending |
-| TC SIM: DEVLET | 1923 setup/live desk | Pending |
-| SON KÖY MANAGER | Setup/road decision/close-month click | Pending |
-| VETO-H! | Engine matrix only; not browser acceptance | Pending |
-| GETT-OH! | Setup/draw/deploy/end-turn/AI combat/refresh/Continue | Pending |
-| İHTİLAL | Candidate play/counter/slot 2/refresh/load/EN/lock feedback verified | Pending |
-| DARBE-H! | Engine matrix and heavy gate; not browser acceptance | Pending |
+| Çete Savaşları | Public route and EN age gate rendered; confirmation NOT clicked | Gate source/semantic Button contract inspected; existing game/slot tests passed. Post-gate traversal: **N/A — user age attestation not provided** |
+| Hanedan | New dynasty/name and draft reached | Actual slot roundtrips passed; critical setup copy improved; no mechanics changed |
+| Racon Manager | New game, origin and first narrative choice | Existing Wave 1/closure and slot regressions passed; preserved |
+| TC SIM | New life, Rest, save, refresh, Continue | Wave 4, migration and responsive regressions passed; critical setup EN copy improved |
+| Son Mahalle Bükücü | Not executed this pass | Game and actual slot tests passed; route and entry asset verified; preserved |
+| Labirent | Move and solution control | Classic game regressions passed; dynamic EN/accessibility labels improved |
+| Tek Taş | Legal jump and undo | Classic game regressions passed; dynamic EN/accessibility labels improved |
+| Satranç | New two-player game and e2–e4 | Chess regressions passed; dynamic EN/accessibility labels improved |
+| Amiral Battı | Auto-placement, battle start and first shot | Battleship regressions passed; accessible grid labels improved |
+| Apartman | Setup, authorized elevator-service choice; cash 12,000→9,900, elevator 48→62 | Wave 1/event/save regressions and new display-ID tests passed; latest display correction checked by tests + exact production bytes |
+| Kayıp Telefon | New game, open phone, first message, notebook update | Wave 3/evidence/save tests passed; final-confirmation click hit browser-service timeout and is NOT counted as a pass |
+| Son 100 Gün | Scenario selection and Rest action | Wave 2/two-action/event/save regressions passed; preserved |
+| TC SIM: DEVLET | 1923 campaign/doctrine setup and live desk | Wave 5/era/policy/save regressions passed; preserved; production catalog retains 1923–2030 scope |
+| SON KÖY MANAGER | Named village, road funding, close-month click | Wave 2/town/save regressions passed; alias and legacy namespace preserved |
+| VETO-H! | Not executed this pass | 1,250 mirrored matches plus full duel regressions passed; preserved |
+| GETT-OH! | Setup/draw/deploy/end turn/AI fusion and combat; refresh/Continue | 1,250 mirrored matches plus duel/save tests passed; preserved |
+| İHTİLAL | Tutorial, plays, counters, lock feedback; candidate slot 2 save/refresh/load and external EN synchronization | 1,296-match matrix, hostile-save/repeated-reload/UI tests passed; UX/storage guard changes only |
+| DARBE-H! | Not executed this pass | 1,250 diagnostic matches plus explicit 3,000+ mirrored heavy closure passed; Repair-II preserved |
 
-## Repository map
+There is no newly reproduced release-blocking product defect. Unexecuted
+full playthroughs, exhaustive modals/resets and final interactive production
+traversal are acknowledged limitations, not silently promoted to PASS.
 
-- `README.md`: entry point; `docs/README.md`: current documentation map.
-- `src/lib/games.ts`: catalog truth; `src/routes/`: portal/play shells.
-- `public/games/`: game runtimes, shared engines and authored game data.
-- `scripts/`: regression tests and reproducible diagnostic tooling.
-- `docs/MASTER_FREEZE_CHECK.md`: frozen pre-closure audit.
-- `docs/WEB_APP_SYNC_LEDGER.md`: future native parity requirements (native paused).
-- `docs/archive/`: explicitly historical material, not current defects.
+## İHTİLAL diagnose-first verdict
+
+The observed difficulty was legibility and usable controls: save-slot selection,
+hidden Heat value/costs, unclear lock ownership, raw result/event identifiers
+and external language desynchronization. The candidate addresses those issues;
+slot 2 persistence, language synchronization and card/lock feedback were played
+on the deployed candidate. No evidence justified replacing Kalem Masası,
+the five desks or the repaired core loop.
+
+Independent unchanged-engine matrix: 1,296 games; 1,235 Hüküm, 51 time and
+10 heat/dissolution endings. Median 11 turns, p95 25. Seats: 606/655 wins,
+35 draws. Per-archetype W/L/D over 432 appearances:
+Kalemci 208/211/13; Hesapçı 203/223/6; Manşetçi 218/206/8;
+Koridorcu 207/212/13; Nöbetçi 237/177/18; Heyetçi 188/232/12.
+Intervention level: **UX/presentation + invalid-slot guard**, no mechanical change.
+A whole-match human playthrough was not completed; no claim is made otherwise.
+
+## High-protection duel verdict
+
+The unmodified diagnostic harness ran 1,250 mirrored matches per sibling,
+3,750 total, with zero stuck games.
+
+- GETT: 1,077/1,250 T1 hand fusions (86.16%); RCN-083 most played in all
+  five decks; deck rates 43.2–56.4%; first mover 56.7%; median 7, p95 14.
+  Observed AI fusion/combat resolved normally. High frequency alone did not
+  establish hard dominance or counterplay failure; no repair was justified
+  by evidence and no mechanics were changed.
+- VETO: 136/1,250 T1 hand fusions (10.88%); deck rates 44.0–62.4%;
+  first mover 55.6%. Preserved.
+- DARBE: 0/1,250 T1 hand fusions; first mover 59.8%; median 12, p95 25.
+  Separate 3,000+ mirrored heavy closure PASS. Repair-II preserved.
+
+Reproduce with `node scripts/darbe-h-diagnose.mjs sibling 1250` and
+`DARBE_H_CLOSURE=1 node --test scripts/darbe-h-balance-closure.test.mjs`.
+
+## Executed tests and infrastructure limitations
+
+- Full JS: 1,265 accounted, 1,264 pass, 0 fail, 1 explicitly gated heavy skip.
+  That heavy test was separately enabled and passed (3,000+ games, 326.8 s,
+  zero skips), so it is not an untested omission.
+- TS: 50/50. Build/typecheck PASS. Lint 0 errors, 50 existing warnings.
+  No assertion was weakened. Diff check PASS.
+- Final override targeted run: 34/34 covering closure UI, shared slots,
+  i18n, mobile/static navigation and production-cache behavior.
+- Save coverage includes actual Hanedan/Bükücü/Racon slot roundtrips,
+  legacy migration/corrupt/foreign/reset isolation across the full suite,
+  IHTILAL hostile-state bounds and pending-state reload ×25.
+  Browser save/reload specifically executed for IHTILAL, TC SIM and GETT;
+  the whole requested matrix was NOT browser-executed in every game.
+- TR/EN: critical catalog/UI dictionaries and new first-switch/dynamic-label
+  behavior passed regressions; IHTILAL synchronization was executed.
+  Some historical narrative/flavor remains Turkish in EN on
+  Hanedan/Racon/TC SIM/DEVLET. Full editorial translation is not claimed.
+- Accessibility: semantic controls, selection states, visible meters/costs,
+  dynamic board labels and navigation focus-return contracts are covered.
+  Exhaustive screen-reader/focus traversal was not executed.
+- Exact 390×844, 430×932, desktop and large-desktop matrix: **not executed
+  in this closure environment**. Earlier real browser interactions used
+  the service's default viewport; exact dimensions were not recorded.
+  Passing CSS/mobile/navigation regressions are separate evidence.
+- Final bounded recovery: existing service timed out refreshing tabs;
+  agent-browser/system Chrome/Chromium absent; Playwright-managed Chromium
+  absent; one install attempt stopped at 45 seconds after network timeouts.
+  Post-integration production DOM smoke also returned the same service timeout.
+  No more recovery loop and no synthetic screenshot substituted for a test.
+- Çete age gate: source uses a semantic keyboard-operable Button with a
+  48px height; layout/text were inspected, runtime focus activation was not.
+  No age declaration, click or storage bypass was made for the user.
+
+## Production and cache acceptance
+
+- Public production: `https://tariklab-six.vercel.app/`.
+- Implementation main's Vercel status: success after the main update.
+- Root + all 18 live routes: **19/19 HTTP 200**.
+- 30 critical static assets and 6 root JavaScript bundles matched the local
+  reviewed build by SHA-256; catalog contains all 18 routes and DEVLET's
+  1923–2030 scope, with no stale 2002–05-only catalog claim.
+- Changed IHTILAL app/copy/save/report/style, Apartman app/presentation and
+  shared i18n files are included in exact-byte verification.
+- Root SW serves module games and i18n network-first with offline fallback.
+  Production SW bytes match; regression tests exercise routing/fallback.
+  A fresh post-deploy offline/browser-cache traversal was not executed.
+- Dashboard/API 403 is observability-only. Git integration works. Preview
+  shell-client SSO does not imply production failure. No access bypass.
+- Reproducible verifier:
+  `node scripts/final-public-smoke.mjs https://tariklab-six.vercel.app --exact-public`.
+  This checks HTTP/bytes/catalog; it does not pretend to be a browser test.
+
+## Repository housekeeping and map
+
+92 historical branches: 61 merged + 9 patch-equivalent superseded +
+22 uncertain = 92. Seventy deletion candidates are listed below with exact
+tips. None physically deleted; uncertain work retained. No force or history
+rewrite. Branch deletion remains a non-blocking housekeeping limitation.
+
+Moved root `RACON_MANAGER_AUDIT.md` and `TC_SIM_CURRENT_CANONICAL_HANDOFF.txt`
+to `docs/archive/` with historical/superseded notices. The pre-override
+closure checkpoint is archived too. Original text and useful history remain.
+Historical screenshots/attachments and authored asset inputs remain in place:
+age alone was not treated as proof of junk. No runtime files deleted.
+
+- `README.md`: entry point; `docs/README.md`: current documentation index.
+- `src/lib/games.ts`: catalog truth; `src/routes/`: portal and play shells.
+- `public/games/`: game runtimes, shared engines and authored content.
+- `public/i18n/`: shared language layer; `public/sw.js`: cache strategy.
+- `scripts/`: tests, diagnostics, branch inventory and public byte verifier.
+- `docs/MASTER_FREEZE_CHECK.md`: pre-closure freeze evidence.
+- `docs/ASTRA_GLOBAL_FINAL_CLOSURE.md`: this final truth.
+- `docs/WEB_APP_SYNC_LEDGER.md`: presentation parity for later native work.
+- `docs/archive/`: historical documents, not current defect declarations.
+- Native/Godot remains paused; audio disabled.
+
+The final override accepts this combined evidence with the explicitly recorded
+limitations. No new reproduced material product blocker remains.
 
 ## Historical branch inventory
 
