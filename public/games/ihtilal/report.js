@@ -29,6 +29,10 @@ export function endReport(state, lang = "tr") {
     .slice(0, 3)
     .map(([id, n]) => ({ id, n, title: cardOf(id)?.title?.[lang] || cardOf(id)?.title?.tr || id }));
   const turning = state.log.find((r) => r.k === "steal-lock") || state.log.find((r) => r.k === "lock") || plays[Math.floor(plays.length / 2)];
+  const turningLabels = tr
+    ? { "steal-lock": "kilit el değiştirdi", lock: "masa kilitlendi", play: "dosya oynandı", counter: "karşı dosya oynandı" }
+    : { "steal-lock": "lock changed hands", lock: "desk locked", play: "file played", counter: "counter file played" };
+  const turningLabel = turningLabels[turning?.k] || (tr ? "masa değişti" : "board changed");
   const families = Object.entries(state.familyClaim)
     .filter(([k, v]) => !k.includes(":locked") && v.n >= 2)
     .map(([k, v]) => ({ key: k, n: v.n, family: v.family }));
@@ -62,8 +66,8 @@ export function endReport(state, lang = "tr") {
     })),
     turning: turning
       ? tr
-        ? `Dönemeç: tur ${turning.t}, ${turning.k}${turning.d ? " / " + labelDesk(turning.d, true) : ""}.`
-        : `Turning point: turn ${turning.t}, ${turning.k}${turning.d ? " / " + labelDesk(turning.d, false) : ""}.`
+        ? `Dönemeç: tur ${turning.t}, ${turningLabel}${turning.d ? " / " + labelDesk(turning.d, true) : ""}.`
+        : `Turning point: turn ${turning.t}, ${turningLabel}${turning.d ? " / " + labelDesk(turning.d, false) : ""}.`
       : tr
         ? "Belirgin bir dönemeç yok; masa yavaş kapandı."
         : "No sharp turning point; the board closed slowly.",

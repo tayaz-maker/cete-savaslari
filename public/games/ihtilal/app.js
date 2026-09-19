@@ -25,8 +25,9 @@ function $(tag, attrs = {}, ...children) {
     if (key === "class") el.className = value;
     else if (key === "html") el.innerHTML = value;
     else if (key.startsWith("on") && typeof value === "function") el.addEventListener(key.slice(2), value);
+    else if (key.startsWith("aria-")) el.setAttribute(key, String(value));
     else if (value === false || value == null) continue;
-    else if (key.startsWith("aria-") || key.startsWith("data-")) el.setAttribute(key, value === true ? "" : String(value));
+    else if (key.startsWith("data-")) el.setAttribute(key, String(value));
     else if (key === "disabled" || key === "selected") {
       if (value) el.setAttribute(key, "");
     } else el.setAttribute(key, value === true ? "" : String(value));
@@ -58,6 +59,7 @@ let setup = {
   tutorial: false,
 };
 let busy = false;
+let activeSlot = 1;
 
 const t = (key) => COPY[lang][key] || COPY.tr[key] || key;
 const titleOf = (card) => (card?.title && (card.title[lang] || card.title.tr)) || "";
@@ -72,6 +74,21 @@ function setLang() {
     /* ignore */
   }
   render();
+}
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== "tariklab.language") return;
+  lang = readLang();
+  notice = "";
+  render();
+});
+
+function saveControls() {
+  return $("div", { class: "row" },
+    $("label", {}, t("slotN"), $("select", {
+      onchange: (event) => { activeSlot = Number(event.target.value); render(); },
+    }, [1, 2, 3].map((n) => $("option", { value: n, selected: activeSlot === n }, `${t("slotN")} ${n}`)))),
+    $("button", { class: "btn ghost", type: "button", onclick: () => saveCurrent(activeSlot) }, `${t("save")} ${activeSlot}`));
 }
 
 function topbar(extra) {
@@ -113,6 +130,7 @@ function menu() {
         $("button", { class: "btn ghost", type: "button", onclick: () => { helpOn = true; render(); } }, t("how")),
       ),
       $("h2", { class: "display" }, t("slots")),
+      notice ? $("p", { role: "status" }, notice) : null,
       $(
         "div",
         { class: "slots" },
@@ -130,7 +148,12 @@ function menu() {
                 ? $("button", { class: "btn", type: "button", onclick: () => openSlot(slot.n) }, t("load"))
                 : null,
               slot.summary
-                ? $("button", { class: "btn ghost", type: "button", onclick: () => { clearSlot(storage, slot.n); render(); } }, t("close"))
+                ? $("button", { class: "btn ghost", type: "button", onclick: () => {
+                    if (!window.confirm(`${t("deleteConfirm")} ${slot.n}?`)) return;
+                    const result = clearSlot(storage, slot.n);
+                    notice = result.ok ? t("deleted") : t("saveFail");
+                    render();
+                  } }, t("deleteSave"))
                 : null,
             ),
           ),
@@ -145,7 +168,7 @@ function archButton(id, current, onPick) {
   const a = ARCHETYPES[id];
   return $(
     "button",
-    { class: `arch${current === id ? " is-on" : ""}`, type: "button", onclick: () => onPick(id) },
+    { class: `arch${current === id ? " is-on" : ""}`, type: "button", "aria-pressed": current === id, onclick: () => onPick(id) },
     $("b", { class: "display" }, a.title[lang] || a.title.tr),
     $("small", {}, a.pitch[lang] || a.pitch.tr),
     $("small", {}, a.weakness[lang] || a.weakness.tr),
@@ -210,6 +233,7 @@ function openSlot(n) {
     return;
   }
   state = loaded.state;
+  activeSlot = n;
   selected = null;
   screen = state.result ? "report" : "play";
   render();
@@ -316,7 +340,13 @@ function logLine(row) {
   if (row.k === "end") return t("phaseEnd");
   if (row.k === "chain") return lang === "en" ? "A chain closed." : "Bir zincir kapandı.";
   if (row.k === "family") return lang === "en" ? "Family claimed" : "Aile bağlandı";
-  return `${who}`;
+  if (row.k === "lock-tenure") return `${who}: ${t("tenure")}`;
+  if (row.k === "steal-lock") return `${who}: ${desk} · ${t("stolen")}`;
+  if (row.k === "unlock") return `${who}: ${desk} · ${t("unlocked")}`;
+  if (row.k === "repeat-heat") return `${who}: ${desk} · ${t("repeatHeat")}`;
+  if (row.k === "reshuffle") return `${who}: ${t("reshuffled")}`;
+  if (row.k === "artci-overflow") return `${who}: ${name} · ${t("archiveOverflow")}`;
+  return `${who}: ${t("opened")}`;
 }
 
 function fileCard(id, on) {
@@ -329,11 +359,13 @@ function fileCard(id, on) {
       class: `file-card${on ? " is-on" : ""}`,
       type: "button",
       "aria-label": card.a11y?.[lang] || titleOf(card),
+      "aria-pressed": on,
       onclick: () => { selected = id; render(); },
     },
     $("span", { class: "stamp display" }, stamp),
     $("b", {}, titleOf(card)),
     $("div", { class: "fx" }, fx(card, lang)),
+    $("small", {}, `${t("cost")} ${card.cost} · ${t("muhur")} ${card.seal}`),
   );
 }
 
@@ -367,15 +399,16 @@ function playScreen() {
       $(
         "div",
         { class: "meters" },
-        meter(t("hukum"), `${view.me.hukum} / ${view.opp.hukum}`),
+        meter(t("hukum"), `${t("you")} ${view.me.hukum}/10 · ${t("opp")} ${view.opp.hukum}/10`),
         meter(t("murekkep"), `${view.me.murekkep}`),
         meter(t("muhur"), `${view.me.muhur} / ${view.opp.muhur}`),
         meter(`${t("turn")} ${view.turn}`, view.phase === "karsi" ? t("phaseKarsi") : t("phaseKalem")),
-        $("div", { class: "heatbar", "aria-label": `${t("isi")} ${view.heat}` }, $("i", { style: `width:${view.heat}%` })),
+        $("div", { class: "heat-label" }, `${t("isi")} ${view.heat}/100 · ${t("heatHint")}`),
+        $("div", { class: "heatbar", role: "meter", "aria-label": t("isi"), "aria-valuenow": view.heat, "aria-valuemin": 0, "aria-valuemax": 100 }, $("i", { style: `width:${view.heat}%` })),
       ),
       $(
         "div",
-        { class: "banner" },
+        { class: "banner", role: "status" },
         $("span", {}, banner),
         notice ? $("span", { class: "why" }, notice) : null,
       ),
@@ -396,7 +429,7 @@ function playScreen() {
             },
             $("div", { class: "name display" }, labelDesk(desk, lang !== "en")),
             $("div", { class: "pips" }, `${d.presence[0]} · ${d.presence[1]}`),
-            d.lock != null ? $("div", {}, t("locked")) : null,
+            d.lock != null ? $("div", {}, `${t("locked")} · ${d.lock === 0 ? t("you") : t("opp")}`) : null,
           );
         }),
       ),
@@ -423,7 +456,7 @@ function playScreen() {
           { class: "row" },
           humanKarsi ? $("button", { class: "btn", type: "button", disabled: busy, onclick: () => { applyAction(state, { type: "skip-karsi" }); afterHuman(); } }, t("skipCounter")) : null,
           humanKalem ? $("button", { class: "btn primary", type: "button", disabled: busy, onclick: () => { applyAction(state, { type: "end-kalem" }); afterHuman(); } }, t("endKalem")) : null,
-          $("button", { class: "btn ghost", type: "button", onclick: () => saveCurrent(1) }, `${t("save")} 1`),
+          saveControls(),
         ),
         $(
           "div",
@@ -536,13 +569,14 @@ function reportScreen() {
         { class: "row" },
         $("button", { class: "btn primary", type: "button", onclick: () => { screen = "setup"; render(); } }, t("again")),
         $("button", { class: "btn", type: "button", onclick: () => { screen = "menu"; render(); } }, t("toMenu")),
-        $("button", { class: "btn ghost", type: "button", onclick: () => saveCurrent(1) }, `${t("save")} 1`),
+        saveControls(),
       ),
     ),
   );
 }
 
 function render() {
+  document.documentElement.lang = lang;
   const view = screen === "menu" ? menu() : screen === "setup" ? setupScreen() : screen === "report" ? reportScreen() : playScreen();
   root.replaceChildren(view);
 }

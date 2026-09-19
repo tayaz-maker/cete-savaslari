@@ -38,7 +38,7 @@ export function deserialize(raw) {
 
 export function saveSlot(storage, slot, state) {
   const n = Number(slot);
-  if (n < 1 || n > SLOT_COUNT) return { ok: false, error: "slot" };
+  if (!Number.isInteger(n) || n < 1 || n > SLOT_COUNT) return { ok: false, error: "slot" };
   try {
     const raw = serialize(state);
     const key = slotKey(n);
@@ -53,7 +53,7 @@ export function saveSlot(storage, slot, state) {
 
 export function loadSlot(storage, slot) {
   const n = Number(slot);
-  if (n < 1 || n > SLOT_COUNT) return { ok: false, error: "slot" };
+  if (!Number.isInteger(n) || n < 1 || n > SLOT_COUNT) return { ok: false, error: "slot" };
   try {
     const key = slotKey(n);
     const raw = storage.getItem(key);
@@ -70,6 +70,8 @@ export function loadSlot(storage, slot) {
 }
 
 export function clearSlot(storage, slot) {
+  const n = Number(slot);
+  if (!Number.isInteger(n) || n < 1 || n > SLOT_COUNT) return { ok: false, error: "slot" };
   try {
     storage.removeItem(slotKey(slot));
     storage.removeItem(`${slotKey(slot)}.backup`);

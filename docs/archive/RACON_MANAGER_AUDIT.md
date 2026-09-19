@@ -1,5 +1,9 @@
 # RACON MANAGER TAM DENETİM RAPORU
 
+> HISTORICAL / SUPERSEDED: This September 3 audit describes an old build,
+> not current runtime defects. See [Master Freeze](../MASTER_FREEZE_CHECK.md)
+> for reconciliation against the later fixes and regression tests.
+
 **Denetlenen sürüm:** `main` · commit `b856aa6` · Racon revizyonu `34`  
 **Denetim tarihi:** 3 Eylül 2026  
 **Kapsam:** Kod, kayıt sistemi, oyun döngüsü, denge, içerik, masaüstü/mobil arayüz, sınır durumları ve uzun vadeli oynanış  
@@ -635,4 +639,3 @@ Bu nedenle mevcut testler yararlı ama güven kapısı olmaya yeterli değil.
 Racon Manager'ın çöpe atılması veya baştan yazılması gerekmiyor. İçinde iyi fikirler ve birbirine bağlanmış güçlü sonuç zincirleri var. Fakat şu anda üzerine yeni özellik eklemek doğru sıra değil. Yeni kat eklenirse bozuk muhasebe, sınırsız eylem, zayıf kayıt ve futbol menajerliği omurgası daha da pahalı hâle gelir.
 
 **Doğru sonraki aşama:** Önce ilk 10 düzeltmeyi küçük, testli ve geri alınabilir paketler hâlinde uygulamak. İlk paket yalnız ekonomi invariantı + kayıt güvenliği + eylem zaman sınırı olmalıdır. Bundan sonra takvim/adam müsaitliği, ardından ilerleme omurgası ele alınmalıdır.
-

@@ -9,6 +9,10 @@ any older design document's plan.
 
 ## Product posture
 
+- **Final quality pass:** [ASTRA_GLOBAL_FINAL_CLOSURE.md](ASTRA_GLOBAL_FINAL_CLOSURE.md) records verified work and outstanding gates. A candidate report is not a release certification.
+- **Frozen baseline:** [MASTER_FREEZE_CHECK.md](MASTER_FREEZE_CHECK.md).
+- **History:** [archive/](archive/) contains superseded handoffs and audits; historical findings are not automatically current defects.
+
 - **Active product:** [www.tariklab.com](https://www.tariklab.com) (this repo).
 - **Native/Godot:** paused. Do not continue unless the product owner explicitly restarts it.
 - **Download model:** each game will later ship as its **own** standalone downloadable title — not one giant native TarikLab app.

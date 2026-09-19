@@ -1,3 +1,7 @@
+HISTORICAL / SUPERSEDED: archived during global closure.
+Current identity comes from Git main and docs/MASTER_FREEZE_CHECK.md,
+not this historical transfer note or its missing bundle manifest.
+
 PROJECT:
 TC SIM
 

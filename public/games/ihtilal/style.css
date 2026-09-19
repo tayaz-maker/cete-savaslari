@@ -34,7 +34,7 @@ button, a, summary {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-button:focus-visible, a:focus-visible, summary:focus-visible, select:focus-visible {
+button:focus-visible, a:focus-visible, summary:focus-visible, select:focus-visible, input:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
@@ -157,6 +157,9 @@ h1 { font-size: clamp(2.2rem, 8vw, 4.2rem); margin: 0; letter-spacing: -0.03em; 
   background: var(--rule);
   border: 1px solid var(--line);
 }
+.heat-label { grid-column: 1 / -1; font-size: 0.85rem; color: var(--carbon); }
+.file-card small { display: block; margin-top: 8px; color: var(--muted); }
+.desk:disabled { opacity: 1; }
 .heatbar i {
   display: block;
   height: 100%;

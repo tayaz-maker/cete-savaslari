@@ -34,6 +34,13 @@ Append after a meaningful website change to a game or shared brand/content. Skip
 
 ## Entries
 
+### 2026-09-19 — Global closure candidate: İHTİLAL usability
+- Web change: all three existing save slots selectable in-game; delete-save copy and confirmation; portal language storage synchronization; document language and pressed-state semantics; visible heat value, lock owner, card costs and meaningful ledger events.
+- Save: reject non-integer/non-finite slot numbers before storage access; V1 namespace/schema and existing payloads unchanged.
+- Gameplay/rules: no. Engine, card/deck data and AI unchanged. Content: UI copy only. Artwork/audio: no.
+- Native follow-up: yes (paused), carry the interface safeguards into a later standalone build.
+- Status: candidate on `astra/global-final-closure`, not yet production-accepted.
+
 ### 2026-09-18 — DARBE-H! targeted balance / expansion repair
 - Web change: Regenerated the 300-card DARBE-H! catalog so expansion 151–300 is 90 görevli / 35 emirname / 25 ihtar, the ATK/level curve respects paraf cost (L1–4 free, L5–6 one, L7+ two), and all five 40-card desks mix free and paid officers. Teaching map and expansion trap-series (İhtar) closed. Opus flow-copy (Arşiv / paraf) untouched. VETO/GETT/İHTİLAL untouched.
 - Content: yes. Artwork: procedural SVG, unchanged pipeline. Audio: no.
